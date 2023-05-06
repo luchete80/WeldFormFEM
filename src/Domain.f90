@@ -34,7 +34,7 @@ contains
     
     node_count = pt_count
     !!!GENERAL 
-    allocate (nod%x(node_count,3))
+    allocate (nod%x(node_count,dim))
     ! allocate (nod%rho(node_count))
     ! allocate (nod%drhodt(node_count))
     ! allocate (nod%h(node_count))
@@ -49,9 +49,9 @@ contains
     !MECHANICAL PROPERTIES
     !if (solver_type==1) then 
     
-    allocate (nod%v(node_count,3))
-    allocate (nod%a(node_count,3))
-    allocate (nod%disp(node_count,3))
+    allocate (nod%v(node_count,dim))
+    allocate (nod%a(node_count,dim))
+    allocate (nod%disp(node_count,dim))
     
     ! allocate (nod%sigma(node_count,3,3))
     ! allocate (nod%str_rate(node_count,3,3))
@@ -92,14 +92,14 @@ contains
     real(fp_kind), dimension(1:3), intent(in)  :: V ! input
     real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
     real(fp_kind), dimension (1:3) :: Xp
-    integer :: i, p, ex, ey
+    integer :: i, j, p, ex, ey
       
     integer, dimension(1:3) :: nel 
     
     nel(1) = nint(Lx/(2.0*r)) 
     nel(2) = nint(Ly/(2.0*r)) 
     if (Dim .eq. 2) then
-      nel(3) = 1
+      nel(3) = 0
       nodxelem = 4
     else
       nel(2) = nint(Lz/(2.0*r)) 
@@ -119,26 +119,31 @@ contains
     write (*,*) "xp ", Xp(:)    
     !write(*,*) "Box Particle Count is ", node_count
     p = 1
-    do while (Xp(3) <= (V(3)+Lz))
-      Xp(2) = V(2) 
-      do while (Xp(2) <= (V(2)+Ly))
-        Xp(1) = V(1) 
-        do while (Xp(1) <= (V(1)+Lx))
-            nod%x(p,:) = Xp(:)
-          !print *,"particle ",p , "X: ",Xp(:)
+    !do while (Xp(3) <= (V(3)+Lz))
+      j = 1;         Xp(2) = V(2)
+      do while (j <= (nel(2) +1))
+        i = 1
+        Xp(1) = V(1)
+        do while (i <= (nel(1) +1))
+          nod%x(p,:) = Xp(:)
+          print *,"node ",p , "X: ",Xp(:)
           p = p + 1
           Xp(1) = Xp(1) + 2 * r
-
+          i = i +1
         end do
         Xp(2) = Xp(2) + 2 * r
+        j = j +1
       end do 
       Xp(3) = Xp(3) + 2 * r
-    end do
+    !end do
     
     !! ALLOCATE ELEMENTS
     !! DIMENSION = 2
-    call AllocateElements(nel(1) * nel(2) * nel(3))
-    
+    if (dim .eq. 2) then
+      call AllocateElements(nel(1) * nel(2))
+    else 
+      call AllocateElements(nel(1) * nel(2)*nel(3))
+    end if
     ey = 0
     i = 1
     do while ( ey < nel(2))

@@ -6,6 +6,16 @@ implicit none
 
 contains 
 
+! subroutine printarray(Grid)
+  ! implicit none
+  ! CHARACTER(len=1) :: Grid(3,2)
+  ! integer :: i
+  ! Grid = "x"
+  ! do i = 1, ubound(Grid, 1)
+     ! print *, Grid(i, :)
+  ! end do
+! end subroutine
+
 function det (a)
   real(fp_kind), dimension(dim,dim), intent (in) :: a 
   real(fp_kind) :: det
@@ -40,11 +50,16 @@ subroutine calculate_element_matrices ()
   
   do while (e < elem_count)
     print *, "el ", e
+    
+    print *, "nodxelem ", nodxelem
     i=1
-    print *, "x2 ", x2
     do while (i.le.nodxelem)
+        print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
+        i = i+1
     end do
+    !print *, "x2 ", x2
+    !printarray(x2)
     ! TODO: This could be done once
     i = 1; j = 1
     do while (i<2)
@@ -53,8 +68,11 @@ subroutine calculate_element_matrices ()
         dHrs(1,:)=[-(1-s(j)),(1-s(j)),-(1+s(j)),(1+s(j))]
         dHrs(2,:)=[-(1-r(i)),-(1+r(i)),(1-r(i)),(1+r(i))]   
         dHrs(:,:) = dHrs(:,:)*0.25
+        j = j +1
       end do
+      i = i +1
     end do
+    print *, "dHrs ", dHrs
     test = matmul(dHrs,x2)
     elem%jacob(e,:,:) = test
     elem%dHxy(e,:,:) = matmul(invmat(test),dHrs)
