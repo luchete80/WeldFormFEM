@@ -11,7 +11,7 @@ integer :: Dim, node_count, elem_count, Nproc
 type(Node)	::nod
 type(Element)	::elem
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
-
+real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob
 integer :: nodxelem
 
 real(fp_kind), dimension(3):: dommax, dommin
@@ -85,6 +85,7 @@ contains
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,3,dim*nodxelem))
       allocate (elem%bnl(el_count,4,dim*nodxelem))
+      allocate (elem%strain(el_count,4))
     else 
     end if 
   end subroutine

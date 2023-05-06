@@ -19,13 +19,15 @@ Type Element
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
   real(fp_kind), dimension(:,:,:), allocatable :: sigma, str_rate, rot_rate, shear_stress
-  real(fp_kind), dimension(:), allocatable:: pressure, strain, mat_g
+  real(fp_kind), dimension(:), allocatable:: pressure, mat_g
   
   real(fp_kind), dimension(:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
   real(fp_kind), dimension(:,:,:), allocatable :: BL,BNL, jacob, x2,dHxy
+  
+  real(fp_kind), dimension(:,:), allocatable :: strain
   !! STIFFNESS MATRICES
   real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL
   
