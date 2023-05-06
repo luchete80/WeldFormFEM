@@ -7,9 +7,10 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
-integer :: Dim, node_count, elem_count, Nproc
+integer :: Dim, node_count, elem_count, Nproc, dof 
 type(Node)	::nod
 type(Element)	::elem
+
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob
 integer :: nodxelem
@@ -28,6 +29,15 @@ contains
     DomMax (:) = -100000000000.0;
     DomMin (:) = 100000000000.0;
   end subroutine DomInit
+  
+  !After initialization of nodes and elements
+  subroutine AllocateDomain()
+    dof = node_count*dim
+    
+    allocate (kglob(node_count*dim,node_count*dim))
+    allocate (uglob(node_count*dim,1))
+    
+  end subroutine AllocateDomain
   
   subroutine AllocateNodes(pt_count)
     integer, intent(in):: pt_count
@@ -160,6 +170,8 @@ contains
         end do
       ey = ey + 1
     end do
+    
+    call AllocateDomain()
   
     ! nod%m(:)   = Density * Lx * Ly * Lz / node_count
     ! nod%rho(:)   = Density
