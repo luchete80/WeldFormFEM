@@ -92,6 +92,8 @@ contains
     allocate (elem%matKl(el_count,dim*nodxelem,dim*nodxelem))
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
     
+    allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
+    
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,3,dim*nodxelem))
       allocate (elem%bnl(el_count,4,dim*nodxelem))
