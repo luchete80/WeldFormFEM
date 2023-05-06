@@ -47,6 +47,8 @@ implicit none
   rho = 1000.
   
   call AddBoxLength(0, V, L, L, L, r, rho, h)
+  print *, "Calculating element matrices "
+  call calculate_element_matrices()
 
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)

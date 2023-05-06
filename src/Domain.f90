@@ -75,6 +75,7 @@ contains
     allocate (elem%elnod(el_count,nodxelem))
     allocate (elem%x2(el_count,nodxelem,dim))
     allocate (elem%jacob(el_count,dim,dim))
+    allocate (elem%detj(el_count))
     allocate (elem%sigma_eq(el_count))
     allocate (elem%dHxy(el_count,dim,nodxelem))
     
