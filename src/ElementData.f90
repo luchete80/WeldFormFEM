@@ -26,6 +26,8 @@ Type Element
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
   real(fp_kind), dimension(:,:,:), allocatable :: BL,BNL, jacob, x2,dHxy
+  !! STIFFNESS MATRICES
+  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL
   
   Integer, Dimension(:,:), Allocatable :: elnod !Connectivity
   real(fp_kind), dimension(:), allocatable :: detj

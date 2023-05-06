@@ -46,6 +46,8 @@ implicit none
   L = 1.	
   rho = 1000.
   
+  allocate (mat_C(3,3))
+  
   call AddBoxLength(0, V, L, L, L, r, rho, h)
   print *, "Calculating element matrices "
   call calculate_element_matrices()

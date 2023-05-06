@@ -10,7 +10,7 @@ implicit none
 integer :: Dim, node_count, elem_count, Nproc
 type(Node)	::nod
 type(Element)	::elem
-
+real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 
 integer :: nodxelem
 
@@ -78,6 +78,9 @@ contains
     allocate (elem%detj(el_count))
     allocate (elem%sigma_eq(el_count))
     allocate (elem%dHxy(el_count,dim,nodxelem))
+
+    allocate (elem%matKl(el_count,dim*nodxelem,dim*nodxelem))
+    allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
     
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,3,16))
