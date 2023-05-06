@@ -83,8 +83,8 @@ contains
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
     
     if (Dim .eq. 2) then
-      allocate (elem%bl (el_count,3,16))
-      allocate (elem%bnl(el_count,4,16))
+      allocate (elem%bl (el_count,3,dim*nodxelem))
+      allocate (elem%bnl(el_count,4,dim*nodxelem))
     else 
     end if 
   end subroutine

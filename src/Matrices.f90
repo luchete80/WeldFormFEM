@@ -96,7 +96,7 @@ subroutine calculate_element_matrices ()
         elem%detJ(e) = det(elem%jacob(e,:,:))
         
         print *, "BL ", elem%bl
-        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(elem%bl(e,:,:),mat_C),elem%bl(e,:,:))*elem%detJ(e)
+        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e)
         j = j +1
       end do
       i = i +1
