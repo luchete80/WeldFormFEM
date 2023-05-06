@@ -41,6 +41,7 @@ subroutine calculate_element_matrices ()
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim*nodxelem,dim*nodxelem) ::tempk
+  real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j
   real(fp_kind), dimension(2) :: r, s
@@ -51,10 +52,11 @@ subroutine calculate_element_matrices ()
   
   
   do while (e < elem_count)
-    print *, "el ", e
+    print *, "el ", e 
     
     elem%matkl(e,:,:) = 0.0
     elem%matknl(e,:,:) = 0.0
+    elem%matm(e,:,:) = 0.0
     
     print *, "nodxelem ", nodxelem
     i=1
@@ -95,8 +97,18 @@ subroutine calculate_element_matrices ()
         end do
         elem%detJ(e) = det(elem%jacob(e,:,:))
         
+        if (dim .eq. 2) then
+        temph(1,:) = [(1+r(i))*(1+s(j)),0.0,(1-r(i))*(1+s(j)),0.0,(1-r(i))*(1-s(j)),0.0,(1+r(i))*(1-s(j)),0.0]
+        i = 1
+        do while (i < nodxelem)
+          temph(2,2*k) = temph(1,2*k-1)
+          i = i + 1
+        end 
+        end if 
+        elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)
         !print *, "BL ", elem%bl
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e)
+        !elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(matmul(transpose(
         
         j = j +1
       end do
