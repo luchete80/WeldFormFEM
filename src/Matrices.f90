@@ -96,16 +96,16 @@ subroutine calculate_element_matrices ()
           i= i+1
         end do
         elem%detJ(e) = det(elem%jacob(e,:,:))
-        
+        !TODO CHANGE ZERO
         if (dim .eq. 2) then
-        temph(1,:) = [(1+r(i))*(1+s(j)),0.0,(1-r(i))*(1+s(j)),0.0,(1-r(i))*(1-s(j)),0.0,(1+r(i))*(1-s(j)),0.0]
-        i = 1
-        do while (i < nodxelem)
-          temph(2,2*k) = temph(1,2*k-1)
-          i = i + 1
-        end 
+          temph(1,:) = [(1+r(i))*(1+s(j)),0.0d0,(1-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+          i = 1
+          do while (i < nodxelem)
+            temph(2,2*i) = temph(1,2*i-1)
+            i = i + 1
+          end do
         end if 
-        elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)
+        elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
         !print *, "BL ", elem%bl
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e)
         !elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(matmul(transpose(
