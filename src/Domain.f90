@@ -13,7 +13,7 @@ type(Element)	::elem
 
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
-integer :: nodxelem
+integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
 real(fp_kind), dimension(3):: dommax, dommin
 

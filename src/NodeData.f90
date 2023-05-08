@@ -1,3 +1,4 @@
+!STRUCTURE OF ARRAYS TYPE
 Module NodeData 
   use ModPrecision, only : fp_kind
 

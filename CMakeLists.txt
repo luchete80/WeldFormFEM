@@ -28,4 +28,4 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
 endif()
 
 file(GLOB_RECURSE sources  src/*.f90 src/*.h)
-add_executable(EuLaFEM ${sources})
+add_executable(WeldForm ${sources})

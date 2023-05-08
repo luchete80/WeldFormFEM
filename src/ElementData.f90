@@ -1,3 +1,4 @@
+!STRUCTURE OF ARRAYS TYPE
 Module ElementData 
   use ModPrecision, only : fp_kind
 

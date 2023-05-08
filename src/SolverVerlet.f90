@@ -1,3 +1,5 @@
+!NODAL CALCULATION
+!Calculate Lumped matrix
 
 !Predictor 
 !uest_n+1 = un + dt v_n + dt2/2 a_n

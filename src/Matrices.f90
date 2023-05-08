@@ -129,4 +129,28 @@ subroutine calculate_element_matrices ()
   end do
 end subroutine
 
+subroutine asseble_mass_matrix ()
+  integer :: e, i, j, n, iglob, jglob
+  
+  m_glob (:,:) = 0.0d0
+  e = 1
+  do while (e .le. elem_count)
+	n = 1
+	do while (n .le. nodxelem)
+		i = 1
+		do (while i .le. dim )
+			j = 1
+			do (while  j .le. dim )
+				iglob  = dim * (elnod(i,n) - 1 ) + i
+				jglob  = dim * (elnod(j,n) - 1 ) (dim -1) + j
+				m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
+				j = j + 1
+			end do
+			i = i + 1
+		end do !element row
+		n = n + 1
+	end do ! Element node
+  end do ! e
+end subroutine
+
 end module Matrices
