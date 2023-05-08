@@ -11,6 +11,10 @@ subroutine SolveVerlet (tf, dt)
   
   real(fp_kind),intent(in)::tf, dt
   
+  real(fp_kind), allocatable, dimension(:) :: prev_acc
+  
+  allocate (prev_acc(dim))
+  
   !NODAL CALCULATION
   
   !Predictor 
@@ -23,26 +27,30 @@ subroutine SolveVerlet (tf, dt)
   !Diagonalize
   !SIMPLEST FORM, ROW SUM 
   iglob = 1
-  do while (iglob .le. node_count x dim)
+  do while (iglob .le. node_count * dim)
     n = 1
-    do while (n .le. node_count x dim) !column
-      if (n .neq. iglob)
+    do while (n .le. node_count * dim) !column
+      if (n .ne. iglob) then
        !m_glob(iglob,iglob) = m_glob(iglob,iglob)
+      end if
     end do !col
   iglob = iglob + 1
   end do 
+  !Calculate positions with PREVIOUS ACCELERATIONS
+  
   !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
   n = 1
   do while (n .le. node_count)
     d = 1
     do while (d .le. 2)
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
+      prev_acc = acc_glob(n,:)
       acc_glob(n,:) = rint_glob(n,d)/m_glob(iglob,iglob) 
       d = d + 1
     end do
     !Solve motion at t_n+1
     !Update vel with CURRENT ACCELERATION
-    v_glob(n,:) = v_glob(n,:) + 
+    v_glob(n,:) = v_glob(n,:) + 0.5d0 * (acc_glob(n,:) + prev_acc)*dt
     
     n = n + 1
   end do !Node
