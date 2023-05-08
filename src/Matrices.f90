@@ -138,11 +138,11 @@ subroutine assemble_mass_matrix ()
 	n = 1
 	do while (n .le. nodxelem)
 		i = 1
-		do (while i .le. dim )
+		do while (i .le. dim )
 			j = 1
-			do (while  j .le. dim )
-				iglob  = dim * (elnod(e,n) - 1 ) + i
-				jglob  = dim * (elnod(e,n) - 1 ) + j
+			do while (j .le. dim )
+				iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+				jglob  = dim * (elem%elnod(e,n) - 1 ) + j
 				m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
 				j = j + 1
 			end do
