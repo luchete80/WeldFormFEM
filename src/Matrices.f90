@@ -129,7 +129,7 @@ subroutine calculate_element_matrices ()
   end do
 end subroutine
 
-subroutine asseble_mass_matrix ()
+subroutine assemble_mass_matrix ()
   integer :: e, i, j, n, iglob, jglob
   
   m_glob (:,:) = 0.0d0
@@ -141,8 +141,8 @@ subroutine asseble_mass_matrix ()
 		do (while i .le. dim )
 			j = 1
 			do (while  j .le. dim )
-				iglob  = dim * (elnod(i,n) - 1 ) + i
-				jglob  = dim * (elnod(j,n) - 1 ) (dim -1) + j
+				iglob  = dim * (elnod(e,n) - 1 ) + i
+				jglob  = dim * (elnod(e,n) - 1 ) + j
 				m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
 				j = j + 1
 			end do
@@ -150,6 +150,7 @@ subroutine asseble_mass_matrix ()
 		end do !element row
 		n = n + 1
 	end do ! Element node
+    e = e + 1
   end do ! e
 end subroutine
 
