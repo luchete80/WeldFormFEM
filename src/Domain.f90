@@ -14,7 +14,7 @@ type(Element)	::elem
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
-real(fp_kind), dimension(:,:), Allocatable :: acc_glob, v_glob, rint_glob !Accelerations and internal forces
+real(fp_kind), dimension(:,:), Allocatable :: rint_glob !Accelerations and internal forces
 integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
 real(fp_kind), dimension(3):: dommax, dommin
@@ -41,7 +41,6 @@ contains
     allocate (m_glob(node_count*dim,node_count*dim))
     
     allocate (rint_glob(node_count,dim))
-    allocate (acc_glob (node_count,dim))
   end subroutine AllocateDomain
   
   subroutine AllocateNodes(pt_count)

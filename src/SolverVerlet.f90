@@ -37,20 +37,24 @@ subroutine SolveVerlet (tf, dt)
   iglob = iglob + 1
   end do 
   !Calculate positions with PREVIOUS ACCELERATIONS
-  
+  n = 1
+  do while (n .le. node_count)
+    nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + 0.5d0 * nod%a(n,:) * dt    
+    n = n + 1
+  end do !Node    
   !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
   n = 1
   do while (n .le. node_count)
     d = 1
     do while (d .le. 2)
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      prev_acc = acc_glob(n,:)
-      acc_glob(n,:) = rint_glob(n,d)/m_glob(iglob,iglob) 
+      prev_acc = nod%a(n,:)
+      nod%a(n,:) = rint_glob(n,d)/m_glob(iglob,iglob) 
       d = d + 1
     end do
     !Solve motion at t_n+1
     !Update vel with CURRENT ACCELERATION
-    v_glob(n,:) = v_glob(n,:) + 0.5d0 * (acc_glob(n,:) + prev_acc)*dt
+    nod%v(n,:) = nod%v(n,:) + 0.5d0 * (nod%a(n,:) + prev_acc)*dt
     
     n = n + 1
   end do !Node
