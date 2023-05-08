@@ -107,8 +107,8 @@ subroutine calculate_element_matrices ()
         end if 
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
         !print *, "BL ", elem%bl
-        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e)
-        !elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(matmul(transpose(
+        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
+        elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) !Mass matrix
         
         j = j +1
       end do
