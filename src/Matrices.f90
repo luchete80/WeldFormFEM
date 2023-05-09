@@ -100,6 +100,7 @@ subroutine calculate_element_matrices ()
         !TODO CHANGE ZERO
         if (dim .eq. 2) then
           temph(1,:) = [(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+          temph(2,:) = [0.0d0,(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j))]
           i = 1
           do while (i < nodxelem)
             temph(2,2*i) = temph(1,2*i-1)
