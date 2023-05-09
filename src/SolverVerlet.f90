@@ -1,4 +1,4 @@
-module Solver
+module SolverVerlet
 use ModPrecision, only : fp_kind
 
 contains 
@@ -15,6 +15,7 @@ subroutine SolveVerlet (tf, dt)
   
   allocate (prev_acc(dim))
   
+  call calculate_element_matrices()
   !NODAL CALCULATION
   
   !Predictor 
@@ -25,41 +26,41 @@ subroutine SolveVerlet (tf, dt)
   !Calculate Lumped matrix
   call assemble_mass_matrix()
   call assemble_int_forces()
-  !Diagonalize
-  !SIMPLEST FORM, ROW SUM 
-  mdiag(:)=0.0d0
-  iglob = 1
-  do while (iglob .le. node_count * dim)
-    n = 1
-    do while (n .le. node_count * dim) !column
-       mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-    end do !col
-  iglob = iglob + 1
-  end do 
-  !Calculate positions with PREVIOUS ACCELERATIONS
-  n = 1
-  do while (n .le. node_count)
-    nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + 0.5d0 * nod%a(n,:) * dt    
-    n = n + 1
-  end do !Node    
-  !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
-  n = 1
-  do while (n .le. node_count)
-    d = 1
-    do while (d .le. 2)
-      iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      prev_acc = nod%a(n,:)
-      nod%a(n,:) = rint_glob(n,d)/mdiag(iglob) 
-      d = d + 1
-    end do
-    !Solve motion at t_n+1
-    !Update vel with CURRENT ACCELERATION
-    nod%v(n,:) = nod%v(n,:) + 0.5d0 * (nod%a(n,:) + prev_acc)*dt
+  ! !Diagonalize
+  ! !SIMPLEST FORM, ROW SUM 
+  ! mdiag(:)=0.0d0
+  ! iglob = 1
+  ! do while (iglob .le. node_count * dim)
+    ! n = 1
+    ! do while (n .le. node_count * dim) !column
+       ! mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+    ! end do !col
+  ! iglob = iglob + 1
+  ! end do 
+  ! !Calculate positions with PREVIOUS ACCELERATIONS
+  ! n = 1
+  ! do while (n .le. node_count)
+    ! nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + 0.5d0 * nod%a(n,:) * dt    
+    ! n = n + 1
+  ! end do !Node    
+  ! !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
+  ! n = 1
+  ! do while (n .le. node_count)
+    ! d = 1
+    ! do while (d .le. 2)
+      ! iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
+      ! prev_acc = nod%a(n,:)
+      ! nod%a(n,:) = rint_glob(n,d)/mdiag(iglob) 
+      ! d = d + 1
+    ! end do
+    ! !Solve motion at t_n+1
+    ! !Update vel with CURRENT ACCELERATION
+    ! nod%v(n,:) = nod%v(n,:) + 0.5d0 * (nod%a(n,:) + prev_acc)*dt
     
-    n = n + 1
-  end do !Node
+    ! n = n + 1
+  ! end do !Node
 
 
 end subroutine SolveVerlet
 
-end module Solver
+end module SolverVerlet

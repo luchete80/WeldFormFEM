@@ -166,7 +166,7 @@ subroutine assemble_int_forces()
 		do while (i .le. dim )
       iglob  = dim * (elem%elnod(e,n) - 1 ) + i
       rtemp = matmul(elem%matkl(e,:,:), utemp(:,:))
-      rint_glob(e,iglob) =  rint_glob(e,iglob) + rtemp(dim*(n-1)+i,1)
+      rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
 			i = i + 1
 		end do !element row
 		n = n + 1

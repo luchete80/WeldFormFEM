@@ -6,6 +6,7 @@ use Domain
 !use Thermal
 use omp_lib
 use Matrices
+use SolverVerlet
 !use Thermal
 !use Mechanical
 !use ModPrecision, only : fp_kind
@@ -18,7 +19,7 @@ implicit none
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
-  real(fp_kind) :: L, rho 
+  real(fp_kind) :: L, rho, dt, tf 
   
   !type(Domain)	::dom
 
@@ -50,7 +51,10 @@ implicit none
   
   call AddBoxLength(0, V, L, L, L, r, rho, h)
   print *, "Calculating element matrices "
-  call calculate_element_matrices()
+  
+  dt = 1.0e-5
+  tf = 1.0e-5
+  call SolveVerlet(tf,dt)
 
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
