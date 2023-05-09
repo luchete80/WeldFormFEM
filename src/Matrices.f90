@@ -40,7 +40,6 @@ subroutine calculate_element_matrices ()
   real(fp_kind), dimension(dim,nodxelem) :: dHrs
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
-  real(fp_kind), dimension(dim*nodxelem,dim*nodxelem) ::tempk
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j
@@ -153,5 +152,27 @@ subroutine assemble_mass_matrix ()
     e = e + 1
   end do ! e
 end subroutine
+
+subroutine assemble_int_forces()
+  integer :: e, i, j, n, iglob
+  real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
+  
+  rint_glob (:,:) = 0.0d0
+  e = 1
+  do while (e .le. elem_count)
+	n = 1
+	do while (n .le. nodxelem)
+		i = 1
+		do while (i .le. dim )
+      iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+      rtemp = matmul(elem%matkl(e,:,:), utemp(:,:))
+      rint_glob(e,iglob) =  rint_glob(e,iglob) + rtemp(dim*(n-1)+i,1)
+			i = i + 1
+		end do !element row
+		n = n + 1
+	end do ! Element node
+    e = e + 1
+  end do ! e
+end subroutine 
 
 end module Matrices
