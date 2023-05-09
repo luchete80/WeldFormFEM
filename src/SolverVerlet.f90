@@ -24,6 +24,7 @@ subroutine SolveVerlet (tf, dt)
   !Calculate a from  M dacc = fext (tn+1) - fint(uest, vest) -fcont
   !Calculate Lumped matrix
   call assemble_mass_matrix()
+  call assemble_int_forces()
   !Diagonalize
   !SIMPLEST FORM, ROW SUM 
   iglob = 1
