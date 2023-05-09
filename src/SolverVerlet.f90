@@ -10,7 +10,7 @@ subroutine SolveVerlet (tf, dt)
   integer :: n, d, iglob
   
   real(fp_kind),intent(in)::tf, dt
-  
+  real(fp_kind), dimension(nodxelem*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), allocatable, dimension(:) :: prev_acc
   
   allocate (prev_acc(dim))
@@ -27,13 +27,12 @@ subroutine SolveVerlet (tf, dt)
   call assemble_int_forces()
   !Diagonalize
   !SIMPLEST FORM, ROW SUM 
+  mdiag(:)=0.0d0
   iglob = 1
   do while (iglob .le. node_count * dim)
     n = 1
     do while (n .le. node_count * dim) !column
-      if (n .ne. iglob) then
-       !m_glob(iglob,iglob) = m_glob(iglob,iglob)
-      end if
+       mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
     end do !col
   iglob = iglob + 1
   end do 
@@ -50,7 +49,7 @@ subroutine SolveVerlet (tf, dt)
     do while (d .le. 2)
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
       prev_acc = nod%a(n,:)
-      nod%a(n,:) = rint_glob(n,d)/m_glob(iglob,iglob) 
+      nod%a(n,:) = rint_glob(n,d)/mdiag(iglob) 
       d = d + 1
     end do
     !Solve motion at t_n+1
