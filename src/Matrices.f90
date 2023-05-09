@@ -83,15 +83,15 @@ subroutine calculate_element_matrices ()
         !DERIVATIVE MATRICES
         i=1
         do while (i<nodxelem)
-          elem%bl(e,1,2*i  ) = elem%dHxy(e,1,i)
-          elem%bl(e,2,2*i+1) = elem%dHxy(e,2,i)
-          elem%bl(e,3,2*i)   = elem%dHxy(e,2,i) 
-          elem%bl(e,3,2*i+1) = elem%dHxy(e,1,i)     
+          elem%bl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
+          elem%bl(e,2,dim*(i-1)+i+1) = elem%dHxy(e,2,i)
+          elem%bl(e,3,dim*(i-1)+i  )   = elem%dHxy(e,2,i) 
+          elem%bl(e,3,dim*(i-1)+i+1) = elem%dHxy(e,1,i)     
 
-          elem%bnl(e,1,2*i  ) = elem%dHxy(e,1,i)
-          elem%bnl(e,2,2*i  ) = elem%dHxy(e,2,i)
-          elem%bnl(e,3,2*i+1) = elem%dHxy(e,1,i) 
-          elem%bnl(e,4,2*i+1) = elem%dHxy(e,2,i)     
+          elem%bnl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
+          elem%bnl(e,2,dim*(i-1)+i  ) = elem%dHxy(e,2,i)
+          elem%bnl(e,3,dim*(i-1)+i+1) = elem%dHxy(e,1,i) 
+          elem%bnl(e,4,dim*(i-1)+i+1) = elem%dHxy(e,2,i)     
           i= i+1
         end do
         print *, "jacob e ", elem%jacob(e,:,:)
@@ -99,7 +99,7 @@ subroutine calculate_element_matrices ()
         elem%detJ(e) = det(elem%jacob(e,:,:))
         !TODO CHANGE ZERO
         if (dim .eq. 2) then
-          temph(1,:) = [(1+r(i))*(1+s(j)),0.0d0,(1-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+          temph(1,:) = [(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
           i = 1
           do while (i < nodxelem)
             temph(2,2*i) = temph(1,2*i-1)
