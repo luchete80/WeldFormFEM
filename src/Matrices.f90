@@ -28,8 +28,8 @@ function invmat (a)
   real(fp_kind), dimension(dim,dim), intent (in) :: a 
   real(fp_kind), dimension(dim,dim) :: invmat 
   !if (dim .eq. 2) then
-  invmat(1,:) = [ a(2,2),-a(1,2)]
-  invmat(2,:) = [-a(2,1), a(1,1)]
+  invmat(1,:) = 1.0d0/(det(a))*[ a(2,2),-a(1,2)]
+  invmat(2,:) = 1.0d0/(det(a))*[-a(2,1), a(1,1)]
   !end if
 end function
 
@@ -70,9 +70,9 @@ subroutine calculate_element_matrices ()
     i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
     do while (i<2)
       do while (j<2)
-        !TODO: DO THIS ONCE AT THE BEGINING
+        !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
         dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
-        dHrs(2,:)=[(1+r(i)),(1-r(i)),-(1-r(i)),-(1+r(i))]   
+        dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
         dHrs(:,:) = dHrs(:,:)*0.25
 
         print *, "dHrs ", dHrs
@@ -80,13 +80,14 @@ subroutine calculate_element_matrices ()
         print *, "x2, ", x2
         elem%jacob(e,:,:) = test
         elem%dHxy(e,:,:) = matmul(invmat(test),dHrs)
+        print *, "inv mat", invmat(test)
         
         !DERIVATIVE MATRICES
         i=1
         do while (i<nodxelem)
           elem%bl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
           elem%bl(e,2,dim*(i-1)+i+1) = elem%dHxy(e,2,i)
-          elem%bl(e,3,dim*(i-1)+i  )   = elem%dHxy(e,2,i) 
+          elem%bl(e,3,dim*(i-1)+i  ) = elem%dHxy(e,2,i) 
           elem%bl(e,3,dim*(i-1)+i+1) = elem%dHxy(e,1,i)     
 
           elem%bnl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
@@ -96,8 +97,9 @@ subroutine calculate_element_matrices ()
           i= i+1
         end do
         print *, "jacob e ", elem%jacob(e,:,:)
-        print *, "det J", elem%detJ(e)
+        
         elem%detJ(e) = det(elem%jacob(e,:,:))
+        print *, "det J", elem%detJ(e)
         !TODO CHANGE ZERO
         if (dim .eq. 2) then
           temph(1,:) = 0.2*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
