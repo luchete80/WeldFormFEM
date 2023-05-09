@@ -50,7 +50,7 @@ subroutine calculate_element_matrices ()
   !! Update x2 vector (this is useful for strain and stress things)
   
   
-  do while (e < elem_count)
+  do while (e <= elem_count)
     print *, "el ", e 
     
     elem%matkl(e,:,:) = 0.0
@@ -157,10 +157,12 @@ subroutine assemble_int_forces()
   integer :: e, i, j, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
+  print *, "assemblying int forces"
   rint_glob (:,:) = 0.0d0
   e = 1
   do while (e .le. elem_count)
-	n = 1
+    !print *, "elem ", e
+  n = 1
 	do while (n .le. nodxelem)
 		i = 1
 		do while (i .le. dim )
