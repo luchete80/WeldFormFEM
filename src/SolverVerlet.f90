@@ -10,10 +10,9 @@ subroutine SolveVerlet (tf, dt)
   integer :: n, d, iglob
   
   real(fp_kind),intent(in)::tf, dt
-  real(fp_kind), dimension(nodxelem*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
-  real(fp_kind), allocatable, dimension(:) :: prev_acc
+  real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
+  real(fp_kind), dimension(dim) :: prev_acc
   
-  allocate (prev_acc(dim))
   
   call calculate_element_matrices()
   !NODAL CALCULATION
@@ -43,8 +42,9 @@ subroutine SolveVerlet (tf, dt)
   n = 1
   print *, "calculating positions "
   do while (n .le. node_count)
-  print *, "n ", n
-    nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + 0.5d0 * nod%a(n,:) * dt    
+    print *, "n ", n, "acc ", nod%v(n,:)
+    !nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
+    !nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
     n = n + 1
   end do !Node    
   !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
@@ -52,16 +52,19 @@ subroutine SolveVerlet (tf, dt)
   n = 1
   do while (n .le. node_count)
     print *, "node ", n 
+    prev_acc(:) = nod%a(n,:)
     d = 1
     do while (d .le. 2)
+      print *, "dim ", d
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      prev_acc = nod%a(n,:)
-      nod%a(n,:) = rint_glob(n,d)/mdiag(iglob) 
+      print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
+      
+      !nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
       d = d + 1
     end do
     !Solve motion at t_n+1
     !Update vel with CURRENT ACCELERATION
-    nod%v(n,:) = nod%v(n,:) + 0.5d0 * (nod%a(n,:) + prev_acc)*dt
+    !nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) !THIS CRASH
     
     n = n + 1
   end do !Node
