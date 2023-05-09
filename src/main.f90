@@ -54,6 +54,7 @@ implicit none
   
   dt = 1.0e-5
   tf = 1.0e-5
+  nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
 
 !  do i = 1, part_count

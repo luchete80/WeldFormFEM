@@ -43,6 +43,7 @@ subroutine SolveVerlet (tf, dt)
   n = 1
   print *, "calculating positions "
   do while (n .le. node_count)
+  print *, "n ", n
     nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + 0.5d0 * nod%a(n,:) * dt    
     n = n + 1
   end do !Node    
