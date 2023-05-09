@@ -71,12 +71,13 @@ subroutine calculate_element_matrices ()
     do while (i<2)
       do while (j<2)
         !TODO: DO THIS ONCE AT THE BEGINING
-        dHrs(1,:)=[-(1-s(j)),(1-s(j)),-(1+s(j)),(1+s(j))]
-        dHrs(2,:)=[-(1-r(i)),-(1+r(i)),(1-r(i)),(1+r(i))]   
+        dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+        dHrs(2,:)=[(1+r(i)),(1-r(i)),-(1-r(i)),-(1+r(i))]   
         dHrs(:,:) = dHrs(:,:)*0.25
 
         print *, "dHrs ", dHrs
         test = matmul(dHrs,x2)
+        print *, "x2, ", x2
         elem%jacob(e,:,:) = test
         elem%dHxy(e,:,:) = matmul(invmat(test),dHrs)
         
