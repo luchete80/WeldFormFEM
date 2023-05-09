@@ -42,7 +42,7 @@ subroutine calculate_element_matrices ()
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
-  integer :: i,j
+  integer :: i,j,k,d
   real(fp_kind), dimension(2) :: r, s
   e = 1
   r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
@@ -83,37 +83,37 @@ subroutine calculate_element_matrices ()
         print *, "inv mat", invmat(test)
         
         !DERIVATIVE MATRICES
-        i=1
-        do while (i<nodxelem)
-          elem%bl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
-          elem%bl(e,2,dim*(i-1)+i+1) = elem%dHxy(e,2,i)
-          elem%bl(e,3,dim*(i-1)+i  ) = elem%dHxy(e,2,i) 
-          elem%bl(e,3,dim*(i-1)+i+1) = elem%dHxy(e,1,i)     
+        k=1
+        do whkle (k<nodxelem)
+          elem%bl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)
+          elem%bl(e,2,dim*(k-1)+k+1) = elem%dHxy(e,2,k)
+          elem%bl(e,3,dim*(k-1)+k  ) = elem%dHxy(e,2,k) 
+          elem%bl(e,3,dim*(k-1)+k+1) = elem%dHxy(e,1,k)     
 
-          elem%bnl(e,1,dim*(i-1)+i  ) = elem%dHxy(e,1,i)
-          elem%bnl(e,2,dim*(i-1)+i  ) = elem%dHxy(e,2,i)
-          elem%bnl(e,3,dim*(i-1)+i+1) = elem%dHxy(e,1,i) 
-          elem%bnl(e,4,dim*(i-1)+i+1) = elem%dHxy(e,2,i)     
-          i= i+1
+          elem%bnl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)
+          elem%bnl(e,2,dim*(k-1)+k  ) = elem%dHxy(e,2,k)
+          elem%bnl(e,3,dim*(k-1)+k+1) = elem%dHxy(e,1,k) 
+          elem%bnl(e,4,dim*(k-1)+k+1) = elem%dHxy(e,2,k)     
+          i= k+1
         end do
-        print *, "jacob e ", elem%jacob(e,:,:)
+        !print *, "jacob e ", elem%jacob(e,:,:)
         
         elem%detJ(e) = det(elem%jacob(e,:,:))
-        print *, "det J", elem%detJ(e)
+        !print *, "det J", elem%detJ(e)
         !TODO CHANGE ZERO
         if (dim .eq. 2) then
-          temph(1,:) = 0.2*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
-          i = 1
-          do while (i < nodxelem)
-            temph(2,2*i) = temph(1,2*i-1)
-            i = i + 1
+          temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+          k = 1
+          do while (k <= nodxelem)
+            temph(2,2*k) = temph(1,2*(k-1)+d) !TODO: CHANGE IN 3D
+            k = k + 1
           end do
         end if 
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
-        print *, "element mat m ", elem%math (e,:,:)
+        print *, "temp h ", temph
         !print *, "BL ", elem%bl
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
-        elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) !Mass matrix
+        elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) *elem%detJ(e)!Mass matrix
         print *, "element mat m ", elem%matm (e,:,:)
         j = j +1
       end do
