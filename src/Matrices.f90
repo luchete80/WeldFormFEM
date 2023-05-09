@@ -94,6 +94,8 @@ subroutine calculate_element_matrices ()
           elem%bnl(e,4,2*i+1) = elem%dHxy(e,2,i)     
           i= i+1
         end do
+        print *, "jacob e ", elem%jacob(e,:,:)
+        print *, "det J", elem%detJ(e)
         elem%detJ(e) = det(elem%jacob(e,:,:))
         !TODO CHANGE ZERO
         if (dim .eq. 2) then
@@ -105,10 +107,11 @@ subroutine calculate_element_matrices ()
           end do
         end if 
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
+        print *, "element mat m ", elem%math (e,:,:)
         !print *, "BL ", elem%bl
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) !Mass matrix
-        
+        print *, "element mat m ", elem%matm (e,:,:)
         j = j +1
       end do
       i = i +1

@@ -42,7 +42,7 @@ subroutine SolveVerlet (tf, dt)
   n = 1
   print *, "calculating positions "
   do while (n .le. node_count)
-    print *, "n ", n, "acc ", nod%v(n,:)
+    !print *, "n ", n, "acc ", nod%v(n,:)
     !nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
     !nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
     n = n + 1
@@ -51,13 +51,13 @@ subroutine SolveVerlet (tf, dt)
   print *, "calculating accel"
   n = 1
   do while (n .le. node_count)
-    print *, "node ", n 
+    !print *, "node ", n 
     prev_acc(:) = nod%a(n,:)
     d = 1
     do while (d .le. 2)
-      print *, "dim ", d
+      !print *, "dim ", d
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
+      !print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
       
       !nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
       d = d + 1
