@@ -84,7 +84,7 @@ subroutine calculate_element_matrices ()
         
         !DERIVATIVE MATRICES
         k=1
-        do whkle (k<nodxelem)
+        do while (k<nodxelem)
           elem%bl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)
           elem%bl(e,2,dim*(k-1)+k+1) = elem%dHxy(e,2,k)
           elem%bl(e,3,dim*(k-1)+k  ) = elem%dHxy(e,2,k) 
@@ -101,7 +101,8 @@ subroutine calculate_element_matrices ()
         elem%detJ(e) = det(elem%jacob(e,:,:))
         !print *, "det J", elem%detJ(e)
         !TODO CHANGE ZERO
-        if (dim .eq. 2) then
+        d = 1
+        if (d .eq. 2) then
           temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
           k = 1
           do while (k <= nodxelem)
@@ -140,27 +141,27 @@ subroutine assemble_mass_matrix ()
   m_glob (:,:) = 0.0d0
   e = 1
   do while (e .le. elem_count)
-	n = 1
-	do while (n .le. nodxelem)
-		i = 1
-		do while (i .le. dim )
-			j = 1
-			do while (j .le. dim )
-				iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-				jglob  = dim * (elem%elnod(e,n) - 1 ) + j
-				m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
-				j = j + 1
-			end do
-			i = i + 1
-		end do !element row
-		n = n + 1
-	end do ! Element node
+    n = 1
+    do while (n .le. nodxelem)
+      i = 1
+      do while (i .le. dim )
+        j = 1
+        do while (j .le. dim )
+          iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+          jglob  = dim * (elem%elnod(e,n) - 1 ) + j
+          m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
+          j = j + 1
+        end do
+        i = i + 1
+      end do !element row
+      n = n + 1
+    end do ! Element node
     e = e + 1
   end do ! e
 end subroutine
 
 subroutine assemble_int_forces()
-  integer :: e, i, j, n, iglob
+  integer :: e, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
   print *, "assemblying int forces"
@@ -168,17 +169,17 @@ subroutine assemble_int_forces()
   e = 1
   do while (e .le. elem_count)
     !print *, "elem ", e
-  n = 1
-	do while (n .le. nodxelem)
-		i = 1
-		do while (i .le. dim )
-      iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-      rtemp = matmul(elem%matkl(e,:,:), utemp(:,:))
-      rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
-			i = i + 1
-		end do !element row
-		n = n + 1
-	end do ! Element node
+    n = 1
+    do while (n .le. nodxelem)
+      i = 1
+      do while (i .le. dim )
+        iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+        rtemp = matmul(elem%matkl(e,:,:), utemp(:,:))
+        rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
+        i = i + 1
+      end do !element row
+      n = n + 1
+    end do ! Element node
     e = e + 1
   end do ! e
 end subroutine 
