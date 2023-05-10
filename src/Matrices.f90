@@ -42,7 +42,7 @@ subroutine calculate_element_matrices ()
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
-  integer :: i,j,k,d
+  integer :: i,j,k
   real(fp_kind), dimension(2) :: r, s
   e = 1
   r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
@@ -94,19 +94,19 @@ subroutine calculate_element_matrices ()
           elem%bnl(e,2,dim*(k-1)+k  ) = elem%dHxy(e,2,k)
           elem%bnl(e,3,dim*(k-1)+k+1) = elem%dHxy(e,1,k) 
           elem%bnl(e,4,dim*(k-1)+k+1) = elem%dHxy(e,2,k)     
-          i= k+1
+          k = k+1
         end do
         !print *, "jacob e ", elem%jacob(e,:,:)
         
         elem%detJ(e) = det(elem%jacob(e,:,:))
-        !print *, "det J", elem%detJ(e)
+        print *, "det J", elem%detJ(e)
         !TODO CHANGE ZERO
-        d = 1
-        if (d .eq. 2) then
+
+        if (dim .eq. 2) then
           temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
           k = 1
           do while (k <= nodxelem)
-            temph(2,2*k) = temph(1,2*(k-1)+d) !TODO: CHANGE IN 3D
+            temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
             k = k + 1
           end do
         end if 
