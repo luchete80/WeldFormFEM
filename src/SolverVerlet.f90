@@ -14,7 +14,7 @@ subroutine SolveVerlet (tf, dt)
   real(fp_kind), dimension(dim) :: prev_acc
   
   
-  call calculate_element_matrices()
+  call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   !NODAL CALCULATION
   
   !Predictor 

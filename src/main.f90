@@ -50,7 +50,9 @@ implicit none
 
    V(1) = 0.;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
-
+  !BOUNDARY CONDITIONS
+  !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
+  
   rho = 1000.
   
   allocate (mat_C(3,3))
