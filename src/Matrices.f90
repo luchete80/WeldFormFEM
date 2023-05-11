@@ -80,7 +80,7 @@ subroutine calculate_element_matrices ()
         print *, "x2, ", x2
         elem%jacob(e,:,:) = test
         elem%dHxy(e,:,:) = matmul(invmat(test),dHrs)
-        print *, "inv mat", invmat(test)
+        print *, "inv mat", elem%dHxy(e,:,:)
         
         !DERIVATIVE MATRICES
         k=1
@@ -100,6 +100,7 @@ subroutine calculate_element_matrices ()
         
         elem%detJ(e) = det(elem%jacob(e,:,:))
         print *, "det J", elem%detJ(e)
+        !print *, "bl ", elem%bl(e,:,:)
         !TODO CHANGE ZERO
 
         if (dim .eq. 2) then
@@ -113,6 +114,8 @@ subroutine calculate_element_matrices ()
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
         print *, "temp h ", temph
         !print *, "BL ", elem%bl
+        elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,:,:)),elem%tau(e,:,:)),&
+                              &elem%bnl(e,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) *elem%detJ(e)!Mass matrix
         print *, "element mat m ", elem%matm (e,:,:)

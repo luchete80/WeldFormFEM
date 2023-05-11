@@ -92,6 +92,7 @@ contains
     allocate (elem%detj(el_count))
     allocate (elem%sigma_eq(el_count))
     allocate (elem%dHxy(el_count,dim,nodxelem))
+    allocate (elem%tau(el_count,dim*dim,dim*dim))
 
     allocate (elem%matKl(el_count,dim*nodxelem,dim*nodxelem))
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))

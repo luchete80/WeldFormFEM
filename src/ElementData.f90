@@ -19,7 +19,7 @@ Type Element
 
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
-  real(fp_kind), dimension(:,:,:), allocatable :: sigma, str_rate, rot_rate, shear_stress
+  real(fp_kind), dimension(:,:,:), allocatable :: tau, str_rate, rot_rate, shear_stress !tau is Cauchy Stress (do not confuse with shear)
   real(fp_kind), dimension(:), allocatable:: pressure, mat_g
   
   real(fp_kind), dimension(:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
