@@ -68,8 +68,8 @@ subroutine calculate_element_matrices ()
     !printarray(x2)
     ! TODO: This could be done once
     i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
-    do while (i<2)
-      do while (j<2)
+    do while (i<=2)
+      do while (j<=2)
         !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
         dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
         dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
@@ -83,6 +83,7 @@ subroutine calculate_element_matrices ()
         print *, "inv mat", elem%dHxy(e,:,:)
         
         !DERIVATIVE MATRICES
+        !TODO: CHANGE IF DIM != 2
         k=1
         do while (k<nodxelem)
           elem%bl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)

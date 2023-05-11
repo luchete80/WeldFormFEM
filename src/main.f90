@@ -35,21 +35,29 @@ implicit none
   
    write( *, * ) 'Max threads ', maxt
    
-  dx    = 0.1
-  Rxy  = 0.15
-  Lz = 0.56
+  !CALL 10 x 10 element rectangle
+  ! dx    = 0.1
+  ! Rxy  = 0.15
+  ! Lz = 0.56
+  ! r = dx / 2.0
+  ! h = dx * 1.2
+  L = 1.	
+  Dim = 2
+   L = 0.01	
+  dx    = 0.01
   r = dx / 2.0
   h = dx * 1.2
-  Dim = 2
 
    V(1) = 0.;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
-  L = 1.	
+
   rho = 1000.
   
   allocate (mat_C(3,3))
   
-  call AddBoxLength(0, V, L, L, L, r, rho, h)
+ call AddBoxLength(0, V, L, L, L, r, rho, h)
+  
+  
   print *, "Calculating element matrices "
   
   dt = 1.0e-5
