@@ -57,9 +57,9 @@ subroutine SolveVerlet (tf, dt)
     do while (d .le. 2)
       !print *, "dim ", d
       iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      !print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
+      print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
       
-      !nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
+      nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
       d = d + 1
     end do
     !Solve motion at t_n+1

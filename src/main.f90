@@ -14,7 +14,7 @@ use SolverVerlet
 implicit none
 
   real(fp_kind), dimension(1:3) :: V
-  real(fp_kind) :: dx, r, Rxy, Lz, h 
+  real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
   integer:: i, tnr, maxt ,nn
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
@@ -56,6 +56,23 @@ implicit none
   rho = 1000.
   
   allocate (mat_C(3,3))
+  
+  !PLANE STRESS
+  !Plain Stress
+  poisson = 0.3
+  young = 200.0e9
+	ck = young / (1 - poisson*poisson);
+	mat_C(1,1) = ck;  mat_C(2,2) = ck;
+	mat_C(1,2) = ck*poisson; mat_C(2,1) = ck*poisson;
+	mat_C(3,3) = ck*(1.0 - poisson) / 2.0;
+  
+  print *, "mat_C", mat_C
+
+	! //Plain Strain
+	! ck = E*(1. - nu) / ((1. + nu)*(1. - 2.0 * nu));
+	! c[0][0] = c[1][1] = ck;
+	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
+	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
  call AddBoxLength(0, V, L, L, L, r, rho, h)
   

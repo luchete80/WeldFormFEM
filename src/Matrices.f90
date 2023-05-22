@@ -113,18 +113,19 @@ subroutine calculate_element_matrices ()
           end do
         end if 
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
-        print *, "temp h ", temph
+        ! print *, "temp h ", temph
         !print *, "BL ", elem%bl
         elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,:,:)),elem%tau(e,:,:)),&
                               &elem%bnl(e,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) *elem%detJ(e)!Mass matrix
-        print *, "element mat m ", elem%matm (e,:,:)
+        ! print *, "element mat m ", elem%matm (e,:,:)
         j = j +1
       end do
       i = i +1
     end do
     
+    print *, "element mat m ", elem%matm (e,:,:)
     
     e = e + 1 
     ! #Numerated as in Bathe
