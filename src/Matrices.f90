@@ -113,7 +113,7 @@ subroutine calculate_element_matrices ()
           end do
         end if 
         elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
-        ! print *, "temp h ", temph
+        print *, "mat h ", elem%math(e,:,:)
         !print *, "BL ", elem%bl
         elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,:,:)),elem%tau(e,:,:)),&
                               &elem%bnl(e,:,:))*elem%detJ(e) !Nodal Weight mat
