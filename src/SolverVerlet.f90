@@ -24,6 +24,7 @@ subroutine SolveVerlet (tf, dt)
   !Calculate a from  M dacc = fext (tn+1) - fint(uest, vest) -fcont
   !Calculate Lumped matrix
   call assemble_mass_matrix()
+  call disassemble_uele() !BEFORE CALLING UINTERNAL
   call assemble_int_forces()
   ! !Diagonalize
   ! !SIMPLEST FORM, ROW SUM 
@@ -60,6 +61,7 @@ subroutine SolveVerlet (tf, dt)
       print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
       
       nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
+      print *,"node acc ", nod%a(n,:), "rint ", rint_glob(n,:)
       d = d + 1
     end do
     !Solve motion at t_n+1

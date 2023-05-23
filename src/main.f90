@@ -43,8 +43,8 @@ implicit none
   ! h = dx * 1.2
   L = 1.	
   Dim = 2
-   L = 0.01	
-  dx    = 0.01
+   L = 0.1	
+  dx    = 0.1
   r = dx / 2.0
   h = dx * 1.2
 

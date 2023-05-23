@@ -79,7 +79,7 @@ subroutine calculate_element_matrices ()
         test = matmul(dHrs,x2)
         print *, "x2, ", x2
         elem%jacob(e,:,:) = test
-        elem%dHxy(e,:,:) = matmul(invmat(test),dHrs)
+        elem%dHxy(e,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
         print *, "inv mat", elem%dHxy(e,:,:)
         
         !DERIVATIVE MATRICES
@@ -97,7 +97,7 @@ subroutine calculate_element_matrices ()
           elem%bnl(e,4,dim*(k-1)+k+1) = elem%dHxy(e,2,k)     
           k = k+1
         end do
-        !print *, "jacob e ", elem%jacob(e,:,:)
+        print *, "jacob e ", elem%jacob(e,:,:)
         
         elem%detJ(e) = det(elem%jacob(e,:,:))
         print *, "det J", elem%detJ(e)
@@ -165,6 +165,24 @@ subroutine assemble_mass_matrix ()
   end do ! e
 end subroutine
 
+!NEEDED FOR STRAIN AND INTERNAL FORCES CALCULATION
+!IS REALLY NEEDED TO STORE?
+subroutine disassemble_uele()
+  integer :: e, i, n
+  do while (e .le. elem_count)
+    !print *, "elem ", e
+    n = 1
+    do while (n .le. nodxelem)
+      do while (i .le. dim )
+        elem%uele (e, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1)
+        i = i + 1
+      end do
+      n = n + 1
+    end do ! Element node
+    e = e + 1
+  end do ! e
+end subroutine
+
 subroutine assemble_int_forces()
   integer :: e, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
@@ -177,9 +195,10 @@ subroutine assemble_int_forces()
     n = 1
     do while (n .le. nodxelem)
       i = 1
+      print *,"elem mat kl", elem%matkl(e,:,:)
       do while (i .le. dim )
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-        rtemp = matmul(elem%matkl(e,:,:), utemp(:,:))
+        rtemp = matmul(elem%matkl(e,:,:), elem%uele(e,:,:))
         rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
         i = i + 1
       end do !element row

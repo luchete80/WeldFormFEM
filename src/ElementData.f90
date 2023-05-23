@@ -30,7 +30,7 @@ Type Element
   
   real(fp_kind), dimension(:,:), allocatable :: strain
   !! STIFFNESS MATRICES
-  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm, math
+  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm, math, uele
   
   Integer, Dimension(:,:), Allocatable :: elnod !Connectivity
   real(fp_kind), dimension(:), allocatable :: detj

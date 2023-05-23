@@ -96,6 +96,8 @@ contains
 
     allocate (elem%matKl(el_count,dim*nodxelem,dim*nodxelem))
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
+
+    allocate (elem%uele (el_count,dim*nodxelem,1)) 
     
     allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
     allocate (elem%math(el_count,dim,dim*nodxelem)) !Mass matrix
