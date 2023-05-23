@@ -14,7 +14,7 @@ type(Element)	::elem
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
-integer :: dimension(:,:), Allocatable :: bcv_ind !Boundary condition indices
+
 
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
 real(fp_kind), dimension(:,:), Allocatable :: rint_glob !Accelerations and internal forces
@@ -58,6 +58,8 @@ contains
     ! allocate (nod%m(node_count))
     allocate (nod%id(node_count))
     
+    
+    
     !! THERMAL
     ! allocate (nod%cp_t(node_count))
     ! allocate (nod%t(node_count))
@@ -81,7 +83,9 @@ contains
     ! allocate (nod%sigma_eq(node_count))
     
     ! allocate (nod%rho_0(node_count))
-    
+    !!!!! BOUNDARY CONDITIONS
+    allocate (nod%is_bcv(node_count,dim))
+    allocate (nod%bcv(node_count,dim))
     !end if  
   end subroutine
   
@@ -185,6 +189,10 @@ contains
     end do
     
     call AllocateDomain()
+    ! i = 1
+    ! do while ( i <= node_count)
+      ! nod%is_bcv(i,:) = .false.
+    ! end do
   
     ! nod%m(:)   = Density * Lx * Ly * Lz / node_count
     ! nod%rho(:)   = Density

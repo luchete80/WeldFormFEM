@@ -9,7 +9,8 @@ subroutine SolveVerlet (tf, dt)
   implicit none
   integer :: n, d, iglob
   
-  real(fp_kind),intent(in)::tf, dt, time
+  real(fp_kind),intent(in)::tf, dt
+  
   real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
   
@@ -19,6 +20,7 @@ subroutine SolveVerlet (tf, dt)
   
   
   time = 0.0
+  print *,"main loop"
   do while (time .le. tf)
     !Predictor 
     !uest_n+1 = un + dt v_n + dt2/2 a_n
@@ -75,6 +77,11 @@ subroutine SolveVerlet (tf, dt)
       
       n = n + 1
     end do !Node
+    
+    !REINFORCE bc velocity
+    
+    
+    
   time = time + dt
 end do !time
 
