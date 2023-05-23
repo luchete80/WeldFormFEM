@@ -69,6 +69,7 @@ subroutine calculate_element_matrices ()
     ! TODO: This could be done once
     i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
     do while (i<=2)
+      j = 1
       do while (j<=2)
         !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
         dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
