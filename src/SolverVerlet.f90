@@ -44,6 +44,8 @@ subroutine SolveVerlet (tf, dt)
       end do !col
     iglob = iglob + 1
     end do 
+    
+    call impose_bcv
     !Calculate positions with PREVIOUS ACCELERATIONS
     n = 1
     print *, "calculating positions "
@@ -80,18 +82,7 @@ subroutine SolveVerlet (tf, dt)
     
     !REINFORCE bc velocity
     !TODO: SEPARATE FUNCTION
-    n = 1
-    do while (n .le. node_count)    
-      d = 1
-      do while (d .le. 2)
-        if (nod%is_bcv(n,d)) then
-          nod%v(n,d) = nod%bcv(n,d)
-        end if
-        d = d + 1 
-      end do !dim
-      n = n + 1
-    end do !Node    
-    
+    call impose_bcv
   time = time + dt
 end do !time
 

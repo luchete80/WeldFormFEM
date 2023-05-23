@@ -1,3 +1,5 @@
 20230522 - Added Material Matrix to example
 20230523 - Added nodal Boundary Conditions boolean flags
          - Added bc reinforcement implementation
+         - Fixed full integration (only 2 points were active)
+         

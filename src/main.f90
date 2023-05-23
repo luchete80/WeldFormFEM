@@ -80,14 +80,20 @@ implicit none
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.
+  !CHANGE TO IS_FIXED
   nod%is_bcv(1,:) = .true. !Node 1 restricted in 2 dimensions
-  nod%is_bcv(3,:) = .true. !Node 1 restricted in 2 dimensions
-  nod%is_bcv(5,:) = [.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
+  nod%is_bcv(4,:) = .true. !Node 1 restricted in 2 dimensions
+  nod%is_bcv(6,:) = [.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
   
+  nod%bcv(1,:) = [0.0d0,0.0d0]
+  nod%bcv(4,:) = [0.0d0,0.0d0]
+  nod%bcv(6,:) = [0.0d0,-1.0d0]
+  
+  print *, "BCV 6 ", nod%bcv(6,2)
   print *, "Calculating element matrices "
   
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 4.0e-5
   nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
 
