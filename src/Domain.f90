@@ -189,10 +189,11 @@ contains
     end do
     
     call AllocateDomain()
-    ! i = 1
-    ! do while ( i <= node_count)
-      ! nod%is_bcv(i,:) = .false.
-    ! end do
+    i = 1
+    do while ( i <= node_count)
+      nod%is_bcv(i,:) = .false.
+      i = i + 1
+    end do
   
     ! nod%m(:)   = Density * Lx * Ly * Lz / node_count
     ! nod%rho(:)   = Density

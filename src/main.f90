@@ -44,7 +44,7 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 2
-   L = 0.2	
+   L = 0.1	
   dx    = 0.1
   r = dx / 2.0
   h = dx * 1.2
@@ -62,6 +62,7 @@ implicit none
   !Plain Stress
   poisson = 0.3
   young = 200.0e9
+  allocate (mat_C(3,3))
 	ck = young / (1 - poisson*poisson);
 	mat_C(1,1) = ck;  mat_C(2,2) = ck;
 	mat_C(1,2) = ck*poisson; mat_C(2,1) = ck*poisson;
@@ -75,19 +76,20 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  ! call AddBoxLength(0, V, L, L/2.0, L, r, rho, h)
+  !!call AddBoxLength(0, V, 2.0*L, L, L, r, rho, h)
+  call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.
-  ! nod%is_bcv(1,:) = .true. !Node 1 restricted in 2 dimensions
-  ! nod%is_bcv(3,:) = .true. !Node 1 restricted in 2 dimensions
-  ! nod%is_bcv(5,:) = [.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
+  nod%is_bcv(1,:) = .true. !Node 1 restricted in 2 dimensions
+  nod%is_bcv(3,:) = .true. !Node 1 restricted in 2 dimensions
+  nod%is_bcv(5,:) = [.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
   
   print *, "Calculating element matrices "
   
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 2.0e-5
   nod%a(:,:) = 0.0d0
-  ! call SolveVerlet(tf,dt)
+  call SolveVerlet(tf,dt)
 
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
