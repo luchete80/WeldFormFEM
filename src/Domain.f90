@@ -13,6 +13,9 @@ type(Element)	::elem
 
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
+
+integer :: dimension(:,:), Allocatable :: bcv_ind !Boundary condition indices
+
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
 real(fp_kind), dimension(:,:), Allocatable :: rint_glob !Accelerations and internal forces
 integer :: nodxelem !TODO: SET TO ELEMEENT VAR

@@ -41,9 +41,10 @@ implicit none
   ! Lz = 0.56
   ! r = dx / 2.0
   ! h = dx * 1.2
+  !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
   L = 1.	
   Dim = 2
-   L = 0.1	
+   L = 0.2	
   dx    = 0.1
   r = dx / 2.0
   h = dx * 1.2
@@ -56,6 +57,9 @@ implicit none
   rho = 1000.
   
   allocate (mat_C(3,3))
+  
+  allocate (bcv_ind(3))
+  bcv_ind(:) = [1,2,7,8,12] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM
   
   !PLANE STRESS
   !Plain Stress
@@ -74,7 +78,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
- call AddBoxLength(0, V, L, L, L, r, rho, h)
+  call AddBoxLength(0, V, L, L/2.0, L, r, rho, h)
   
   
   print *, "Calculating element matrices "

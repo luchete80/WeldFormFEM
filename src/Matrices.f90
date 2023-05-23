@@ -192,7 +192,7 @@ subroutine assemble_int_forces()
   e = 1
   do while (e .le. elem_count)
     !print *, "elem ", e
-    rtemp = matmul(elem%matkl(e,:,:), elem%uele(e,:,:))
+    rtemp = matmul(elem%matkl(e,:,:) + elem%matknl(e,:,:), elem%uele(e,:,:))
     n = 1
     do while (n .le. nodxelem)
       i = 1
