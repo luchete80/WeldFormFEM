@@ -175,7 +175,8 @@ subroutine disassemble_uele()
     n = 1
     do while (n .le. nodxelem)
       do while (i .le. dim )
-        elem%uele (e, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1)
+        !elem%uele (e, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1) ! uglob not in use
+        elem%uele (e, 2*n-1,1) = nod%u(n,i)
         i = i + 1
       end do
       n = n + 1

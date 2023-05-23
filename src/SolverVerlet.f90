@@ -18,6 +18,7 @@ subroutine SolveVerlet (tf, dt)
   call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   !NODAL CALCULATION
   
+  nod%u(:,:) = 0.0d0
   
   time = 0.0
   print *,"main loop"
@@ -51,9 +52,10 @@ subroutine SolveVerlet (tf, dt)
     print *, "calculating positions "
     do while (n .le. node_count)
       !print *, "n ", n, "acc ", nod%v(n,:)
-      nod%x(n,:) = nod%x(n,:) + nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
+      nod%u(n,:) = nod%u(n,:) + nod%v(n,:) * dt + nod%a(n,:) * dt * dt  
+      nod%x(n,:) = nod%x(n,:) + nod%u(n,:)    
       !nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
-      print *,"node pos ", nod%x(n,:)
+      print *,"node u ", nod%u(n,:)
       n = n + 1
     end do !Node    
     !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont

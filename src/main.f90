@@ -93,7 +93,7 @@ implicit none
   print *, "Calculating element matrices "
   
   dt = 1.0e-5
-  tf = 4.0e-5
+  tf = 10.0e-5
   nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
 

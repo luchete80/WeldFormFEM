@@ -67,7 +67,7 @@ contains
     
     !MECHANICAL PROPERTIES
     !if (solver_type==1) then 
-    
+    allocate (nod%u(node_count,dim))
     allocate (nod%v(node_count,dim))
     allocate (nod%a(node_count,dim))
     allocate (nod%disp(node_count,dim))

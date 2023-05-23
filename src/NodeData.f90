@@ -12,7 +12,7 @@ Type Node
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
   !Mechanical
   !real(fp_kind), dimension(:), allocatable :: cs
-  real(fp_kind), dimension(:,:), allocatable :: v, a, disp
+  real(fp_kind), dimension(:,:), allocatable :: u, v, a, disp
   real(fp_kind), dimension(:,:,:), allocatable :: sigma, str_rate, rot_rate, shear_stress
   real(fp_kind), dimension(:), allocatable:: pressure, strain, mat_g
 
