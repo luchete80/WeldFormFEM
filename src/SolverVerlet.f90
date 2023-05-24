@@ -6,6 +6,8 @@ contains
 subroutine SolveVerlet (tf, dt)
   use omp_lib
   use Matrices
+  use Mechanical
+  
   implicit none
   integer :: n, d, iglob
   
@@ -59,7 +61,14 @@ subroutine SolveVerlet (tf, dt)
       !nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
       print *,"node u ", nod%u(n,:)
       n = n + 1
-    end do !Node    
+    end do !Node 
+    
+    !Again to calculate strains
+    call disassemble_uele()
+    print *, "u ele 2", elem%uele(2,:,:)
+    call cal_elem_strains ()
+    
+    print *,"strains", elem%strain(:,:,:,:)
     !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
     print *, "calculating accel"
     n = 1

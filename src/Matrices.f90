@@ -172,14 +172,16 @@ end subroutine
 !NEEDED FOR STRAIN AND INTERNAL FORCES CALCULATION
 !IS REALLY NEEDED TO STORE?
 subroutine disassemble_uele()
-  integer :: e,gp, i, n
+  integer :: e, i, n
+  e = 1
   do while (e .le. elem_count)
     !print *, "elem ", e
     n = 1
     do while (n .le. nodxelem)
+      i = 1
       do while (i .le. dim )
-        !elem%uele (e,gp, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1) ! uglob not in use
-        elem%uele (e,2*n-1,1) = nod%u(n,i)
+        !print *, "e ", e, "n ", n, "uele estirado", 2*(n-1)+i , ",global ",elem%elnod(e,n)      
+        elem%uele (e,2*(n-1)+i,1) = nod%u(elem%elnod(e,n),i)
         i = i + 1
       end do
       n = n + 1
@@ -189,7 +191,7 @@ subroutine disassemble_uele()
 end subroutine
 
 subroutine assemble_int_forces()
-  integer :: e,gp, i, n, iglob
+  integer :: e, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
   print *, "assemblying int forces"
