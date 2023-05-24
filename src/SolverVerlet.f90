@@ -14,15 +14,17 @@ subroutine SolveVerlet (tf, dt)
   real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
   
-  
-  call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
-  !NODAL CALCULATION
+ 
   
   nod%u(:,:) = 0.0d0
   
   time = 0.0
   print *,"main loop"
   do while (time .le. tf)
+
+    call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
+    !NODAL CALCULATION
+    
     !Predictor 
     !uest_n+1 = un + dt v_n + dt2/2 a_n
     !Estimate u and vel from previous steps
