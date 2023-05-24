@@ -85,6 +85,7 @@ contains
     ! allocate (nod%rho_0(node_count))
     !!!!! BOUNDARY CONDITIONS
     allocate (nod%is_bcv(node_count,dim))
+    allocate (nod%is_fix(node_count,dim))
     allocate (nod%bcv(node_count,dim))
     !end if  
   end subroutine

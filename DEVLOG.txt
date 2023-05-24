@@ -5,4 +5,4 @@
 20230524 - Added element strain calcs
          - Fixed element dissasemble (pass global to elem) to calculate strains
          - Added steps for alternative solver (From Benson 1992).
-         
+         - Added fixity and accel bc 

@@ -16,7 +16,7 @@ Type Node
   real(fp_kind), dimension(:,:,:), allocatable :: sigma, str_rate, rot_rate, shear_stress
   real(fp_kind), dimension(:), allocatable:: pressure, strain, mat_g
 
-  logical, dimension(:,:), Allocatable :: is_bcv !0, none, else, dimension
+  logical, dimension(:,:), Allocatable :: is_bcv, is_fix !0, none, else, dimension
   real(fp_kind), dimension(:,:), Allocatable :: bcv !Node and dim
   
   real(fp_kind), dimension(:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT

@@ -92,10 +92,12 @@ subroutine SolveVerlet (tf, dt)
       
       n = n + 1
     end do !Node
+    call impose_bca
     
     !REINFORCE bc velocity
     !TODO: SEPARATE FUNCTION
     call impose_bcv
+
   time = time + dt
 end do !time
 

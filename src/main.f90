@@ -81,8 +81,12 @@ implicit none
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.
   !CHANGE TO IS_FIXED
-  nod%is_bcv(1,:) = .true. !Node 1 restricted in 2 dimensions
-  nod%is_bcv(4,:) = .true. !Node 1 restricted in 2 dimensions
+  ! nod%is_bcv(1,:) = .true. !Node 1 restricted in 2 dimensions
+  ! nod%is_bcv(4,:) = .true. !Node 1 restricted in 2 dimensions
+
+  nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+  nod%is_fix(4,:) = .true. !Node 1 restricted in 2 dimensions
+  
   nod%is_bcv(6,:) = [.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
   
   nod%bcv(1,:) = [0.0d0,0.0d0]
@@ -93,7 +97,7 @@ implicit none
   print *, "Calculating element matrices "
   
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 10.0e-5
   nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
 
