@@ -13,24 +13,26 @@ Module ElementData
   ! bc = bc_disp  
 
 Type Element
-  Integer, Dimension(:), Allocatable :: ID
+  Integer, Dimension(:), Allocatable :: ID, gausspc
   !GENERAL
   real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, rho_0, drhodt !influence radius, temp
 
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
-  real(fp_kind), dimension(:,:,:), allocatable :: tau, str_rate, rot_rate, shear_stress !tau is Cauchy Stress (do not confuse with shear)
+  real(fp_kind), dimension(:,:,:,:), allocatable :: tau, str_rate, rot_rate, shear_stress,strain !tau is Cauchy Stress (do not confuse with shear)
   real(fp_kind), dimension(:), allocatable:: pressure, mat_g
   
-  real(fp_kind), dimension(:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
+  real(fp_kind), dimension(:,:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
-  real(fp_kind), dimension(:,:,:), allocatable :: BL,BNL, jacob, x2,dHxy
+  real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,math
   
-  real(fp_kind), dimension(:,:), allocatable :: strain
-  !! STIFFNESS MATRICES
-  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm, math, uele
+  real(fp_kind), dimension(:,:,:), allocatable :: x2 !(rearranged nodes elem, x,y)
+  
+
+  !! STIFFNESS AND MASS MATRICES, ARE INTEGRATED MATRICES (NOT ON EACH GAUSS POINT)
+  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele
   
   Integer, Dimension(:,:), Allocatable :: elnod !Connectivity
   real(fp_kind), dimension(:), allocatable :: detj

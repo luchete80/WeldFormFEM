@@ -42,14 +42,14 @@ subroutine calculate_element_matrices ()
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
-  integer :: i,j,k
+  integer :: i,j,k, gp
   real(fp_kind), dimension(2) :: r, s
   e = 1
   r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
   s(1) = r(1)          ; s(2) =  r(2)
   !! Update x2 vector (this is useful for strain and stress things)
   
-  
+
   do while (e <= elem_count)
     print *, "el ", e 
     
@@ -58,7 +58,8 @@ subroutine calculate_element_matrices ()
     elem%matm(e,:,:) = 0.0
     
     print *, "nodxelem ", nodxelem
-    i=1
+    
+
     do while (i.le.nodxelem)
         print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
@@ -67,6 +68,7 @@ subroutine calculate_element_matrices ()
     !print *, "x2 ", x2
     !printarray(x2)
     ! TODO: This could be done once
+    gp = 1
     i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
     do while (i<=2)
       j = 1
@@ -79,30 +81,30 @@ subroutine calculate_element_matrices ()
         print *, "dHrs ", dHrs
         test = matmul(dHrs,x2)
         print *, "x2, ", x2
-        elem%jacob(e,:,:) = test
-        elem%dHxy(e,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-        print *, "inv mat", elem%dHxy(e,:,:)
+        elem%jacob(e,gp,:,:) = test
+        elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+        print *, "inv mat", elem%dHxy(e,gp,:,:)
         
         !DERIVATIVE MATRICES
         !TODO: CHANGE IF DIM != 2
         k=1
         do while (k<nodxelem)
-          elem%bl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)
-          elem%bl(e,2,dim*(k-1)+k+1) = elem%dHxy(e,2,k)
-          elem%bl(e,3,dim*(k-1)+k  ) = elem%dHxy(e,2,k) 
-          elem%bl(e,3,dim*(k-1)+k+1) = elem%dHxy(e,1,k)     
+          elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+          elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
+          elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
+          elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
 
-          elem%bnl(e,1,dim*(k-1)+k  ) = elem%dHxy(e,1,k)
-          elem%bnl(e,2,dim*(k-1)+k  ) = elem%dHxy(e,2,k)
-          elem%bnl(e,3,dim*(k-1)+k+1) = elem%dHxy(e,1,k) 
-          elem%bnl(e,4,dim*(k-1)+k+1) = elem%dHxy(e,2,k)     
+          elem%bnl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+          elem%bnl(e,gp,2,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k)
+          elem%bnl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k) 
+          elem%bnl(e,gp,4,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)     
           k = k+1
         end do
-        print *, "jacob e ", elem%jacob(e,:,:)
+        print *, "jacob e ", elem%jacob(e,gp,:,:)
         
-        elem%detJ(e) = det(elem%jacob(e,:,:))
+        elem%detJ(e) = det(elem%jacob(e,gp,:,:))
         print *, "det J", elem%detJ(e)
-        !print *, "bl ", elem%bl(e,:,:)
+        !print *, "bl ", elem%bl(e,gp,:,:)
         !TODO CHANGE ZERO
 
         if (dim .eq. 2) then
@@ -113,14 +115,15 @@ subroutine calculate_element_matrices ()
             k = k + 1
           end do
         end if 
-        elem%math(e,:,:) = elem%math(e,:,:) + temph(:,:)*elem%detJ(e)
-        print *, "mat h ", elem%math(e,:,:)
+        elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e)
+        print *, "mat h ", elem%math(e,gp,:,:)
         !print *, "BL ", elem%bl
-        elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,:,:)),elem%tau(e,:,:)),&
-                              &elem%bnl(e,:,:))*elem%detJ(e) !Nodal Weight mat
-        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,:,:)),mat_C),elem%bl(e,:,:))*elem%detJ(e) !Nodal Weight mat
-        elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,:,:)),elem%math(e,:,:)) *elem%detJ(e)!Mass matrix
+        elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
+                              &elem%bnl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
+        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
+        elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e)!Mass matrix
         ! print *, "element mat m ", elem%matm (e,:,:)
+        gp = gp + 1
         j = j +1
       end do
       i = i +1
@@ -142,7 +145,7 @@ subroutine calculate_element_matrices ()
 end subroutine
 
 subroutine assemble_mass_matrix ()
-  integer :: e, i, j, n, iglob, jglob
+  integer :: e,gp, i, j, n, iglob, jglob
   
   m_glob (:,:) = 0.0d0
   e = 1
@@ -169,14 +172,14 @@ end subroutine
 !NEEDED FOR STRAIN AND INTERNAL FORCES CALCULATION
 !IS REALLY NEEDED TO STORE?
 subroutine disassemble_uele()
-  integer :: e, i, n
+  integer :: e,gp, i, n
   do while (e .le. elem_count)
     !print *, "elem ", e
     n = 1
     do while (n .le. nodxelem)
       do while (i .le. dim )
-        !elem%uele (e, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1) ! uglob not in use
-        elem%uele (e, 2*n-1,1) = nod%u(n,i)
+        !elem%uele (e,gp, 2*n-1,1) = uglob(2*elem%elnod(e,n)-1,1) ! uglob not in use
+        elem%uele (e,2*n-1,1) = nod%u(n,i)
         i = i + 1
       end do
       n = n + 1
@@ -186,7 +189,7 @@ subroutine disassemble_uele()
 end subroutine
 
 subroutine assemble_int_forces()
-  integer :: e, i, n, iglob
+  integer :: e,gp, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
   print *, "assemblying int forces"

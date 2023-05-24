@@ -89,17 +89,19 @@ contains
     !end if  
   end subroutine
   
-  subroutine AllocateElements(el_count)
-    integer, intent(in):: el_count
+  subroutine AllocateElements(el_count, gp) !gauss point count
+    integer, intent(in):: el_count, gp
+    
     print *, "Creating ", el_count, " elements"
     elem_count = el_count
     allocate (elem%elnod(el_count,nodxelem))
+    allocate (elem%gausspc(el_count))
     allocate (elem%x2(el_count,nodxelem,dim))
-    allocate (elem%jacob(el_count,dim,dim))
+    allocate (elem%jacob(el_count,gp,dim,dim))
     allocate (elem%detj(el_count))
-    allocate (elem%sigma_eq(el_count))
-    allocate (elem%dHxy(el_count,dim,nodxelem))
-    allocate (elem%tau(el_count,dim*dim,dim*dim))
+    allocate (elem%sigma_eq(el_count,gp)) !But is constant??
+    allocate (elem%dHxy(el_count,gp,dim,nodxelem))
+    allocate (elem%tau(el_count,gp,dim*dim,dim*dim))
 
     allocate (elem%matKl(el_count,dim*nodxelem,dim*nodxelem))
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
@@ -107,14 +109,16 @@ contains
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
     
     allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
-    allocate (elem%math(el_count,dim,dim*nodxelem)) !Mass matrix
+    allocate (elem%math(el_count,gp,dim,dim*nodxelem)) !Mass matrix
     
     if (Dim .eq. 2) then
-      allocate (elem%bl (el_count,3,dim*nodxelem))
-      allocate (elem%bnl(el_count,4,dim*nodxelem))
-      allocate (elem%strain(el_count,4))
+      allocate (elem%bl (el_count,gp,3,dim*nodxelem))
+      allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
+      allocate (elem%strain(el_count,gp, 4,1))
     else 
     end if 
+    
+    elem%gausspc(:) = 4
   end subroutine
 
   subroutine AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)			
@@ -171,9 +175,9 @@ contains
     !! ALLOCATE ELEMENTS
     !! DIMENSION = 2
     if (dim .eq. 2) then
-      call AllocateElements(nel(1) * nel(2))
+      call AllocateElements(nel(1) * nel(2),4)
     else 
-      call AllocateElements(nel(1) * nel(2)*nel(3))
+      call AllocateElements(nel(1) * nel(2)*nel(3),4)
     end if
     ey = 0
     i = 1
