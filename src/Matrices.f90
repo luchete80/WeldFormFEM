@@ -59,7 +59,7 @@ subroutine calculate_element_matrices ()
     
     print *, "nodxelem ", nodxelem
     
-
+    i=1
     do while (i.le.nodxelem)
         print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
