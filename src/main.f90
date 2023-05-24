@@ -100,6 +100,14 @@ implicit none
   tf = 10.0e-5
   nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
+  
+  open (1,file='test.csv')!, position='APPEND')  
+  write (1,*) "X, Y, Z"
+  
+  do i=1,part_count
+  
+    end do
+  close(1)
 
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
