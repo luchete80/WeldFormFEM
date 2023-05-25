@@ -104,8 +104,8 @@ implicit none
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"
   
-  do i=1,part_count
-  
+  do i=1,node_count
+    write (1,*) nod%x(i,1), ", ", nod%x(i,2), ", " ,nod%x(i,3)  
     end do
   close(1)
 

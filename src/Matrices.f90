@@ -148,24 +148,16 @@ subroutine assemble_mass_matrix ()
   integer :: e,gp, i, j, n, iglob, jglob
   
   m_glob (:,:) = 0.0d0
-  e = 1
-  do while (e .le. elem_count)
-    n = 1
-    do while (n .le. nodxelem)
-      i = 1
-      do while (i .le. dim )
-        j = 1
-        do while (j .le. dim )
+  do e = 1, elem_count
+    do n = 1, nodxelem
+      do i=1,dim 
+        do j=1, dim
           iglob  = dim * (elem%elnod(e,n) - 1 ) + i
           jglob  = dim * (elem%elnod(e,n) - 1 ) + j
           m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
-          j = j + 1
         end do
-        i = i + 1
       end do !element row
-      n = n + 1
     end do ! Element node
-    e = e + 1
   end do ! e
 end subroutine
 
