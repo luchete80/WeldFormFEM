@@ -15,7 +15,6 @@ real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MAT
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
 
-
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
 real(fp_kind), dimension(:,:), Allocatable :: rint_glob !Accelerations and internal forces
 integer :: nodxelem !TODO: SET TO ELEMEENT VAR
@@ -24,7 +23,7 @@ real(fp_kind), dimension(3):: dommax, dommin
 
 real(fp_kind)::mat_G, mat_E!TODO: change to material
 real(fp_kind):: time
-
+logical :: first_step
 contains 
 
   subroutine DomInit(proc)
