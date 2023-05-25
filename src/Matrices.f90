@@ -165,20 +165,14 @@ end subroutine
 !IS REALLY NEEDED TO STORE?
 subroutine disassemble_uele()
   integer :: e, i, n
-  e = 1
-  do while (e .le. elem_count)
+  do e=1,elem_count
     !print *, "elem ", e
-    n = 1
-    do while (n .le. nodxelem)
-      i = 1
-      do while (i .le. dim )
+    do n =1,nodxelem
+      do i =1, dim 
         !print *, "e ", e, "n ", n, "uele estirado", 2*(n-1)+i , ",global ",elem%elnod(e,n)      
         elem%uele (e,2*(n-1)+i,1) = nod%u(elem%elnod(e,n),i)
-        i = i + 1
       end do
-      n = n + 1
     end do ! Element node
-    e = e + 1
   end do ! e
 end subroutine
 
