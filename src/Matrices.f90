@@ -57,9 +57,9 @@ subroutine calculate_element_matrices ()
     
     elem%matkl(e,:,:) = 0.0
     elem%matknl(e,:,:) = 0.0
-    !if (first_step .eqv. .True.) then
+    if (calc_m .eqv. .True.) then
       elem%matm(e,:,:) = 0.0
-    !end if 
+    end if 
     
     print *, "nodxelem ", nodxelem
     
@@ -125,9 +125,9 @@ subroutine calculate_element_matrices ()
         elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
                               &elem%bnl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
         elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
-        !if (first_step .eqv. .True.) then
+        if (calc_m .eqv. .True.) then
           elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e)!Mass matrix
-        !end if
+        end if
         ! print *, "element mat m ", elem%matm (e,:,:)
         gp = gp + 1
         j = j +1

@@ -23,7 +23,7 @@ real(fp_kind), dimension(3):: dommax, dommin
 
 real(fp_kind)::mat_G, mat_E!TODO: change to material
 real(fp_kind):: time
-logical :: first_step
+logical :: calc_m
 contains 
 
   subroutine DomInit(proc)

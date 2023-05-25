@@ -16,11 +16,25 @@ subroutine SolveVerlet (tf, dt)
   real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
   
+  calc_m = .True.
  
+  ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
+  ! call assemble_mass_matrix()
+    ! mdiag(:)=0.0d0
+    ! iglob = 1
+    ! do while (iglob .le. node_count * dim)
+      ! n = 1
+      ! do while (n .le. node_count * dim) !column
+         ! mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+         ! n = n+ 1
+      ! end do !col
+    ! iglob = iglob + 1
+    ! end do   
+  ! calc_m = .False.
   
   nod%u(:,:) = 0.0d0
   
-  time = 0.0
+  time = 0.0  
   print *,"main loop"
   do while (time .le. tf)
 
@@ -97,7 +111,8 @@ subroutine SolveVerlet (tf, dt)
     !REINFORCE bc velocity
     !TODO: SEPARATE FUNCTION
     call impose_bcv
-
+    
+    !calc_m = .False.
   time = time + dt
 end do !time
 
