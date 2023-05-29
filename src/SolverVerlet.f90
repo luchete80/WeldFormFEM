@@ -18,19 +18,21 @@ subroutine SolveVerlet (tf, dt)
   
   calc_m = .True.
  
-  ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
-  ! call assemble_mass_matrix()
-    ! mdiag(:)=0.0d0
-    ! iglob = 1
-    ! do while (iglob .le. node_count * dim)
-      ! n = 1
-      ! do while (n .le. node_count * dim) !column
-         ! mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-         ! n = n+ 1
-      ! end do !col
-    ! iglob = iglob + 1
-    ! end do   
+  call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
+  call assemble_mass_matrix()
+    mdiag(:)=0.0d0
+    iglob = 1
+    do while (iglob .le. node_count * dim)
+      n = 1
+      do while (n .le. node_count * dim) !column
+         mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+         n = n+ 1
+      end do !col
+    iglob = iglob + 1
+    end do   
   ! calc_m = .False.
+  print *, "M Diag ", mdiag
+  print *, "m glob", m_glob
   
   nod%u(:,:) = 0.0d0
   
@@ -47,22 +49,28 @@ subroutine SolveVerlet (tf, dt)
     !Solve eqns of motion at t_n+1 = tn +dt
     !Calculate a from  M dacc = fext (tn+1) - fint(uest, vest) -fcont
     !Calculate Lumped matrix
-    call assemble_mass_matrix()
+    
     call disassemble_uele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
     call assemble_int_forces()
     ! !Diagonalize
     ! !SIMPLEST FORM, ROW SUM 
     !print *, "Calc mdiag"
-    mdiag(:)=0.0d0
-    iglob = 1
-    do while (iglob .le. node_count * dim)
-      n = 1
-      do while (n .le. node_count * dim) !column
-         mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-         n = n+ 1
-      end do !col
-    iglob = iglob + 1
-    end do 
+    if (calc_m .eqv. .True.) then 
+      call assemble_mass_matrix()
+      mdiag(:)=0.0d0
+      iglob = 1
+      do while (iglob .le. node_count * dim)
+        n = 1
+        do while (n .le. node_count * dim) !column
+           mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+           n = n+ 1
+        end do !col
+      iglob = iglob + 1
+      end do 
+    end if
+    
+    print *, " mglob ," ,m_glob
+    print *, " mdiag ," ,mdiag
     
     call impose_bcv
     !Calculate positions with PREVIOUS ACCELERATIONS

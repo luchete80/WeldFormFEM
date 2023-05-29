@@ -151,18 +151,25 @@ subroutine calculate_element_matrices ()
 end subroutine
 
 subroutine assemble_mass_matrix ()
-  integer :: e,gp, i, j, n, iglob, jglob
+  integer :: e,gp, i, j, n, n2, iglob, jglob
   
   m_glob (:,:) = 0.0d0
   do e = 1, elem_count
+    print *, "elem ", e
     do n = 1, nodxelem
-      do i=1,dim 
-        do j=1, dim
-          iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-          jglob  = dim * (elem%elnod(e,n) - 1 ) + j
-          m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,i,j)
-        end do
-      end do !element row
+      do n2 = 1, nodxelem
+        do i=1,dim 
+          do j=1, dim
+
+            print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)
+            
+            iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+            jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
+            print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
+            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)
+          end do
+        end do !element row
+      end do !n2
     end do ! Element node
   end do ! e
 end subroutine
