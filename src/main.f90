@@ -19,7 +19,7 @@ implicit none
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
-  real(fp_kind) :: L, rho, dt, tf 
+  real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
   
   !type(Domain)	::dom
 
@@ -54,7 +54,7 @@ implicit none
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
   
-  rho = 1000.
+  rho = 7850.0
   
 
   
@@ -96,9 +96,19 @@ implicit none
   print *, "BCV 6 ", nod%bcv(6,2)
   print *, "Calculating element matrices "
   
-  dt = 1.0e-7
-  tf = 10.0e-7
+
   nod%a(:,:) = 0.0d0
+  
+  mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
+  mat_modG= young / (2.0* (1.0 + poisson));
+  
+  mat_cs = sqrt(mat_modK/rho)
+  
+  dt = 0.7 * dx/(mat_cs)
+  tf = dt * 10.0
+  
+  print *, "Shear and Bulk modulus", mat_modG,mat_modK
+  print *, "time step size with CFL 0.7", dt
   call SolveVerlet(tf,dt)
   
   open (1,file='test.csv')!, position='APPEND')  
