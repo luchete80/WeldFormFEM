@@ -46,13 +46,13 @@ subroutine calculate_element_matrices ()
   
   integer :: i,j,k, gp
   real(fp_kind), dimension(2) :: r, s
-  e = 1
+
   r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
   s(1) = r(1)          ; s(2) =  r(2)
   !! Update x2 vector (this is useful for strain and stress things)
   
 
-  do while (e <= elem_count)
+  do e=1, elem_count
     print *, "el ", e 
     
     elem%matkl(e,:,:) = 0.0
