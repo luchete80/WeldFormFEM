@@ -30,7 +30,7 @@ subroutine SolveVerlet (tf, dt)
       end do !col
     iglob = iglob + 1
     end do   
-  ! calc_m = .False.
+  calc_m = .False.
   print *, "M Diag ", mdiag
   print *, "m glob", m_glob
   
@@ -55,19 +55,19 @@ subroutine SolveVerlet (tf, dt)
     ! !Diagonalize
     ! !SIMPLEST FORM, ROW SUM 
     !print *, "Calc mdiag"
-    if (calc_m .eqv. .True.) then 
-      call assemble_mass_matrix()
-      mdiag(:)=0.0d0
-      iglob = 1
-      do while (iglob .le. node_count * dim)
-        n = 1
-        do while (n .le. node_count * dim) !column
-           mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-           n = n+ 1
-        end do !col
-      iglob = iglob + 1
-      end do 
-    end if
+    ! if (calc_m .eqv. .True.) then 
+      ! call assemble_mass_matrix()
+      ! mdiag(:)=0.0d0
+      ! iglob = 1
+      ! do while (iglob .le. node_count * dim)
+        ! n = 1
+        ! do while (n .le. node_count * dim) !column
+           ! mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+           ! n = n+ 1
+        ! end do !col
+      ! iglob = iglob + 1
+      ! end do 
+    ! end if
     
     print *, " mglob ," ,m_glob
     print *, " mdiag ," ,mdiag
@@ -93,8 +93,8 @@ subroutine SolveVerlet (tf, dt)
     print *,"strains", elem%strain(:,:,:,:)
     !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
     print *, "calculating accel"
-    n = 1
-    do while (n .le. node_count)
+    
+    do n=1,node_count
       !print *, "node ", n 
       prev_acc(:) = nod%a(n,:)
       d = 1
@@ -111,8 +111,7 @@ subroutine SolveVerlet (tf, dt)
       !Update vel with CURRENT ACCELERATION
       nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
       print *,"node vel ", nod%v(n,:)
-      
-      n = n + 1
+
     end do !Node
     call impose_bca
     

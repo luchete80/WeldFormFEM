@@ -96,8 +96,8 @@ implicit none
   print *, "BCV 6 ", nod%bcv(6,2)
   print *, "Calculating element matrices "
   
-  dt = 1.0e-5
-  tf = 1.0e-5
+  dt = 1.0e-7
+  tf = 10.0e-7
   nod%a(:,:) = 0.0d0
   call SolveVerlet(tf,dt)
   

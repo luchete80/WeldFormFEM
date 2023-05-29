@@ -137,7 +137,7 @@ subroutine calculate_element_matrices ()
     
     print *, "element mat m ", elem%matm (e,:,:)
     
-    e = e + 1 
+    
     ! #Numerated as in Bathe
     ! Ns  =0.25*matrix([(1+sg)*(1+rg),(1-rg)*(1+sg),(1-sg)*(1-rg),(1-sg)*(1+rg)])   
     ! dHrs=matrix([[(1+sg),-(1+sg),-(1-sg),(1-sg)], [(1+rg),(1-rg),-(1-rg),-(1+rg)] ])
@@ -160,9 +160,7 @@ subroutine assemble_mass_matrix ()
       do n2 = 1, nodxelem
         do i=1,dim 
           do j=1, dim
-
-            print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)
-            
+            print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
             iglob  = dim * (elem%elnod(e,n) - 1 ) + i
             jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
             print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
