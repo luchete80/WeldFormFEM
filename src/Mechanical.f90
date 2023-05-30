@@ -24,17 +24,16 @@ end subroutine
 
 subroutine calc_elem_vol ()
   implicit none
-  integer :: e
-  real(fp_kind), dimension(2) :: r, s
-  r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-  s(1) = r(1)          ; s(2) =  r(2)
+  integer :: e, gp
   
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
     elem%vol(e) = 0.0d0
-    !elem%vol(e) = 
-    !elem%vol(e) = elem%vol(e) + 
-  
+    do gp=1,elem%gausspc(e)
+      !elem%vol(e) = 
+      elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)
+      end do !gp  
+    print *, "Elem ", e, "vol ",elem%vol(e)
   end do
 
 end subroutine
