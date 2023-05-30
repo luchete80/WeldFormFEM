@@ -15,7 +15,7 @@ Module ElementData
 Type Element
   Integer, Dimension(:), Allocatable :: ID, gausspc
   !GENERAL
-  real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, rho_0, drhodt !influence radius, temp
+  real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, rho_0,vol, drhodt !influence radius, temp
 
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
@@ -35,7 +35,7 @@ Type Element
   real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele
   
   Integer, Dimension(:,:), Allocatable :: elnod !Connectivity
-  real(fp_kind), dimension(:), allocatable :: detj
+  real(fp_kind), dimension(:,:), allocatable :: detj !(GAUSS POINT)
   
   Integer solver_type
  

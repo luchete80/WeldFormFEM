@@ -63,11 +63,9 @@ subroutine calculate_element_matrices ()
     
     print *, "nodxelem ", nodxelem
     
-    i=1
-    do while (i.le.nodxelem)
+    do i=1,nodxelem
         print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
-        i = i+1
     end do
     !print *, "x2 ", x2
     !printarray(x2)
@@ -106,8 +104,8 @@ subroutine calculate_element_matrices ()
         end do
         print *, "jacob e ", elem%jacob(e,gp,:,:)
         
-        elem%detJ(e) = det(elem%jacob(e,gp,:,:))
-        print *, "det J", elem%detJ(e)
+        elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+        print *, "det J", elem%detJ(e,gp)
         !print *, "bl ", elem%bl(e,gp,:,:)
         !TODO CHANGE ZERO
 
@@ -119,14 +117,14 @@ subroutine calculate_element_matrices ()
             k = k + 1
           end do
         end if 
-        elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e)
+        elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e,gp)
         print *, "mat h ", elem%math(e,gp,:,:)
         !print *, "BL ", elem%bl
         elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
-                              &elem%bnl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
-        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e) !Nodal Weight mat
+                              &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
         if (calc_m .eqv. .True.) then
-          elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e)!Mass matrix
+          elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e,gp)!Mass matrix
         end if
         ! print *, "element mat m ", elem%matm (e,:,:)
         gp = gp + 1

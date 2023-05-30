@@ -98,7 +98,7 @@ contains
     allocate (elem%gausspc(el_count))
     allocate (elem%x2(el_count,nodxelem,dim))
     allocate (elem%jacob(el_count,gp,dim,dim))
-    allocate (elem%detj(el_count))
+    allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
     allocate (elem%tau(el_count,gp,dim*dim,dim*dim))
@@ -119,6 +119,8 @@ contains
     end if 
     
     elem%gausspc(:) = 4
+    allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
+
   end subroutine
 
   subroutine AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)			
