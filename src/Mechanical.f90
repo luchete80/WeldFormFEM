@@ -31,6 +31,7 @@ subroutine calc_elem_vol ()
     elem%vol(e) = 0.0d0
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
+      print *, "elem e j", elem%detJ(e,gp)
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)
       end do !gp  
     print *, "Elem ", e, "vol ",elem%vol(e)

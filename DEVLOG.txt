@@ -7,3 +7,4 @@
          - Added steps for alternative solver (From Benson 1992).
          - Added fixity and accel bc 
 20230529 - Fixed mass matrix assembly
+20230530 - Begining to work with density calc, reducing indices

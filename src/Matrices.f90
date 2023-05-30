@@ -131,7 +131,9 @@ subroutine calculate_element_matrices ()
         j = j +1
       end do
       i = i +1
-    end do
+      
+      elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
+    end do !element
     
     print *, "element mat m ", elem%matm (e,:,:)
     

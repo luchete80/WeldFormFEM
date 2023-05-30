@@ -96,6 +96,7 @@ contains
     elem_count = el_count
     allocate (elem%elnod(el_count,nodxelem))
     allocate (elem%gausspc(el_count))
+    allocate (elem%vol(el_count))
     allocate (elem%x2(el_count,nodxelem,dim))
     allocate (elem%jacob(el_count,gp,dim,dim))
     allocate (elem%detj(el_count,gp))
