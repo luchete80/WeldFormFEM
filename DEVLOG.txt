@@ -8,3 +8,4 @@
          - Added fixity and accel bc 
 20230529 - Fixed mass matrix assembly
 20230530 - Begining to work with density calc, reducing indices
+20230531 - Adding 3x3 3D matrix inversion subroutines for 3d elements
