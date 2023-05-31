@@ -173,7 +173,7 @@ end subroutine
 
 !!!!! PREVIOUSLY DETERMINANT SHOULD BE CALCULATED
 subroutine calculate_element_shapeMat ()
-  integer :: e
+  integer :: e,d
   ! !rg=gauss[ig]
   ! !sg=gauss[jg]
   real(fp_kind), dimension(dim,nodxelem) :: dHrs
@@ -188,34 +188,31 @@ subroutine calculate_element_shapeMat ()
   
 
   do e=1, elem_count
-    print *, "el ", e 
-    
-    elem%matkl(e,:,:) = 0.0
-    elem%matknl(e,:,:) = 0.0
-    if (calc_m .eqv. .True.) then
-      elem%matm(e,:,:) = 0.0
-    end if 
-    
-    print *, "nodxelem ", nodxelem
-    
-    do i=1,nodxelem
-        print *, "elnod " , elem%elnod(e,i)
-        x2(i,:)=nod%x(elem%elnod(e,i),:)
-    end do
-    !print *, "x2 ", x2
-    !printarray(x2)
-    ! TODO: This could be done once
+
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
-    
+      elem%math(e,gp,:,:) = 0.0d0
       if (dim .eq. 2) then 
       
         else !!!DIM 3
-          dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
-          dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
-          dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
-          elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
-      end if  !!!!DIM
+          temph(:,:) = 0.0d0
+          do k =1, nodxelem
+            do d =1, dim
+              !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
+              elem%math(e,gp,d,dim*(k-1)+d)=0.125
+              print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
+            end do !dim
+          end do
+          ! print *, "temp h", temph(:,:)
+          ! temph(1,:) = [1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0]
+          ! temph(2,:) = [0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0]
+          ! temph(3,:) = [0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0]
+
+      end if  !dim
+        
+        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
+        
+        print *, "MAT M", elem%matm(e,:,:)
       
     else !!!!! GP > 1
 
@@ -226,7 +223,7 @@ end subroutine
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
 subroutine calculate_element_derivMat ()
-  integer :: e
+  integer :: e,d
   ! !rg=gauss[ig]
   ! !sg=gauss[jg]
   real(fp_kind), dimension(dim,nodxelem) :: dHrs
@@ -254,7 +251,7 @@ subroutine calculate_element_derivMat ()
           invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED         
           !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
           !!!! DONE LIKE THIS TO AVOID MULTS
-          elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3)
+          elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
           elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
           elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
           elem%dHxy(e,gp,:,4) = -invJ(:,1)+invJ(:,2)-invJ(:,3)
@@ -264,10 +261,17 @@ subroutine calculate_element_derivMat ()
           elem%dHxy(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
 
           do k=1,nodxelem
-            elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
-            elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
-            elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
-            elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
+            do d=1,dim
+            elem%bl(e,gp,d,dim*(k-1)+d ) = elem%dHxy(e,gp,d,k) 
+            end do
+            elem%bl(e,gp,4,dim*(k-1)+1) = elem%dHxy(e,gp,2,k)
+            elem%bl(e,gp,4,dim*(k-1)+2) = elem%dHxy(e,gp,1,k)
+            
+            elem%bl(e,gp,5,dim*(k-1)+2) = elem%dHxy(e,gp,3,k)
+            elem%bl(e,gp,5,dim*(k-1)+3) = elem%dHxy(e,gp,2,k)
+            
+            elem%bl(e,gp,6,dim*(k-1)+1) = elem%dHxy(e,gp,3,k)
+            elem%bl(e,gp,6,dim*(k-1)+3) = elem%dHxy(e,gp,1,k)         
           end do
       end if  !!!!DIM
       
@@ -283,11 +287,6 @@ subroutine calculate_element_derivMat ()
           dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
           dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
           dHrs(:,:) = dHrs(:,:)*0.25
-
-          !print *, "dHrs ", dHrs
-          test = matmul(dHrs,x2)
-          !print *, "x2, ", x2
-          elem%jacob(e,gp,:,:) = test
           elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
           !print *, "inv mat", elem%dHxy(e,gp,:,:)
           
@@ -315,7 +314,9 @@ subroutine calculate_element_derivMat ()
   end do
 end subroutine
 
-!!!! STIFNESS MATRICES 
+
+!!!!! OLD 
+!!!! ---------
 subroutine calculate_element_matrices ()
   integer :: e
   ! !rg=gauss[ig]
@@ -439,7 +440,9 @@ subroutine calculate_element_matrices ()
   end do
 end subroutine
 
-subroutine assemble_mass_matrix ()
+
+!!!!!!! OLD !!!!!!!!!!!!!!
+subroutine assemble_mass_matrix_OLD ()
   integer :: e,gp, i, j, n, n2, iglob, jglob
   
   m_glob (:,:) = 0.0d0
@@ -458,6 +461,24 @@ subroutine assemble_mass_matrix ()
         end do !element row
       end do !n2
     end do ! Element node
+  end do ! e
+end subroutine
+
+subroutine assemble_mass_matrix ()
+  integer :: e,gp, i, j, dof1,dof2, n2
+  
+  m_glob (:,:) = 0.0d0
+  do e = 1, elem_count
+    !print *, "elem ", e
+    do dof1 =1, (nodxelem*dim)
+      do dof2=1, (nodxelem*dim)
+            !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
+            ! iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+            ! jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
+            ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
+            m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) = m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) + elem%matm (e,dof1,dof2)
+      end do !dof1
+    end do ! dof2 
   end do ! e
 end subroutine
 

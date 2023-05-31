@@ -118,9 +118,11 @@ contains
       allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
       allocate (elem%strain(el_count,gp, 4,1))
     else 
+      allocate (elem%bl (el_count,gp,6,dim*nodxelem))
+      allocate (elem%strain(el_count,gp, 6,1))
     end if 
     
-    elem%gausspc(:) = 4
+    elem%gausspc(:) = 1
     allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
 
   end subroutine
