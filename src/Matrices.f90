@@ -80,12 +80,12 @@ subroutine calculate_element_matrices ()
         dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
         dHrs(:,:) = dHrs(:,:)*0.25
 
-        print *, "dHrs ", dHrs
+        !print *, "dHrs ", dHrs
         test = matmul(dHrs,x2)
-        print *, "x2, ", x2
+        !print *, "x2, ", x2
         elem%jacob(e,gp,:,:) = test
         elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-        print *, "inv mat", elem%dHxy(e,gp,:,:)
+        !print *, "inv mat", elem%dHxy(e,gp,:,:)
         
         !DERIVATIVE MATRICES
         !TODO: CHANGE IF DIM != 2
@@ -105,7 +105,7 @@ subroutine calculate_element_matrices ()
         print *, "jacob e ", elem%jacob(e,gp,:,:)
         
         elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-        print *, "det J", elem%detJ(e,gp)
+        !print *, "det J", elem%detJ(e,gp)
         !print *, "bl ", elem%bl(e,gp,:,:)
         !TODO CHANGE ZERO
 
@@ -118,7 +118,7 @@ subroutine calculate_element_matrices ()
           end do
         end if 
         elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e,gp)
-        print *, "mat h ", elem%math(e,gp,:,:)
+        !print *, "mat h ", elem%math(e,gp,:,:)
         !print *, "BL ", elem%bl
         elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
                               &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
@@ -135,7 +135,7 @@ subroutine calculate_element_matrices ()
       elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
     end do !element
     
-    print *, "element mat m ", elem%matm (e,:,:)
+    !print *, "element",e," mat m ", elem%matm (e,:,:)
     
     
     ! #Numerated as in Bathe
@@ -200,7 +200,7 @@ subroutine assemble_int_forces()
     n = 1
     do while (n .le. nodxelem)
       i = 1
-      print *,"elem mat kl", elem%matkl(e,:,:)
+      !print *,"elem mat kl", elem%matkl(e,:,:)
       do while (i .le. dim )
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
