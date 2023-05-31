@@ -140,7 +140,7 @@ subroutine calculate_element_Jacobian ()
     print *, "el ", e 
     
     do i=1,nodxelem
-        print *, "elnod " , elem%elnod(e,i)
+        !print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
     end do
     
@@ -200,7 +200,7 @@ subroutine calculate_element_shapeMat ()
             do d =1, dim
               !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
               elem%math(e,gp,d,dim*(k-1)+d)=0.125
-              print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
+              !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
             end do !dim
           end do
           ! print *, "temp h", temph(:,:)
@@ -212,7 +212,7 @@ subroutine calculate_element_shapeMat ()
         
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
         
-        print *, "MAT M", elem%matm(e,:,:)
+        !print *, "MAT M", elem%matm(e,:,:)
       
     else !!!!! GP > 1
 
@@ -236,7 +236,7 @@ subroutine calculate_element_derivMat ()
   
 
   do e=1, elem_count
-    print *, "el ", e 
+    !print *, "el ", e 
 
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
@@ -251,6 +251,7 @@ subroutine calculate_element_derivMat ()
           invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED         
           !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
           !!!! DONE LIKE THIS TO AVOID MULTS
+          
           elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
           elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
           elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
@@ -259,7 +260,9 @@ subroutine calculate_element_derivMat ()
           elem%dHxy(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
           elem%dHxy(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
           elem%dHxy(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
-
+          
+          ! print *, "1,1", elem%dHxy(e,gp,1,1), "inv 1,1 1,2 1,3", invJ(1,1), invJ(1,2), invJ(1,3)
+          ! print *, "1,1", elem%dHxy(e,gp,2,1), "inv 1,1 1,2 1,3", invJ(2,1), invJ(2,2), invJ(2,3)
           do k=1,nodxelem
             do d=1,dim
             elem%bl(e,gp,d,dim*(k-1)+d ) = elem%dHxy(e,gp,d,k) 
@@ -344,7 +347,7 @@ subroutine calculate_element_matrices ()
     print *, "nodxelem ", nodxelem
     
     do i=1,nodxelem
-        print *, "elnod " , elem%elnod(e,i)
+        !print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
     end do
     !print *, "x2 ", x2

@@ -33,8 +33,8 @@ subroutine SolveVerlet (tf, dt)
       end do !col
     end do   
   calc_m = .False.
-  print *, "M Diag ", mdiag
-  print *, "m glob", m_glob
+ !print *, "M Diag ", mdiag
+  !print *, "m glob", m_glob
   
   nod%u(:,:) = 0.0d0
   
@@ -124,7 +124,7 @@ subroutine SolveVerlet (tf, dt)
     ! call impose_bcv
     
     ! !calc_m = .False.
-  ! time = time + dt
+  time = time + dt
   end do !time
 
 end subroutine SolveVerlet
