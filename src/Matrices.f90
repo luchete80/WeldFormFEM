@@ -160,7 +160,7 @@ subroutine calculate_element_Jacobian ()
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
       end if  !!!!DIM
-      
+      elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
     else !!!!! GP > 1
     r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
     s(1) = r(1)          ; s(2) =  r(2)
@@ -317,7 +317,7 @@ subroutine calculate_element_derivMat ()
   end do
 end subroutine
 
-
+!!!!!!!!!!!!!!!!!!!!
 !!!!! OLD 
 !!!! ---------
 subroutine calculate_element_matrices ()
@@ -429,42 +429,8 @@ subroutine calculate_element_matrices ()
       end do !i
     end if   !j
     !print *, "element",e," mat m ", elem%matm (e,:,:)
-    
-    
-    ! #Numerated as in Bathe
-    ! Ns  =0.25*matrix([(1+sg)*(1+rg),(1-rg)*(1+sg),(1-sg)*(1-rg),(1-sg)*(1+rg)])   
-    ! dHrs=matrix([[(1+sg),-(1+sg),-(1-sg),(1-sg)], [(1+rg),(1-rg),-(1-rg),-(1+rg)] ])
-    ! #Numerated as in deal.ii
-    ! #dHrs=matrix([[-(1-s),(1-s),-(1+s),(1+s)], [-(1-r),-(1+r),(1-r),(1+r)] ])        
-    ! dHrs/=4.
-    ! J=dHrs*X2
-    ! dHxy=linalg.inv(J)*dHrs
-    ! detJ=linalg.det(J)
+
   end do
-end subroutine
-
-
-!!!!!!! OLD !!!!!!!!!!!!!!
-subroutine assemble_mass_matrix_OLD ()
-  integer :: e,gp, i, j, n, n2, iglob, jglob
-  
-  m_glob (:,:) = 0.0d0
-  do e = 1, elem_count
-    print *, "elem ", e
-    do n = 1, nodxelem
-      do n2 = 1, nodxelem
-        do i=1,dim 
-          do j=1, dim
-            print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
-            iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-            jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
-            print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)
-          end do
-        end do !element row
-      end do !n2
-    end do ! Element node
-  end do ! e
 end subroutine
 
 subroutine assemble_mass_matrix ()
@@ -487,14 +453,15 @@ end subroutine
 
 !NEEDED FOR STRAIN AND INTERNAL FORCES CALCULATION
 !IS REALLY NEEDED TO STORE?
-subroutine disassemble_uele()
+subroutine disassemble_uvele()
   integer :: e, i, n
   do e=1,elem_count
     !print *, "elem ", e
     do n =1,nodxelem
       do i =1, dim 
         !print *, "e ", e, "n ", n, "uele estirado", 2*(n-1)+i , ",global ",elem%elnod(e,n)      
-        elem%uele (e,2*(n-1)+i,1) = nod%u(elem%elnod(e,n),i)
+        elem%uele (e,dim*(n-1)+i,1) = nod%u(elem%elnod(e,n),i)
+        elem%vele (e,dim*(n-1)+i,1) = nod%v(elem%elnod(e,n),i)
       end do
     end do ! Element node
   end do ! e

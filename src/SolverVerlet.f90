@@ -1,3 +1,27 @@
+!!!!BENSON 1992
+
+! (1) Knowing the stress, pressure, hourglass forces and shock viscosity at t” in each zone or
+! element, the forces at the nodes are calculated. The accelerations of the nodes are
+! calculated by dividing the nodal forces by the nodal masses.
+! (2) The acceleration is integrated to give the velocity at t”+l/2”.
+! (3) The velocity is integrated to give the displacement at t”+‘.
+! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
+! that the motion of the material is known.
+! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
+! (6) The internal energy is updated based on the work done between tn and t_n+1.
+! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
+! state.
+! (8) A new time step size is calculated based on the speed of sound through each of the
+! elements and their geometry.
+! (9) Advance the time and return to step (1)
+
+!! VELOCITY VERLET
+!!Calculate v(t+1/2dt) = v(t) +1/2a(t) dt
+!!Calc      x(t+dt ) = x(t) + v(t+1/2dt) dt
+!!obtain    a(t+dt) using x(t+dt)
+!!update    v(t+dt) = v(t+1/2dt)+1/2a(t+dt) dt
+
+
 module SolverVerlet
 use ModPrecision, only : fp_kind
 
@@ -45,16 +69,37 @@ subroutine SolveVerlet (tf, dt)
     call calculate_element_derivMat()
     ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
     ! !NODAL CALCULATION
-    
-    ! !Predictor 
-    ! !uest_n+1 = un + dt v_n + dt2/2 a_n
-    ! !Estimate u and vel from previous steps
-    ! !Solve eqns of motion at t_n+1 = tn +dt
-    ! !Calculate a from  M dacc = fext (tn+1) - fint(uest, vest) -fcont
-    ! !Calculate Lumped matrix
-    
-    ! call calc_elem_vol()
-    ! call disassemble_uele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+
+    ! call assemble_int_forces()
+  ! (1) Knowing the stress, pressure, hourglass forces and shock viscosity at t” in each zone or
+  ! element, the forces at the nodes are calculated. The accelerations of the nodes are
+  ! calculated by dividing the nodal forces by the nodal masses.    
+    do n=1,node_count
+      !prev_acc(:) = nod%a(n,:)
+      do d=1,dim
+        iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
+        nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
+      end do 
+    end do
+
+  !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
+  ! (2) The acceleration is integrated to give the velocity at t”+l/2”.
+    ! !Update vel with CURRENT ACCELERATION
+    ! THIS WOULD BE AT ONE STEP
+    ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
+    ! print *,"node vel ", nod%v(n,:)  
+    nod%v(n,:) = nod%v(n,:) + dt * 0.5 * nod%a(n,:)
+
+  !!(3) The velocity is integrated to give the displacement at tn+1.
+  nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt
+  
+  call calc_elem_vol()
+  call disassemble_uvele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  call cal_elem_strains ()     !!!!!STRAIN AND STRAIN RATES
+  
+  ! (4) The constitutive model for the strength of the material is integrated from t” to t”+’ now
+  ! that the motion of the material is known.
+  
     ! call assemble_int_forces()
     ! ! !Diagonalize
     ! ! !SIMPLEST FORM, ROW SUM 

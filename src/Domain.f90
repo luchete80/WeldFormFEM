@@ -109,6 +109,8 @@ contains
     allocate (elem%matKnl(el_count,dim*nodxelem,dim*nodxelem))
 
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
+
+    allocate (elem%vele (el_count,dim*nodxelem,1)) 
     
     allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
     allocate (elem%math(el_count,gp,dim,dim*nodxelem)) !Mass matrix
@@ -117,9 +119,11 @@ contains
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))
       allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
       allocate (elem%strain(el_count,gp, 4,1))
+      allocate (elem%str_rate(el_count,gp, 4,1))
     else 
       allocate (elem%bl (el_count,gp,6,dim*nodxelem))
       allocate (elem%strain(el_count,gp, 6,1))
+      allocate (elem%str_rate(el_count,gp, 6,1))
     end if 
     
     elem%gausspc(:) = 1

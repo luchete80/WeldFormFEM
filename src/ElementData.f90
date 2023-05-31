@@ -19,7 +19,7 @@ Type Element
 
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
-  real(fp_kind), dimension(:,:,:,:), allocatable :: tau, str_rate, rot_rate, shear_stress,strain !tau is Cauchy Stress (do not confuse with shear)
+  real(fp_kind), dimension(:,:,:,:), allocatable :: tau, str_rate, rot_rate , shear_stress,strain !tau is Cauchy Stress (do not confuse with shear)
   real(fp_kind), dimension(:), allocatable:: pressure, mat_g
   
   real(fp_kind), dimension(:,:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
@@ -32,7 +32,7 @@ Type Element
   
 
   !! STIFFNESS AND MASS MATRICES, ARE INTEGRATED MATRICES (NOT ON EACH GAUSS POINT)
-  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele
+  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele,vele
   
   Integer, Dimension(:,:), Allocatable :: elnod,dof !Connectivity
   real(fp_kind), dimension(:,:), allocatable :: detj !(GAUSS POINT)
