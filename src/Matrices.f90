@@ -33,18 +33,20 @@ subroutine M33INV (A, AINV, OK_FLAG)
   LOGICAL, INTENT(OUT) :: OK_FLAG
 
   DOUBLE PRECISION, PARAMETER :: EPS = 1.0D-10
-  DOUBLE PRECISION :: DET
+  DOUBLE PRECISION :: DETE
   DOUBLE PRECISION, DIMENSION(3,3) :: COFACTOR
 
 
-  DET =   A(1,1)*A(2,2)*A(3,3)  &
-        - A(1,1)*A(2,3)*A(3,2)  &
-        - A(1,2)*A(2,1)*A(3,3)  &
-        + A(1,2)*A(2,3)*A(3,1)  &
-        + A(1,3)*A(2,1)*A(3,2)  &
-        - A(1,3)*A(2,2)*A(3,1)
+  ! DET =   A(1,1)*A(2,2)*A(3,3)  &
+        ! - A(1,1)*A(2,3)*A(3,2)  &
+        ! - A(1,2)*A(2,1)*A(3,3)  &
+        ! + A(1,2)*A(2,3)*A(3,1)  &
+        ! + A(1,3)*A(2,1)*A(3,2)  &
+        ! - A(1,3)*A(2,2)*A(3,1)
+  
+  dete = det(A)
 
-  IF (ABS(DET) .LE. EPS) THEN
+  IF (ABS(DETE) .LE. EPS) THEN
      AINV = 0.0D0
      OK_FLAG = .FALSE.
      RETURN
@@ -60,7 +62,7 @@ subroutine M33INV (A, AINV, OK_FLAG)
   COFACTOR(3,2) = -(A(1,1)*A(2,3)-A(1,3)*A(2,1))
   COFACTOR(3,3) = +(A(1,1)*A(2,2)-A(1,2)*A(2,1))
 
-  AINV = TRANSPOSE(COFACTOR) / DET
+  AINV = TRANSPOSE(COFACTOR) / DETE
 
   OK_FLAG = .TRUE.
 
@@ -71,9 +73,16 @@ end subroutine M33INV
 function det (a)
   real(fp_kind), dimension(dim,dim), intent (in) :: a 
   real(fp_kind) :: det
-  !if (dim .eq. 2) then
-  det = a(1,1)*a(2,2)-a(1,2)*a(2,1)
-  !end if
+  if (dim .eq. 2) then
+    det = a(1,1)*a(2,2)-a(1,2)*a(2,1)
+  else 
+  DET =   A(1,1)*A(2,2)*A(3,3)  &
+        - A(1,1)*A(2,3)*A(3,2)  &
+        - A(1,2)*A(2,1)*A(3,3)  &
+        + A(1,2)*A(2,3)*A(3,1)  &
+        + A(1,3)*A(2,1)*A(3,2)  &
+        - A(1,3)*A(2,2)*A(3,1)  
+  end if
 end function
 
 function invmat (a)
@@ -85,6 +94,203 @@ function invmat (a)
   !end if
 end function
 
+function adj (a)
+  real(fp_kind), dimension(dim,dim), intent (in) :: a 
+  real(fp_kind), dimension(dim,dim) :: cofactor,adj
+  
+  if (dim .eq. 2) then
+    adj(1,:) = [ a(2,2),-a(1,2)]
+    adj(2,:) = [-a(2,1), a(1,1)]
+  else
+    cofactor(1,1) = +(A(2,2)*A(3,3)-A(2,3)*A(3,2))
+    cofactor(1,2) = -(A(2,1)*A(3,3)-A(2,3)*A(3,1))
+    cofactor(1,3) = +(A(2,1)*A(3,2)-A(2,2)*A(3,1))
+    cofactor(2,1) = -(A(1,2)*A(3,3)-A(1,3)*A(3,2))
+    cofactor(2,2) = +(A(1,1)*A(3,3)-A(1,3)*A(3,1))
+    cofactor(2,3) = -(A(1,1)*A(3,2)-A(1,2)*A(3,1))
+    cofactor(3,1) = +(A(1,2)*A(2,3)-A(1,3)*A(2,2))
+    cofactor(3,2) = -(A(1,1)*A(2,3)-A(1,3)*A(2,1))
+    cofactor(3,3) = +(A(1,1)*A(2,2)-A(1,2)*A(2,1))
+    
+    adj = TRANSPOSE(COFACTOR)
+  end if
+end function
+
+
+!!!! IN ORDER TO CALCULATE IT ONLY ONCE
+!!!!!!!!!!!! IN RS PLANE ---->>>>
+!!!!!!!! 4------3
+!!!!!!!! |      |
+!!!!!!!! 1 ---- 2
+!!!! CALCULATE JACOBIAN AND DETERMINANT
+subroutine calculate_element_Jacobian ()
+  integer :: e
+  ! !rg=gauss[ig]
+  ! !sg=gauss[jg]
+  real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  real(fp_kind), dimension(nodxelem,dim) :: x2
+  real(fp_kind), dimension(dim,dim) :: test
+  real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  
+  integer :: i,j,k, gp
+  real(fp_kind), dimension(2) :: r, s
+  
+  gp = 1
+  do e=1, elem_count
+    print *, "el ", e 
+    
+    do i=1,nodxelem
+        print *, "elnod " , elem%elnod(e,i)
+        x2(i,:)=nod%x(elem%elnod(e,i),:)
+    end do
+    
+    if (elem%gausspc(e) .eq. 1) then
+    
+      if (dim .eq. 2) then 
+      
+        else !!!DIM 3
+          !!!!! SETTING LIKE THIS AVOID MATMUL
+          elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)-x2(5,:)+x2(6,:)+x2(7,:)-x2(8,:)
+          elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)-x2(5,:)-x2(6,:)+x2(7,:)+x2(8,:)
+          elem%jacob(e,gp,3,:) = -x2(1,:)-x2(2,:)-x2(3,:)-x2(4,:)+x2(5,:)+x2(6,:)+x2(7,:)+x2(8,:)
+          !elem%jacob(e,gp,2,:) = [-x2(1,2),-x2(2,2), x2(3,2), x2(4,2),-x2(5,2),-x2(6,2), x2(7,2), x2(8,2)]
+          !elem%jacob(e,gp,3,:) = [-x2(1,3),-x2(2,3), x2(3,3), x2(4,3),-x2(5,3),-x2(6,3), x2(7,3), x2(8,3)]
+          ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
+          ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
+          ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
+          ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
+      end if  !!!!DIM
+      
+    else !!!!! GP > 1
+    r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+    s(1) = r(1)          ; s(2) =  r(2)
+    
+    end if !!gp ==1
+    elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+  end do !element
+
+end subroutine
+
+!!!!!dxdxy and B matrices
+!!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
+subroutine calculate_element_derivMat ()
+  integer :: e
+  ! !rg=gauss[ig]
+  ! !sg=gauss[jg]
+  real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  real(fp_kind), dimension(nodxelem,dim) :: x2
+  real(fp_kind), dimension(dim,dim) :: test, invJ
+  real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  
+  integer :: i,j,k, gp
+  real(fp_kind), dimension(2) :: r, s
+
+  !! Update x2 vector (this is useful for strain and stress things)
+  
+
+  do e=1, elem_count
+    print *, "el ", e 
+
+    gp = 1
+    if (elem%gausspc(e) .eq. 1) then
+    
+      if (dim .eq. 2) then       
+        else !!!DIM 3
+          ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
+          ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
+          ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
+          ! elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
+          !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+          invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED         
+          !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+          !!!! DONE LIKE THIS TO AVOID MULTS
+          elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3)
+          elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
+          elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
+          elem%dHxy(e,gp,:,4) = -invJ(:,1)+invJ(:,2)-invJ(:,3)
+          elem%dHxy(e,gp,:,5) = -invJ(:,1)-invJ(:,2)+invJ(:,3)
+          elem%dHxy(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
+          elem%dHxy(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
+          elem%dHxy(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
+      end if  !!!!DIM
+      
+    else !!!!! GP > 1
+
+      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+      s(1) = r(1)          ; s(2) =  r(2)      
+      i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
+      do while (i<=2)
+        j = 1
+        do while (j<=2)
+          !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
+          dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
+          dHrs(:,:) = dHrs(:,:)*0.25
+
+          !print *, "dHrs ", dHrs
+          test = matmul(dHrs,x2)
+          !print *, "x2, ", x2
+          elem%jacob(e,gp,:,:) = test
+          elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+          !print *, "inv mat", elem%dHxy(e,gp,:,:)
+          
+          !DERIVATIVE MATRICES
+          !TODO: CHANGE IF DIM != 2
+          k=1
+          do while (k<nodxelem)
+            elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+            elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
+            elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
+            elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
+            k = k+1
+          end do
+          print *, "jacob e ", elem%jacob(e,gp,:,:)
+          
+          elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+          !print *, "det J", elem%detJ(e,gp)
+          !print *, "bl ", elem%bl(e,gp,:,:)
+          !TODO CHANGE ZERO
+
+          if (dim .eq. 2) then
+            temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+            k = 1
+            do while (k <= nodxelem)
+              temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+              k = k + 1
+            end do
+          end if 
+          elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e,gp)
+          !print *, "mat h ", elem%math(e,gp,:,:)
+          !print *, "BL ", elem%bl
+          ! elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
+                                ! &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          ! elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          if (calc_m .eqv. .True.) then
+            elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e,gp)!Mass matrix
+          end if
+          ! print *, "element mat m ", elem%matm (e,:,:)
+          gp = gp + 1
+          j = j +1
+        end do
+        i = i +1
+        
+        elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
+      end do !i
+    end if   !j
+    !print *, "element",e," mat m ", elem%matm (e,:,:)
+    
+    
+    ! #Numerated as in Bathe
+    ! Ns  =0.25*matrix([(1+sg)*(1+rg),(1-rg)*(1+sg),(1-sg)*(1-rg),(1-sg)*(1+rg)])   
+    ! dHrs=matrix([[(1+sg),-(1+sg),-(1-sg),(1-sg)], [(1+rg),(1-rg),-(1-rg),-(1+rg)] ])
+    ! #Numerated as in deal.ii
+    ! #dHrs=matrix([[-(1-s),(1-s),-(1+s),(1+s)], [-(1-r),-(1+r),(1-r),(1+r)] ])        
+    ! dHrs/=4.
+    ! J=dHrs*X2
+    ! dHxy=linalg.inv(J)*dHrs
+    ! detJ=linalg.det(J)
+  end do
+end subroutine
 
 !!!! STIFNESS MATRICES 
 subroutine calculate_element_matrices ()
@@ -99,8 +305,6 @@ subroutine calculate_element_matrices ()
   integer :: i,j,k, gp
   real(fp_kind), dimension(2) :: r, s
 
-  r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-  s(1) = r(1)          ; s(2) =  r(2)
   !! Update x2 vector (this is useful for strain and stress things)
   
 
@@ -123,70 +327,80 @@ subroutine calculate_element_matrices ()
     !printarray(x2)
     ! TODO: This could be done once
     gp = 1
-    i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
-    do while (i<=2)
-      j = 1
-      do while (j<=2)
-        !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
-        dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
-        dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
-        dHrs(:,:) = dHrs(:,:)*0.25
-
-        !print *, "dHrs ", dHrs
-        test = matmul(dHrs,x2)
-        !print *, "x2, ", x2
-        elem%jacob(e,gp,:,:) = test
-        elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-        !print *, "inv mat", elem%dHxy(e,gp,:,:)
-        
-        !DERIVATIVE MATRICES
-        !TODO: CHANGE IF DIM != 2
-        k=1
-        do while (k<nodxelem)
-          elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
-          elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
-          elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
-          elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
-
-          elem%bnl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
-          elem%bnl(e,gp,2,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k)
-          elem%bnl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k) 
-          elem%bnl(e,gp,4,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)     
-          k = k+1
-        end do
-        print *, "jacob e ", elem%jacob(e,gp,:,:)
-        
-        elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-        !print *, "det J", elem%detJ(e,gp)
-        !print *, "bl ", elem%bl(e,gp,:,:)
-        !TODO CHANGE ZERO
-
-        if (dim .eq. 2) then
-          temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
-          k = 1
-          do while (k <= nodxelem)
-            temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
-            k = k + 1
-          end do
-        end if 
-        elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e,gp)
-        !print *, "mat h ", elem%math(e,gp,:,:)
-        !print *, "BL ", elem%bl
-        elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
-                              &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
-        elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
-        if (calc_m .eqv. .True.) then
-          elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e,gp)!Mass matrix
-        end if
-        ! print *, "element mat m ", elem%matm (e,:,:)
-        gp = gp + 1
-        j = j +1
-      end do
-      i = i +1
-      
-      elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
-    end do !element
+    if (elem%gausspc(e) .eq. 1) then
     
+      if (dim .eq. 2) then 
+      
+        else !!!DIM 3
+          dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
+          dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
+          dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
+          elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
+      end if  !!!!DIM
+      
+    else !!!!! GP > 1
+
+      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+      s(1) = r(1)          ; s(2) =  r(2)      
+      i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
+      do while (i<=2)
+        j = 1
+        do while (j<=2)
+          !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
+          dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
+          dHrs(:,:) = dHrs(:,:)*0.25
+
+          !print *, "dHrs ", dHrs
+          test = matmul(dHrs,x2)
+          !print *, "x2, ", x2
+          elem%jacob(e,gp,:,:) = test
+          elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+          !print *, "inv mat", elem%dHxy(e,gp,:,:)
+          
+          !DERIVATIVE MATRICES
+          !TODO: CHANGE IF DIM != 2
+          k=1
+          do while (k<nodxelem)
+            elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+            elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
+            elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
+            elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
+            k = k+1
+          end do
+          print *, "jacob e ", elem%jacob(e,gp,:,:)
+          
+          elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+          !print *, "det J", elem%detJ(e,gp)
+          !print *, "bl ", elem%bl(e,gp,:,:)
+          !TODO CHANGE ZERO
+
+          if (dim .eq. 2) then
+            temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+            k = 1
+            do while (k <= nodxelem)
+              temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+              k = k + 1
+            end do
+          end if 
+          elem%math(e,gp,:,:) = elem%math(e,gp,:,:) + temph(:,:)*elem%detJ(e,gp)
+          !print *, "mat h ", elem%math(e,gp,:,:)
+          !print *, "BL ", elem%bl
+          ! elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
+                                ! &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          ! elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          if (calc_m .eqv. .True.) then
+            elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e,gp)!Mass matrix
+          end if
+          ! print *, "element mat m ", elem%matm (e,:,:)
+          gp = gp + 1
+          j = j +1
+        end do
+        i = i +1
+        
+        elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
+      end do !i
+    end if   !j
     !print *, "element",e," mat m ", elem%matm (e,:,:)
     
     

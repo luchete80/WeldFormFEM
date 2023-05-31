@@ -43,9 +43,9 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 3
+  Dim = 2
    L = 2.0	
-  dx    = 1.0
+  dx    = 2.0
   r = dx / 2.0
   h = dx * 1.2
 
@@ -76,7 +76,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  call AddBoxLength(0, V, L, L, L, r, rho, h)
+  call AddBoxLength(0, V, 2.0*L, L, L, r, rho, h)
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.

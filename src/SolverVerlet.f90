@@ -15,7 +15,9 @@ subroutine SolveVerlet (tf, dt)
   
   real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
-  
+ 
+
+  call set_edof_from_elnod()
   calc_m = .True.
  
   call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU

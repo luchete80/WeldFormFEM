@@ -34,7 +34,7 @@ Type Element
   !! STIFFNESS AND MASS MATRICES, ARE INTEGRATED MATRICES (NOT ON EACH GAUSS POINT)
   real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele
   
-  Integer, Dimension(:,:), Allocatable :: elnod !Connectivity
+  Integer, Dimension(:,:), Allocatable :: elnod,dof !Connectivity
   real(fp_kind), dimension(:,:), allocatable :: detj !(GAUSS POINT)
   
   Integer solver_type
@@ -42,7 +42,7 @@ Type Element
   
 End Type
 
-!contains
+
 
 
 End Module ElementData
