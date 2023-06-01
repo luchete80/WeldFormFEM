@@ -22,6 +22,29 @@ subroutine cal_elem_strains ()
   end do
 end subroutine
 
+!calc int_forces
+subroutine cal_elem_forces ()
+  implicit none
+  integer :: e, i,j,k, gp,n, d
+  real(fp_kind), dimension(dim*nodxelem,1) ::f
+  
+  gp = 1
+  do e=1, elem_count
+    do n=1, nodxelem
+    !Is only linear matrix?    
+    !elem%f_int(e,n,d) =  
+    !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
+    !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
+      do d=1, dim
+        f_int(e,n,d) = dHdx(e,gp,n,d) 
+      end do
+      f_int(e,n,1) = f_int(e,n,1) + dHdx(e,gp,2,n) * elem%tau (e,gp, 1,2) + dHdx(e,gp,3,n) * elem%tau (e,gp, 1,3)
+      f_int(e,n,2) = f_int(e,n,2) + dHdx(e,gp,1,n) * elem%tau (e,gp, 1,2) + dHdx(e,gp,3,n) * elem%tau (e,gp, 2,3)
+      f_int(e,n,3) = f_int(e,n,3) + dHdx(e,gp,2,n) * elem%tau (e,gp, 2,3) + dHdx(e,gp,1,n) * elem%tau (e,gp, 1,3)
+    end do
+  end do
+end subroutine
+
 
 !!!! AFTER CALCULATING VELE 
 subroutine calc_hourglass_forces

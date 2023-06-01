@@ -252,6 +252,7 @@ subroutine calculate_element_derivMat ()
           !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
           !!!! DONE LIKE THIS TO AVOID MULTS
           
+          !!!! REMAINS ELEM_VOLUME
           elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
           elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
           elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
