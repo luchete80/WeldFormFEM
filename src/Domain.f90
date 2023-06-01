@@ -115,6 +115,8 @@ contains
     allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
     allocate (elem%math(el_count,gp,dim,dim*nodxelem)) !Mass matrix
     
+    allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
+    
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))
       allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
