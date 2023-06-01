@@ -36,11 +36,14 @@ subroutine cal_elem_forces ()
     !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
     !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
       do d=1, dim
-        f_int(e,n,d) = dHdx(e,gp,n,d) 
+        elem%f_int(e,n,d) = elem%dHxy(e,gp,n,d) * elem%tau (e,gp, d,d)
       end do
-      f_int(e,n,1) = f_int(e,n,1) + dHdx(e,gp,2,n) * elem%tau (e,gp, 1,2) + dHdx(e,gp,3,n) * elem%tau (e,gp, 1,3)
-      f_int(e,n,2) = f_int(e,n,2) + dHdx(e,gp,1,n) * elem%tau (e,gp, 1,2) + dHdx(e,gp,3,n) * elem%tau (e,gp, 2,3)
-      f_int(e,n,3) = f_int(e,n,3) + dHdx(e,gp,2,n) * elem%tau (e,gp, 2,3) + dHdx(e,gp,1,n) * elem%tau (e,gp, 1,3)
+      elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%tau (e,gp, 1,2) + &
+                                              elem%dHxy(e,gp,3,n) * elem%tau (e,gp, 1,3)
+      elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%tau (e,gp, 1,2) + &
+                                              elem%dHxy(e,gp,3,n) * elem%tau (e,gp, 2,3)
+      elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%tau (e,gp, 2,3) + &
+                                              elem%dHxy(e,gp,1,n) * elem%tau (e,gp, 1,3)
     end do
   end do
 end subroutine
