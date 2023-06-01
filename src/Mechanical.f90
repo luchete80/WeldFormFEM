@@ -85,6 +85,34 @@ subroutine calc_hourglass_forces
   end do !elemen
 end subroutine
 
+!!!!!!---------------------------
+!!!!!!MIE-GRUNEISSEN EQN OF STATE
+!!!!!!!--------------------------
+real(fp_kind) function EOS(EQ, Cs0, P00, Density, Density0)
+  integer, intent (in) :: EQ
+  real(fp_kind), intent(in) :: Cs0, P00, Density, Density0
+  ! switch (EQ)
+    ! case 0:
+      EOS =  P00+(Cs0*Cs0)*(Density-Density0)
+      ! break;
+
+    ! case 1:
+      ! return P00+(Density0*Cs0*Cs0/7.0)*(pow(Density/Density0,7.0)-1);
+      ! break;
+
+    ! case 2:
+      ! return (Cs0*Cs0)*Density;
+      ! break;
+
+    ! default:
+      ! std::cout << "Please correct Pressure Equation No and run again" << std::endl;
+      ! std::cout << "0 => P0+(Cs*Cs)*(Density-Density0)" << std::endl;
+      ! std::cout << "1 => P0+(Density0*Cs*Cs/7)*(pow(Density/Density0,7)-1)" << std::endl;
+      ! std::cout << "2 => (Cs*Cs)*Density" << std::endl;
+      ! abort();
+      ! break;
+  
+end function EOS
 
 subroutine CalcStressStrain (dt) 
 
@@ -101,7 +129,7 @@ subroutine CalcStressStrain (dt)
   ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
-  ! do i = 1, elem_count
+  do i = 1, elem_count
     ! pt%pressure(i) = EOS(0, pt%cs(i), p00,pt%rho(i), pt%rho_0(i))
     ! if (i==52) then
     ! !print *, "pt%pressure(i)", pt%pressure(i),", cs ", pt%cs(i), "p00", p00, ", rho", p00,pt%rho(i), ", rho 0", p00,pt%rho_0(i)
@@ -118,7 +146,7 @@ subroutine CalcStressStrain (dt)
     ! pt%sigma(i,:,:)			= -pt%pressure(i) * ident + pt%shear_stress(i,:,:)	!Fraser, eq 3.32
     ! !print *, "particle ", i, ", rot_rate ", pt%rot_rate(i,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
-  ! end do
+  end do
   ! !!!!$omp end parallel do    
 
 
