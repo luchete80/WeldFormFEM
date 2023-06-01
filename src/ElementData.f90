@@ -30,6 +30,8 @@ Type Element
   
   real(fp_kind), dimension(:,:,:), allocatable :: x2 !(rearranged nodes elem, x,y)
   
+  real(fp_kind), dimension(:,:), allocatable :: hourg_nodf !!!!HOURGLASS NODAL FORCES
+  
 
   !! STIFFNESS AND MASS MATRICES, ARE INTEGRATED MATRICES (NOT ON EACH GAUSS POINT)
   real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele,vele

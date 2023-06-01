@@ -23,6 +23,40 @@ subroutine cal_elem_strains ()
 end subroutine
 
 
+!!!! AFTER CALCULATING VELE 
+subroutine calc_hourglass_forces
+  implicit none
+  integer :: e, n, j
+  real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
+  real(fp_kind), dimension(nodxelem,dim):: vel,!!!!DIFFERENT FROM vele which is an 8 x 1 vector
+  real(fp_kind), dimension(4,dim) :: hmod
+  
+  if (dim .eq. 3) then
+    Sig(1,:) = [ 1.0, 1.0,-1.0,-1.0,-1.0,-1.0, 1.0, 1.0]
+    Sig(2,:) = [ 1.0,-1.0,-1.0, 1.0,-1.0, 1.0, 1.0,-1.0]
+    Sig(3,:) = [ 1.0,-1.0, 1.0,-1.0, 1.0,-1.0, 1.0,-1.0]
+    Sig(4,:) = [-1.0, 1.0,-1.0, 1.0, 1.0,-1.0, 1.0,-1.0]
+  end if
+  
+  do e=1, elem_count
+    elem%vele(e,n)
+
+    do n=1,nodxelem
+      do d=1,dim
+        vel (n,d) = nod%v(elem%elnod(e,n),d)    
+      end do
+    end do
+    do j =1,4
+      
+      hmod(j,d) = matmul(vel (n,:),Sig(j,n) -!dim,nodxelem X nodxelem,1
+    end do
+    do j =1,4  
+      elem%hourg_nodf(e,:,d) = elem%hourg_nodf(e,:,d) - transpose (matmul(hmod(j,)
+    end do
+  end do !elemen
+end subroutine
+
+
 subroutine CalcStressStrain (dt) 
 
   implicit none
