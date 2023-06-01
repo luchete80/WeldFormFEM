@@ -476,16 +476,13 @@ subroutine assemble_int_forces()
   rint_glob (:,:) = 0.0d0
   e = 1
   do while (e .le. elem_count)
-    !print *, "elem ", e
-    rtemp = matmul(elem%matkl(e,:,:) + elem%matknl(e,:,:), elem%uele(e,:,:))
     n = 1
     do while (n .le. nodxelem)
-      i = 1
       !print *,"elem mat kl", elem%matkl(e,:,:)
-      do while (i .le. dim )
+      do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-        rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
-        i = i + 1
+        !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
+        rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + elem%f_int(e,n,i)
       end do !element row
       n = n + 1
     end do ! Element node

@@ -65,6 +65,7 @@ subroutine SolveVerlet (tf, dt)
   time = 0.0  
   print *,"main loop"
   do while (time .le. tf)
+
     call calculate_element_Jacobian()
     call calculate_element_derivMat()
     ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
@@ -74,6 +75,9 @@ subroutine SolveVerlet (tf, dt)
   ! (1) Knowing the stress, pressure, hourglass forces and shock viscosity at t” in each zone or
   ! element, the forces at the nodes are calculated. The accelerations of the nodes are
   ! calculated by dividing the nodal forces by the nodal masses.    
+    call cal_elem_forces()
+    call assemble_int_forces()
+    
     do n=1,node_count
       !prev_acc(:) = nod%a(n,:)
       do d=1,dim
@@ -96,6 +100,8 @@ subroutine SolveVerlet (tf, dt)
   call calc_elem_vol()
   call disassemble_uvele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains ()     !!!!!STRAIN AND STRAIN RATES
+  
+
   
   ! (4) The constitutive model for the strength of the material is integrated from t” to t”+’ now
   ! that the motion of the material is known.
