@@ -74,10 +74,13 @@ subroutine SolveVerlet (tf, dt)
     ! call assemble_int_forces()
   ! (1) Knowing the stress, pressure, hourglass forces and shock viscosity at t” in each zone or
   ! element, the forces at the nodes are calculated. The accelerations of the nodes are
-  ! calculated by dividing the nodal forces by the nodal masses.    
+  ! calculated by dividing the nodal forces by the nodal masses.   
+    print *, "calc elem forces "
     call cal_elem_forces()
+    print *, "assemble int forces "
     call assemble_int_forces()
     
+    print *, "calc accel "
     do n=1,node_count
       !prev_acc(:) = nod%a(n,:)
       do d=1,dim
@@ -101,10 +104,11 @@ subroutine SolveVerlet (tf, dt)
   call disassemble_uvele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains ()     !!!!!STRAIN AND STRAIN RATES
   
-
-  
-  ! (4) The constitutive model for the strength of the material is integrated from t” to t”+’ now
+  ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
+  
+  ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
+  call calc_hourglass_forces
   
     ! call assemble_int_forces()
     ! ! !Diagonalize
