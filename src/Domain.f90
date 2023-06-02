@@ -109,13 +109,19 @@ contains
 
     allocate (elem%vele (el_count,dim*nodxelem,1)) 
     
+    allocate (elem%mass(el_count)) !Mass matrix    
+
     allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
     allocate (elem%math(el_count,gp,dim,dim*nodxelem)) !Mass matrix
     
     allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
     
     allocate (elem%f_int(el_count,nodxelem,dim))
+    
+    allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))
+    allocate (elem%pressure(el_count,gp))
+    allocate (elem%cs(el_count))
     
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))
@@ -129,7 +135,7 @@ contains
     end if 
     
     elem%gausspc(:) = gp
-    allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
+
 
   end subroutine
 

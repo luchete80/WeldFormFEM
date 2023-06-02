@@ -6,7 +6,8 @@ use Domain
 !use Thermal
 use omp_lib
 use Matrices
-use SolverVerlet
+use SolverLeapfrog
+!use SolverVerlet
 !use Thermal
 !use Mechanical
 !use ModPrecision, only : fp_kind
@@ -104,6 +105,8 @@ implicit none
   
   mat_cs = sqrt(mat_modK/rho)
   
+  elem%cs(:) = mat_cs
+  
   dt = 0.7 * dx/(mat_cs)
   tf = dt * 1.0
   
@@ -111,7 +114,7 @@ implicit none
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
-  call SolveVerlet(tf,dt)
+  call SolveLeapfrog(tf,dt)
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"

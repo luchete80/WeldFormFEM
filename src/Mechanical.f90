@@ -94,8 +94,9 @@ end subroutine
 !!!!!!---------------------------
 !!!!!!MIE-GRUNEISSEN EQN OF STATE
 !!!!!!!--------------------------
-real(fp_kind) function EOS(EQ, Cs0, P00, Density, Density0)
-  integer, intent (in) :: EQ
+!real(fp_kind) function EOS(EQ, Cs0, P00, Density, Density0
+real(fp_kind) function EOS(Cs0, P00, Density, Density0)
+  !integer, intent (in) :: EQ
   real(fp_kind), intent(in) :: Cs0, P00, Density, Density0
   ! switch (EQ)
     ! case 0:
@@ -119,6 +120,25 @@ real(fp_kind) function EOS(EQ, Cs0, P00, Density, Density0)
       ! break;
   
 end function EOS
+
+!!!!! ASSUME VOLUME IS ALREADY CALCULATED
+subroutine calc_elem_density ()
+  implicit none
+  integer :: e
+  do e = 1, elem_count
+    elem%rho(e) = elem%mass(e)/elem%vol(e)
+  end do
+end subroutine
+
+subroutine calc_elem_pressure ()
+  implicit none
+  integer :: e, gp
+  
+  gp = 1
+  do e = 1, elem_count
+    elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e),elem%rho_0(e,gp))
+  end do
+end subroutine
 
 subroutine CalcStressStrain (dt) 
 
@@ -179,16 +199,7 @@ subroutine calc_elem_vol ()
 
 end subroutine
 
-!!!!!EOS: Equation of State
-subroutine calc_elem_density ()
-  implicit none
-  integer :: e
-  ! P00+(Cs0*Cs0)*(Density-Density0);
-  do e = 1, elem_count
-    !elem%rho(e) = 
-  end do
 
-end subroutine
 
 
 subroutine impose_bcv
