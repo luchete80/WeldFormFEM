@@ -222,8 +222,7 @@ subroutine impose_bca
       ! if (nod%is_bcv(n,d) .eqv. .true.) then
         ! nod%v(n,d) = nod%bcv(n,d)
         ! print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
-      ! end if
-      
+      ! end if      
       if (nod%is_fix(n,d) .eqv. .true.) then
         nod%a(n,d) = 0.0
       end if 

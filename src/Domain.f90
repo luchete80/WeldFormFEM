@@ -81,7 +81,7 @@ contains
     
     ! allocate (nod%sigma_eq(node_count))
     
-    ! allocate (nod%rho_0(node_count))
+
     !!!!! BOUNDARY CONDITIONS
     allocate (nod%is_bcv(node_count,dim))
     allocate (nod%is_fix(node_count,dim))
@@ -115,6 +115,7 @@ contains
     allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
     
     allocate (elem%f_int(el_count,nodxelem,dim))
+    allocate (elem%rho_0(el_count,gp))
     
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))
@@ -127,7 +128,7 @@ contains
       allocate (elem%str_rate(el_count,gp, 6,1))
     end if 
     
-    elem%gausspc(:) = 1
+    elem%gausspc(:) = gp
     allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
 
   end subroutine
@@ -212,9 +213,9 @@ contains
     !! ALLOCATE ELEMENTS
     !! DIMENSION = 2
     if (dim .eq. 2) then
-      call AllocateElements(nel(1) * nel(2),4)
+      call AllocateElements(nel(1) * nel(2),1) !!!!REDUCED INTEGRATION
     else 
-      call AllocateElements(nel(1) * nel(2)*nel(3),4)
+      call AllocateElements(nel(1) * nel(2)*nel(3),1) 
     end if
     
     if (dim .eq. 2) then
@@ -263,7 +264,7 @@ contains
   
     ! nod%m(:)   = Density * Lx * Ly * Lz / node_count
     ! nod%rho(:)   = Density
-    ! nod%rho_0(:) = Density
+    elem%rho_0(:,:) = Density
     !print *, "Particle mass ", nod%m(2)
     
     !nod%id(:) = tag

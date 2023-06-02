@@ -88,21 +88,24 @@ subroutine SolveVerlet (tf, dt)
         nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
       end do 
     end do
+    
+  call impose_bca
 
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
-  ! (2) The acceleration is integrated to give the velocity at t”+l/2”.
-    ! !Update vel with CURRENT ACCELERATION
-    ! THIS WOULD BE AT ONE STEP
-    ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
-    ! print *,"node vel ", nod%v(n,:)  
-    nod%v(n,:) = nod%v(n,:) + dt * 0.5 * nod%a(n,:)
+  ! (2) The acceleration is integrated to give the velocity at tn+l/2.
+  ! !Update vel with CURRENT ACCELERATION
+  ! THIS WOULD BE AT ONE STEP
+  ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
+  ! print *,"node vel ", nod%v(n,:)  
+  nod%v(n,:) = nod%v(n,:) + dt * 0.5 * nod%a(n,:)
+  call impose_bcv !!!REINFORCE VELOCITY BC
 
   !!(3) The velocity is integrated to give the displacement at tn+1.
   nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt
   
-  call calc_elem_vol()
-  call disassemble_uvele()     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
-  call cal_elem_strains ()     !!!!!STRAIN AND STRAIN RATES
+  call calc_elem_vol
+  call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
@@ -110,66 +113,8 @@ subroutine SolveVerlet (tf, dt)
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
   call calc_hourglass_forces
   
-    ! call assemble_int_forces()
-    ! ! !Diagonalize
-    ! ! !SIMPLEST FORM, ROW SUM 
-    ! !print *, "Calc mdiag"
-    ! ! if (calc_m .eqv. .True.) then 
-      ! ! call assemble_mass_matrix()
-      ! ! mdiag(:)=0.0d0
-      ! ! iglob = 1
-      ! ! do while (iglob .le. node_count * dim)
-        ! ! n = 1
-        ! ! do while (n .le. node_count * dim) !column
-           ! ! mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-           ! ! n = n+ 1
-        ! ! end do !col
-      ! ! iglob = iglob + 1
-      ! ! end do 
-    ! ! end if
-    
-    ! print *, " mglob ," ,m_glob
-    ! print *, " mdiag ," ,mdiag
-    
-    ! call impose_bcv
-    ! !Calculate positions with PREVIOUS ACCELERATIONS
-    ! n = 1
-    ! print *, "calculating positions "
-    ! do while (n .le. node_count)
-      ! !print *, "n ", n, "acc ", nod%v(n,:)
-      ! nod%u(n,:) = nod%u(n,:) + nod%v(n,:) * dt + nod%a(n,:) * dt * dt  
-      ! nod%x(n,:) = nod%x(n,:) + nod%u(n,:)    
-      ! !nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt + nod%a(n,:) * dt * dt    
-      ! print *,"node u ", nod%u(n,:)
-      ! n = n + 1
-    ! end do !Node 
-    
-    ! !Again to calculate strains
-    ! call disassemble_uele()
-    ! print *, "u ele 2", elem%uele(2,:,:)
-    ! call cal_elem_strains ()
-    
-    ! print *,"strains", elem%strain(:,:,:,:)
-    ! !Calculate Nodal accelerations a(t+dt) from rext(t)-rint(t)-fcont
-    ! print *, "calculating accel"
-    
-    ! do n=1,node_count
-      ! !print *, "node ", n 
-      ! prev_acc(:) = nod%a(n,:)
-      ! d = 1
-      ! do while (d .le. 2)
-        ! !print *, "dim ", d
-        ! iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-        ! print *, "iglob ", iglob, "mdiag ", mdiag(iglob)
-        
-        ! nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
-        ! print *,"node acc ", nod%a(n,:), "rint ", rint_glob(n,:)
-        ! d = d + 1
-      ! end do
-      ! !Solve motion at t_n+1
-      ! !Update vel with CURRENT ACCELERATION
-      ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
-      ! print *,"node vel ", nod%v(n,:)
+
+! (6) The internal energy is updated based on the work done between tn and t_n+1.
 
     ! end do !Node
     ! call impose_bca

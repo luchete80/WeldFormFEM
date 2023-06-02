@@ -15,8 +15,9 @@ Module ElementData
 Type Element
   Integer, Dimension(:), Allocatable :: ID, gausspc
   !GENERAL
-  real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, rho_0,vol, drhodt !influence radius, temp
-
+  real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, vol, drhodt !influence radius, temp
+  
+  real(fp_kind), dimension(:,:), Allocatable :: rho_0   !!!!elcount, gp
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
   real(fp_kind), dimension(:,:,:,:), allocatable :: tau, str_rate, rot_rate , shear_stress,strain !tau is Cauchy Stress (do not confuse with shear)
