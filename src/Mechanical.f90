@@ -52,10 +52,12 @@ end subroutine
 !!!! AFTER CALCULATING VELE 
 subroutine calc_hourglass_forces
   implicit none
-  integer :: e, n, j, d
+  integer :: e, n, j, d, gp
   real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   real(fp_kind), dimension(dim,4) :: hmod
+!real(fp_kind), dimension(1,4) :: test
+  
   
   if (dim .eq. 3) then
     Sig(1,:) = [ 1.0, 1.0,-1.0,-1.0,-1.0,-1.0, 1.0, 1.0]
@@ -64,8 +66,12 @@ subroutine calc_hourglass_forces
     Sig(4,:) = [-1.0, 1.0,-1.0, 1.0, 1.0,-1.0, 1.0,-1.0]
   end if
   
-  do e=1, elem_count
-
+  gp = 1
+  do e=1, elem_count    
+    !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
+    !print *, "test ", test
+    !print *, "dHxy ", elem%dHxy(e,gp,:,:)
+        
     do n=1,nodxelem
       do d=1,dim
         vel (n,d) = nod%v(elem%elnod(e,n),d)    

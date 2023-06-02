@@ -26,7 +26,7 @@ Type Element
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
-  real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,math
+  real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,math !!!DIM: e,gp,,:,:
   
   real(fp_kind), dimension(:,:,:), allocatable :: x2 !(rearranged nodes elem, x,y)
   
