@@ -121,10 +121,10 @@ subroutine SolveLeapfrog (tf, dt)
     end do
     
   call impose_bca
+  
   if (first_step) then 
     nod%v(n,:) = nod%v(n,:) - dt * 0.5 * nod%a(n,:)
   end if
-
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
   ! (2) The acceleration is integrated to give the velocity at tn+l/2.
   ! !Update vel with CURRENT ACCELERATION
@@ -154,10 +154,7 @@ subroutine SolveLeapfrog (tf, dt)
 ! state.
   call calc_elem_density
   call calc_elem_pressure
-  
-  
-  nod%v(n,:) = nod%v(n,:) + dt * 0.5 * nod%a(n,:)
-  call impose_bcv !!!REINFORCE VELOCITY BC
+ 
 
   time = time + dt
   end do !time
