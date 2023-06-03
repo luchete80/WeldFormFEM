@@ -122,7 +122,7 @@ contains
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
     allocate (elem%cs(el_count))
-    allocate (shear_stress_t(el_count,gp, dim,dim))
+    allocate (elem%shear_stress(el_count,gp, dim,dim))
       
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))

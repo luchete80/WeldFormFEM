@@ -147,7 +147,7 @@ subroutine CalcStressStrain (dt)
 
   implicit none
   real(fp_kind) :: RotationRateT(3,3), Stress(3,3), SRT(3,3), RS(3,3), ident(3,3), str_rate(3,3),rot_rate(3,3)
-  integer :: i,gp
+  integer :: e,d,gp
   real(fp_kind) ,intent(in):: dt
   
   real(fp_kind) :: p00
@@ -158,12 +158,12 @@ subroutine CalcStressStrain (dt)
   ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
   gp = 1
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
-  do i = 1, elem_count
+  do e = 1, elem_count
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
-    do i=1,dim
+    do d=1,dim
 !      stress(i,i) = elem%tau (e,gp,i
-      str_rate(i,i) = elem%str_rate(e,gp,i,1)
-      rot_rate(i,i) = elem%str_rate(e,gp,i,1)
+      str_rate(d,d) = elem%str_rate(e,gp,d,1)
+      rot_rate(d,d) = elem%str_rate(e,gp,d,1)
     end do
     ! pt%pressure(i) = EOS(0, pt%cs(i), p00,pt%rho(i), pt%rho_0(i))
     ! if (i==52) then
@@ -171,13 +171,13 @@ subroutine CalcStressStrain (dt)
     ! end if
     ! RotationRateT = transpose (elem%rot_rate(e,:,:))
 
-    ! SRT = MatMul(pt%shear_stress(i,:,:),RotationRateT)
-    ! RS  = MatMul(pt%rot_rate(i,:,:), pt%shear_stress(i,:,:))
+    SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(rot_rate))
+    RS  = MatMul(rot_rate, elem%shear_stress(e,gp,:,:))
     
     ! !print *, "RS", RS
-    ! pt%shear_stress(i,:,:)	= dt * (2.0 * mat_G *(str_rate(i,:,:)-1.0/3.0 * &
-                                 ! (str_rate(i,1,1)+str_rate(i,2,2)+str_rate(i,3,3))*ident) &
-                                 ! +SRT+RS) + elem%shear_stress(i,:,:)
+    elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(str_rate - 1.0/3.0 * &
+                                 (str_rate(1,1)+str_rate(2,2)+str_rate(3,3))*ident) &
+                                 +SRT+RS) + elem%shear_stress(e,gp,:,:)
     ! pt%sigma(i,:,:)			= -pt%pressure(i) * ident + pt%shear_stress(i,:,:)	!Fraser, eq 3.32
     ! !print *, "particle ", i, ", rot_rate ", pt%rot_rate(i,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
