@@ -103,7 +103,7 @@ contains
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
-    allocate (elem%sigma(el_count,gp,dim*dim,dim*dim))
+    allocate (elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
 
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
 
@@ -131,8 +131,8 @@ contains
       allocate (elem%str_rate(el_count,gp, 4,1))
       allocate (elem%rot_rate(el_count,gp, 4,1))
     else 
-      allocate (elem%bl (el_count,gp,6,dim*nodxelem))
-      allocate (elem%strain(el_count,gp, 6,1))
+      allocate (elem%bl (el_count,gp,6,dim*nodxelem)) 
+      allocate (elem%strain(el_count,gp, 6,1)) !!VECTORIZED 
       allocate (elem%str_rate(el_count,gp, 6,1))
       allocate (elem%rot_rate(el_count,gp, 6,1))
     end if 

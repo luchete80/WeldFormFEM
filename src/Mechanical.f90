@@ -179,7 +179,7 @@ subroutine CalcStressStrain (dt)
                                  (str_rate(1,1)+str_rate(2,2)+str_rate(3,3))*ident) &
                                  +SRT+RS) + elem%shear_stress(e,gp,:,:)
     elem%sigma(e,gp,:,:)			= -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-    ! !print *, "particle ", i, ", rot_rate ", pt%rot_rate(i,:,:)
+    print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
   end do
   ! !!!!$omp end parallel do    

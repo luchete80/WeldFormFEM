@@ -156,7 +156,9 @@ subroutine SolveLeapfrog (tf, dt)
   call calc_elem_density
   call calc_elem_pressure
 
-  ! print *, "nod a", nod%v(:,:)  
+  do n=1,node_count
+    print *, "nod ", n, "a ", nod%v(n,:)  
+  end do  
   ! print *, "nod v", nod%v(:,:)
   
 
