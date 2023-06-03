@@ -135,8 +135,18 @@ subroutine SolveLeapfrog (tf, dt)
   nod%v(n,:) = nod%v(n,:) + dt * nod%a(n,:)
   call impose_bcv !!!REINFORCE VELOCITY BC
 
+  do n=1,node_count
+    print *, "nod ", n, "x ", nod%x(n,:)  
+  end do  
   !!(3) The velocity is integrated to give the displacement at tn+1.
   nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt
+  do n=1,node_count
+    print *, "nod ", n, "v ", nod%v(n,:)  
+  end do  
+  print *, "delta t", dt
+  do n=1,node_count
+    print *, "nod ", n, "x ", nod%x(n,:)  
+  end do  
   
   call calc_elem_vol
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
