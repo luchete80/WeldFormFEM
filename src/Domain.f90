@@ -119,6 +119,7 @@ contains
     allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
     
     allocate (elem%f_int(el_count,nodxelem,dim))
+    allocate (elem%f_ext(el_count,nodxelem,dim))
     
     allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))

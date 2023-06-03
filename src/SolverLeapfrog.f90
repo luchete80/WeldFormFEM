@@ -103,7 +103,26 @@ subroutine SolveLeapfrog (tf, dt)
   first_step  = .true.
   
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
+  !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
+  call assemble_forces()
+  do n=1,node_count
+    do d=1,dim
+      iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
+      nod%a(n,d) = (fext_glob(n,d)-rint_glob(n,d))/mdiag(iglob) 
+      print *, "fext n ", n,d, fext_glob(n,d)
+    end do 
+  end do
+  do n=1,node_count
+    print *, "Initial accel ", n, "a ", nod%a(n,:)  
+  end do  
   
+  nod%v = nod%v - dt * 0.5 * nod%a   !!!!!!!!!!!!!!!!!!v(t -dt/2)
+  call impose_bcv
+
+  do n=1,node_count
+    print *, "Initial v nod ", n, "v ", nod%v(n,:)  
+  end do  
+      
   time = 0.0  
   step = 0
   print *,"main loop"
@@ -119,17 +138,16 @@ subroutine SolveLeapfrog (tf, dt)
   ! (1) Knowing the stress, pressure, hourglass forces and shock viscosity at t” in each zone or
   ! element, the forces at the nodes are calculated. The accelerations of the nodes are
   ! calculated by dividing the nodal forces by the nodal masses.   
-    print *, "calc elem forces "
+    !print *, "calc elem forces "
     call cal_elem_forces()
-    print *, "assemble int forces "
-    call assemble_int_forces()
+    !print *, "assemble int forces "
+    call assemble_forces()
     
-    print *, "calc accel "
+    !print *, "calc accel "
     do n=1,node_count
-      !prev_acc(:) = nod%a(n,:)
       do d=1,dim
         iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-        nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
+        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(iglob) 
       end do 
     end do
   do n=1,node_count
@@ -137,18 +155,13 @@ subroutine SolveLeapfrog (tf, dt)
   end do 
   call impose_bca
   
-  if (first_step) then 
-    nod%v = nod%v - dt * 0.5 * nod%a
-    call impose_bcv
-    first_step = .False.
-  end if
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
   ! (2) The acceleration is integrated to give the velocity at tn+l/2.
   ! !Update vel with CURRENT ACCELERATION
   ! THIS WOULD BE AT ONE STEP
   ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
   ! print *,"node vel ", nod%v(n,:)  
-  nod%v = nod%v + dt * nod%a
+  nod%v = nod%v + dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   do n=1,node_count

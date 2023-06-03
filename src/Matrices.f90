@@ -468,27 +468,25 @@ subroutine disassemble_uvele()
   end do ! e
 end subroutine
 
-subroutine assemble_int_forces()
+subroutine assemble_forces()
   integer :: e, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
   print *, "assemblying int forces"
   rint_glob (:,:) = 0.0d0
-  e = 1
-  do while (e .le. elem_count)
-    n = 1
-    do while (n .le. nodxelem)
+  do e = 1, elem_count
+    do n = 1, nodxelem
       !print *,"elem mat kl", elem%matkl(e,:,:)
       do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
         rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + elem%f_int(e,n,i)
+        fext_glob(elem%elnod(e,n),i) =  fext_glob(elem%elnod(e,n),i) + elem%f_ext(e,n,i)
       end do !element row
-      n = n + 1
     end do ! Element node
-    e = e + 1
   end do ! e
 end subroutine 
+
 
 
 end module Matrices

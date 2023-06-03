@@ -89,10 +89,12 @@ implicit none
   nod%is_fix(2,:) = .true. !Node 1 restricted in 2 dimensions
   nod%is_fix(4,:) = .true. !Node 1 restricted in 2 dimensions
   
-  nod%is_bcv(6,:) = [.false.,.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
-
   
-  nod%bcv(6,:) = [0.0d0,0.0d0,-1.0d0]
+  ! IF VELOCITY IS APPLIED
+  !nod%is_bcv(6,:) = [.false.,.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
+  !nod%bcv(6,:) = [0.0d0,0.0d0,-1.0d0]
+  !fext_glob(6,:) = []
+  elem%f_ext(1,6,:) = [0.0d0,0.0d0,-100.0d0]
   
   print *, "BCV 6 ", nod%bcv(6,2)
   print *, "Calculating element matrices "
