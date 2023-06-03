@@ -143,6 +143,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
+  call CalcStressStrain(dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
   call calc_hourglass_forces
@@ -154,7 +155,10 @@ subroutine SolveLeapfrog (tf, dt)
 ! state.
   call calc_elem_density
   call calc_elem_pressure
- 
+
+  ! print *, "nod a", nod%v(:,:)  
+  ! print *, "nod v", nod%v(:,:)
+  
 
   time = time + dt
   end do !time
