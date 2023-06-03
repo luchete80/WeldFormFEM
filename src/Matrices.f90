@@ -171,7 +171,7 @@ subroutine calculate_element_Jacobian ()
 
 end subroutine
 
-!!!!! PREVIOUSLY DETERMINANT SHOULD BE CALCULATED
+!!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
 subroutine calculate_element_shapeMat ()
   integer :: e,d
   ! !rg=gauss[ig]
@@ -215,7 +215,11 @@ subroutine calculate_element_shapeMat ()
         !print *, "MAT M", elem%matm(e,:,:)
       
     else !!!!! GP > 1
-
+      if (dim .eq. 2) then 
+      
+        else !!!DIM 3
+        
+      end if !!! if dim
     end if ! GP>1
   end do !element
 end subroutine
