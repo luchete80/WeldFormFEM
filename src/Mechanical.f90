@@ -216,8 +216,7 @@ subroutine impose_bcv
   integer :: n, d
   n = 1
   do while (n .le. node_count)    
-    d = 1
-    do while (d .le. 2)
+    do d=1,dim
       if (nod%is_bcv(n,d) .eqv. .true.) then
         nod%v(n,d) = nod%bcv(n,d)
         print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
@@ -226,7 +225,7 @@ subroutine impose_bcv
       if (nod%is_fix(n,d) .eqv. .true.) then
         nod%v(n,d) = 0.0
       end if 
-      d = d + 1 
+
     end do !dim
     n = n + 1
   end do !Node    
@@ -237,8 +236,7 @@ subroutine impose_bca
   integer :: n, d
   n = 1
   do while (n .le. node_count)    
-    d = 1
-    do while (d .le. 2)
+    do d =1, dim
       ! if (nod%is_bcv(n,d) .eqv. .true.) then
         ! nod%v(n,d) = nod%bcv(n,d)
         ! print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
@@ -246,7 +244,6 @@ subroutine impose_bca
       if (nod%is_fix(n,d) .eqv. .true.) then
         nod%a(n,d) = 0.0
       end if 
-      d = d + 1 
     end do !dim
     n = n + 1
   end do !Node    

@@ -124,6 +124,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   if (first_step) then 
     nod%v(n,:) = nod%v(n,:) - dt * 0.5 * nod%a(n,:)
+    first_step = .False.
   end if
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
   ! (2) The acceleration is integrated to give the velocity at tn+l/2.
@@ -131,7 +132,7 @@ subroutine SolveLeapfrog (tf, dt)
   ! THIS WOULD BE AT ONE STEP
   ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
   ! print *,"node vel ", nod%v(n,:)  
-  nod%v(n,:) = nod%v(n,:) + dt * 0.5 * nod%a(n,:)
+  nod%v(n,:) = nod%v(n,:) + dt * nod%a(n,:)
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   !!(3) The velocity is integrated to give the displacement at tn+1.
