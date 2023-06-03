@@ -119,11 +119,13 @@ subroutine SolveLeapfrog (tf, dt)
         nod%a(n,d) = rint_glob(n,d)/mdiag(iglob) 
       end do 
     end do
-    
+  do n=1,node_count
+    print *, "r int glob ", rint_glob(n,:)
+  end do 
   call impose_bca
   
   if (first_step) then 
-    nod%v(n,:) = nod%v(n,:) - dt * 0.5 * nod%a(n,:)
+    nod%v = nod%v - dt * 0.5 * nod%a
     first_step = .False.
   end if
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
@@ -132,14 +134,15 @@ subroutine SolveLeapfrog (tf, dt)
   ! THIS WOULD BE AT ONE STEP
   ! nod%v(n,:) = nod%v(n,:) + dt * 0.5 * (nod%a(n,:) + prev_acc(:)) 
   ! print *,"node vel ", nod%v(n,:)  
-  nod%v(n,:) = nod%v(n,:) + dt * nod%a(n,:)
+  nod%v = nod%v + dt * nod%a
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   do n=1,node_count
-    print *, "nod ", n, "x ", nod%x(n,:)  
+    print *, "nod ", n, "a ", nod%x(n,:)  
   end do  
   !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%x(n,:) = nod%x(n,:) +  nod%v(n,:) * dt
+  nod%x = nod%x +  nod%v * dt
+
   do n=1,node_count
     print *, "nod ", n, "v ", nod%v(n,:)  
   end do  
