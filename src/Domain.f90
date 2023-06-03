@@ -16,7 +16,7 @@ real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
 
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
-real(fp_kind), dimension(:,:), Allocatable :: rint_glob !Accelerations and internal forces
+real(fp_kind), dimension(:,:), Allocatable :: rint_glob, fext_glob !Accelerations and internal forces
 integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
 real(fp_kind), dimension(3):: dommax, dommin
@@ -43,6 +43,8 @@ contains
     allocate (m_glob(node_count*dim,node_count*dim))
     
     allocate (rint_glob(node_count,dim))
+    allocate (fext_glob(node_count,dim))
+    
   end subroutine AllocateDomain
   
   subroutine AllocateNodes(pt_count)

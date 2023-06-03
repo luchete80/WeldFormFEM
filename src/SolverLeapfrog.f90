@@ -15,6 +15,15 @@
 ! elements and their geometry.
 ! (9) Advance the time and return to step (1)
 
+!!!!!!!!!!!!!!!!!!!!!!!!!! Explicit time integration in finite element
+! ! method for structural dynamic, wave
+! ! propagation and contact-impact problems:
+! ! A recent progress
+!!!!!! Radek Kolmana , Jos´e Gonz´alezb , J´an Kopaˇckaa , Michal Mraˇckoa
+!!!! Evaluate force residual: r
+!!!! 0 = fext(t = 0) − Ku0
+!!!!!Compute acceleration: u¨0 = M−1 r_0
+!!! HERE CORRECT v t - 1/2
 
 module SolverLeapfrog
 use ModPrecision, only : fp_kind
@@ -60,7 +69,7 @@ subroutine SolveLeapfrog (tf, dt)
   use Mechanical
   
   implicit none
-  integer :: n, d, iglob
+  integer :: n, d, iglob, step
   
   logical :: first_step 
   
@@ -93,10 +102,14 @@ subroutine SolveLeapfrog (tf, dt)
   
   first_step  = .true.
   
+  !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
+  
   time = 0.0  
+  step = 0
   print *,"main loop"
   do while (time .le. tf)
-
+    step = step + 1
+    print *, "Time: ", time, ", step: ",step
     call calculate_element_Jacobian()
     call calculate_element_derivMat()
     ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
@@ -126,6 +139,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   if (first_step) then 
     nod%v = nod%v - dt * 0.5 * nod%a
+    call impose_bcv
     first_step = .False.
   end if
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
@@ -138,7 +152,7 @@ subroutine SolveLeapfrog (tf, dt)
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   do n=1,node_count
-    print *, "nod ", n, "a ", nod%x(n,:)  
+    print *, "nod ", n, "a ", nod%a(n,:)  
   end do  
   !!(3) The velocity is integrated to give the displacement at tn+1.
   nod%x = nod%x +  nod%v * dt
