@@ -36,14 +36,14 @@ subroutine cal_elem_forces ()
     !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
     !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
       do d=1, dim
-        elem%f_int(e,n,d) = elem%dHxy(e,gp,n,d) * elem%tau (e,gp, d,d)
+        elem%f_int(e,n,d) = elem%dHxy(e,gp,n,d) * elem%sigma (e,gp, d,d)
       end do
-      elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%tau (e,gp, 1,2) + &
-                                              elem%dHxy(e,gp,3,n) * elem%tau (e,gp, 1,3)
-      elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%tau (e,gp, 1,2) + &
-                                              elem%dHxy(e,gp,3,n) * elem%tau (e,gp, 2,3)
-      elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%tau (e,gp, 2,3) + &
-                                              elem%dHxy(e,gp,1,n) * elem%tau (e,gp, 1,3)
+      elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                              elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+      elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                              elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+      elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                              elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
     end do
   end do
 end subroutine
@@ -161,7 +161,7 @@ subroutine CalcStressStrain (dt)
   do e = 1, elem_count
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
     do d=1,dim
-!      stress(i,i) = elem%tau (e,gp,i
+!      stress(i,i) = elem%sigma (e,gp,i
       str_rate(d,d) = elem%str_rate(e,gp,d,1)
       rot_rate(d,d) = elem%str_rate(e,gp,d,1)
     end do
@@ -178,7 +178,7 @@ subroutine CalcStressStrain (dt)
     elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(str_rate - 1.0/3.0 * &
                                  (str_rate(1,1)+str_rate(2,2)+str_rate(3,3))*ident) &
                                  +SRT+RS) + elem%shear_stress(e,gp,:,:)
-    ! pt%sigma(i,:,:)			= -pt%pressure(i) * ident + pt%shear_stress(i,:,:)	!Fraser, eq 3.32
+    elem%sigma(e,gp,:,:)			= -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
     ! !print *, "particle ", i, ", rot_rate ", pt%rot_rate(i,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
   end do

@@ -103,7 +103,7 @@ contains
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
-    allocate (elem%tau(el_count,gp,dim*dim,dim*dim))
+    allocate (elem%sigma(el_count,gp,dim*dim,dim*dim))
 
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
 
