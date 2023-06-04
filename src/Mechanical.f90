@@ -32,7 +32,7 @@ contains
 !THIS SHOULD BE DONE AT t+1/2dt
 subroutine cal_elem_strains ()
   implicit none
-  integer :: e, i,j,k, gp
+  integer :: e, i,j,k, gp, d, n
   real(fp_kind), dimension(2) :: r, s
   
  
@@ -43,10 +43,24 @@ subroutine cal_elem_strains ()
   do e=1, elem_count
     !Is only linear matrix?    
     !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
-    !elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
-    
-    elem%strain(e,gp, 1,1) = elem%dHxy(e,gp,n,d)
-    elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
+    elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+    do n=1, nodxelem  
+      do d=1, dim
+        elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n+1)+d,1) 
+        elem%rot_rate(e,gp, d,d) = 0.0d0
+      end do
+      !!!! TO AVOID ALL MATMULT
+      elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) &
+                                 + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)
+      if (dim .eq. 3) then
+        elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
+                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    
+        elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
+                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)         
+      end if      
+    end do
+
+    !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
   end do
 end subroutine
 
@@ -188,32 +202,32 @@ subroutine CalcStressStrain (dt)
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
   do e = 1, elem_count
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
-    do d=1,dim
-!      stress(i,i) = elem%sigma (e,gp,i
-      str_rate(d,d) = elem%str_rate(e,gp,d,1)
-      rot_rate(d,d) = elem%rot_rate(e,gp,d,1)
-    end do
-    str_rate(1,2) = elem%str_rate(e,gp,dim+1,1)/2.0 ; str_rate(2,1) = str_rate(1,2)
-    rot_rate(1,2) = elem%rot_rate(e,gp,dim+1,1)/2.0 ; rot_rate(2,1) = rot_rate(1,2)
-    if (dim .eq. 3) then
-      str_rate(2,3) = elem%str_rate(e,gp,dim+2,1)/2.0 ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
-      str_rate(3,1) = elem%str_rate(e,gp,dim+3,1)/2.0 ; str_rate(1,3) = str_rate(3,1)
+    ! do d=1,dim
+! !      stress(i,i) = elem%sigma (e,gp,i
+      ! str_rate(d,d) = elem%str_rate(e,gp,d,1)
+      ! rot_rate(d,d) = elem%rot_rate(e,gp,d,1)
+    ! end do
+    ! str_rate(1,2) = elem%str_rate(e,gp,dim+1,1)/2.0 ; str_rate(2,1) = str_rate(1,2)
+    ! rot_rate(1,2) = elem%rot_rate(e,gp,dim+1,1)/2.0 ; rot_rate(2,1) = rot_rate(1,2)
+    ! if (dim .eq. 3) then
+      ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1)/2.0 ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1)/2.0 ; str_rate(1,3) = str_rate(3,1)
 
-      ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1) ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
-      ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1) ; str_rate(1,3) = str_rate(3,1)
-    end if
+      ! ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1) ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      ! ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1) ; str_rate(1,3) = str_rate(3,1)
+    ! end if
     ! pt%pressure(i) = EOS(0, pt%cs(i), p00,pt%rho(i), pt%rho_0(i))
     ! if (i==52) then
     ! !print *, "pt%pressure(i)", pt%pressure(i),", cs ", pt%cs(i), "p00", p00, ", rho", p00,pt%rho(i), ", rho 0", p00,pt%rho_0(i)
     ! end if
     ! RotationRateT = transpose (elem%rot_rate(e,:,:))
 
-    SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(rot_rate))
+    SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
     RS  = MatMul(rot_rate, elem%shear_stress(e,gp,:,:))
     
     ! !print *, "RS", RS
     elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(str_rate - 1.0/3.0 * &
-                                 (str_rate(1,1)+str_rate(2,2)+str_rate(3,3))*ident) &
+                                 (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                  +SRT+RS) + elem%shear_stress(e,gp,:,:)
     elem%sigma(e,gp,:,:)			= -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
     print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
