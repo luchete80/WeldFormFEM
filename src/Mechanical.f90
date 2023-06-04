@@ -4,6 +4,31 @@ use ElementData
 use NodeData
 
 contains
+
+		! //if (!gradKernelCorr){
+    ! StrainRate(0,0) = 2.0*vab(0)*xij(0);
+    ! StrainRate(0,1) = vab(0)*xij(1)+vab(1)*xij(0);
+    ! StrainRate(0,2) = vab(0)*xij(2)+vab(2)*xij(0);
+    ! StrainRate(1,0) = StrainRate(0,1);
+    ! StrainRate(1,1) = 2.0*vab(1)*xij(1);
+    ! StrainRate(1,2) = vab(1)*xij(2)+vab(2)*xij(1);
+    ! if (dom_bid_type == AxiSymmetric){
+      ! StrainRate(0,2) = StrainRate(1,2) = 0.;
+    ! }
+    ! StrainRate(2,0) = StrainRate(0,2);
+    ! StrainRate(2,1) = StrainRate(1,2);
+    ! StrainRate(2,2) = 2.0*vab(2)*xij(2);
+    ! StrainRate	= -0.5 * GK * StrainRate;
+    
+
+    
+    ! RotationRate(0,1) = vab(0)*xij(1)-vab(1)*xij(0);
+    ! RotationRate(0,2) = vab(0)*xij(2)-vab(2)*xij(0);
+    ! RotationRate(1,2) = vab(1)*xij(2)-vab(2)*xij(1);
+    ! RotationRate(1,0) = -RotationRate(0,1);
+    ! RotationRate(2,0) = -RotationRate(0,2);
+    ! RotationRate(2,1) = -RotationRate(1,2);
+    ! RotationRate	  = -0.5 * GK * RotationRate;
 !THIS SHOULD BE DONE AT t+1/2dt
 subroutine cal_elem_strains ()
   implicit none
@@ -18,7 +43,9 @@ subroutine cal_elem_strains ()
   do e=1, elem_count
     !Is only linear matrix?    
     !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
-    elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+    !elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+    
+    elem%strain(e,gp, 1,1) = elem%dHxy(e,gp,n,d)
     elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
   end do
 end subroutine
@@ -37,7 +64,7 @@ subroutine cal_elem_forces ()
     !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
     !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
       do d=1, dim
-        elem%f_int(e,n,d) = elem%dHxy(e,gp,n,d) * elem%sigma (e,gp, d,d)
+        elem%f_int(e,n,d) = elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
       end do
       elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                               elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
