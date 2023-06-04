@@ -110,7 +110,7 @@ implicit none
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 3.0
+  tf = dt * 2.0
   
   elem%rho(:) = rho
   

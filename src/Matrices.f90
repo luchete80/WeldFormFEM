@@ -145,7 +145,7 @@ subroutine calculate_element_Jacobian ()
         x2(i,:)=nod%x(elem%elnod(e,i),:)
     end do
     
-    if (elem%gausspc(e) .eq. 1) then
+    if (elem%gausspc(e) .eq. 1) then      
     
       if (dim .eq. 2) then 
       
@@ -163,13 +163,15 @@ subroutine calculate_element_Jacobian ()
       end if  !!!!DIM
       elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
     else !!!!! GP > 1
-      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-      s(1) = r(1)          ; s(2) =  r(2)
+      r = 1.0/sqrt(3.0);
+      !gpc(1,:)[-r,-r,-r];      gpc(1,:)[-r, r,-r];      gpc(1,:)[ r,-r,-r];      gpc(1,:)[ r, r,-r]
+      !gpc(1,:)[-r,-r,-r];      gpc(1,:)[-r, r,-r];      gpc(1,:)[ r,-r,-r];      gpc(1,:)[ r, r,-r]
+      
       if (dim .eq. 3) then
         do gp = 1,8
-          dHrs(1,:)=[(1-gpc(gp,1)),-(1+s(j)),-(1-s(j)),(1-s(j))]
-          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
-          dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]                 
+          !dHrs(1,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,2))
+          !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
+          !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]                 
         end do 
       end if
     end if !!gp ==1

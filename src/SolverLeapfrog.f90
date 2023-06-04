@@ -168,7 +168,8 @@ subroutine SolveLeapfrog (tf, dt)
     print *, "nod ", n, "a ", nod%a(n,:)  
   end do  
   !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%x = nod%x +  nod%v * dt
+  nod%u = nod%u +  nod%v * dt
+  nod%x = nod%x + nod%u
 
   do n=1,node_count
     print *, "nod ", n, "v ", nod%v(n,:)  
@@ -198,7 +199,7 @@ subroutine SolveLeapfrog (tf, dt)
   call calc_elem_pressure
 
   do n=1,node_count
-    print *, "nod ", n, "a ", nod%v(n,:)  
+    print *, "nod ", n, "Disp ", nod%u(n,:)  
   end do  
   ! print *, "nod v", nod%v(:,:)
   

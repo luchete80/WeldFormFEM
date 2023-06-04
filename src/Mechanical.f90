@@ -17,6 +17,7 @@ subroutine cal_elem_strains ()
   gp = 1
   do e=1, elem_count
     !Is only linear matrix?    
+    !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
     elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
     elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
   end do
@@ -163,8 +164,17 @@ subroutine CalcStressStrain (dt)
     do d=1,dim
 !      stress(i,i) = elem%sigma (e,gp,i
       str_rate(d,d) = elem%str_rate(e,gp,d,1)
-      rot_rate(d,d) = elem%str_rate(e,gp,d,1)
+      rot_rate(d,d) = elem%rot_rate(e,gp,d,1)
     end do
+    str_rate(1,2) = elem%str_rate(e,gp,dim+1,1)/2.0 ; str_rate(2,1) = str_rate(1,2)
+    rot_rate(1,2) = elem%rot_rate(e,gp,dim+1,1)/2.0 ; rot_rate(2,1) = rot_rate(1,2)
+    if (dim .eq. 3) then
+      str_rate(2,3) = elem%str_rate(e,gp,dim+2,1)/2.0 ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      str_rate(3,1) = elem%str_rate(e,gp,dim+3,1)/2.0 ; str_rate(1,3) = str_rate(3,1)
+
+      ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1) ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1) ; str_rate(1,3) = str_rate(3,1)
+    end if
     ! pt%pressure(i) = EOS(0, pt%cs(i), p00,pt%rho(i), pt%rho_0(i))
     ! if (i==52) then
     ! !print *, "pt%pressure(i)", pt%pressure(i),", cs ", pt%cs(i), "p00", p00, ", rho", p00,pt%rho(i), ", rho 0", p00,pt%rho_0(i)
