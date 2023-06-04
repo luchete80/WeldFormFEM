@@ -127,13 +127,14 @@ subroutine calculate_element_Jacobian ()
   integer :: e
   ! !rg=gauss[ig]
   ! !sg=gauss[jg]
-  real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  real(fp_kind), dimension(dim,nodxelem) :: dHrs !!! USED ONLY FOR SEVERAL GAUSS POINTS
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j,k, gp
-  real(fp_kind), dimension(2) :: r, s
+  real(fp_kind), dimension(2) :: r, s, t   !!! USED ONLY FOR SEVERAL GAUSS POINTS
+  real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   
   gp = 1
   do e=1, elem_count
@@ -162,9 +163,15 @@ subroutine calculate_element_Jacobian ()
       end if  !!!!DIM
       elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
     else !!!!! GP > 1
-    r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-    s(1) = r(1)          ; s(2) =  r(2)
-    
+      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+      s(1) = r(1)          ; s(2) =  r(2)
+      if (dim .eq. 3) then
+        do gp = 1,8
+          dHrs(1,:)=[(1-gpc(gp,1)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
+          dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]                 
+        end do 
+      end if
     end if !!gp ==1
     elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
   end do !element
