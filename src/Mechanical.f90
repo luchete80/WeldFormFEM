@@ -198,8 +198,8 @@ end subroutine
 subroutine CalcStressStrain (dt) 
 
   implicit none
-  real(fp_kind) :: RotationRateT(3,3), Stress(3,3), SRT(3,3), RS(3,3), ident(3,3), str_rate(3,3),rot_rate(3,3)
-  integer :: e,d,gp
+  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
   real(fp_kind) :: p00
@@ -208,9 +208,10 @@ subroutine CalcStressStrain (dt)
   
   ident = 0.0d0
   ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
-  gp = 1
+  
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
   do e = 1, elem_count
+    gp = 1
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
     ! do d=1,dim
 ! !      stress(i,i) = elem%sigma (e,gp,i
@@ -233,13 +234,13 @@ subroutine CalcStressStrain (dt)
     ! RotationRateT = transpose (elem%rot_rate(e,:,:))
 
     SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
-    RS  = MatMul(rot_rate, elem%shear_stress(e,gp,:,:))
+    RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
     
     ! !print *, "RS", RS
-    elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(str_rate - 1.0/3.0 * &
+    elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                  (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                  +SRT+RS) + elem%shear_stress(e,gp,:,:)
-    elem%sigma(e,gp,:,:)			= -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+    elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
     print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
   end do
