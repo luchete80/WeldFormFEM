@@ -39,8 +39,8 @@ subroutine cal_elem_strains ()
   r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
   s(1) = r(1)          ; s(2) =  r(2)
   
-  gp = 1
   do e=1, elem_count
+    gp = 1
     !Is only linear matrix?    
     !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
     elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
@@ -52,16 +52,26 @@ subroutine cal_elem_strains ()
       !!!! TO AVOID ALL MATMULT
       elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) &
                                  + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)
+      elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
+                                 - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
       if (dim .eq. 3) then
         elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
                                    + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
         elem%str_rate(e,gp, 3,1) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
                                    + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
+        elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
+                                   - elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+        elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                   - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
       end if      
     end do
-
+    elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
+    if (dim .eq. 3) then
+      elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
+      elem%str_rate(e,gp, 1,3) =     elem%str_rate(e,gp, 3,1)
+    end if
     !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-  end do
+  end do !element
 end subroutine
 
 !calc int_forces
