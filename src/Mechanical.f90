@@ -54,9 +54,9 @@ subroutine cal_elem_strains ()
                                  + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)
       if (dim .eq. 3) then
         elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
-                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    
-        elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
-                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)         
+                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+        elem%str_rate(e,gp, 3,1) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                   + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
       end if      
     end do
 
