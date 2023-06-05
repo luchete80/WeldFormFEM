@@ -39,7 +39,8 @@ subroutine cal_elem_strains ()
           elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
                                      - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
         end if      
-      end do
+      end do !Nod x elem
+
       elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
       if (dim .eq. 3) then
         elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
@@ -48,6 +49,8 @@ subroutine cal_elem_strains ()
         elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
         elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
       end if
+      elem%str_rate(e,gp, :,:) = 0.5 * elem%str_rate(e,gp, :,:)
+      elem%rot_rate(e,gp, :,:) = 0.5 * elem%rot_rate(e,gp, :,:)      
       !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
   
     end do !gp
@@ -60,24 +63,26 @@ subroutine cal_elem_forces ()
   integer :: e, i,j,k, gp,n, d
   real(fp_kind), dimension(dim*nodxelem,1) ::f
   
-  gp = 1
+
   do e=1, elem_count
-    do n=1, nodxelem
-    !Is only linear matrix?    
-    !elem%f_int(e,n,d) =  
-    !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
-    !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
-      do d=1, dim
-        elem%f_int(e,n,d) = elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
-      end do
-      elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                              elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-      elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                              elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-      elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                              elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
-    end do
-  end do
+    do gp = 1, elem%gausspc(e)
+      do n=1, nodxelem
+      !Is only linear matrix?    
+      !elem%f_int(e,n,d) =  
+      !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
+      !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
+        do d=1, dim
+          elem%f_int(e,n,d) = elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
+        end do
+        elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+        elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+        elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                                elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+      end do! nod x elem
+    end do !gp
+  end do!elem
 end subroutine
 
 
@@ -100,26 +105,28 @@ subroutine calc_hourglass_forces
   
   gp = 1
   do e=1, elem_count    
-    !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
-    !print *, "test ", test
-    !print *, "dHxy ", elem%dHxy(e,gp,:,:)
-        
-    do n=1,nodxelem
-      do d=1,dim
-        vel (n,d) = nod%v(elem%elnod(e,n),d)    
-      end do
-    end do
-    do j =1,4
+    if (elem%gausspc(e) .eq. 1) then
+      !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
+      !print *, "test ", test
+      !print *, "dHxy ", elem%dHxy(e,gp,:,:)
+          
       do n=1,nodxelem
-        hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension
-      end do
-    end do
-    
-    do n=1,nodxelem
-      do j =1,4  
-          elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
+        do d=1,dim
+          vel (n,d) = nod%v(elem%elnod(e,n),d)    
         end do
-    end do
+      end do
+      do j =1,4
+        do n=1,nodxelem
+          hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension
+        end do
+      end do
+      
+      do n=1,nodxelem
+        do j =1,4  
+            elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
+          end do
+      end do
+    end if !if gauss point count ==1
   end do !elemen
 end subroutine
 
@@ -168,7 +175,9 @@ subroutine calc_elem_pressure ()
   
   gp = 1
   do e = 1, elem_count
-    elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e),elem%rho_0(e,gp))
+    do gp = 1, elem%gausspc(e)
+      elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e),elem%rho_0(e,gp))
+    end do
   end do
 end subroutine
 
@@ -191,7 +200,8 @@ subroutine CalcStressStrain (dt)
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
   do e = 1, elem_count
-    gp = 1
+    
+    do gp=1,elem%gausspc(e)
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
     ! do d=1,dim
 ! !      stress(i,i) = elem%sigma (e,gp,i
@@ -213,16 +223,17 @@ subroutine CalcStressStrain (dt)
     ! end if
     ! RotationRateT = transpose (elem%rot_rate(e,:,:))
 
-    SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
-    RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
-    
-    ! !print *, "RS", RS
-    elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                 (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
-                                 +SRT+RS) + elem%shear_stress(e,gp,:,:)
-    elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-    print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
+      RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
+      
+      ! !print *, "RS", RS
+      elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   +SRT+RS) + elem%shear_stress(e,gp,:,:)
+      elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+      print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
+    end do !gauss point
   end do
   ! !!!!$omp end parallel do    
 
@@ -239,6 +250,8 @@ subroutine calc_elem_vol ()
     elem%vol(e) = 0.0d0
     if (elem%gausspc(e).eq.1) then
       w = 8.0
+    else if (elem%gausspc(e).eq. 8 ) then
+      w = 1.0
     end if
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
