@@ -33,12 +33,7 @@ contains
 subroutine cal_elem_strains ()
   implicit none
   integer :: e, i,j,k, gp, d, n
-  real(fp_kind), dimension(2) :: r, s
-  
- 
-  r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-  s(1) = r(1)          ; s(2) =  r(2)
-  
+
   do e=1, elem_count
     gp = 1
     !Is only linear matrix?    
