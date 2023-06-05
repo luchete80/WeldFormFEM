@@ -5,67 +5,52 @@ use NodeData
 
 contains
 
-		! //if (!gradKernelCorr){
-    ! StrainRate(0,0) = 2.0*vab(0)*xij(0);
-    ! StrainRate(0,1) = vab(0)*xij(1)+vab(1)*xij(0);
-    ! StrainRate(0,2) = vab(0)*xij(2)+vab(2)*xij(0);
-    ! StrainRate(1,0) = StrainRate(0,1);
-    ! StrainRate(1,1) = 2.0*vab(1)*xij(1);
-    ! StrainRate(1,2) = vab(1)*xij(2)+vab(2)*xij(1);
-    ! if (dom_bid_type == AxiSymmetric){
-      ! StrainRate(0,2) = StrainRate(1,2) = 0.;
-    ! }
-    ! StrainRate(2,0) = StrainRate(0,2);
-    ! StrainRate(2,1) = StrainRate(1,2);
-    ! StrainRate(2,2) = 2.0*vab(2)*xij(2);
-    ! StrainRate	= -0.5 * GK * StrainRate;
-    
-
-    
-    ! RotationRate(0,1) = vab(0)*xij(1)-vab(1)*xij(0);
-    ! RotationRate(0,2) = vab(0)*xij(2)-vab(2)*xij(0);
-    ! RotationRate(1,2) = vab(1)*xij(2)-vab(2)*xij(1);
-    ! RotationRate(1,0) = -RotationRate(0,1);
-    ! RotationRate(2,0) = -RotationRate(0,2);
-    ! RotationRate(2,1) = -RotationRate(1,2);
-    ! RotationRate	  = -0.5 * GK * RotationRate;
+!!!!!!!!!!!!!!!Gradv = L = dvx/dx dvx/dy  dvx/dz
+!!!!!!!!!!!!!!!!!!!        dvy/dx dvy/dy  dvy/dz
+!!!! E = 1/2 (L+LT)
+!!!! R = 1/2 (L-LT)
 !THIS SHOULD BE DONE AT t+1/2dt
 subroutine cal_elem_strains ()
   implicit none
   integer :: e, i,j,k, gp, d, n
 
   do e=1, elem_count
-    gp = 1
-    !Is only linear matrix?    
-    !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
-    elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
-    do n=1, nodxelem  
-      do d=1, dim
-        elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n+1)+d,1) 
-        elem%rot_rate(e,gp, d,d) = 0.0d0
+    do gp = 1, elem%gausspc(e)
+      !Is only linear matrix?    
+      !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
+      elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+      do n=1, nodxelem  
+        do d=1, dim
+          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n+1)+d,1) 
+          elem%rot_rate(e,gp, d,d) = 0.0d0
+        end do
+        !!!! TO AVOID ALL MATMULT
+        elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) &
+                                   + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)
+        elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
+                                   - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
+        if (dim .eq. 3) then
+          elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
+                                     + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+          elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                     + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
+          elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
+                                     - elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+          elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                     - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
+        end if      
       end do
-      !!!! TO AVOID ALL MATMULT
-      elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) &
-                                 + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)
-      elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + elem%dHxy(e,gp,n,2)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
-                                 - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
+      elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
       if (dim .eq. 3) then
-        elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
-                                   + elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-        elem%str_rate(e,gp, 3,1) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                   + elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
-        elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+2,1) &
-                                   - elem%dHxy(e,gp,n,2) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-        elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 3,1) + elem%dHxy(e,gp,n,3)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                   - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
-      end if      
-    end do
-    elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
-    if (dim .eq. 3) then
-      elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
-      elem%str_rate(e,gp, 1,3) =     elem%str_rate(e,gp, 3,1)
-    end if
-    !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
+        elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
+        elem%str_rate(e,gp, 3,1) =     elem%str_rate(e,gp, 1,3)
+
+        elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
+        elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
+      end if
+      !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
+  
+    end do !gp
   end do !element
 end subroutine
 
