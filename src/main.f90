@@ -7,6 +7,7 @@ use Domain
 use omp_lib
 use Matrices
 use SolverLeapfrog
+use VTKOutput
 !use SolverVerlet
 !use Thermal
 !use Mechanical
@@ -117,6 +118,8 @@ implicit none
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
   call SolveLeapfrog(tf,dt)
+  
+  call WriteMeshVTU
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"
