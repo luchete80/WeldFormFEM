@@ -283,7 +283,7 @@ contains
     
     !nod%id(:) = tag
     
-    
+    fext_glob (:,:) = 0.0d0
   end subroutine AddBoxLength
   
   

@@ -88,6 +88,7 @@ subroutine SolveLeapfrog (tf, dt)
   print *, "ass mass matrix" 
   call assemble_mass_matrix()
   print * , "done"
+  print *, "mass matrix",m_glob
     mdiag(:)=0.0d0
     do iglob =1, node_count
       do n=1, node_count  !column
@@ -107,7 +108,7 @@ subroutine SolveLeapfrog (tf, dt)
   call assemble_forces()
   do n=1,node_count
       nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
-      print *, "fext n ", n,d, fext_glob(n,d)
+      print *, "fext n ", n, fext_glob(n,:)
   end do
   do n=1,node_count
     print *, "Initial accel ", n, "a ", nod%a(n,:)  
