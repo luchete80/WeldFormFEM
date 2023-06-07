@@ -156,7 +156,7 @@ subroutine calculate_element_Jacobian ()
           elem%jacob(e,gp,3,:) = -x2(1,:)-x2(2,:)-x2(3,:)-x2(4,:)+x2(5,:)+x2(6,:)+x2(7,:)+x2(8,:)
           !elem%jacob(e,gp,2,:) = [-x2(1,2),-x2(2,2), x2(3,2), x2(4,2),-x2(5,2),-x2(6,2), x2(7,2), x2(8,2)]
           !elem%jacob(e,gp,3,:) = [-x2(1,3),-x2(2,3), x2(3,3), x2(4,3),-x2(5,3),-x2(6,3), x2(7,3), x2(8,3)]
-          ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
+          ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0] AND THIS IS dHrs*x2
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
@@ -164,15 +164,23 @@ subroutine calculate_element_Jacobian ()
       elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
+      !gpc(1,:)=[r,r,r]   
+      !gpc(2,:)=[-r, r,-r];      gpc(3,:)=[ r,-r,-r];      gpc(4,:)=[ r, r,-r];
       !gpc(1,:)[-r,-r,-r];      gpc(1,:)[-r, r,-r];      gpc(1,:)[ r,-r,-r];      gpc(1,:)[ r, r,-r]
-      !gpc(1,:)[-r,-r,-r];      gpc(1,:)[-r, r,-r];      gpc(1,:)[ r,-r,-r];      gpc(1,:)[ r, r,-r]
-      
+      do i=1,nodxelem
+          x2(i,:)=nod%x(elem%elnod(e,i),:)
+      end do
+    
       if (dim .eq. 3) then
         do gp = 1,8
-          !dHrs(1,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,2))
+          dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
+                          ,(1+gpc(gp,2))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2)) &
+                    ,-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
+                    ,(1+gpc(gp,2))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2))]
           !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
-          !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]                 
-        end do 
+          !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))] 
+          elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
+        end do !gp
       end if
     end if !!gp ==1
     elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
