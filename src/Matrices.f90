@@ -133,7 +133,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j,k, gp
-  real(fp_kind), dimension(2) :: r, s, t   !!! USED ONLY FOR SEVERAL GAUSS POINTS
+  real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
   real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   
   gp = 1
@@ -164,9 +164,8 @@ subroutine calculate_element_Jacobian ()
       elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
-      !gpc(1,:)=[r,r,r]   
-      !gpc(2,:)=[-r, r,-r];      gpc(3,:)=[ r,-r,-r];      gpc(4,:)=[ r, r,-r];
-      !gpc(1,:)[-r,-r,-r];      gpc(1,:)[-r, r,-r];      gpc(1,:)[ r,-r,-r];      gpc(1,:)[ r, r,-r]
+      gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+      gpc(1,:)=[-r,-r, r];   gpc(2,:)=[ r,-r, r];      gpc(3,:)=[-r, r, r];      gpc(4,:)=[ r, r, r];
       do i=1,nodxelem
           x2(i,:)=nod%x(elem%elnod(e,i),:)
       end do
@@ -199,13 +198,12 @@ subroutine calculate_element_shapeMat ()
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j,k, gp
-  real(fp_kind), dimension(2) :: r, s
-
+  real(fp_kind):: r
+  real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   !! Update x2 vector (this is useful for strain and stress things)
   
 
   do e=1, elem_count
-
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
       elem%math(e,gp,:,:) = 0.0d0
@@ -214,11 +212,9 @@ subroutine calculate_element_shapeMat ()
         else !!!DIM 3
           temph(:,:) = 0.0d0
           do k =1, nodxelem
-            do d =1, dim
               !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
-              elem%math(e,gp,d,dim*(k-1)+d)=0.125
+              elem%math(e,gp,:,k)=0.125
               !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
-            end do !dim
           end do
           ! print *, "temp h", temph(:,:)
           ! temph(1,:) = [1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0]
@@ -235,7 +231,23 @@ subroutine calculate_element_shapeMat ()
       if (dim .eq. 2) then 
       
         else !!!DIM 3
-        
+          gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+          gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
+          do gp = 1,8
+            elem%math(e,gp, 1,:) = 0.125*[(1-gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)),(1+gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)), &
+                                (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
+                                (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
+                                (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
+            !elem%matm(e,:,:) = elem%matm(e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
+          end do
+            ! k = 1
+            ! do while (k <= nodxelem)
+              ! temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+              ! k = k + 1
+            ! end do
+ 
+          ! elem%math(e,gp,:,:) = temph(:,:)*elem%detJ(e,gp)
+          !print *, "mat h ", elem%math(e,gp,:,:)        
       end if !!! if dim
     end if ! GP>1
   end do !element
@@ -455,19 +467,38 @@ subroutine calculate_element_matrices ()
   end do
 end subroutine
 
+!!!!! IF MASS MATRIX IS OBTAINED FOR A ZERO FILLED SHAPEMATRIX (dim x dim*nodxelem)
+! subroutine assemble_mass_matrix ()
+  ! integer :: e,gp, i, j, dof1,dof2, n2
+  
+  ! m_glob (:,:) = 0.0d0
+  ! do e = 1, elem_count
+    ! !print *, "elem ", e
+    ! do dof1 =1, (nodxelem*dim)
+      ! do dof2=1, (nodxelem*dim)
+            ! !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
+            ! ! iglob  = dim * (elem%elnod(e,n) - 1 ) + i
+            ! ! jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
+            ! ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
+            ! m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) = m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) + elem%matm (e,dof1,dof2)
+      ! end do !dof1
+    ! end do ! dof2 
+  ! end do ! e
+! end subroutine
+
 subroutine assemble_mass_matrix ()
-  integer :: e,gp, i, j, dof1,dof2, n2
+  integer :: e,gp, i, j, iglob,jglob, n1,n2
   
   m_glob (:,:) = 0.0d0
   do e = 1, elem_count
     !print *, "elem ", e
-    do dof1 =1, (nodxelem*dim)
-      do dof2=1, (nodxelem*dim)
+    do n1 =1, nodxelem
+      do n2=1, nodxelem
             !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
-            ! iglob  = dim * (elem%elnod(e,n) - 1 ) + i
-            ! jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
+            iglob  = dim * (elem%elnod(e,n1) - 1 ) + i
+            jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-            m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) = m_glob(elem%dof(e,dof1),elem%dof(e,dof2)) + elem%matm (e,dof1,dof2)
+            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
       end do !dof1
     end do ! dof2 
   end do ! e
@@ -475,6 +506,7 @@ end subroutine
 
 !NEEDED FOR STRAIN AND INTERNAL FORCES CALCULATION
 !IS REALLY NEEDED TO STORE?
+!TODO: CHANGE TO DOF
 subroutine disassemble_uvele()
   integer :: e, i, n
   do e=1,elem_count

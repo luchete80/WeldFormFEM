@@ -75,7 +75,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   real(fp_kind),intent(in)::tf, dt
   
-  real(fp_kind), dimension(node_count*dim) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
+  real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
  
 
@@ -85,19 +85,19 @@ subroutine SolveLeapfrog (tf, dt)
   call calculate_element_shapeMat() !AND MASS
   
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
+  print *, "ass mass matrix" 
   call assemble_mass_matrix()
+  print * , "done"
     mdiag(:)=0.0d0
-    do iglob =1, (node_count * dim)
-      n = 1
-      do while (n .le. node_count * dim) !column
+    do iglob =1, node_count
+      do n=1, node_count  !column
          mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-         n = n+ 1
       end do !col
     end do   
   calc_m = .False.
  !print *, "M Diag ", mdiag
   !print *, "m glob", m_glob
-  
+  print *, "done"
   nod%u(:,:) = 0.0d0
   
   first_step  = .true.
@@ -106,11 +106,8 @@ subroutine SolveLeapfrog (tf, dt)
   !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
   call assemble_forces()
   do n=1,node_count
-    do d=1,dim
-      iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-      nod%a(n,d) = (fext_glob(n,d)-rint_glob(n,d))/mdiag(iglob) 
+      nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
       print *, "fext n ", n,d, fext_glob(n,d)
-    end do 
   end do
   do n=1,node_count
     print *, "Initial accel ", n, "a ", nod%a(n,:)  

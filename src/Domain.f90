@@ -40,7 +40,7 @@ contains
     
     allocate (kglob(node_count*dim,node_count*dim))
     allocate (uglob(node_count*dim,1))
-    allocate (m_glob(node_count*dim,node_count*dim))
+    allocate (m_glob(node_count,node_count))
     
     allocate (rint_glob(node_count,dim))
     allocate (fext_glob(node_count,dim))
@@ -113,8 +113,8 @@ contains
     
     allocate (elem%mass(el_count)) !Mass matrix    
 
-    allocate (elem%matm(el_count,dim*nodxelem,dim*nodxelem)) !Mass matrix
-    allocate (elem%math(el_count,gp,dim,dim*nodxelem)) !Mass matrix
+    allocate (elem%matm(el_count,nodxelem,nodxelem)) !Mass matrix
+    allocate (elem%math(el_count,gp,1,nodxelem)) !Mass matrix
     
     allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
     
