@@ -96,7 +96,7 @@ subroutine SolveLeapfrog (tf, dt)
       end do !col
     end do   
   calc_m = .False.
- !print *, "M Diag ", mdiag
+ print *, "M Diag ", mdiag
   !print *, "m glob", m_glob
   print *, "done"
   nod%u(:,:) = 0.0d0
