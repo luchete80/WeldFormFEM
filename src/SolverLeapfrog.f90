@@ -144,8 +144,7 @@ subroutine SolveLeapfrog (tf, dt)
     !print *, "calc accel "
     do n=1,node_count
       do d=1,dim
-        iglob = (n-1) * dim + d !TODO: CALL THIS IN A FUNCTION
-        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(iglob) 
+        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
       end do 
     end do
   do n=1,node_count
