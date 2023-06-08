@@ -467,6 +467,8 @@ subroutine calculate_element_matrices ()
   end do
 end subroutine
 
+
+!!!!!!!!!!!!!!!!!!!!!!!! CASE OF COMPLETE MATRIX (IMPLICIT ANALYSIS)
 !!!!! IF MASS MATRIX IS OBTAINED FOR A ZERO FILLED SHAPEMATRIX (dim x dim*nodxelem)
 ! subroutine assemble_mass_matrix ()
   ! integer :: e,gp, i, j, dof1,dof2, n2
@@ -495,8 +497,8 @@ subroutine assemble_mass_matrix ()
     do n1 =1, nodxelem
       do n2=1, nodxelem
             !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
-            iglob  = dim * (elem%elnod(e,n1) - 1 ) + i
-            jglob  = dim * (elem%elnod(e,n2) - 1 ) + j
+            iglob  = elem%elnod(e,n1) 
+            jglob  = elem%elnod(e,n2) 
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
             m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
       end do !dof1

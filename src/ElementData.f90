@@ -36,7 +36,8 @@ Type Element
   
 
   !! STIFFNESS AND MASS MATRICES, ARE INTEGRATED MATRICES (NOT ON EACH GAUSS POINT)
-  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm,  uele,vele
+  !!!!! MATMxDIM IS THE COMPLETE MATRIX (nodecount x dim ); USED FOR IMPLICIT PROBLEMS
+  real(fp_kind), dimension(:,:,:), allocatable :: matKL, matKNL, matm, matmxdim,  uele,vele
   
   Integer, Dimension(:,:), Allocatable :: elnod,dof !Connectivity
   real(fp_kind), dimension(:,:), allocatable :: detj !(GAUSS POINT)
