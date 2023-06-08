@@ -186,8 +186,9 @@ subroutine SolveLeapfrog (tf, dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
   call calc_hourglass_forces
-  
-
+  do n=1,elem_count
+  print *, "hourglass forces ", elem%hourg_nodf(n,:,:)
+  end do
 ! (6) The internal energy is updated based on the work done between tn and t_n+1.
 
 ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of

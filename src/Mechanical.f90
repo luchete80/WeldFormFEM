@@ -95,7 +95,8 @@ subroutine calc_hourglass_forces
   real(fp_kind), dimension(dim,4) :: hmod
 !real(fp_kind), dimension(1,4) :: test
   
-  
+  hmod(:,:) = 0.0d0
+  elem%hourg_nodf(e,n,:) = 0.0d0
   if (dim .eq. 3) then
     Sig(1,:) = [ 1.0, 1.0,-1.0,-1.0,-1.0,-1.0, 1.0, 1.0]
     Sig(2,:) = [ 1.0,-1.0,-1.0, 1.0,-1.0, 1.0, 1.0,-1.0]

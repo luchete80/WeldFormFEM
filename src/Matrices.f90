@@ -540,6 +540,11 @@ subroutine assemble_forces()
         fext_glob(elem%elnod(e,n),i) =  fext_glob(elem%elnod(e,n),i) + elem%f_ext(e,n,i)
       end do !element row
     end do ! Element node
+    if (elem%gausspc(e) .eq. 1) then
+      do n = 1, nodxelem
+        rint_glob(elem%elnod(e,n),:) = rint_glob(elem%elnod(e,n),:) + elem%hourg_nodf(e,n,:)
+      end do
+    end if 
   end do ! e
 end subroutine 
 

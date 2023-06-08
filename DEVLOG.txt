@@ -14,3 +14,6 @@
 -----------------------------------------------------------------------
 20230602 - Allocate internal forces
 20230607 - Added vtu output file writer
+20230608 - Corrected several things of Mass matrix redimension
+         - Fixed hourglass forces calculation (was not initialized)
+         - Summed hourglass correction
