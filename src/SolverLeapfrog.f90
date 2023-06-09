@@ -124,8 +124,8 @@ subroutine SolveLeapfrog (tf, dt)
   !!!! IS THERE ANY STRESS?
   elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
   !elem%f_int (:,:,:)   = 0.0d0 !!!! I Ncal_elem_forces
+
   elem%shear_stress = 0.0d0 
-  
   time = 0.0  
   step = 0
   print *,"main loop-------------------------------------"
@@ -188,6 +188,14 @@ subroutine SolveLeapfrog (tf, dt)
   end do  
   
   call calc_elem_vol
+  print *,"Element Vol"
+  do n = 1, elem_count
+    print *, elem%vol(n)
+  end do
+  print *,"Element Mass"
+  do n = 1, elem_count
+    print *, elem%mass(n)
+  end do
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
   
@@ -207,6 +215,16 @@ subroutine SolveLeapfrog (tf, dt)
   call calc_elem_density
   call calc_elem_pressure
 
+  print *,"Element Density"
+  do n = 1, elem_count
+    print *, elem%rho_0(n,:)
+  end do
+  
+  print *,"Element pressure"
+  do n = 1, elem_count
+    print *, elem%pressure(n,:)
+  end do
+  
   do n=1,node_count
     print *, "nod ", n, "Disp ", nod%u(n,:)  
   end do  

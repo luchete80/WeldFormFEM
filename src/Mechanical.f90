@@ -172,7 +172,10 @@ subroutine calc_elem_density ()
   implicit none
   integer :: e
   do e = 1, elem_count
-    elem%rho(e) = elem%mass(e)/elem%vol(e)
+    do gp = 1, elem%gausspc(e)
+      !elem%rho(e) = elem%mass(e)/elem%vol(e)
+      elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
+    end do
   end do
 end subroutine
 
@@ -183,7 +186,7 @@ subroutine calc_elem_pressure ()
   gp = 1
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
-      elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e),elem%rho_0(e,gp))
+      elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
     end do
   end do
 end subroutine

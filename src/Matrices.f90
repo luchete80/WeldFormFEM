@@ -237,7 +237,7 @@ subroutine calculate_element_shapeMat ()
 
       end if  !dim
         
-        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
+        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
         
         !print *, "MAT M", elem%matm(e,:,:)
       
@@ -254,7 +254,7 @@ subroutine calculate_element_shapeMat ()
                                 (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
             print *, "gp ",gp,  "detJ(e,gp)", elem%detJ(e,gp)
             elem%matm(e,:,:) = elem%matm(e,:,:) + &
-                               matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
+                               matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
           end do
             ! k = 1
             ! do while (k <= nodxelem)

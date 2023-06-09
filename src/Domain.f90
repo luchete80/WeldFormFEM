@@ -122,7 +122,7 @@ contains
     allocate (elem%f_int(el_count,nodxelem,dim))
     allocate (elem%f_ext(el_count,nodxelem,dim))
     
-    allocate (elem%rho(el_count)) !AT FIRST ONLY ONE POINT
+    allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
     allocate (elem%cs(el_count))
