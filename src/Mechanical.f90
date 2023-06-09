@@ -186,6 +186,7 @@ subroutine calc_elem_pressure ()
   gp = 1
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
+      !print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
       elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
     end do
   end do

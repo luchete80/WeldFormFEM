@@ -217,7 +217,7 @@ subroutine SolveLeapfrog (tf, dt)
 
   print *,"Element Density"
   do n = 1, elem_count
-    print *, elem%rho_0(n,:)
+    print *, elem%rho(n,:)
   end do
   
   print *,"Element pressure"
