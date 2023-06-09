@@ -124,6 +124,7 @@ subroutine SolveLeapfrog (tf, dt)
   !!!! IS THERE ANY STRESS?
   elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
   !elem%f_int (:,:,:)   = 0.0d0 !!!! I Ncal_elem_forces
+  elem%shear_stress = 0.0d0 
   
   time = 0.0  
   step = 0

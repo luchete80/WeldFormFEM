@@ -66,7 +66,8 @@ subroutine cal_elem_forces ()
   integer :: e, i,j,k, gp,n, d
   real(fp_kind), dimension(dim*nodxelem,1) ::f
   
-
+  elem%f_int = 0.0d0
+  
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       do n=1, nodxelem
