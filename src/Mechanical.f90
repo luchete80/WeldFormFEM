@@ -14,6 +14,9 @@ subroutine cal_elem_strains ()
   implicit none
   integer :: e, i,j,k, gp, d, n
 
+  elem%str_rate = 0.0d0
+  elem%rot_rate = 0.0d0
+  
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       !Is only linear matrix?    
