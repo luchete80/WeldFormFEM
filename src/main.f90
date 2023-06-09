@@ -114,6 +114,7 @@ implicit none
   tf = dt * 3.0
   
   elem%rho(:) = rho
+  elem%gausspc(:) = 8
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt

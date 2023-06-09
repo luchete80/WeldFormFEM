@@ -173,9 +173,18 @@ subroutine calculate_element_Jacobian ()
       if (dim .eq. 3) then
         do gp = 1,8
           dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                          ,(1+gpc(gp,2))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2)) &
+                          ,(1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,3)) &
                     ,-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                    ,(1+gpc(gp,2))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2))]
+                    ,(1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2))]
+          dHrs(2,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3)),-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3))&
+                         ,(1+gpc(gp,1))*(1.0-gpc(gp,3)),     (1+gpc(gp,1))*(1.0-gpc(gp,3)) &
+                    ,-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3)),-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3))&
+                         ,(1+gpc(gp,2))*(1.0+gpc(gp,3)),     (1+gpc(gp,2))*(1.0+gpc(gp,3))]
+          dHrs(3,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,2))&
+                    ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,3)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
+                    ,     (1-gpc(gp,1))*(1.0-gpc(gp,2)),     (1+gpc(gp,1))*(1.0-gpc(gp,2))&
+                    ,     (1+gpc(gp,1))*(1.0+gpc(gp,3)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
+                    
           !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
           !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))] 
           elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
@@ -198,10 +207,12 @@ subroutine calculate_element_shapeMat ()
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j,k, gp
-  real(fp_kind):: r
+  real(fp_kind):: r, w
   real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   !! Update x2 vector (this is useful for strain and stress things)
   
+  r = 1.0/sqrt(3.0)
+  elem%matm(e,:,:) = 0.0d0
 
   do e=1, elem_count
     gp = 1
@@ -229,7 +240,7 @@ subroutine calculate_element_shapeMat ()
       
     else !!!!! GP > 1
       if (dim .eq. 2) then 
-      
+        w = 1.
         else !!!DIM 3
           gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
           gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
@@ -238,7 +249,9 @@ subroutine calculate_element_shapeMat ()
                                 (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
                                 (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
                                 (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
-            !elem%matm(e,:,:) = elem%matm(e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
+            print *, "detJ(e,gp)", elem%detJ(e,gp)
+            elem%matm(e,:,:) = elem%matm(e,:,:) + &
+                               matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
           end do
             ! k = 1
             ! do while (k <= nodxelem)
