@@ -96,7 +96,7 @@ subroutine calc_hourglass_forces
 !real(fp_kind), dimension(1,4) :: test
   
   hmod(:,:) = 0.0d0
-  elem%hourg_nodf(e,n,:) = 0.0d0
+  elem%hourg_nodf(:,:,:) = 0.0d0
   if (dim .eq. 3) then
     Sig(1,:) = [ 1.0, 1.0,-1.0,-1.0,-1.0,-1.0, 1.0, 1.0]
     Sig(2,:) = [ 1.0,-1.0,-1.0, 1.0,-1.0, 1.0, 1.0,-1.0]
@@ -127,7 +127,9 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-    end if !if gauss point count ==1
+  else
+    !print *, "NO HOURGLASS"
+    end if
   end do !elemen
 end subroutine
 
