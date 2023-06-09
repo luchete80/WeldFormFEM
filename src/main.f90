@@ -26,7 +26,7 @@ implicit none
   !type(Domain)	::dom
 
    ! Variables for clock
-   integer count_0, count_1
+   integer count_0, count_1, gp
    integer count_rate, count_max
    double precision time_init, time_final, elapsed_time
 
@@ -46,8 +46,8 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 3
-   L = 2.0	
-  dx    = 1.0
+   L = 0.1	
+  dx    = 0.1
   r = dx 
   h = dx * 1.2
 
@@ -112,7 +112,7 @@ implicit none
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  tf = dt * 10.0
   
   elem%rho(:) = rho
   
@@ -129,7 +129,13 @@ implicit none
     write (1,*) nod%x(i,1), ", ", nod%x(i,2), ", " ,nod%x(i,3)  
     end do
   close(1)
-
+  
+  print *, "Element stresses"
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%sigma(i,gp,:,:)
+    end do
+  end do
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
 !  end do 
