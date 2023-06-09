@@ -189,8 +189,9 @@ subroutine calculate_element_Jacobian ()
           !print *, "dhrs", dHrs 
           !print *, "x2", x2 
           elem%jacob(e,gp,:,:) = 0.125*matmul(dHrs,x2)
+          print *, "jacob ", elem%jacob(e,gp,:,:) 
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-          !print *, "jacob ", elem%jacob(e,gp,:,:) 
+          print *, "detJ ", elem%detJ(e,gp)
         end do !gp
       end if
     end if !!gp ==1
@@ -251,7 +252,7 @@ subroutine calculate_element_shapeMat ()
                                 (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
                                 (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
                                 (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
-            print *, "detJ(e,gp)", elem%detJ(e,gp)
+            print *, "gp ",gp,  "detJ(e,gp)", elem%detJ(e,gp)
             elem%matm(e,:,:) = elem%matm(e,:,:) + &
                                matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
           end do
@@ -362,7 +363,10 @@ subroutine calculate_element_derivMat ()
       !print *, "element",e," mat m ", elem%matm (e,:,:)
       if (dim .eq. 3)then  !!!! dim 3
         invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
+        print *, "detJ", elem%detJ(e,gp)
+        print *, "invJ", invJ
         elem%dHxy(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
+        print *, "dHxy", elem%dHxy(e,gp,:,:)
       end if
     end if
   end do

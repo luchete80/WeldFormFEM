@@ -22,7 +22,7 @@ implicit none
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
   real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
-  
+  logical :: reduced_int
   !type(Domain)	::dom
 
    ! Variables for clock
@@ -78,7 +78,8 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  call AddBoxLength(0, V, L, L, L, r, rho, h)
+  reduced_int = .False.
+  call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.
@@ -114,7 +115,6 @@ implicit none
   tf = dt * 1.0
   
   elem%rho(:) = rho
-  elem%gausspc(:) = 8
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt

@@ -149,8 +149,9 @@ contains
   end subroutine
 
   !!!!! NODE DISTRIBUTION ARE LIKE IN FLANAGAN (1981), GOUDREAU, AND BENSON (1992)
-  subroutine AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)			
+  subroutine AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h, redint)			
     integer, intent(in):: tag
+    logical, intent(in) :: redint
     !real(fp_kind), intent(in), allocatable :: V
     real(fp_kind), dimension(1:3), intent(in)  :: V ! input
     real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  

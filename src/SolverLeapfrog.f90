@@ -132,6 +132,12 @@ subroutine SolveLeapfrog (tf, dt)
     step = step + 1
     print *, "Time: ", time, ", step: ",step
     call calculate_element_Jacobian()
+        print *, "det EXT(e,gp)", elem%detJ(:,:)
+    do n=1,elem_count
+      if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
+        call calculate_element_shapeMat() !AND MASS
+      end if
+    end do
     call calculate_element_derivMat()
     ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
     ! !NODAL CALCULATION
