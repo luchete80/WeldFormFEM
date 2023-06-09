@@ -156,7 +156,7 @@ contains
     real(fp_kind), dimension(1:3), intent(in)  :: V ! input
     real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
     real(fp_kind), dimension (1:3) :: Xp
-    integer :: i, j, k, p, ex, ey, ez, nnodz
+    integer :: i, j, k, p, ex, ey, ez, nnodz, gp
       
     integer, dimension(1:3) :: nel 
     
@@ -228,10 +228,17 @@ contains
     
     !! ALLOCATE ELEMENTS
     !! DIMENSION = 2
+    gp = 1
     if (dim .eq. 2) then
-      call AllocateElements(nel(1) * nel(2),1) !!!!REDUCED INTEGRATION
+      if (redint .eqv. .False.) then
+        gp = 4
+      end if 
+      call AllocateElements(nel(1) * nel(2),gp) !!!!REDUCED INTEGRATION
     else 
-      call AllocateElements(nel(1) * nel(2)*nel(3),1) 
+      if (redint .eqv. .False.) then
+        gp = 4
+      end if 
+      call AllocateElements(nel(1) * nel(2)*nel(3),gp) 
     end if
     
     if (dim .eq. 2) then
