@@ -105,7 +105,7 @@ implicit none
   nod%a(:,:) = 0.0d0
   
   mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
-  mat_modG= young / (2.0* (1.0 + poisson));
+  mat_G= young / (2.0* (1.0 + poisson));
   
   mat_cs = sqrt(mat_modK/rho)
   

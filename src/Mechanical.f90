@@ -228,6 +228,7 @@ subroutine CalcStressStrain (dt)
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
       ! !print *, "RS", RS
+      print *, "mat g", mat_G
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
