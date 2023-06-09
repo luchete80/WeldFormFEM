@@ -165,29 +165,29 @@ subroutine calculate_element_Jacobian ()
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
       gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
-      gpc(1,:)=[-r,-r, r];   gpc(2,:)=[ r,-r, r];      gpc(3,:)=[-r, r, r];      gpc(4,:)=[ r, r, r];
-      do i=1,nodxelem
-          x2(i,:)=nod%x(elem%elnod(e,i),:)
-      end do
+      gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
     
       if (dim .eq. 3) then
         do gp = 1,8
-          dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                          ,(1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,3)) &
-                    ,-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),(1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                    ,(1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2))]
-          dHrs(2,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3)),-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3))&
-                         ,(1+gpc(gp,1))*(1.0-gpc(gp,3)),     (1+gpc(gp,1))*(1.0-gpc(gp,3)) &
-                    ,-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3)),-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3))&
-                         ,(1+gpc(gp,2))*(1.0+gpc(gp,3)),     (1+gpc(gp,2))*(1.0+gpc(gp,3))]
+          dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),     (1-gpc(gp,2))*(1.0-gpc(gp,3))&
+                    ,     (1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,3))&
+                    ,-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),     (1-gpc(gp,2))*(1.0-gpc(gp,3))&
+                    ,     (1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,2))]
+          dHrs(2,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,3))&
+                         ,(1+gpc(gp,1))*(1.0-gpc(gp,3)),     (1-gpc(gp,1))*(1.0-gpc(gp,3))&
+                    ,-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,3))&
+                         ,(1+gpc(gp,1))*(1.0+gpc(gp,3)),     (1-gpc(gp,1))*(1.0+gpc(gp,3))]
           dHrs(3,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,3)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
+                    ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,2)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
                     ,     (1-gpc(gp,1))*(1.0-gpc(gp,2)),     (1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    ,     (1+gpc(gp,1))*(1.0+gpc(gp,3)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
+                    ,     (1+gpc(gp,1))*(1.0+gpc(gp,2)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
                     
           !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
           !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))] 
-          elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
+          print *, "dhrs", dHrs 
+           print *, "x2", x2 
+          elem%jacob(e,gp,:,:) = 0.125*matmul(dHrs,x2)
+          print *, "jacob ", elem%jacob(e,gp,:,:) 
         end do !gp
       end if
     end if !!gp ==1
