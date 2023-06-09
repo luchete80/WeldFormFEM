@@ -120,10 +120,14 @@ subroutine SolveLeapfrog (tf, dt)
   do n=1,node_count
     print *, "Initial v nod ", n, "v ", nod%v(n,:)  
   end do  
-      
+  
+  !!!! IS THERE ANY STRESS?
+  elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
+  !elem%f_int (:,:,:)   = 0.0d0 !!!! I Ncal_elem_forces
+  
   time = 0.0  
   step = 0
-  print *,"main loop"
+  print *,"main loop-------------------------------------"
   do while (time .le. tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step

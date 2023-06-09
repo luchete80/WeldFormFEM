@@ -28,7 +28,7 @@ Type Element
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
-  real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,math !!!DIM: e,gp,,:,:
+  real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy
   
   real(fp_kind), dimension(:,:,:), allocatable :: x2 !(rearranged nodes elem, x,y)
   

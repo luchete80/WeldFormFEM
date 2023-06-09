@@ -182,14 +182,15 @@ subroutine calculate_element_Jacobian ()
                     ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,2)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
                     ,     (1-gpc(gp,1))*(1.0-gpc(gp,2)),     (1+gpc(gp,1))*(1.0-gpc(gp,2))&
                     ,     (1+gpc(gp,1))*(1.0+gpc(gp,2)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
-                    
+          
+          elem%dHrs(e,gp,:,:) =  dHrs(:,:)         
           !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
           !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))] 
-          print *, "dhrs", dHrs 
-           print *, "x2", x2 
+          !print *, "dhrs", dHrs 
+          !print *, "x2", x2 
           elem%jacob(e,gp,:,:) = 0.125*matmul(dHrs,x2)
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-          print *, "jacob ", elem%jacob(e,gp,:,:) 
+          !print *, "jacob ", elem%jacob(e,gp,:,:) 
         end do !gp
       end if
     end if !!gp ==1
@@ -269,6 +270,7 @@ end subroutine
 
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
+!!!!! ASUMES CALCULATED DETJ AND LOCAL EDRIV MATRICES (dHrs)
 subroutine calculate_element_derivMat ()
   integer :: e,d
   ! !rg=gauss[ig]
@@ -327,41 +329,42 @@ subroutine calculate_element_derivMat ()
       end if  !!!!DIM
       
     else !!!!! GP > 1
-
-      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-      s(1) = r(1)          ; s(2) =  r(2)      
-      i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
-      do while (i<=2)
-        j = 1
-        do while (j<=2)
-          !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
-          dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
-          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
-          dHrs(:,:) = dHrs(:,:)*0.25
-          elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-          !print *, "inv mat", elem%dHxy(e,gp,:,:)
-          
-          !DERIVATIVE MATRICES
-          !TODO: CHANGE IF DIM != 2
-          k=1
-          do while (k<nodxelem)
-            elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
-            elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
-            elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
-            elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
-            k = k+1
-          end do
-          ! print *, "element mat m ", elem%matm (e,:,:)
-          gp = gp + 1
-          j = j +1
-        end do
-        i = i +1
-        
-        elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
-      end do !i
-    end if   !j
-    !print *, "element",e," mat m ", elem%matm (e,:,:)
-
+      ! if (dim .eq. 2) then 
+        ! r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+        ! s(1) = r(1)          ; s(2) =  r(2)      
+        ! i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
+        ! do while (i<=2)
+          ! j = 1
+          ! do j =1 ,2
+            ! !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
+            ! dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+            ! dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
+            ! dHrs(:,:) = dHrs(:,:)*0.25
+            ! elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+            ! print *, "dHxy", elem%dHxy(e,gp,:,:)
+            
+            ! !DERIVATIVE MATRICES
+            ! !TODO: CHANGE IF DIM != 2
+            ! k=1
+            ! do while (k<nodxelem)
+              ! elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+              ! elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
+              ! elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
+              ! elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
+              ! k = k+1
+            ! end do
+            ! ! print *, "element mat m ", elem%matm (e,:,:)
+            ! gp = gp + 1
+          ! end do
+            ! i = i +1
+          ! end do !i
+        ! end if   !j
+      !print *, "element",e," mat m ", elem%matm (e,:,:)
+      if (dim .eq. 3)then  !!!! dim 3
+        invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
+        elem%dHxy(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
+      end if
+    end if
   end do
 end subroutine
 
@@ -546,7 +549,8 @@ subroutine assemble_forces()
   do e = 1, elem_count
     do n = 1, nodxelem
       !print *,"elem mat kl", elem%matkl(e,:,:)
-      !print *, "elem fext ", elem%f_ext(e,n,:)
+      print *, "elem fext ", elem%f_ext(e,n,:)
+      print *, "elem fint ", elem%f_int(e,n,:)
       do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
