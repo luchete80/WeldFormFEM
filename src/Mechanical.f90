@@ -170,7 +170,7 @@ end function EOS
 !!!!! ASSUME VOLUME IS ALREADY CALCULATED
 subroutine calc_elem_density ()
   implicit none
-  integer :: e
+  integer :: e, gp
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       !elem%rho(e) = elem%mass(e)/elem%vol(e)

@@ -375,118 +375,117 @@ end subroutine
 !!!!!!!!!!!!!!!!!!!!
 !!!!! OLD 
 !!!! ---------
-subroutine calculate_element_matrices ()
-  integer :: e
-  ! !rg=gauss[ig]
-  ! !sg=gauss[jg]
-  real(fp_kind), dimension(dim,nodxelem) :: dHrs
-  real(fp_kind), dimension(nodxelem,dim) :: x2
-  real(fp_kind), dimension(dim,dim) :: test
-  real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+! ! subroutine calculate_element_matrices ()
+  ! ! integer :: e
+  ! ! ! !rg=gauss[ig]
+  ! ! ! !sg=gauss[jg]
+  ! ! real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  ! ! real(fp_kind), dimension(nodxelem,dim) :: x2
+  ! ! real(fp_kind), dimension(dim,dim) :: test
+  ! ! real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
-  integer :: i,j,k, gp
-  real(fp_kind), dimension(2) :: r, s
+  ! ! integer :: i,j,k, gp
+  ! ! real(fp_kind), dimension(2) :: r, s
 
-  !! Update x2 vector (this is useful for strain and stress things)
+  ! ! !! Update x2 vector (this is useful for strain and stress things)
   
 
-  do e=1, elem_count
-    print *, "el ", e 
+  ! ! do e=1, elem_count
+    ! ! print *, "el ", e 
     
-    elem%matkl(e,:,:) = 0.0
-    elem%matknl(e,:,:) = 0.0
-    if (calc_m .eqv. .True.) then
-      elem%matm(e,:,:) = 0.0
-    end if 
+    ! ! elem%matkl(e,:,:) = 0.0
+    ! ! elem%matknl(e,:,:) = 0.0
+    ! ! if (calc_m .eqv. .True.) then
+      ! ! elem%matm(e,:,:) = 0.0
+    ! ! end if 
     
-    print *, "nodxelem ", nodxelem
+    ! ! print *, "nodxelem ", nodxelem
     
-    do i=1,nodxelem
-        !print *, "elnod " , elem%elnod(e,i)
-        x2(i,:)=nod%x(elem%elnod(e,i),:)
-    end do
-    !print *, "x2 ", x2
-    !printarray(x2)
-    ! TODO: This could be done once
-    gp = 1
-    if (elem%gausspc(e) .eq. 1) then
+    ! ! do i=1,nodxelem
+        ! ! !print *, "elnod " , elem%elnod(e,i)
+        ! ! x2(i,:)=nod%x(elem%elnod(e,i),:)
+    ! ! end do
+    ! ! !print *, "x2 ", x2
+    ! ! !printarray(x2)
+    ! ! ! TODO: This could be done once
+    ! ! gp = 1
+    ! ! if (elem%gausspc(e) .eq. 1) then
     
-      if (dim .eq. 2) then 
+      ! ! if (dim .eq. 2) then 
       
-        else !!!DIM 3
-          dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
-          dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
-          dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
-          elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
-      end if  !!!!DIM
+        ! ! else !!!DIM 3
+          ! ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
+          ! ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
+          ! ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
+          ! ! elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
+      ! ! end if  !!!!DIM
       
-    else !!!!! GP > 1
+    ! ! else !!!!! GP > 1
 
-      r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
-      s(1) = r(1)          ; s(2) =  r(2)      
-      i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
-      do while (i<=2)
-        j = 1
-        do while (j<=2)
-          !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
-          dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
-          dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
-          dHrs(:,:) = dHrs(:,:)*0.25
+      ! ! r(1) = -1.0/sqrt(3.0); r(2) = -r(1)
+      ! ! s(1) = r(1)          ; s(2) =  r(2)      
+      ! ! i = 1; j = 1 !TODO: CHANGE TO PLAIN DO (IN ORDER TO INCLUDE 3D)
+      ! ! do while (i<=2)
+        ! ! j = 1
+        ! ! do while (j<=2)
+          ! ! !TODO: DO THIS ONCE AT THE BEGINING ONLY ONCE FOR EACH ELEMENT TYPE
+          ! ! dHrs(1,:)=[(1+s(j)),-(1+s(j)),-(1-s(j)),(1-s(j))]
+          ! ! dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]   
+          ! ! dHrs(:,:) = dHrs(:,:)*0.25
 
-          !print *, "dHrs ", dHrs
-          test = matmul(dHrs,x2)
-          !print *, "x2, ", x2
-          elem%jacob(e,gp,:,:) = test
-          elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-          !print *, "inv mat", elem%dHxy(e,gp,:,:)
+          ! ! !print *, "dHrs ", dHrs
+          ! ! test = matmul(dHrs,x2)
+          ! ! !print *, "x2, ", x2
+          ! ! elem%jacob(e,gp,:,:) = test
+          ! ! elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
+          ! ! !print *, "inv mat", elem%dHxy(e,gp,:,:)
           
-          !DERIVATIVE MATRICES
-          !TODO: CHANGE IF DIM != 2
-          k=1
-          do while (k<nodxelem)
-            elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
-            elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
-            elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
-            elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
-            k = k+1
-          end do
-          print *, "jacob e ", elem%jacob(e,gp,:,:)
+          ! ! !DERIVATIVE MATRICES
+          ! ! !TODO: CHANGE IF DIM != 2
+          ! ! k=1
+          ! ! do while (k<nodxelem)
+            ! ! elem%bl(e,gp,1,dim*(k-1)+k  ) = elem%dHxy(e,gp,1,k)
+            ! ! elem%bl(e,gp,2,dim*(k-1)+k+1) = elem%dHxy(e,gp,2,k)
+            ! ! elem%bl(e,gp,3,dim*(k-1)+k  ) = elem%dHxy(e,gp,2,k) 
+            ! ! elem%bl(e,gp,3,dim*(k-1)+k+1) = elem%dHxy(e,gp,1,k)     
+            ! ! k = k+1
+          ! ! end do
+          ! ! print *, "jacob e ", elem%jacob(e,gp,:,:)
           
-          elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-          !print *, "det J", elem%detJ(e,gp)
-          !print *, "bl ", elem%bl(e,gp,:,:)
-          !TODO CHANGE ZERO
+          ! ! elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+          ! ! !print *, "det J", elem%detJ(e,gp)
+          ! ! !print *, "bl ", elem%bl(e,gp,:,:)
+          ! ! !TODO CHANGE ZERO
 
-          if (dim .eq. 2) then
-            temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
-            k = 1
-            do while (k <= nodxelem)
-              temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
-              k = k + 1
-            end do
-          end if 
-          elem%math(e,gp,:,:) = temph(:,:)*elem%detJ(e,gp)
-          !print *, "mat h ", elem%math(e,gp,:,:)
-          !print *, "BL ", elem%bl
-          ! elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
-                                ! &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
-          ! elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
-          if (calc_m .eqv. .True.) then
-            elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) *elem%detJ(e,gp)!Mass matrix
-          end if
-          ! print *, "element mat m ", elem%matm (e,:,:)
-          gp = gp + 1
-          j = j +1
-        end do
-        i = i +1
+          ! ! if (dim .eq. 2) then
+            ! ! temph(1,:) = 0.25*[(1+r(i))*(1+s(j)),0.0d0,(1.0-r(i))*(1+s(j)),0.0d0,(1-r(i))*(1-s(j)),0.0d0,(1+r(i))*(1-s(j)),0.0d0]
+            ! ! k = 1
+            ! ! do while (k <= nodxelem)
+              ! ! temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+              ! ! k = k + 1
+            ! ! end do
+          ! ! end if 
+          ! ! elem%math(e,gp,:,:) = temph(:,:)*elem%detJ(e,gp)
+          ! ! !print *, "mat h ", elem%math(e,gp,:,:)
+          ! ! !print *, "BL ", elem%bl
+          ! ! ! elem%matknl(e,:,:) = elem%matknl(e,:,:) + matmul(matmul(transpose(elem%bnl(e,gp,:,:)),elem%tau(e,gp,:,:)),&
+                                ! ! ! &elem%bnl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          ! ! ! elem%matkl(e,:,:) = elem%matkl(e,:,:) + matmul(matmul(transpose(elem%bl(e,gp,:,:)),mat_C),elem%bl(e,gp,:,:))*elem%detJ(e,gp) !Nodal Weight mat
+          ! ! if (calc_m .eqv. .True.) then
+            ! ! elem%matm (e,:,:) = elem%matm (e,:,:) + matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:)) * elem%rho(e,gp) * elem%detJ(e,gp)!Mass matrix
+          ! ! end if
+          ! ! ! print *, "element mat m ", elem%matm (e,:,:)
+          ! ! gp = gp + 1
+          ! ! j = j +1
+        ! ! end do
+        ! ! i = i +1
         
-        elem%matm (e,:,:) = elem%matm (e,:,:) * elem%rho(e) !!ASUMMING constant element density
-      end do !i
-    end if   !j
-    !print *, "element",e," mat m ", elem%matm (e,:,:)
+      ! ! end do !i
+    ! ! end if   !j
+    ! ! !print *, "element",e," mat m ", elem%matm (e,:,:)
 
-  end do
-end subroutine
+  ! ! end do
+! ! end subroutine
 
 
 !!!!!!!!!!!!!!!!!!!!!!!! CASE OF COMPLETE MATRIX (IMPLICIT ANALYSIS)

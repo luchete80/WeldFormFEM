@@ -114,7 +114,7 @@ implicit none
   dt = 0.7 * dx/(mat_cs)
   tf = dt * 1.0
   
-  elem%rho(:) = rho
+  elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
