@@ -103,7 +103,7 @@ implicit none
   !fext_glob(6,:) = []
   elem%f_ext(1,6,:) = [0.0d0,0.0d0,-100.0d0]
   
-  print *, "BCV 6 ", nod%bcv(6,2)
+ ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
   
 
@@ -117,7 +117,7 @@ implicit none
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  tf = dt * 10.0
   
   elem%rho(:,:) = rho
   

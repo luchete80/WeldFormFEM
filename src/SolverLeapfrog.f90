@@ -139,7 +139,7 @@ subroutine SolveLeapfrog (tf, dt)
   do while (time .le. tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step
-    call calculate_element_Jacobian()
+
         print *, "det EXT(e,gp)", elem%detJ(:,:)
     do n=1,elem_count
       if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
@@ -197,7 +197,10 @@ subroutine SolveLeapfrog (tf, dt)
   do n=1,node_count
     print *, "nod ", n, "x ", nod%x(n,:)  
   end do  
-  
+
+  !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
+  !!!! IN ORDER TO CALC VOL
+  call calculate_element_Jacobian()  
   call calc_elem_vol
   print *,"Element Vol"
   do n = 1, elem_count
@@ -209,6 +212,13 @@ subroutine SolveLeapfrog (tf, dt)
   end do
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+
+  ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
+  ! state.
+  !!! THIS IS CALCULATE NOW IN ORDER TO UPDATE STRESS WITH CURRENT PRESSURE
+  call calc_elem_density
+  call calc_elem_pressure
+
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
@@ -221,10 +231,7 @@ subroutine SolveLeapfrog (tf, dt)
   end do
 ! (6) The internal energy is updated based on the work done between tn and t_n+1.
 
-! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
-! state.
-  call calc_elem_density
-  call calc_elem_pressure
+
   
   call AverageData(elem%rho(:,1),nod%rho(:))
 
