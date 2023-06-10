@@ -271,6 +271,7 @@ end subroutine
 
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
+
 !!!!! ASUMES CALCULATED DETJ AND LOCAL EDRIV MATRICES (dHrs)
 subroutine calculate_element_derivMat ()
   integer :: e,d
@@ -362,15 +363,44 @@ subroutine calculate_element_derivMat ()
         ! end if   !j
       !print *, "element",e," mat m ", elem%matm (e,:,:)
       if (dim .eq. 3)then  !!!! dim 3
-        invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
-        print *, "detJ", elem%detJ(e,gp)
-        print *, "invJ", invJ
-        elem%dHxy(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
-        print *, "dHxy", elem%dHxy(e,gp,:,:)
-      end if
+        do gp = 1,8
+          invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
+          print *, "detJ", elem%detJ(e,gp)
+          print *, "invJ", invJ
+          elem%dHxy(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
+          print *, "dHxy", elem%dHxy(e,gp,:,:)
+        end do !!!!gp
+      end if!!!di 3
     end if
   end do
 end subroutine
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!! USED ONLY FOR DEFORMATION  GRADIEN MATTIX IN FULL INTEGRATION ELEMENTS
+subroutine calculate_element_dhxy0 ()
+  integer :: e,d
+
+  real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  real(fp_kind), dimension(dim,dim) :: test, invJ
+  
+  integer :: i,j,k, gp
+
+  do e=1, elem_count
+    if (elem%gausspc(e) > 1) then
+      if (dim .eq. 3)then  !!!! dim 3
+        do gp=1,8
+        ! print *, "detJ", elem%detJ(e,gp)
+        ! print *, "invJ", invJ
+          elem%dHxy0(e,gp,:,:) = matmul(adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp),elem%dHrs(e,gp,:,:))
+        end do
+        print *, "dHxy", elem%dHxy(e,gp,:,:)
+      end if!!!! dim
+    end if
+  end do
+end subroutine
+
+
 
 !!!!!!!!!!!!!!!!!!!!
 !!!!! OLD 

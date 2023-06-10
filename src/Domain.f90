@@ -106,6 +106,7 @@ contains
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
+    allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
     allocate (elem%dHrs(el_count,gp,dim,nodxelem))
     allocate (elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
 
