@@ -177,7 +177,7 @@ subroutine calc_elem_density ()
   do e = 1, elem_count
 
     if (elem%gausspc(e) .eq. 1) then
-      elem%rho(e,1) = elem%mass(e)/elem%vol(e) !IS THE SAME
+      elem%rho(e,1) = elem%rho_0(e,1)*elem%vol(e)/elem%vol_0(e) !IS THE SAME
     else 
       do n=1,nodxelem 
         x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG

@@ -84,7 +84,13 @@ subroutine SolveLeapfrog (tf, dt)
   
   call calculate_element_Jacobian()
   call calculate_element_shapeMat() !AND MASS
-  
+  call calc_elem_vol !!!! In order to define initial volume
+  elem%vol_0(:) = elem%vol(:)
+  print *,"Element Initial Vol"
+  do n = 1, elem_count
+    print *, elem%vol(n)
+  end do    
+    
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "ass mass matrix" 
   call assemble_mass_matrix()

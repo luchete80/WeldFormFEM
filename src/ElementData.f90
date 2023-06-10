@@ -16,7 +16,7 @@ Type Element
   Integer, Dimension(:), Allocatable :: ID, gausspc
   !GENERAL
   !QUESTION: IS IT NECESARY TO STORE CS ON EACH ERLEMENT???
-  real(fp_kind), dimension(:), Allocatable :: h, t, cs, mass, vol, drhodt !influence radius, temp
+  real(fp_kind), dimension(:), Allocatable :: h, t, cs, mass, vol, drhodt, vol_0 !influence radius, temp
   
   real(fp_kind), dimension(:,:), Allocatable :: rho_0,pressure,rho   !!!!elcount, gp
   !THERMAL

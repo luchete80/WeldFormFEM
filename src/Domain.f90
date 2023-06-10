@@ -100,6 +100,7 @@ contains
     allocate (elem%gausspc(el_count))
     allocate (elem%dof(el_count,dim*nodxelem))
     allocate (elem%vol(el_count))
+    allocate (elem%vol_0(el_count))
     allocate (elem%x2(el_count,nodxelem,dim))
     allocate (elem%jacob(el_count,gp,dim,dim))
     allocate (elem%detj(el_count,gp))
