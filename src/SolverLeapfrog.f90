@@ -225,6 +225,8 @@ subroutine SolveLeapfrog (tf, dt)
 ! state.
   call calc_elem_density
   call calc_elem_pressure
+  
+  call AverageData(elem%rho(:,1),nod%rho(:))
 
   print *,"Element Density"
   do n = 1, elem_count

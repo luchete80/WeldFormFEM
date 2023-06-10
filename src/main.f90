@@ -46,9 +46,9 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 3
-   L = 0.1	
-  dx    = 0.1
-  r = dx 
+   L = 2.0	
+  dx    = 1.0
+  r = dx /2.0
   h = dx * 1.2
 
    V(1) = 0.;V(2) = 0.;V(3) = 0.	
@@ -80,6 +80,11 @@ implicit none
   
   reduced_int = .True.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
+  
+  print *, "NODE ELEMENTS "
+  do i=1,node_count
+    print *,nod%nodel(i,:)
+  end do
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.

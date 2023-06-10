@@ -15,6 +15,10 @@ Type Node
   real(fp_kind), dimension(:,:), allocatable :: u, v, a, disp
   real(fp_kind), dimension(:,:,:), allocatable :: sigma, str_rate, rot_rate, shear_stress
   real(fp_kind), dimension(:), allocatable:: pressure, strain, mat_g
+  
+  !!! FOR GRAPHIAL AVERAGING PURPOSE(IN REDUCED INTEGRATION)
+  integer, dimension(:), Allocatable :: elxnod !!!Elements shared by each node
+  integer, dimension(:,:), Allocatable :: nodel !!! element node 
 
   logical, dimension(:,:), Allocatable :: is_bcv, is_fix !0, none, else, dimension
   real(fp_kind), dimension(:,:), Allocatable :: bcv !Node and dim

@@ -17,3 +17,5 @@
 20230608 - Corrected several things of Mass matrix redimension
          - Fixed hourglass forces calculation (was not initialized)
          - Summed hourglass correction
+20230609 - Fixed density calc errors
+20230608 - Added element shared by each node to average constant stresses and strains

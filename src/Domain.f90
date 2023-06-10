@@ -19,6 +19,7 @@ real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 real(fp_kind), dimension(:,:), Allocatable :: rint_glob, fext_glob !Accelerations and internal forces
 integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
+
 real(fp_kind), dimension(3):: dommax, dommin
 
 real(fp_kind)::mat_G, mat_E!TODO: change to material
@@ -59,6 +60,9 @@ contains
     ! allocate (nod%m(node_count))
     allocate (nod%id(node_count))
     
+    allocate (nod%elxnod(node_count))
+    allocate (nod%nodel(node_count, 2*dim))
+    allocate (nod%rho(node_count))
     
     
     !! THERMAL
@@ -148,6 +152,37 @@ contains
     elem%gausspc(:) = gp
 
 
+  end subroutine
+
+  !!! ALLOCATE THE FOLLOWING
+  ! ! real(fp_kind), dimension(:) :: elxnod !!!Elements shared by each node
+  ! ! real(fp_kind), dimension(:,:) :: nodel !!! element node 
+  subroutine SearchNodelem
+    implicit none 
+    integer :: e, n
+    nod%elxnod = 0
+    nod%nodel = 0 !Unnecessary
+    do e=1,elem_count
+      do n=1,nodxelem
+        nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
+        nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
+      end do
+    end do
+  end subroutine
+  
+  subroutine AverageData(el_data, nod_data)
+    !implicit none 
+    integer :: e, n
+    real(fp_kind),dimension(node_count), intent(out) :: nod_data  
+    real(fp_kind),dimension(elem_count), intent(in) :: el_data  
+    nod_data (:)= 0.0d0
+    do n=1,node_count
+      do e=1,nod%elxnod(n)
+        !nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
+        !nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
+        !nod_data(n) = nod_data(n) + el_data(nod%nodel(n),e)
+      end do
+    end do
   end subroutine
 
   !!!!! NODE DISTRIBUTION ARE LIKE IN FLANAGAN (1981), GOUDREAU, AND BENSON (1992)
@@ -295,6 +330,8 @@ contains
     !nod%id(:) = tag
     
     fext_glob (:,:) = 0.0d0
+    
+    call SearchNodelem
   end subroutine AddBoxLength
   
   
