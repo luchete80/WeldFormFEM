@@ -61,7 +61,11 @@ contains
     allocate (nod%id(node_count))
     
     allocate (nod%elxnod(node_count))
-    allocate (nod%nodel(node_count, 2*dim))
+    if (dim .eq. 2) then 
+      allocate (nod%nodel(node_count, 4))
+    else 
+      allocate (nod%nodel(node_count, 8))
+    end if
     allocate (nod%rho(node_count))
     
     
@@ -180,8 +184,10 @@ contains
       do e=1,nod%elxnod(n)
         !nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
         !nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
-        !nod_data(n) = nod_data(n) + el_data(nod%nodel(n),e)
+        print *, "nod data n e", nod_data(n), n, e
+        nod_data(n) = nod_data(n) + el_data(nod%nodel(n,e))
       end do
+      nod_data(n) = nod_data(n) / nod%elxnod(n)
     end do
   end subroutine
 

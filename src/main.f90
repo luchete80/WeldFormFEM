@@ -46,8 +46,8 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 3
-   L = 2.0	
-  dx    = 1.0
+   L = 0.1	
+  dx    = 0.1
   r = dx /2.0
   h = dx * 1.2
 
@@ -83,7 +83,7 @@ implicit none
   
   print *, "NODE ELEMENTS "
   do i=1,node_count
-    print *,nod%nodel(i,:)
+    print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
   end do
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   

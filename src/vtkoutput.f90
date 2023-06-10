@@ -60,11 +60,38 @@ subroutine WriteMeshVTU
   
     !!!!!!! POINT DATA
   write (1,*) "      <PointData Scalars=""scalars"">"
-  write (1,*) "        <DataArray type=""Float32"" Name=""displacement"" NumberOfComponents=""3"" Format=""ascii"">"
+  !!!!!!!!!!!_--------------------------------------
+  
+  write (1,*) "        <DataArray type=""Float32"" Name=""u"" NumberOfComponents=""3"" Format=""ascii"">"
   do n =1, node_count
     write (1,*) nod%u(n,1), nod%u(n,2), nod%u(n,3)
   end do   
   write (1,*) "        </DataArray>"  
+
+  write (1,*) "        <DataArray type=""Float32"" Name=""v"" NumberOfComponents=""3"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%v(n,1), nod%v(n,2), nod%v(n,3)
+  end do   
+  write (1,*) "        </DataArray>"  
+
+  write (1,*) "        <DataArray type=""Float32"" Name=""a"" NumberOfComponents=""3"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%a(n,1), nod%a(n,2), nod%a(n,3)
+  end do   
+  write (1,*) "        </DataArray>" 
+  
+  !write (1,*) "      </PointData>"
+
+  !write (1,*) "      <PointData Scalars=""scalars"">"
+  write (1,*) "        <DataArray type=""Float32"" Name=""density"" NumberOfComponents=""1"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%rho(n)
+  end do   
+  write (1,*) "        </DataArray>"  
+  
+  
+  
+  
   write (1,*) "      </PointData>"
   
   ! <DataArray type="Int32" Name="offsets" Format="ascii">
