@@ -170,12 +170,20 @@ end function EOS
 !!!!! ASSUME VOLUME IS ALREADY CALCULATED
 subroutine calc_elem_density ()
   implicit none
+  real(fp_kind), dimension(dim,dim) :: F !def gradient
+  real(fp_kind), dimension(nodxelem,dim) :: x !def gradient
+  
   integer :: e, gp
   do e = 1, elem_count
-    do gp = 1, elem%gausspc(e)
-      !elem%rho(e) = elem%mass(e)/elem%vol(e)
-      elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
-    end do
+    if (elem%gausspc(e) .eq. 1) then
+      elem%rho(e,1) = elem%mass(e)/elem%vol(e) !IS THE SAME
+    else 
+      do gp = 1, elem%gausspc(e)
+        !!!!CALCULATE DEFORMATION GRADIENT
+        F = matmul(elem%dHxy(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+        elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
+      end do
+    end if
   end do
 end subroutine
 

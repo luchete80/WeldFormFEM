@@ -78,6 +78,7 @@ subroutine SolveLeapfrog (tf, dt)
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
  
+  real(fp_kind), dimension(nodxelem,dim) :: xtest
 
   call set_edof_from_elnod()
   
@@ -140,6 +141,10 @@ subroutine SolveLeapfrog (tf, dt)
       end if
     end do
     call calculate_element_derivMat()
+    
+    !!! TEST 
+    !xtest(:,:) = []
+    
     ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
     ! !NODAL CALCULATION
 
