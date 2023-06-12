@@ -148,6 +148,10 @@ subroutine calculate_element_Jacobian ()
     if (elem%gausspc(e) .eq. 1) then      
     
       if (dim .eq. 2) then 
+        !dHdrs [-1,1,1,-1;  -1.-1,1,1]
+        !!! THIS IS TO AVOID MATMUL
+        elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
+        elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
       
         else !!!DIM 3
           !!!!! SETTING LIKE THIS AVOID MATMUL
@@ -221,9 +225,9 @@ subroutine calculate_element_shapeMat ()
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
       elem%math(e,gp,:,:) = 0.0d0
-      if (dim .eq. 2) then 
+      !!if (dim .eq. 2) then 
       
-        else !!!DIM 3
+      !!else !!!DIM 3
           temph(:,:) = 0.0d0
           do k =1, nodxelem
               !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
@@ -235,7 +239,7 @@ subroutine calculate_element_shapeMat ()
           ! temph(2,:) = [0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0]
           ! temph(3,:) = [0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0]
 
-      end if  !dim
+      !!end if  !!!!dim
         
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
         
