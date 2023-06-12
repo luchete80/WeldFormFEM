@@ -295,19 +295,28 @@ subroutine calculate_element_derivMat ()
 
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
-    
+      
+      invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED      
       if (dim .eq. 2) then       
-        else !!!DIM 3
+          !!!!! J-1 = dr/dx
+          !!!! dHxy = J-1 x dHrs 
+          elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2) !For each 3 rows of inv J and dHdxy
+          elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)
+          elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)
+          elem%dHxy(e,gp,:,4) = -invJ(:,1)+invJ(:,2)      
+      else !!!DIM 3
           ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
           ! elem%jacob(e,gp,:,:) = matmul(dHrs,x2)
           !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
-          invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED         
+          !invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED         
           !elem%dHxy(e,gp,:,:) = matmul(invmat(test),dHrs) !Bathe 5.25
           !!!! DONE LIKE THIS TO AVOID MULTS
           
           !!!! REMAINS ELEM_VOLUME
+          !!!!! J-1 = dr/dx
+          !!!! dHxy = J-1 x dHrs 
           elem%dHxy(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
           elem%dHxy(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
           elem%dHxy(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
