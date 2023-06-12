@@ -391,10 +391,13 @@ subroutine calculate_element_dhxy0 ()
       if (dim .eq. 3)then  !!!! dim 3
         do gp=1,8
         ! print *, "detJ", elem%detJ(e,gp)
-        ! print *, "invJ", invJ
-          elem%dHxy0(e,gp,:,:) = matmul(adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp),elem%dHrs(e,gp,:,:))
+        
+        invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
+        print *, "invJ", invJ
+        print *,"dHrs",elem%dHrs(e,gp,:,:)
+          elem%dHxy0(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
         end do
-        print *, "dHxy", elem%dHxy(e,gp,:,:)
+        print *, "dHxy0", elem%dHxy(e,:,:,:)
       end if!!!! dim
     end if
   end do

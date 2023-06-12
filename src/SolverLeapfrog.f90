@@ -89,8 +89,16 @@ subroutine SolveLeapfrog (tf, dt)
   print *,"Element Initial Vol"
   do n = 1, elem_count
     print *, elem%vol(n)
-  end do    
-    
+  end do   
+  
+  call calculate_element_derivMat !!Needed in case of full integration
+  do n = 1, elem_count  
+    if (elem%gausspc(n) .eq. 8) then 
+      call calculate_element_dhxy0  
+      !call calculate_element_derivMat 
+    end if
+  end do
+  
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "ass mass matrix" 
   call assemble_mass_matrix()

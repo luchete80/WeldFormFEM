@@ -2,6 +2,7 @@ module Mechanical
 use Domain
 use ElementData
 use NodeData
+use Matrices
 
 contains
 
@@ -24,7 +25,7 @@ subroutine cal_elem_strains ()
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       do n=1, nodxelem  
         do d=1, dim
-          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n+1)+d,1) 
+          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
         !!!! TO AVOID ALL MATMULT
@@ -184,8 +185,10 @@ subroutine calc_elem_density ()
       end do
       do gp = 1, elem%gausspc(e)
         !!!!CALCULATE DEFORMATION GRADIENT
-        F = matmul(elem%dHxy(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-        elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
+        F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+        print *, "det F", det(F)
+        !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
+        elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
       end do
     end if
   end do
@@ -272,6 +275,7 @@ subroutine calc_elem_vol ()
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
     elem%vol(e) = 0.0d0
+    print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
       w = 8.0
     else if (elem%gausspc(e).eq. 8 ) then
@@ -279,9 +283,9 @@ subroutine calc_elem_vol ()
     end if
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
-      print *, "elem e j", elem%detJ(e,gp)
+      print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
-      end do !gp  
+    end do !gp  
     print *, "Elem ", e, "vol ",elem%vol(e)
   end do
 

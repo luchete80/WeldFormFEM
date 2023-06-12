@@ -279,7 +279,7 @@ contains
       call AllocateElements(nel(1) * nel(2),gp) !!!!REDUCED INTEGRATION
     else 
       if (redint .eqv. .False.) then
-        gp = 4
+        gp = 8
       end if 
       call AllocateElements(nel(1) * nel(2)*nel(3),gp) 
     end if
