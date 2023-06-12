@@ -277,7 +277,7 @@ subroutine calc_elem_vol ()
     elem%vol(e) = 0.0d0
     print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
-      w = 8.0
+      w = 2.0**dim
     else if (elem%gausspc(e).eq. 8 ) then
       w = 1.0
     end if

@@ -148,7 +148,9 @@ subroutine calculate_element_Jacobian ()
     if (elem%gausspc(e) .eq. 1) then      
     
       if (dim .eq. 2) then 
-        !dHdrs [-1,1,1,-1;  -1.-1,1,1]
+        !dHdrs [-1,1,1,-1;  -1.-1,1,1] x X2
+        !! dx/dr dy/dr
+        !! dx/ds dy/dx
         !!! THIS IS TO AVOID MATMUL
         elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
@@ -164,6 +166,7 @@ subroutine calculate_element_Jacobian ()
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
+          elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
       end if  !!!!DIM
       elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
@@ -199,6 +202,7 @@ subroutine calculate_element_Jacobian ()
         end do !gp
       end if
     end if !!gp ==1
+    print *, "jacob ", elem%jacob(e,gp,:,:) 
   end do !element
 
 end subroutine
