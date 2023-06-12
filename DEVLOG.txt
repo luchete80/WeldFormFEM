@@ -20,3 +20,4 @@
 20230609 - Fixed density calc errors
 20230608 - Added element shared by each node to average constant stresses and strains
 20230612 - Fixed Element volume for full integration elements
+         - Fixed error in strain rate calculation (indices of tensor diagonal were wrong)
