@@ -92,14 +92,22 @@ end subroutine
 
 
 !!!! AFTER CALCULATING VELE 
+!!!!!THIS HOURGLASS CONTROL IS BASED ON 
+!!!!! GOUDREAU 1982 
+!!!!! FLANAGAN 1981
 subroutine calc_hourglass_forces
   implicit none
-  integer :: e, n, j, d, gp
+  integer :: e, n, j, d, gp, jmax
   real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   real(fp_kind), dimension(dim,4) :: hmod
 !real(fp_kind), dimension(1,4) :: test
-  
+  if (dim .eq. 2) then
+    jmax = 1
+  else
+    jmax = 4
+  end if
+  !!! TODO: TO BE DEFINED IN DOMAIN ONCE 
   hmod(:,:) = 0.0d0
   elem%hourg_nodf(:,:,:) = 0.0d0
   if (dim .eq. 3) then
@@ -107,6 +115,8 @@ subroutine calc_hourglass_forces
     Sig(2,:) = [ 1.0,-1.0,-1.0, 1.0,-1.0, 1.0, 1.0,-1.0]
     Sig(3,:) = [ 1.0,-1.0, 1.0,-1.0, 1.0,-1.0, 1.0,-1.0]
     Sig(4,:) = [-1.0, 1.0,-1.0, 1.0, 1.0,-1.0, 1.0,-1.0]
+  else 
+    Sig(1,:) = [ 1.0, -1.0, 1.0,-1.0] !!!  
   end if
   
   gp = 1
@@ -121,9 +131,9 @@ subroutine calc_hourglass_forces
           vel (n,d) = nod%v(elem%elnod(e,n),d)    
         end do
       end do
-      do j =1,4
+      do j =1,jmax
         do n=1,nodxelem
-          hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension
+          hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension, GOUDREAU EQN (30)
         end do
       end do
       
