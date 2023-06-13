@@ -154,7 +154,7 @@ subroutine calculate_element_Jacobian ()
         !!! THIS IS TO AVOID MATMUL
         elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
-      
+        elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
         else !!!DIM 3
           !!!!! SETTING LIKE THIS AVOID MATMUL
           elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)-x2(5,:)+x2(6,:)+x2(7,:)-x2(8,:)
@@ -166,9 +166,8 @@ subroutine calculate_element_Jacobian ()
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
-          elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
+          elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       end if  !!!!DIM
-      elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
