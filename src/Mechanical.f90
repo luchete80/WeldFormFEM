@@ -25,7 +25,7 @@ subroutine cal_elem_strains ()
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       do n=1, nodxelem  
         do d=1, dim
-          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,n,d) * elem%vele (e,dim*(n-1)+d,1) 
+          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
         !!!! TO AVOID ALL MATMULT
@@ -48,7 +48,7 @@ subroutine cal_elem_strains ()
       elem%rot_rate(e,gp, 1,2) = 0.5 * elem%rot_rate(e,gp, 1,2)      
 
       elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
-      elem%rot_rate(e,gp, 2,1) =     elem%rot_rate(e,gp, 1,2)
+      elem%rot_rate(e,gp, 2,1) =    -elem%rot_rate(e,gp, 1,2)
       if (dim .eq. 3) then
         elem%str_rate(e,gp, 1,3) = 0.5 * elem%str_rate(e,gp, 1,3); elem%str_rate(e,gp, 2,3) = 0.5 * elem%str_rate(e,gp, 2,3)
         elem%rot_rate(e,gp, 1,3) = 0.5 * elem%rot_rate(e,gp, 1,3); elem%rot_rate(e,gp, 2,3) = 0.5 * elem%rot_rate(e,gp, 2,3)
@@ -83,7 +83,7 @@ subroutine cal_elem_forces ()
       !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
       !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
         do d=1, dim
-          elem%f_int(e,n,d) = elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
