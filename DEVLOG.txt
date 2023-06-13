@@ -25,3 +25,6 @@
          - Added hourglass for 2D elements
          - Fixed 2D reduced integral volume calc
          - Fixed global ext force assembe 
+         - Fixed element forces calculation error (in diagonal term was not incremented by node)
+         - Fixed Sign of rotation rate
+         - Fixed element strain rate calculation (derivative matrix indices were wrong)
