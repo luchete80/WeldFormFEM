@@ -149,8 +149,9 @@ subroutine calculate_element_Jacobian ()
     
       if (dim .eq. 2) then 
         !dHdrs [-1,1,1,-1;  -1.-1,1,1] x X2
+        !! J = [
         !! dx/dr dy/dr
-        !! dx/ds dy/dx
+        !! dx/ds dy/dx ]
         !!! THIS IS TO AVOID MATMUL
         print *, "nodes X ", x2(:,1)
         print *, "nodes Y ", x2(:,2)
@@ -308,11 +309,14 @@ subroutine calculate_element_derivMat ()
       invJ = adj(elem%jacob(e,gp,:,:)) !!! IN FACT IS invJ x detJ
       if (dim .eq. 2) then       
           !!!!! J-1 = dr/dx
-          !!!! dHxy = J-1 x dHrs 
+          !!!! dHxy = J-1 x dHrs = [ ] x 0.25[-1 1 -1 1]
+          !!!!                               [-1 -1 1 1]
           elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2) !For each 3 rows of inv J and dHdxy
           elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)
           elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)
-          elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)      
+          elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
+          
+          elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
       else !!!DIM 3
           ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       

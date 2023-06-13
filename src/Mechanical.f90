@@ -122,7 +122,7 @@ end subroutine
 !!!!! GOUDREAU 1982 --> Used this simplified hourglass correction
 !!!!! FLANAGAN 1981
 !!!!! ATTENTION: IN FLANAGAN INTRINSIC COORDINATES ARE FROM -1/2 to 1/2
-!!!!! SO: h1=1/2(1-2r)(1-2s) (Flanagan Eqn 55). 
+!!!!! SO: h1=1/4(1-2r)(1-2s) (Flanagan Eqn 55). 
 !!!!! With our instrinsic from -1 to 1 , in  Table 2 Sigma should be 
 !!!! Sigma is quadratic (2D) or qubic(3D) coefficient of 
 subroutine calc_hourglass_forces

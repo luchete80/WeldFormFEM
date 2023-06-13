@@ -221,6 +221,15 @@ subroutine SolveLeapfrog (tf, dt)
   call calc_elem_density
   call calc_elem_pressure
 
+  print *,"Element Density"
+  do n = 1, elem_count
+    print *, elem%rho(n,:)
+  end do
+  
+  print *,"Element pressure"
+  do n = 1, elem_count
+    print *, elem%pressure(n,:)
+  end do
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
@@ -237,15 +246,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   call AverageData(elem%rho(:,1),nod%rho(:))
 
-  print *,"Element Density"
-  do n = 1, elem_count
-    print *, elem%rho(n,:)
-  end do
-  
-  print *,"Element pressure"
-  do n = 1, elem_count
-    print *, elem%pressure(n,:)
-  end do
+
   
   do n=1,node_count
     print *, "nod ", n, "Disp ", nod%u(n,:)  
