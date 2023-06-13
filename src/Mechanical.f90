@@ -14,7 +14,9 @@ contains
 subroutine cal_elem_strains ()
   implicit none
   integer :: e, i,j,k, gp, d, n
-
+  real(fp_kind), dimension(dim,nodxelem) ::temp
+  real(fp_kind) :: f
+  
   elem%str_rate = 0.0d0
   elem%rot_rate = 0.0d0
   
@@ -22,27 +24,29 @@ subroutine cal_elem_strains ()
     do gp = 1, elem%gausspc(e)
       !Is only linear matrix?    
       !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
+      f = 1.0d0/elem%detJ(e,gp)
+      temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       do n=1, nodxelem  
         do d=1, dim
-          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + elem%dHxy(e,gp,d,n) * elem%vele (e,dim*(n-1)+d,1) 
+          elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
         !!!! TO AVOID ALL MATMULT
-        elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + elem%dHxy(e,gp,2,n)* elem%vele (e,dim*(n-1)+1,1) &!!!!dvx/dy
-                                   + elem%dHxy(e,gp,1,n) * elem%vele (e,dim*(n-1)+2,1)
-        elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + elem%dHxy(e,gp,2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
-                                   - elem%dHxy(e,gp,1,n) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
+        elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) &!!!!dvx/dy
+                                   + temp(1,n) * elem%vele (e,dim*(n-1)+2,1)
+        elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
+                                   - temp(1,n) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
         if (dim .eq. 3) then
-          elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + elem%dHxy(e,gp,3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
-                                     + elem%dHxy(e,gp,2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-          elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + elem%dHxy(e,gp,3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                     + elem%dHxy(e,gp,1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
-          elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + elem%dHxy(e,gp,3,n)* elem%vele (e,dim*(n-1)+2,1) &
-                                     - elem%dHxy(e,gp,2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-          elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + elem%dHxy(e,gp,3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                     - elem%dHxy(e,gp,1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
-        end if      
+          elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
+                                     + temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+          elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                     + temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
+          elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &
+                                     - temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
+          elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+                                     - temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
+        end if     
       end do !Nod x elem
       elem%str_rate(e,gp, 1,2) = 0.5 * elem%str_rate(e,gp, 1,2); 
       elem%rot_rate(e,gp, 1,2) = 0.5 * elem%rot_rate(e,gp, 1,2)      
@@ -72,32 +76,43 @@ subroutine cal_elem_forces ()
   implicit none
   integer :: e, i,j,k, gp,n, d
   real(fp_kind), dimension(dim*nodxelem,1) ::f
-  
+  real(fp_kind) :: w
   elem%f_int = 0.0d0
-  
+  w = 1.0d0 !!! Full integration
+  if (elem%gausspc(e) .eq. 1) then
+    w = 2.0d0**dim
+  end if
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
+      print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+      print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
       do n=1, nodxelem
       !Is only linear matrix?    
       !elem%f_int(e,n,d) =  
       !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
       !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
+      !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
+      !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
+      !!!!! 
         do d=1, dim
-          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
-        if (dim .eq. 2) then 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+        if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
+          !!elem%f_int(e,n,1) = 
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
         else 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-          elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                                  elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+          elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                                  elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
+        print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
       end do! nod x elem
     end do !gp
+    elem%f_int(e,n,d) = elem%f_int(e,n,d) * w
   end do!elem
 end subroutine
 

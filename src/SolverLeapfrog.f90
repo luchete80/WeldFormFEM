@@ -85,6 +85,7 @@ subroutine SolveLeapfrog (tf, dt)
   call calculate_element_Jacobian()
   call calculate_element_shapeMat() !AND MASS
   call calc_elem_vol !!!! In order to define initial volume
+  call calculate_element_derivMat()
   elem%vol_0(:) = elem%vol(:)
   print *,"Element Initial Vol"
   do n = 1, elem_count
@@ -146,7 +147,7 @@ subroutine SolveLeapfrog (tf, dt)
         call calculate_element_shapeMat() !AND MASS
       end if
     end do
-    call calculate_element_derivMat()
+    
     
     !!! TEST 
     !xtest(:,:) = []
@@ -170,7 +171,7 @@ subroutine SolveLeapfrog (tf, dt)
       end do 
     end do
   do n=1,node_count
-    print *, "r int glob ", rint_glob(n,:)
+    print *, "golb res forces ", (fext_glob(n,:)-rint_glob(n,:))
   end do 
   call impose_bca
   
@@ -202,6 +203,7 @@ subroutine SolveLeapfrog (tf, dt)
   !!!! IN ORDER TO CALC VOL
   call calculate_element_Jacobian()  
   call calc_elem_vol
+  call calculate_element_derivMat() !!! WITH NEW SHAPE
   print *,"Element Vol"
   do n = 1, elem_count
     print *, elem%vol(n)

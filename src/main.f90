@@ -105,8 +105,8 @@ implicit none
   ! ! nod%is_fix(4,:) = .true. !Node 1 restricted in 2 dimensions
   !elem%f_ext(1,6,:) = [0.0d0,0.0d0,-10.0d0]
   !!!!! DIM 2
-  elem%f_ext(1,3,:) = [0.0d0,-10.0d0] !!!ELEMENT 1, node 3,
-  elem%f_ext(1,4,:) = [0.0d0,-10.0d0] !!!ELEMENT 1, node 3,
+  elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
+  elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
   nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   
@@ -120,11 +120,12 @@ implicit none
   mat_G= young / (2.0* (1.0 + poisson));
   
   mat_cs = sqrt(mat_modK/rho)
+  print *, "Material Cs: ", mat_cs
   
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  tf = dt * 4.0
   
   elem%rho(:,:) = rho
   
