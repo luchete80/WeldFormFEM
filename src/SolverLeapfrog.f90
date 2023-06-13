@@ -89,16 +89,8 @@ subroutine SolveLeapfrog (tf, dt)
   print *,"Element Initial Vol"
   do n = 1, elem_count
     print *, elem%vol(n)
-  end do   
-  
-  call calculate_element_derivMat !!Needed in case of full integration
-  do n = 1, elem_count  
-    if (elem%gausspc(n) .eq. 8) then 
-      call calculate_element_dhxy0  
-      !call calculate_element_derivMat 
-    end if
-  end do
-  
+  end do    
+    
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "ass mass matrix" 
   call assemble_mass_matrix()
@@ -155,8 +147,6 @@ subroutine SolveLeapfrog (tf, dt)
       end if
     end do
     call calculate_element_derivMat()
-    
-    print *, "elem%dHxy(e,gp,dz,:)", elem%dHxy(1,1,3,:)
     
     !!! TEST 
     !xtest(:,:) = []
@@ -223,10 +213,6 @@ subroutine SolveLeapfrog (tf, dt)
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
-  do n=1,elem_count
-  print *, "Strain rate", elem%str_rate(n,1,:,:)
-  end do
-  
   ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
   ! state.
   !!! THIS IS CALCULATE NOW IN ORDER TO UPDATE STRESS WITH CURRENT PRESSURE
@@ -258,12 +244,6 @@ subroutine SolveLeapfrog (tf, dt)
   do n = 1, elem_count
     print *, elem%pressure(n,:)
   end do
-
-  print *,"Element sigma"
-  do n = 1, elem_count
-    print *, elem%sigma(n,1,:,:)
-  end do
-  
   
   do n=1,node_count
     print *, "nod ", n, "Disp ", nod%u(n,:)  

@@ -152,6 +152,9 @@ subroutine calculate_element_Jacobian ()
         !! dx/dr dy/dr
         !! dx/ds dy/dx
         !!! THIS IS TO AVOID MATMUL
+        print *, "nodes X ", x2(:,1)
+        print *, "nodes Y ", x2(:,2)
+                
         elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
         elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)

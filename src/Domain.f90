@@ -290,7 +290,7 @@ contains
       do while ( ey < nel(2))
           ex = 0
           do while (ex < nel(1)) 
-              elem%elnod(i,:)=[(nel(1)+1)*(ey+1)+ex+2,(nel(1)+1)*(ey+1)+ex+1,(nel(1)+1)*ey + ex+1,(nel(1)+1)*ey + ex+2]         
+              elem%elnod(i,:)=[(nel(1)+1)*ey + ex+1,(nel(1)+1)*ey + ex+2,(nel(1)+1)*(ey+1)+ex+2,(nel(1)+1)*(ey+1)+ex+1]         
               print *, "Element ", i , "Elnod", elem%elnod(i,:) 
               i=i+1
             ex = ex + 1
