@@ -79,10 +79,11 @@ subroutine cal_elem_forces ()
   real(fp_kind) :: w
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
-  if (elem%gausspc(e) .eq. 1) then
-    w = 2.0d0**dim
-  end if
+
   do e=1, elem_count
+    if (elem%gausspc(e) .eq. 1) then
+      w = 2.0d0**dim
+    end if
     do gp = 1, elem%gausspc(e)
       print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
       print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
@@ -112,7 +113,7 @@ subroutine cal_elem_forces ()
         print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
       end do! nod x elem
     end do !gp
-    elem%f_int(e,n,d) = elem%f_int(e,n,d) * w
+    elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
   end do!elem
 end subroutine
 
