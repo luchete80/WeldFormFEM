@@ -220,7 +220,7 @@ subroutine calculate_element_shapeMat ()
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
   
   integer :: i,j,k, gp
-  real(fp_kind):: r, w
+  real(fp_kind):: r, w, f
   real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   !! Update x2 vector (this is useful for strain and stress things)
   
@@ -230,6 +230,8 @@ subroutine calculate_element_shapeMat ()
   do e=1, elem_count
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
+      w = 2.0d0*dim
+      f = 1.0d0/(2.0d0*dim)
       elem%math(e,gp,:,:) = 0.0d0
       !!if (dim .eq. 2) then 
       
@@ -237,7 +239,7 @@ subroutine calculate_element_shapeMat ()
           temph(:,:) = 0.0d0
           do k =1, nodxelem
               !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
-              elem%math(e,gp,:,k)=0.125
+              elem%math(e,gp,:,k)=f
               !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
           end do
           ! print *, "temp h", temph(:,:)
@@ -247,7 +249,7 @@ subroutine calculate_element_shapeMat ()
 
       !!end if  !!!!dim
         
-        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*8.0 !!!2.0 ^3 WEIGHT
+        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
         !print *, "MAT M", elem%matm(e,:,:)
       
@@ -601,6 +603,7 @@ subroutine assemble_forces()
   
   print *, "assemblying int forces"
   rint_glob (:,:) = 0.0d0
+  fext_glob (:,:) = 0.0d0
   do e = 1, elem_count
     do n = 1, nodxelem
       !print *,"elem mat kl", elem%matkl(e,:,:)

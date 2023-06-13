@@ -44,19 +44,25 @@ subroutine cal_elem_strains ()
                                      - elem%dHxy(e,gp,n,1) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
         end if      
       end do !Nod x elem
+      elem%str_rate(e,gp, 1,2) = 0.5 * elem%str_rate(e,gp, 1,2); 
+      elem%rot_rate(e,gp, 1,2) = 0.5 * elem%rot_rate(e,gp, 1,2)      
 
       elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
+      elem%rot_rate(e,gp, 2,1) =     elem%rot_rate(e,gp, 1,2)
       if (dim .eq. 3) then
+        elem%str_rate(e,gp, 1,3) = 0.5 * elem%str_rate(e,gp, 1,3); elem%str_rate(e,gp, 2,3) = 0.5 * elem%str_rate(e,gp, 2,3)
+        elem%rot_rate(e,gp, 1,3) = 0.5 * elem%rot_rate(e,gp, 1,3); elem%rot_rate(e,gp, 2,3) = 0.5 * elem%rot_rate(e,gp, 2,3)
+        
         elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
         elem%str_rate(e,gp, 3,1) =     elem%str_rate(e,gp, 1,3)
 
         elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
         elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
       end if
-      elem%str_rate(e,gp, :,:) = 0.5 * elem%str_rate(e,gp, :,:)
-      elem%rot_rate(e,gp, :,:) = 0.5 * elem%rot_rate(e,gp, :,:)      
+
       !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-  
+      print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
 end subroutine
@@ -79,12 +85,17 @@ subroutine cal_elem_forces ()
         do d=1, dim
           elem%f_int(e,n,d) = elem%dHxy(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
-        elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                                elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-        elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                                elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-        elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                                elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+        if (dim .eq. 2) then 
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+        else 
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                  elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                  elem%dHxy(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+          elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                                  elem%dHxy(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+        end if
       end do! nod x elem
     end do !gp
   end do!elem
@@ -93,8 +104,12 @@ end subroutine
 
 !!!! AFTER CALCULATING VELE 
 !!!!!THIS HOURGLASS CONTROL IS BASED ON 
-!!!!! GOUDREAU 1982 
+!!!!! GOUDREAU 1982 --> Used this simplified hourglass correction
 !!!!! FLANAGAN 1981
+!!!!! ATTENTION: IN FLANAGAN INTRINSIC COORDINATES ARE FROM -1/2 to 1/2
+!!!!! SO: h1=1/2(1-2r)(1-2s) (Flanagan Eqn 55). 
+!!!!! With our instrinsic from -1 to 1 , in  Table 2 Sigma should be 
+!!!! Sigma is quadratic (2D) or qubic(3D) coefficient of 
 subroutine calc_hourglass_forces
   implicit none
   integer :: e, n, j, d, gp, jmax
@@ -111,12 +126,12 @@ subroutine calc_hourglass_forces
   hmod(:,:) = 0.0d0
   elem%hourg_nodf(:,:,:) = 0.0d0
   if (dim .eq. 3) then
-    Sig(1,:) = [ 1.0, 1.0,-1.0,-1.0,-1.0,-1.0, 1.0, 1.0]
-    Sig(2,:) = [ 1.0,-1.0,-1.0, 1.0,-1.0, 1.0, 1.0,-1.0]
-    Sig(3,:) = [ 1.0,-1.0, 1.0,-1.0, 1.0,-1.0, 1.0,-1.0]
-    Sig(4,:) = [-1.0, 1.0,-1.0, 1.0, 1.0,-1.0, 1.0,-1.0]
+    Sig(1,:) = [ 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125]
+    Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
+    Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
+    Sig(4,:) = [-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125]
   else 
-    Sig(1,:) = [ 1.0, -1.0, 1.0,-1.0] !!!  
+    Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
   end if
   
   gp = 1
@@ -263,7 +278,7 @@ subroutine CalcStressStrain (dt)
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
       ! !print *, "RS", RS
-      print *, "mat g", mat_G
+      !print *, "mat g", mat_G
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)

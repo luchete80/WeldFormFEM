@@ -138,7 +138,7 @@ subroutine SolveLeapfrog (tf, dt)
   print *,"main loop-------------------------------------"
   do while (time .le. tf)
     step = step + 1
-    print *, "Time: ", time, ", step: ",step
+    print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
         print *, "det EXT(e,gp)", elem%detJ(:,:)
     do n=1,elem_count

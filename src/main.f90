@@ -47,7 +47,7 @@ implicit none
 
   Dim = 2
    L = 0.1	
-  dx    = 0.1
+  dx    = 0.1d0
   r = dx /2.0
   h = dx * 1.2
 
@@ -106,6 +106,7 @@ implicit none
   !elem%f_ext(1,6,:) = [0.0d0,0.0d0,-10.0d0]
   !!!!! DIM 2
   elem%f_ext(1,3,:) = [0.0d0,-10.0d0] !!!ELEMENT 1, node 3,
+  elem%f_ext(1,4,:) = [0.0d0,-10.0d0] !!!ELEMENT 1, node 3,
   nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
   nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   

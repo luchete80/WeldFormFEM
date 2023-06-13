@@ -21,3 +21,7 @@
 20230608 - Added element shared by each node to average constant stresses and strains
 20230612 - Fixed Element volume for full integration elements
          - Fixed error in strain rate calculation (indices of tensor diagonal were wrong)
+20230613 - Fixed hourglass controls (corrected coefficients)
+         - Added hourglass for 2D elements
+         - Fixed 2D reduced integral volume calc
+         - Fixed global ext force assembe 
