@@ -25,8 +25,9 @@ subroutine WriteMeshVTU
   write (1,*) "        <DataArray type=""Float32"" Name=""Position"" NumberOfComponents=""3"" Format=""ascii"">"
 
   do n =1, node_count
-    write (1,*) nod%x(n,1), nod%x(n,2), nod%x(n,3)
+    write (1,*) nod%x(n,1), nod%x(n,2), nod%x(n,3) !!! No problem with putting the three component at point coords
   end do 
+  
   write (1,*) "         </DataArray>"
   write (1,*) "       </Points>"
   
@@ -52,7 +53,11 @@ subroutine WriteMeshVTU
 
   write (1,*) "        <DataArray type=""Int32"" Name=""types"" Format=""ascii"">"  
   do e=1, elem_count
-      write(1,"(I3,2x,I5)",advance="no") 12
+      if (dim .eq. 2) then
+        write(1,"(I3,2x,I5)",advance="no") 9
+      else 
+        write(1,"(I3,2x,I5)",advance="no") 12
+      end if
   end do
   write (1,*) "" !!!! END OF LINE
   write (1,*) "        </DataArray>"
