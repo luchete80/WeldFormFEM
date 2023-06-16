@@ -12,7 +12,7 @@ public :: Mesh, circle_area, circle_print
 type Mesh
   real :: radius
   real(fp_kind), dimension(:):: x,v !POSITION AND VEL
-   
+  integer :: elemcount  
 end type Mesh
 
 contains
@@ -22,7 +22,7 @@ contains
     area = pi * this%radius**2
   end function circle_area
 
-  subroutine Create(this)
+  subroutine AxisPlaneMesh(this, AxisPlaneMesh(const int &axis, bool positaxisorent, const Vec3_t p1, const Vec3_t p2,  const int &dens)
     type(Mesh), intent(in) :: this
     real :: area
 	int elemcount = dens * dens;
