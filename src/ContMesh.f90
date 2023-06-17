@@ -1,6 +1,9 @@
 !!!!!! https://fortranwiki.org/fortran/show/Object-oriented+progrsamming
 module class_ContMesh
 use ModPrecision, only : fp_kind
+use NodeData
+use ElementData
+use Domain
 
 implicit none
 public :: Mesh, circle_area, circle_print
@@ -9,10 +12,15 @@ public :: Mesh, circle_area, circle_print
 
 !!!!!!!! CONTACT MESH
 !!!!!! THIS TYPE SHOULD BE THE SAME FOR ALL, RIGID AND SOLID
-type Mesh
+type Mesh !!! THIS SHOULD BE RIGID MESH THING
   real :: radius
-  real(fp_kind), dimension(:):: x,v !POSITION AND VEL
-  integer :: elemcount  
+  real(fp_kind), dimension(:,:), Allocatable:: x,v !POSITION AND VEL
+  integer, Dimension(:,:), Allocatable :: elnod
+  integer :: elem_count, node_count
+  
+  !!!type(Node)	::nod
+  !!!type(Element)	::elem
+
 end type Mesh
 
 contains
@@ -22,56 +30,79 @@ contains
     area = pi * this%radius**2
   end function circle_area
 
-  subroutine AxisPlaneMesh(this, AxisPlaneMesh(const int &axis, bool positaxisorent, const Vec3_t p1, const Vec3_t p2,  const int &dens)
-    type(Mesh), intent(in) :: this
+  !AxisPlaneMesh(const int &axis, bool positaxisorent, const Vec3_t p1, const Vec3_t p2,  const int &dens
+  subroutine AxisPlaneMesh(this, axis, positaxisorent, p1, p2,  dens)
+    implicit none
+    type(Mesh), intent(out) :: this
+    integer, intent(in)::axis
+    logical, intent(in):: positaxisorent
+    real(fp_kind), intent(in),dimension(3) :: p1,p2
+    real(fp_kind), intent(in) :: dens
     real :: area
-	int elemcount = dens * dens;
-  
-  if (dim == 2) then 
-    elemcount = dens; 
-	end if
+    
+    integer, dimension(4) :: n
+    integer, dimension(3) :: dir 
+    integer :: i, j, el, test
+    real(fp_kind) ::x1,x2,x3,dl
+    real(fp_kind), dimension(3) :: p
+    
+    this%elem_count = dens * dens
+    this%node_count = (dens +1) * (dens + 1)
+    
+    allocate (this%x(node_count,dim))
+        
+    if (dim .eq. 2) then 
+      elem_count = dens 
+    end if
   
 	! double x1,x2,x3;
 	! double l1,l2;
-	! Vec3_t p = p2-p1;
+	p = p2-p1;
 	! int dir[3];
-	! if 			(axis == 0 )	{dir[0] = 1; dir[1] = 2;}
-	! else if (axis == 1 )	{dir[0] = 0; dir[1] = 2;}
-	! else									{dir[0] = 0; dir[1] = 1;}
-	
+  select case (axis )	
+    case (1) 
+    dir(1) = 1; dir(2) = 2; 
+    case (2) 
+      dir(1) = 0; dir(2) = 2;
+    case(3) 
+    dir(1) = 0; dir(2) = 1;
+	end select
 	! dir [2] = axis; //dir2 is which remains constant
 	
 	! x3 = p1(dir[2]);
 
 	! x2=p1(dir[1]); 
-	! double dl = p(dir[0])/dens;	//Could be allowed 2 diff densities
+    dl = p(dir(1))/dens;	!!!!Could be allowed 2 diff densities
 	! //cout <<"dens: "<<dens<<endl;
 	! //Plane is in 0 and 1 dirs
-	! int test =dens+1;
+	test =dens + 1 
+  if (dim .eq. 2) then
+    test = 1
+  end if 
   
-  ! if (dimension == 2) test = 1;
-  
-	! for (int j=0; j<test; j++) {
-		! x1 = p1(dir[0]);
-		! for (int i=0; i<dens+1; i++){
-			! Vec3_t v;
-			! v(dir[0])=x1;v(dir[1])=x2;v(dir[2])=x3;
-			! //cout << "i,j" << i << ", " << j<<endl; 
-			! //node.Push(new Vec3_t(x1,x2,x3));
-			! node.Push(new Vec3_t(v(0),v(1),v(2)));
-			! node_v.Push(new Vec3_t(0.,0.,0.));
-			! //cout << "xyz: "<<x1 << ", "<<x2<<", "<<x3<<endl;
-			! x1+=dl;
-		! }
-		! x2+=dl;
-	! }
+  !!! CREATING NODES
+  do j=1, test !for (int j=0; j<test; j++) {
+  ! x1 = p1(dir[0]);
+  ! for (int i=0; i<dens+1; i++){
+    ! Vec3_t v;
+    ! v(dir[0])=x1;v(dir[1])=x2;v(dir[2])=x3;
+    ! //cout << "i,j" << i << ", " << j<<endl; 
+    ! //node.Push(new Vec3_t(x1,x2,x3));
+    ! node.Push(new Vec3_t(v(0),v(1),v(2)));
+    ! node_v.Push(new Vec3_t(0.,0.,0.));
+    ! //cout << "xyz: "<<x1 << ", "<<x2<<", "<<x3<<endl;
+    ! x1+=dl;
+  ! }
+  ! x2+=dl;
+  end do
   ! cout << "Created "<<node.Size()<< " nodes "<<endl;
 
 	! int n[4];
 	! int el =0;
 	! int i;
   ! cout << "Creating elements "<<endl;
-  ! if (dimension == 3){
+  print *, "Creating contact mesh elements.. "
+  if (dim .eq. 3) then
     ! for (size_t j = 0 ;j  < dens; j++ ) {
           ! // cout <<"j, dens" <<j<<", "<<dens<<endl;
           ! // cout <<"j<dens"<< (j  < dens)<<endl;
@@ -106,7 +137,7 @@ contains
       ! }// i for
       
     ! }
-  ! } else {
+  else 
     ! for ( i = 0; i < dens; i++ ){
           ! n[0] = i; 		n[1] = n[0] + 1; 
         ! //cout <<" jj" << jj<<endl;
@@ -128,9 +159,9 @@ contains
         ! //cout << "Centroid" << element[el] -> centroid << endl;
         ! el++;                
     ! }  
-  ! }    
+  end if !DIMENSION  
     print *, 'Circle: r = ', this%radius, ' area = ', area
-  end subroutine circle_print
+  end subroutine AxisPlaneMesh
   
   subroutine circle_print(this)
     type(Mesh), intent(in) :: this

@@ -8,6 +8,7 @@ use ModPrecision, only : fp_kind
 implicit none 
 
 integer :: Dim, node_count, elem_count, Nproc, dof 
+!!!!! THIS SHOULD BE INSIDE OF DOMAIN
 type(Node)	::nod
 type(Element)	::elem
 

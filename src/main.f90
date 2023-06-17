@@ -45,8 +45,8 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 2
-   L = 0.1	
+  Dim = 3
+  L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
   h = dx * 1.2
@@ -131,7 +131,7 @@ implicit none
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 4.0
+  tf = dt * 1.0
   
   elem%rho(:,:) = rho
   
