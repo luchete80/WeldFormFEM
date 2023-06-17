@@ -1,4 +1,25 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! WeldFormFEM - A C++/Fortran library to simulate Mechanical Solids                !
+!               using Explicit Finite Element Method                               !
+! Copyright (C) 2023 Luciano Buglioni                                              !
+!                                                                                  !
+! This file is part of PersianSPH                                                  !
+!                                                                                  !
+! This is free software; you can redistribute it andor modify it under the         !
+! terms of the GNU General Public License as published by the Free Software        !
+! Foundation; either version 3 of the License, or (at your option) any later       !
+! version.                                                                         !
+!                                                                                  !
+! This program is distributed in the hope that it will be useful, but WITHOUT ANY  !
+! WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A  !
+! PARTICULAR PURPOSE. See the GNU General Public License for more details.         !
+!                                                                                  !
+! You should have received a copy of the GNU General Public License along with     !
+! PersianSPH; if not, see <http:www.gnu.orglicenses>                           !
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!! https://fortranwiki.org/fortran/show/Object-oriented+progrsamming
+!!!! AIM TO GIVE LIKE STRUCT OF ARRAY (TO CONVERT IT EASILY TO CUDA)
+
 module class_ContMesh
 use ModPrecision, only : fp_kind
 use NodeData
