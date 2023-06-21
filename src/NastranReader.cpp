@@ -1,4 +1,4 @@
-void ReadNastranTriMesh( char* fName, double *node, int *elcon)
+void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*/
 {
   
   std::map <int,int> nodepos;	//id to position
@@ -48,7 +48,7 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)
           start_node = true;
           line_start_node = l;
         }
-      } else if (line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR") ){
+      } else if (line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR") ){ ////// SURFMESH
         if (!start_elem){
           start_elem = true;
 					line_start_elem = l;
@@ -154,3 +154,5 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)
   cout << "Done."<<endl;
 	
 }
+
+

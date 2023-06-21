@@ -1,4 +1,5 @@
-program WeldFormSPH
+program WeldFormFEM
+  use iso_c_binding
 !use Integrate
 use ElementData
 use Domain 
@@ -15,6 +16,32 @@ use VTKOutput
 
 implicit none
 
+   interface
+      ! function func (a) bind (C, name="func")
+         ! import
+         ! integer(c_int):: func
+         ! real(c_double), dimension(1:4), intent(in):: a
+      ! end function func
+      
+      ! !!function ReadNastranTriMesh(fName, node, elcon)
+      
+      ! SUBROUTINE c_func(xval, s) BIND(C, name="c_func") ! ****
+      ! import :: c_ptr
+
+      ! TYPE(c_ptr) , intent(out):: xval ! ****
+      ! integer,  intent(in) :: s! ****
+      ! END SUBROUTINE c_func
+
+      SUBROUTINE reader(fname, node, elnod) BIND(C, name="ReadNastranTriMesh") ! ****
+      import :: c_ptr, c_char
+      character(C_CHAR), intent(in)  :: fname(*)
+
+      TYPE(c_ptr) , intent(out):: node, elnod ! ****
+
+      END SUBROUTINE reader
+      
+   end interface
+   
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
   integer:: i, tnr, maxt ,nn
@@ -231,4 +258,4 @@ implicit none
 
 !  1003 format('  Elapsed Time  = ',i0,f0.9)
 !  
-end program WeldFormSPH
+end program WeldFormFEM
