@@ -1,4 +1,4 @@
-void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*/
+void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool issurf)
 {
   
   std::map <int,int> nodepos;	//id to position
@@ -22,16 +22,26 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*
 	}
 	
 	int l=0;
+  int nodxelem;
   node_count = 0;
   elem_count = 0;
   
-  dim = 3;
+  //  Still pending with tri and tetra nonsurface element 
+  if (dim == 3){
+    if (issurf) nodxelem = 3;
+    else        nodxelem = 8;
+  } else if (dim == 2){
+    if (issurf) nodxelem = 2;
+    else        nodxelem = 4;    
+  }
   
   bool start_node = false;
   bool start_elem = false;
   
   int line_start_node;
 	int line_start_elem;
+  
+  if (issurf)
   
 	if (found) {	
 		while(getline(file, line)) {
@@ -74,7 +84,7 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*
   
   //Allocating nodes 
   cout << "Allocating nodes"<<endl;
-  node  	= new double 	[3 * node_count];
+  node  	= new double 	[nodxelem * node_count];
   nodeid  = new int 		[node_count];
 
 	// NODAL FIELD DATA IS: GRID|ID|CP|X1|	
@@ -117,7 +127,7 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*
 			double d = strtod(temp.c_str(),NULL);
 			//cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
 			//cout <<d<< " ";
-			node[3*n+i] = d;
+			node[nodxelem*n+i] = d;
 			if (d<min[i])
 				min[i] = d;
 			else if (d > max[i])
@@ -140,7 +150,7 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon)/*, bool issurf)*
   for (int n=0;n<elem_count;n++){
     //cout << n+1<< " ";
 		for (int en=0;en<dim;en++){
-			int pos = 3*(FIELD_LENGTH)+ en*FIELD_LENGTH;
+			int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
 			string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
 			int d = atoi(temp.c_str());
 			int nod = nodepos.find(d)->second;

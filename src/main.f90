@@ -32,10 +32,11 @@ implicit none
       ! integer,  intent(in) :: s! ****
       ! END SUBROUTINE c_func
 
-      SUBROUTINE reader(fname, node, elnod) BIND(C, name="ReadNastranTriMesh") ! ****
+      SUBROUTINE reader(fname, node, elnod, dimm, issurf) BIND(C, name="ReadNastranTriMesh") ! ****
       import :: c_ptr, c_char
       character(C_CHAR), intent(in)  :: fname(*)
-
+      logical, intent(in) :: issurf
+      integer, intent(in) :: dimm
       TYPE(c_ptr) , intent(out):: node, elnod ! ****
 
       END SUBROUTINE reader

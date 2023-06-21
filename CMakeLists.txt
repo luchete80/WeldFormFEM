@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.2)
 
 project(WeldFormSPH)
-enable_language(Fortran)
+enable_language(Fortran CXX)
                             
                             
 INCLUDE      (FindOpenMP)
@@ -29,3 +29,5 @@ endif()
 
 file(GLOB_RECURSE sources  src/*.f90 src/*.h)
 add_executable(WeldForm ${sources})
+
+SET_TARGET_PROPERTIES(WeldForm PROPERTIES LINKER_LANGUAGE Fortran)
