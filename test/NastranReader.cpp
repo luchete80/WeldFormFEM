@@ -38,6 +38,15 @@ extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
   elem_count = 0;
   
   dim = 3;
+  int nodxelem;
+
+  if (dim == 3){
+    if (issurf) nodxelem = 3;
+    else        nodxelem = 8;
+  } else if (dim == 2){
+    if (issurf) nodxelem = 2;
+    else        nodxelem = 4;    
+  }
   
   bool start_node = false;
   bool start_elem = false;
@@ -144,7 +153,7 @@ extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
   //IF FIXED FIELD
   cout << "Allocating Elements..."<<endl;
 	// ASSUMING NODE IS FROM 1
-  *elcon = new int    [3 * elem_count];
+  *elcon = new int    [nodxelem * elem_count];
 
 	map<int, int>::iterator it;
   curr_line = line_start_elem;
@@ -157,7 +166,7 @@ extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 			int d = atoi(temp.c_str());
 			int nod = nodepos.find(d)->second;
 			//cout << "node ind: "<<d<<"real node ind: "<<nod<<endl; 
-			(*elcon)[3*n+en] = nod;
+			(*elcon)[nodxelem*n+en] = nod;
 			//cout << d<<" ";
 		}
 		//cout << endl;
