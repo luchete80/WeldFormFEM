@@ -128,7 +128,7 @@ extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 			
 			double d = strtod(temp.c_str(),NULL);
 			//cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
-			//cout <<d<< " ";
+			cout <<d<< " ";
 			(*node)[3*n+i] = d;
 			if (d<min[i])
 				min[i] = d;

@@ -50,7 +50,7 @@ void NastranReader ();
 
 ////void NastranReader::read( char* fName){
   
-void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool issurf);
+//void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool issurf);
 
 
 #endif

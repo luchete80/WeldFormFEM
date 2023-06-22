@@ -32,17 +32,21 @@ implicit none
       ! integer,  intent(in) :: s! ****
       ! END SUBROUTINE c_func
 
-      SUBROUTINE reader(fname, node, elnod, dimm, issurf) BIND(C, name="ReadNastranTriMesh") ! ****
+      SUBROUTINE reader(fname, nod, elnod, nodecount) BIND(C, name="ReadNastranTriMesh") ! ****
       import :: c_ptr, c_char
       character(C_CHAR), intent(in)  :: fname(*)
-      logical, intent(in) :: issurf
-      integer, intent(in) :: dimm
-      TYPE(c_ptr) , intent(out):: node, elnod ! ****
+      TYPE(c_ptr) , intent(out):: nod, elnod ! ****
+      type(c_ptr), intent(in)::nodecount
+      !logical, intent(in) :: issurf
+      !type(c_int), intent(in) :: dimm
+      
 
       END SUBROUTINE reader
       
    end interface
-   
+  
+  !real(fp_kind), pointer :: nodetest(:)
+  !integer, pointer :: eltest(:)
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
   integer:: i, tnr, maxt ,nn
@@ -51,6 +55,8 @@ implicit none
   real(fp_kind) :: start, finish
   real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
   logical :: reduced_int
+  type(c_ptr) :: nodptr,elnodptr,ncount ! ****
+  integer, pointer :: ncount_int
   !type(Domain)	::dom
 
    ! Variables for clock
@@ -184,7 +190,20 @@ implicit none
     end do
   end do
   
-  call reader('tool_metal_cut_mm.nas', node, elnod)
+  !(fname, node, elnod, dimm, issurf)
+  !print *, "dim: ", dim, "is surf "
+  allocate (ncount_int)
+  !allocate (ncount)
+  call reader('cylinder.nas', nodptr, elnodptr, ncount)
+  !print *, "node count ", ncount
+  !CALL C_F_POINTER(ncount, ncount_int)
+  !print *, "node count ", ncount_int
+  !print *, "Size of ptr", size(nodptr)
+  !CALL C_F_POINTER(nodptr, nodetest, [100])
+  !CALL C_F_POINTER(elptr, eltest, [100])
+  
+  !print *, "Nodetest " , nodetest(1), ", ", nodetest(2), ", ", nodetest(3)
+  
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
 !  end do 
