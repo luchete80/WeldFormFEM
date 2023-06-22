@@ -27,7 +27,7 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Ofast -march=native")
 endif()
 
-file(GLOB_RECURSE sources  src/*.f90 src/*.h)
+file(GLOB_RECURSE sources  src/*.f90 src/*.cpp src/*.h)
 add_executable(WeldForm ${sources})
 
 SET_TARGET_PROPERTIES(WeldForm PROPERTIES LINKER_LANGUAGE Fortran)

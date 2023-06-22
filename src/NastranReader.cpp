@@ -1,8 +1,9 @@
+#include "NastranReader.h"
+
 void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool issurf)
 {
   
   std::map <int,int> nodepos;	//id to position
-  int dim;
 	// std::vector <std::string> rawData;
 	// int line_count;
   
@@ -23,8 +24,10 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool is
 	
 	int l=0;
   int nodxelem;
-  node_count = 0;
-  elem_count = 0;
+  int node_count = 0;
+  int elem_count = 0;
+	std::vector <std::string> rawData;
+  int *nodeid, line_count;
   
   //  Still pending with tri and tetra nonsurface element 
   if (dim == 3){
@@ -58,13 +61,14 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool is
           start_node = true;
           line_start_node = l;
         }
-      } else if (line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR") ){ ////// SURFMESH
+      } else if ( line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR")
+               || line.substr(0,5) == string("CQUAD") || line.substr(0,5) == string("CHEXA")){ ////// SURFMESH
         if (!start_elem){
           start_elem = true;
 					line_start_elem = l;
 				}
-        if (line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR"))
-          dim = 2;
+        // if (line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR"))
+          // dim = 2;
         //cout << "Element found!"<<endl;
         elem_count++;
       }
@@ -90,8 +94,8 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool is
 	// NODAL FIELD DATA IS: GRID|ID|CP|X1|	
   int curr_line = line_start_node;
 	l = curr_line;
-	Vec3_t min( 1000., 1000., 1000.);
-  Vec3_t max(-1000.,-1000.,-1000.);
+	//Vec3_t min( 1000., 1000., 1000.);
+  //Vec3_t max(-1000.,-1000.,-1000.);
 	
 	for (int n=0;n<node_count;n++){
     //cout << n+1; //DEBUG
@@ -128,21 +132,21 @@ void ReadNastranTriMesh( char* fName, double *node, int *elcon, int dim, bool is
 			//cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
 			//cout <<d<< " ";
 			node[nodxelem*n+i] = d;
-			if (d<min[i])
-				min[i] = d;
-			else if (d > max[i])
-				max[i] = d;
+			// if (d<min[i])
+				// min[i] = d;
+			// else if (d > max[i])
+				// max[i] = d;
 		}
 		l++;
   }
 	
-	cout << "Min values: "<< min <<endl;
-	cout << "Max values: "<< max <<endl;	
+	// cout << "Min values: "<< min <<endl;
+	// cout << "Max values: " << max <<endl;	
   
   //IF FIXED FIELD
   cout << "Allocating Elements..."<<endl;
 	// ASSUMING NODE IS FROM 1
-  elcon = new int    [3 * elem_count];
+  elcon = new int    [nodxelem * elem_count];
 
 	map<int, int>::iterator it;
   curr_line = line_start_elem;

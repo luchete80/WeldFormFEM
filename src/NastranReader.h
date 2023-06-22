@@ -11,7 +11,6 @@
 #include <fstream>
 #include <sstream>
 #include <ostream>
-#include "matvec.h"
 
 #define FIELD_LENGTH	8
 

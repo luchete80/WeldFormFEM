@@ -183,6 +183,8 @@ implicit none
       print *, elem%sigma(i,gp,:,:)
     end do
   end do
+  
+  call reader('tool_metal_cut_mm.nas', node, elnod)
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
 !  end do 
