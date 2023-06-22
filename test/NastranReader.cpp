@@ -11,7 +11,7 @@ extern "C" void c_func(int **x, int s) {
 //#else
   void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 {
-  bool issurf;
+  bool issurf = false;
   int node_count, elem_count, line_count;
   
   std::map <int,int> nodepos;	//id to position
