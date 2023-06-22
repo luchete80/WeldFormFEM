@@ -6,10 +6,12 @@ extern "C" void c_func(int **x, int s) {
   *x[0] = 100; (*x)[1] = 30; //atention, is not *x[] = 
 }
 
-
-extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
+//#ifdef _COMP_FORTRAN_ 
+//extern "C" void ReadNastranTriMesh( char* fName, double **node, int **elcon)
+//#else
+  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 {
-  
+  bool issurf;
   int node_count, elem_count, line_count;
   
   std::map <int,int> nodepos;	//id to position
@@ -158,20 +160,30 @@ extern "C"  void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 	map<int, int>::iterator it;
   curr_line = line_start_elem;
 	l = curr_line;
+  int fieldnum[] ={6,6,8}; //per line
   for (int n=0;n<elem_count;n++){
     //cout << n+1<< " ";
-		for (int en=0;en<dim;en++){
-			int pos = 3*(FIELD_LENGTH)+ en*FIELD_LENGTH;
-			string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
-			int d = atoi(temp.c_str());
-			int nod = nodepos.find(d)->second;
-			//cout << "node ind: "<<d<<"real node ind: "<<nod<<endl; 
-			(*elcon)[nodxelem*n+en] = nod;
-			//cout << d<<" ";
-		}
-		//cout << endl;
+    if (issurf){
+      if (dim ==3) {
+      for (int en=0;en<dim;en++){
+        int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
+        string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
+        int d = atoi(temp.c_str());
+        int nod = nodepos.find(d)->second;
+        //cout << "node ind: "<<d<<"real node ind: "<<nod<<endl; 
+        (*elcon)[nodxelem*n+en] = nod;
+        //cout << d<<" ";
+      }
+      }//dim
+		} else  {
+      for (int lin=0;lin<3;lin++){
+        
+      }
+    } //NO IS SURF
+    //cout << endl;
 		l++;
-	}    
+	} ///Eleem    
   cout << "Done."<<endl;
 	
-}
+} //function
+
