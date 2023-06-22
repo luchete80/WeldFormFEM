@@ -157,18 +157,26 @@ extern "C" void ReadNastranTriMesh( char* fName, double **node, int **elcon, int
 	map<int, int>::iterator it;
   curr_line = line_start_elem;
 	l = curr_line;
+  int fieldnum[] ={6,6,8}; //per line
   for (int n=0;n<elem_count;n++){
     //cout << n+1<< " ";
-		for (int en=0;en<dim;en++){
-			int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
-			string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
-			int d = atoi(temp.c_str());
-			int nod = nodepos.find(d)->second;
-			//cout << "node ind: "<<d<<"real node ind: "<<nod<<endl; 
-			(*elcon)[nodxelem*n+en] = nod;
-			//cout << d<<" ";
-		}
-		//cout << endl;
+    if (ssurf){
+      if (dim ==3) {
+      for (int en=0;en<dim;en++){
+        int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
+        string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
+        int d = atoi(temp.c_str());
+        int nod = nodepos.find(d)->second;
+        //cout << "node ind: "<<d<<"real node ind: "<<nod<<endl; 
+        (*elcon)[nodxelem*n+en] = nod;
+        //cout << d<<" ";
+      }
+		} else  {
+      for (int lin=0;lin<3;lin++){
+        
+      }
+    }
+    //cout << endl;
 		l++;
 	}    
   cout << "Done."<<endl;
