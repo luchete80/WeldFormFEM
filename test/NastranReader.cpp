@@ -11,7 +11,10 @@ extern "C" void c_func(int **x, int s) {
 //#else
   void ReadNastranTriMesh( char* fName, double **node, int **elcon)
 {
-  bool issurf = false;
+  
+ std::ofstream of("output.csv", std::ios::out);
+std::ostringstream oss; 
+ bool issurf = false;
   int node_count, elem_count, line_count;
   
   std::map <int,int> nodepos;	//id to position
@@ -71,7 +74,8 @@ extern "C" void c_func(int **x, int s) {
           start_node = true;
           line_start_node = l;
         }
-      } else if (line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR") ){
+      } else if (line.substr(0,5) == string("CTRIA") || line.substr(0,5) == string("CBEAM") || line.substr(0,4) == string("CBAR") 
+                     || line.substr(0,5) == string("CQUAD") || line.substr(0,5) == string("CHEXA")){
         if (!start_elem){
           start_elem = true;
 					line_start_elem = l;
@@ -97,19 +101,20 @@ extern "C" void c_func(int **x, int s) {
   
   //Allocating nodes 
   cout << "Allocating nodes"<<endl;
-  *node  	= new double 	[3 * node_count];
+  //*node  	= new double 	[3 * node_count];
+  *node = (double *) malloc(3*node_count*sizeof(double));
   nodeid  = new int 		[node_count];
 
 	// NODAL FIELD DATA IS: GRID|ID|CP|X1|	
   int curr_line = line_start_node;
 	l = curr_line;
-  double min[] = { 1000., 1000., 1000.};
-  double max[] = {-1000.,-1000.,-1000.};
-	
+  // double min[] = { 1000., 1000., 1000.};
+  // double max[] = {-1000.,-1000.,-1000.};
+	cout << "Reading nodes "<<endl;
 	for (int n=0;n<node_count;n++){
     //cout << n+1; //DEBUG
 		string temp = rawData[l].substr(FIELD_LENGTH,FIELD_LENGTH); //Second field, id
-		nodeid[n] = atoi(temp.c_str());
+		//nodeid[n] = atoi(temp.c_str());
 		nodepos.insert(std::make_pair(atoi(temp.c_str()),n));
 		//cout << "id: "<<nodeid[n]<<endl;
 		for (int i = 0;i<3;i++) {
@@ -139,13 +144,18 @@ extern "C" void c_func(int **x, int s) {
 			
 			double d = strtod(temp.c_str(),NULL);
 			//cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
-			cout <<d<< " ";
+			//cout <<d<< " ";
+      
+      of <<d;
+
+      if (i<2) of<<", "; 
 			(*node)[3*n+i] = d;
-			if (d<min[i])
-				min[i] = d;
-			else if (d > max[i])
-				max[i] = d;
-		}
+			// if (d<min[i])
+				// min[i] = d;
+			// else if (d > max[i])
+				// max[i] = d;
+		}//for node component i
+    of<<endl;
 		l++;
   }
 	
@@ -160,11 +170,11 @@ extern "C" void c_func(int **x, int s) {
 	map<int, int>::iterator it;
   curr_line = line_start_elem;
 	l = curr_line;
-  int fieldnum[] ={6,6,8}; //per line
+  int fieldnum[] ={6,2}; //per line, in case of 20 nodes is : {6,6,8}
+  string field;
   for (int n=0;n<elem_count;n++){
     //cout << n+1<< " ";
     if (issurf){
-      if (dim ==3) {
       for (int en=0;en<dim;en++){
         int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
         string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id
@@ -174,15 +184,32 @@ extern "C" void c_func(int **x, int s) {
         (*elcon)[nodxelem*n+en] = nod;
         //cout << d<<" ";
       }
-      }//dim
 		} else  {
-      for (int lin=0;lin<3;lin++){
-        
+      if (dim ==3){
+      int init_pos;
+      for (int lin=0;lin<2;lin++){
+        if (lin==0) init_pos = 3 *  FIELD_LENGTH;
+        else        init_pos = FIELD_LENGTH;
+        for (int c=0;c<fieldnum[lin];c++){
+          string temp = rawData[l+lin].substr(init_pos,FIELD_LENGTH);
+          //cout << "line "<<temp;
+          int d = atoi(temp.c_str());
+          int nod = nodepos.find(d)->second;
+          //cout << temp<<", number "<<d<<"; ";
+          of << d;
+          if (!(lin==1 && c==(fieldnum[lin]-1)))of << ", ";
+          init_pos += FIELD_LENGTH;
+        }
       }
+      of <<endl;
+      //cout << endl;
+      }///dim=3
     } //NO IS SURF
     //cout << endl;
-		l++;
+		if (dim==3 && !issurf) l+=2;
 	} ///Eleem    
+	of << oss.str();
+	of.close();
   cout << "Done."<<endl;
 	
 } //function
