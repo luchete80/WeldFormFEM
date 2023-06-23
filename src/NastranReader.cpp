@@ -1,6 +1,6 @@
 #include "NastranReader.h"
 
-extern "C" void ReadNastranTriMesh( char* fName, double **node, int **elcon, int *nodecount)
+extern "C" void ReadNastranTriMesh( char* fName, int *nodecount, double **node, int **elcon)
 {
   
   std::map <int,int> nodepos;	//id to position
@@ -160,8 +160,8 @@ extern "C" void ReadNastranTriMesh( char* fName, double **node, int **elcon, int
   int fieldnum[] ={6,6,8}; //per line
   for (int n=0;n<elem_count;n++){
     //cout << n+1<< " ";
-    if (ssurf){
-      if (dim ==3) {
+    if (issurf){
+      
       for (int en=0;en<dim;en++){
         int pos = nodxelem*(FIELD_LENGTH)+ en*FIELD_LENGTH;
         string temp = rawData[l].substr(pos,FIELD_LENGTH); //Second field, id

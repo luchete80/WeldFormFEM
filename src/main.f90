@@ -32,11 +32,12 @@ implicit none
       ! integer,  intent(in) :: s! ****
       ! END SUBROUTINE c_func
 
-      SUBROUTINE reader(fname, nod, elnod, nodecount) BIND(C, name="ReadNastranTriMesh") ! ****
+      SUBROUTINE reader(fname, nod, nodecount, elnod) BIND(C, name="ReadNastranTriMesh") ! ****
       import :: c_ptr, c_char
       character(C_CHAR), intent(in)  :: fname(*)
-      TYPE(c_ptr) , intent(out):: nod, elnod ! ****
-      type(c_ptr), intent(in)::nodecount
+      TYPE(c_ptr) , intent(out):: nod ! ****
+      type(c_ptr), intent(out)::nodecount
+      TYPE(c_ptr) , intent(out):: elnod
       !logical, intent(in) :: issurf
       !type(c_int), intent(in) :: dimm
       
@@ -45,8 +46,8 @@ implicit none
       
    end interface
   
-  !real(fp_kind), pointer :: nodetest(:)
-  !integer, pointer :: eltest(:)
+  real(fp_kind), pointer :: nodetest(:)
+  integer, pointer :: eltest(:)
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
   integer:: i, tnr, maxt ,nn
@@ -196,11 +197,12 @@ implicit none
   !allocate (ncount)
   call reader('cylinder.nas', nodptr, elnodptr, ncount)
   !print *, "node count ", ncount
-  !CALL C_F_POINTER(ncount, ncount_int)
-  !print *, "node count ", ncount_int
+  CALL C_F_POINTER(ncount, ncount_int)
+  
   !print *, "Size of ptr", size(nodptr)
-  !CALL C_F_POINTER(nodptr, nodetest, [100])
-  !CALL C_F_POINTER(elptr, eltest, [100])
+  CALL C_F_POINTER(nodptr, nodetest, [100])
+  CALL C_F_POINTER(elnodptr, eltest, [100])
+  print *, "node count ", ncount_int
   
   !print *, "Nodetest " , nodetest(1), ", ", nodetest(2), ", ", nodetest(3)
   
