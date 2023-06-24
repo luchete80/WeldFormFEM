@@ -9,6 +9,7 @@ use omp_lib
 use Matrices
 use SolverLeapfrog
 use VTKOutput
+use class_ContMesh
 !use SolverVerlet
 !use Thermal
 !use Mechanical
@@ -204,6 +205,7 @@ implicit none
   CALL C_F_POINTER(elnodptr, eltest, [100])
   print *, "node count ", ncount_int
   
+  call MeshCSVreader()
   !print *, "Nodetest " , nodetest(1), ", ", nodetest(2), ", ", nodetest(3)
   
 !  do i = 1, part_count
