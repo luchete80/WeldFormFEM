@@ -18,20 +18,6 @@ use class_ContMesh
 implicit none
 
    interface
-      ! function func (a) bind (C, name="func")
-         ! import
-         ! integer(c_int):: func
-         ! real(c_double), dimension(1:4), intent(in):: a
-      ! end function func
-      
-      ! !!function ReadNastranTriMesh(fName, node, elcon)
-      
-      ! SUBROUTINE c_func(xval, s) BIND(C, name="c_func") ! ****
-      ! import :: c_ptr
-
-      ! TYPE(c_ptr) , intent(out):: xval ! ****
-      ! integer,  intent(in) :: s! ****
-      ! END SUBROUTINE c_func
 
       SUBROUTINE reader(fname, nod, nodecount, elnod) BIND(C, name="ReadNastranTriMesh") ! ****
       import :: c_ptr, c_char
@@ -94,17 +80,8 @@ implicit none
   
   rho = 7850.0
   
-
-  
-  !PLANE STRESS
-  !Plain Stress
   poisson = 0.3
   young = 200.0e9
-  allocate (mat_C(3,3))
-	ck = young / (1 - poisson*poisson);
-	mat_C(1,1) = ck;  mat_C(2,2) = ck;
-	mat_C(1,2) = ck*poisson; mat_C(2,1) = ck*poisson;
-	mat_C(3,3) = ck*(1.0 - poisson) / 2.0;
   
   print *, "mat_C", mat_C
 
@@ -143,6 +120,7 @@ implicit none
   !!!!! DIM 2
   ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
+  !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
   nod%is_bcv(3,2) = .true.
   nod%is_bcv(4,2) = .true.
   nod%bcv(3,:) = [0.0d0,-1.0d0]
@@ -196,92 +174,21 @@ implicit none
   !print *, "dim: ", dim, "is surf "
   allocate (ncount_int)
   !allocate (ncount)
-  call reader('cylinder.nas', nodptr, elnodptr, ncount)
-  !print *, "node count ", ncount
-  CALL C_F_POINTER(ncount, ncount_int)
+  ! call reader('cylinder.nas', nodptr, elnodptr, ncount)
+  ! !print *, "node count ", ncount
+  ! CALL C_F_POINTER(ncount, ncount_int)
   
-  !print *, "Size of ptr", size(nodptr)
-  CALL C_F_POINTER(nodptr, nodetest, [100])
-  CALL C_F_POINTER(elnodptr, eltest, [100])
-  print *, "node count ", ncount_int
+  ! !print *, "Size of ptr", size(nodptr)
+  ! CALL C_F_POINTER(nodptr, nodetest, [100])
+  ! CALL C_F_POINTER(elnodptr, eltest, [100])
+  ! print *, "node count ", ncount_int
   
-  call MeshCSVreader()
+  !call MeshCSVreader()
   !print *, "Nodetest " , nodetest(1), ", ", nodetest(2), ", ", nodetest(3)
   
 !  do i = 1, part_count
 !  !write (*,*) "Particle", i ," position is ", pt%x(i,1), pt%x(i,1), pt%x(i,3)
 !  end do 
 !  !call AddCylinderLength(0, V, Rxy, Lz, r)
-
-!  call DomInit(12)
-!  call InitNb()
-!  call AllocateNbData()
-!  
-!  call CellInitiate()
-!  call ListGenerate()
-!  
-!  call MainNeighbourSearch()
-!  call InitRedArraysOnce()
-!  call CalcPairPosList()
-!  
-!  allocate (dTdt(part_count))
-!  allocate (temp_pair(pair_tot_count))
-!  pt%t(:)     = 20.
-!  pt%cp_t(:)  = 1.
-!  pt%k_t(:)   = 3000.  
-!  
-!  print *, "Size of floating point: ", sizeof(pt%t(1))
-
-!  !call cpu_time(start)
-!  !deltat = 0.00036
-!  deltat = 0.3*h*h*rho*pt%cp_t(1)/pt%k_t(1)	
-!  
-!  print *,'Reduction by particle... '    
-!  t_ = 0.
-
-!   ! Starting time
-!   call system_clock(count_0, count_rate, count_max)
-!   time_init = count_0*1.0/count_rate
-
-!  
-!  nn=(L/dx)*(L/dx)
-!    pt%t(1:nn) = 500.
-!  !!! FASTEST ALGORITHM
-!  do while (t_ <= 1000.0*deltat)
-
-!    call CalcTempIncPart(dTdt) !THIS IS THE FASTEST BY NOW
-!    !print *, "dTdt 0",  dTdt(1)
-!    pt%t(:) = pt%t(:) + dTdt(:) * deltat
-!    
-!    t_ = t_ + deltat
-!  end do
-
-!  ! Ending time
-!  call system_clock(count_1, count_rate, count_max)
-!  time_final = count_1*1.0/count_rate
-!  ! Elapsed time
-!  elapsed_time = time_final - time_init
-
-!  ! Write elapsed time
-!  write(*,1003) int(elapsed_time),elapsed_time-int(elapsed_time)
-!  !write(*,*) "Elapsed time: ", int(elapsed_time),elapsed_time-int(elapsed_time)
-!   
-!  !call cpu_time(finish)
-!  print *,'Time: ', t_ 
-!  print '("CPU Time = ",f6.3," seconds.")',finish-start
-!  print *, "Program End."
-
-!  
-!  open (1,file='temp.csv')!, position='APPEND')  
-!  write (1,*) "X, Y, Z, temp"
-
-!  do i=1,part_count  
-!    write (1,*) pt%x(i,1), ", ", pt%x(i,2), ", " ,pt%x(i,3), ", " ,pt%t(i) 
-!  end do
-!  close(1) 
-
-
-
-!  1003 format('  Elapsed Time  = ',i0,f0.9)
-!  
+ 
 end program WeldFormFEM

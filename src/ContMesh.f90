@@ -51,38 +51,6 @@ contains
     area = pi * this%radius**2
   end function circle_area
 
-  subroutine MeshCSVreader()
-    implicit none
-    real :: x, y, z
-    INTEGER :: m, n
-    CHARACTER first*30
-    logical :: readblock
-    integer :: node_count
-    
-
-    OPEN(UNIT = 7, FILE = "mesh.csv")
-    ! READ(7,*) x, y, z
-
-    ! READ(7,*) m, n, first
-    READ(7,*) first    
-    if (first == '*Nodes') then
-      print *, "*Nodes found."
-      readblock = .true.
-    end if
-    readblock = .True.
-    node_count = 0
-    do while (readblock .eqv. .true.)
-      READ(7,*) first
-      if (first == '*Elements') then
-        readblock = .false.
-      else
-        node_count = node_count + 1
-      end if
-    end do 
-    print * , "Node count ", node_count
-    
-    close (7)
-  end subroutine MeshCSVreader
 
   !AxisPlaneMesh(const int &axis, bool positaxisorent, const Vec3_t p1, const Vec3_t p2,  const int &dens
   subroutine AxisPlaneMesh(this, axis, positaxisorent, p1, p2,  dens)

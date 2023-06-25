@@ -30,4 +30,4 @@
          - Fixed element strain rate calculation (derivative matrix indices were wrong)
          - Fixed nodal forces calc, relaced derivative matrix by the onw with determinant calculated
 20230617 - Begining to add contact things
-         
+20230625 - Working on cylinder example, mesh reading

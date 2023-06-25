@@ -192,7 +192,73 @@ contains
       nod_data(n) = nod_data(n) / nod%elxnod(n)
     end do
   end subroutine
+  
+  subroutine MeshCSVreader()
+    implicit none
+    ! real(fp_kind),dimension(node_count), intent(out) :: nod_data  
+    ! real(fp_kind),dimension(node_count), intent(out) :: ele_data  
+    real :: x, y, z
+    INTEGER :: m, n
+    CHARACTER first*30
+    logical :: readblock
+    integer :: node_count, elem_count, i 
+    
+    dim = 3
 
+    OPEN(UNIT = 7, FILE = "mesh.csv")
+    ! READ(7,*) x, y, z
+
+    ! READ(7,*) m, n, first
+    READ(7,*) first    
+    if (first == '*Nodes') then
+      print *, "*Nodes found."
+      readblock = .true.
+    end if
+    readblock = .True.
+    node_count = 0
+    do while (readblock .eqv. .true.)
+      READ(7,*) first
+      if (first == '*Elements') then
+        readblock = .false.
+      else
+        node_count = node_count + 1
+      end if
+    end do 
+    readblock = .true.
+    print * , "Node count ", node_count
+    elem_count = 0
+    do while (readblock .eqv. .true.)
+      READ(7,*) first
+      if (first == '*End') then
+        readblock = .false.
+      else
+        elem_count = elem_count + 1
+      end if
+    end do 
+    print * , "Element count ", elem_count
+    rewind (7)
+    READ(7,*) first    
+    print *, "Allocating nodes... "
+    call AllocateNodes(node_count)
+    print *, "Reading nodes "
+    do i=1, node_count
+      READ(7,*) nod%x(i,1), nod%x(i,2), nod%x(i,3)
+    end do
+  
+    print *, "Allocating elements... "
+    call AllocateElements(elem_count, 1)
+    READ(7,*) first    
+    do i=1, elem_count
+      !print *, i
+      READ(7,*) elem%elnod(i,1), elem%elnod(i,2), elem%elnod(i,3), elem%elnod(i,4), &
+              & elem%elnod(i,5), elem%elnod(i,6), elem%elnod(i,7), elem%elnod(i,8)
+      !print *, 
+    end do
+    
+    close (7)
+    print *, "Done. "
+  end subroutine MeshCSVreader
+  
   !!!!! NODE DISTRIBUTION ARE LIKE IN FLANAGAN (1981), GOUDREAU, AND BENSON (1992)
   subroutine AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h, redint)			
     integer, intent(in):: tag
