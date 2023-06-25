@@ -93,7 +93,7 @@ subroutine SolveLeapfrog (tf, dt)
   ! end do    
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
-  !print *, "ass mass matrix" 
+  print *, "Assemblying mass matrix" 
   call assemble_mass_matrix()
   !print * , "done"
   !print *, "mass matrix",m_glob
@@ -113,6 +113,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
   !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
+  print *, "Assemblying forces..."
   call assemble_forces()
   ! do n=1,node_count
       ! nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
