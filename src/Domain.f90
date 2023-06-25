@@ -105,6 +105,7 @@ contains
     
     print *, "Creating ", el_count, " elements"
     elem_count = el_count
+    print *, "Node count per element: ", nodxelem
     allocate (elem%elnod(el_count,nodxelem))
     allocate (elem%gausspc(el_count))
     allocate (elem%dof(el_count,dim*nodxelem))
@@ -246,10 +247,14 @@ contains
     end do
   
     print *, "Allocating elements... "
+    nodxelem = 8
     call AllocateElements(elem_count, 1)
     READ(7,*) first    
+    print *, first  
+    print *, elem%elnod(1,1), elem%elnod(1,2)
     do i=1, elem_count
       !print *, i
+      
       READ(7,*) elem%elnod(i,1), elem%elnod(i,2), elem%elnod(i,3), elem%elnod(i,4), &
               & elem%elnod(i,5), elem%elnod(i,6), elem%elnod(i,7), elem%elnod(i,8)
       !print *, 
@@ -422,7 +427,7 @@ subroutine set_edof_from_elnod()
         elem%dof (e,dim*(n-1)+d) = dof
       end do
     end do
-    print *, "elem ", e, " dof ", elem%dof(e,:)
+    !print *, "elem ", e, " dof ", elem%dof(e,:)
   end do
 
 end subroutine

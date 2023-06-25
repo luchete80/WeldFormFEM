@@ -1,3 +1,4 @@
+!#define _PRINT_DEBUG_
 module Matrices
 use Domain
 use ElementData
@@ -138,8 +139,9 @@ subroutine calculate_element_Jacobian ()
   
   gp = 1
   do e=1, elem_count
-    print *, "el ", e 
-    
+! #ifdef _PRINT_DEBUG_  
+    ! print *, "el ", e 
+! #endif    
     do i=1,nodxelem
         !print *, "elnod " , elem%elnod(e,i)
         x2(i,:)=nod%x(elem%elnod(e,i),:)
@@ -153,8 +155,8 @@ subroutine calculate_element_Jacobian ()
         !! dx/dr dy/dr
         !! dx/ds dy/dx ]
         !!! THIS IS TO AVOID MATMUL
-        print *, "nodes X ", x2(:,1)
-        print *, "nodes Y ", x2(:,2)
+        ! print *, "nodes X ", x2(:,1)
+        ! print *, "nodes Y ", x2(:,2)
                 
         elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
@@ -199,13 +201,17 @@ subroutine calculate_element_Jacobian ()
           !print *, "dhrs", dHrs 
           !print *, "x2", x2 
           elem%jacob(e,gp,:,:) = 0.125*matmul(dHrs,x2)
-          print *, "jacob ", elem%jacob(e,gp,:,:) 
+! #if defined _PRINT_DEBUG_
+          ! print *, "jacob ", elem%jacob(e,gp,:,:)
+! #endif          
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
           print *, "detJ ", elem%detJ(e,gp)
         end do !gp
       end if
     end if !!gp ==1
-    print *, "jacob ", elem%jacob(e,gp,:,:) 
+! #if defined _PRINT_DEBUG_
+    ! print *, "jacob ", elem%jacob(e,gp,:,:)
+! #endif    
   end do !element
 
 end subroutine

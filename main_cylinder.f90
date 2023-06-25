@@ -92,9 +92,9 @@ implicit none
   call MeshCSVreader()
   
   print *, "NODE ELEMENTS "
-  do i=1,node_count
-    print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
-  end do
+  ! do i=1,node_count
+    ! print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
+  ! end do
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
   
   ! !TODO: CHANGE THIS TO AN ONLY VAULUE, FUNCTION, ETC.
@@ -105,19 +105,6 @@ implicit none
 
   
   
-  ! IF VELOCITY IS APPLIED
-  !nod%is_bcv(6,:) = [.false.,.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
-  !nod%bcv(6,:) = [0.0d0,0.0d0,-1.0d0]
-  !fext_glob(6,:) = []
-  !!!!! DIM # FORCE EXAMPLE
-  ! ! nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
-  ! ! nod%is_fix(2,:) = .true. !Node 1 restricted in 2 dimensions
-  ! ! nod%is_fix(4,:) = .true. !Node 1 restricted in 2 dimensions
-  !elem%f_ext(1,6,:) = [0.0d0,0.0d0,-10.0d0]
-  !!!!! DIM 2
-  ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
-  ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
-  !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
   nod%is_bcv(3,2) = .true.
   nod%is_bcv(4,2) = .true.
   nod%bcv(3,:) = [0.0d0,-1.0d0]

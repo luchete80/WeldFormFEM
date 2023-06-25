@@ -72,7 +72,7 @@ subroutine SolveLeapfrog (tf, dt)
   integer :: n, d, iglob, step
   
   logical :: first_step 
-  
+  logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
   
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
@@ -87,16 +87,16 @@ subroutine SolveLeapfrog (tf, dt)
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
   elem%vol_0(:) = elem%vol(:)
-  print *,"Element Initial Vol"
-  do n = 1, elem_count
-    print *, elem%vol(n)
-  end do    
+  !print *,"Element Initial Vol"
+  ! do n = 1, elem_count
+    ! print *, elem%vol(n)
+  ! end do    
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
-  print *, "ass mass matrix" 
+  !print *, "ass mass matrix" 
   call assemble_mass_matrix()
-  print * , "done"
-  print *, "mass matrix",m_glob
+  !print * , "done"
+  !print *, "mass matrix",m_glob
     mdiag(:)=0.0d0
     do iglob =1, node_count
       do n=1, node_count  !column
@@ -104,30 +104,30 @@ subroutine SolveLeapfrog (tf, dt)
       end do !col
     end do   
   calc_m = .False.
- print *, "M Diag ", mdiag
+ ! print *, "M Diag ", mdiag
   !print *, "m glob", m_glob
-  print *, "done"
+  ! print *, "done"
   nod%u(:,:) = 0.0d0
-  
+  debug_mode = .false.
   first_step  = .true.
   
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
   !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
   call assemble_forces()
-  do n=1,node_count
-      nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
-      print *, "fext n ", n, fext_glob(n,:)
-  end do
-  do n=1,node_count
-    print *, "Initial accel ", n, "a ", nod%a(n,:)  
-  end do  
+  ! do n=1,node_count
+      ! nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
+      ! print *, "fext n ", n, fext_glob(n,:)
+  ! end do
+  ! do n=1,node_count
+    ! print *, "Initial accel ", n, "a ", nod%a(n,:)  
+  ! end do  
   
   nod%v = nod%v - dt * 0.5 * nod%a   !!!!!!!!!!!!!!!!!!v(t -dt/2)
   call impose_bcv
 
-  do n=1,node_count
-    print *, "Initial v nod ", n, "v ", nod%v(n,:)  
-  end do  
+  ! do n=1,node_count
+    ! print *, "Initial v nod ", n, "v ", nod%v(n,:)  
+  ! end do  
   
   !!!! IS THERE ANY STRESS?
   elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
@@ -141,7 +141,7 @@ subroutine SolveLeapfrog (tf, dt)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
-        print *, "det EXT(e,gp)", elem%detJ(:,:)
+    !print *, "det EXT(e,gp)", elem%detJ(:,:)
     do n=1,elem_count
       if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
         call calculate_element_shapeMat() !AND MASS
@@ -184,13 +184,16 @@ subroutine SolveLeapfrog (tf, dt)
   nod%v = nod%v + dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
+  if (debug_mode .eqv. .true.) then
   do n=1,node_count
     print *, "nod ", n, "a ", nod%a(n,:)  
   end do  
+  end if 
   !!(3) The velocity is integrated to give the displacement at tn+1.
   nod%u = nod%u +  nod%v * dt
   nod%x = nod%x + nod%u
 
+  if (debug_mode .eqv. .true.) then
   do n=1,node_count
     print *, "nod ", n, "v ", nod%v(n,:)  
   end do  
@@ -198,7 +201,7 @@ subroutine SolveLeapfrog (tf, dt)
   do n=1,node_count
     print *, "nod ", n, "x ", nod%x(n,:)  
   end do  
-
+  end if
   !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
   !!!! IN ORDER TO CALC VOL
   call calculate_element_Jacobian()  

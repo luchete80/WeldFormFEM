@@ -227,7 +227,7 @@ subroutine calc_elem_density ()
       do gp = 1, elem%gausspc(e)
         !!!!CALCULATE DEFORMATION GRADIENT
         F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-        print *, "det F", det(F)
+        !print *, "det F", det(F)
         !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
         elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
       end do
@@ -299,7 +299,7 @@ subroutine CalcStressStrain (dt)
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-      print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
@@ -316,7 +316,7 @@ subroutine calc_elem_vol ()
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
     elem%vol(e) = 0.0d0
-    print *, "elem%gausspc(e)", elem%gausspc(e)
+    !print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
       w = 2.0**dim
     else if (elem%gausspc(e).eq. 8 ) then
@@ -324,10 +324,10 @@ subroutine calc_elem_vol ()
     end if
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
-      print *, "elem e j, w", elem%detJ(e,gp), w
+      !print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
-    print *, "Elem ", e, "vol ",elem%vol(e)
+    !print *, "Elem ", e, "vol ",elem%vol(e)
   end do
 
 end subroutine
@@ -343,7 +343,7 @@ subroutine impose_bcv
     do d=1,dim
       if (nod%is_bcv(n,d) .eqv. .true.) then
         nod%v(n,d) = nod%bcv(n,d)
-        print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
+        !print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       end if
       
       if (nod%is_fix(n,d) .eqv. .true.) then
