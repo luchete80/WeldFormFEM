@@ -44,7 +44,7 @@ implicit none
   real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
   logical :: reduced_int
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
-  integer, pointer :: ncount_int
+  integer, pointer :: ncount_int, e, n
   !type(Domain)	::dom
 
    ! Variables for clock
@@ -136,7 +136,15 @@ implicit none
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
-
+  
+  do e=1, elem_count
+  !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+  !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+    do n=1, nodxelem
+      print *, elem%elnod(e,1), elem%elnod(e,2), elem%elnod(e,3), elem%elnod(e,4), elem%elnod(e,5), elem%elnod(e,6), &
+              & elem%elnod(e,7), elem%elnod(e,8) 
+    end do
+  end do
   call WriteMeshVTU('initial.vtu')
   
   call SolveLeapfrog(tf,dt)
