@@ -7,67 +7,75 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
-integer :: Dim, node_count, elem_count, Nproc, dof 
-!!!!! THIS SHOULD BE INSIDE OF DOMAIN
-type(Node)	::nod
-type(Element)	::elem
+Type Dom_type
 
-real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
-real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
+  integer :: Dim, node_count, elem_count, Nproc, dof 
+  !!!!! THIS SHOULD BE INSIDE OF DOMAIN
+  type(Node)	::nod
+  type(Element)	::elem
 
-
-!THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
-real(fp_kind), dimension(:,:), Allocatable :: rint_glob, fext_glob !Accelerations and internal forces
-integer :: nodxelem !TODO: SET TO ELEMEENT VAR
+  real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
+  real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
 
-real(fp_kind), dimension(3):: dommax, dommin
+  !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)
+  real(fp_kind), dimension(:,:), Allocatable :: rint_glob, fext_glob !Accelerations and internal forces
+  integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
-real(fp_kind)::mat_G, mat_E!TODO: change to material
-real(fp_kind):: time
-logical :: calc_m
+
+  real(fp_kind), dimension(3):: dommax, dommin
+
+  real(fp_kind)::mat_G, mat_E!TODO: change to material
+  real(fp_kind):: time
+  logical :: calc_m
+
+End Type
+
 contains 
 
-  subroutine DomInit(proc)
+  subroutine DomInit(dom, proc)
+    type(dom_type), intent(in)::dom
     integer, intent(in)::proc
     nproc = proc
     Dim = 3
-    DomMax (:) = -100000000000.0;
-    DomMin (:) = 100000000000.0;
+    dom%DomMax (:) = -100000000000.0;
+    dom%DomMin (:) = 100000000000.0;
   end subroutine DomInit
   
   !After initialization of nodes and elements
-  subroutine AllocateDomain()
-    dof = node_count*dim
+  subroutine AllocateDomain( dom)
+    type(dom_type), intent(in)::dom
+    dof = dom%node_count*dim
     
-    allocate (kglob(node_count*dim,node_count*dim))
-    allocate (uglob(node_count*dim,1))
-    allocate (m_glob(node_count,node_count))
+    allocate (dom%kglob(node_count*dim,node_count*dim))
+    allocate (dom%uglob(node_count*dim,1))
+    allocate (dom%m_glob(node_count,node_count))
     
-    allocate (rint_glob(node_count,dim))
-    allocate (fext_glob(node_count,dim))
+    allocate (dom%rint_glob(node_count,dim))
+    allocate (dom%fext_glob(node_count,dim))
     
   end subroutine AllocateDomain
   
-  subroutine AllocateNodes(pt_count)
+  subroutine AllocateNodes(dom, pt_count)
+    type(dom_type), intent(in)::dom
     integer, intent(in):: pt_count
     
     node_count = pt_count
     !!!GENERAL 
-    allocate (nod%x(node_count,dim))
+    allocate (dom%nod%x(node_count,dim))
     ! allocate (nod%rho(node_count))
     ! allocate (nod%drhodt(node_count))
     ! allocate (nod%h(node_count))
     ! allocate (nod%m(node_count))
-    allocate (nod%id(node_count))
+    allocate (dom%nod%id(node_count))
     
-    allocate (nod%elxnod(node_count))
+    allocate (dom%nod%elxnod(node_count))
     if (dim .eq. 2) then 
-      allocate (nod%nodel(node_count, 4))
+      allocate (dom%nod%nodel(node_count, 4))
     else 
-      allocate (nod%nodel(node_count, 8))
+      allocate (dom%nod%nodel(node_count, 8))
     end if
-    allocate (nod%rho(node_count))
+    allocate (dom%nod%rho(node_count))
     
     
     !! THERMAL
@@ -100,60 +108,61 @@ contains
     !end if  
   end subroutine
   
-  subroutine AllocateElements(el_count, gp) !gauss point count
+  subroutine AllocateElements(dom, el_count, gp) !gauss point count
+    type(dom_type), intent(in)::dom
     integer, intent(in):: el_count, gp
     
     print *, "Creating ", el_count, " elements"
     elem_count = el_count
     print *, "Node count per element: ", nodxelem
-    allocate (elem%elnod(el_count,nodxelem))
-    allocate (elem%gausspc(el_count))
-    allocate (elem%dof(el_count,dim*nodxelem))
-    allocate (elem%vol(el_count))
-    allocate (elem%vol_0(el_count))
-    allocate (elem%x2(el_count,nodxelem,dim))
-    allocate (elem%jacob(el_count,gp,dim,dim))
-    allocate (elem%detj(el_count,gp))
-    allocate (elem%sigma_eq(el_count,gp)) !But is constant??
-    allocate (elem%dHxy(el_count,gp,dim,nodxelem))
-    allocate (elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
-    allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
-    allocate (elem%dHrs(el_count,gp,dim,nodxelem))
-    allocate (elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
+    allocate (dom%elem%elnod(el_count,nodxelem))
+    allocate (dom%elem%gausspc(el_count))
+    allocate (dom%elem%dof(el_count,dim*nodxelem))
+    allocate (dom%elem%vol(el_count))
+    allocate (dom%elem%vol_0(el_count))
+    allocate (dom%elem%x2(el_count,nodxelem,dim))
+    allocate (dom%elem%jacob(el_count,gp,dim,dim))
+    allocate (dom%elem%detj(el_count,gp))
+    allocate (dom%elem%sigma_eq(el_count,gp)) !But is constant??
+    allocate (dom%elem%dHxy(el_count,gp,dim,nodxelem))
+    allocate (dom%elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
+    allocate (dom%elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
+    allocate (dom%elem%dHrs(el_count,gp,dim,nodxelem))
+    allocate (dom%elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
 
-    allocate (elem%uele (el_count,dim*nodxelem,1)) 
+    allocate (dom%elem%uele (el_count,dim*nodxelem,1)) 
 
-    allocate (elem%vele (el_count,dim*nodxelem,1)) 
+    allocate (dom%elem%vele (el_count,dim*nodxelem,1)) 
     
-    allocate (elem%mass(el_count)) !Mass matrix    
+    allocate (dom%elem%mass(el_count)) !Mass matrix    
 
-    allocate (elem%matm(el_count,nodxelem,nodxelem)) !Mass matrix
-    allocate (elem%math(el_count,gp,1,nodxelem)) !Mass matrix
+    allocate (dom%elem%matm(el_count,nodxelem,nodxelem)) !Mass matrix
+    allocate (dom%elem%math(el_count,gp,1,nodxelem)) !Mass matrix
     
-    allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
+    allocate (dom%elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
     
-    allocate (elem%f_int(el_count,nodxelem,dim))
-    allocate (elem%f_ext(el_count,nodxelem,dim))
+    allocate (dom%elem%f_int(el_count,nodxelem,dim))
+    allocate (dom%elem%f_ext(el_count,nodxelem,dim))
     
-    allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
-    allocate (elem%rho_0(el_count,gp))
-    allocate (elem%pressure(el_count,gp))
-    allocate (elem%cs(el_count))
-    allocate (elem%shear_stress(el_count,gp, dim,dim))
-    allocate (elem%str_rate(el_count,gp, dim,dim))
-    allocate (elem%rot_rate(el_count,gp, dim,dim))
+    allocate (dom%elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
+    allocate (dom%elem%rho_0(el_count,gp))
+    allocate (dom%elem%pressure(el_count,gp))
+    allocate (dom%elem%cs(el_count))
+    allocate (dom%elem%shear_stress(el_count,gp, dim,dim))
+    allocate (dom%elem%str_rate(el_count,gp, dim,dim))
+    allocate (dom%elem%rot_rate(el_count,gp, dim,dim))
       
     if (Dim .eq. 2) then
-      allocate (elem%bl (el_count,gp,3,dim*nodxelem))
-      allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
-      allocate (elem%strain(el_count,gp, 4,1))
-      !allocate (elem%str_rate(el_count,gp, 4,1))
-      !allocate (elem%rot_rate(el_count,gp, 4,1))
+      allocate (dom%elem%bl (el_count,gp,3,dim*nodxelem))
+      allocate (dom%elem%bnl(el_count,gp, 4,dim*nodxelem))
+      allocate (dom%elem%strain(el_count,gp, 4,1))
+      !allocate (dom%elem%str_rate(el_count,gp, 4,1))
+      !allocate (dom%elem%rot_rate(el_count,gp, 4,1))
     else 
-      allocate (elem%bl (el_count,gp,6,dim*nodxelem)) 
-      allocate (elem%strain(el_count,gp, 6,1)) !!VECTORIZED 
-      !allocate (elem%str_rate(el_count,gp, 6,1))
-      !allocate (elem%rot_rate(el_count,gp, 6,1))
+      allocate (dom%elem%bl (el_count,gp,6,dim*nodxelem)) 
+      allocate (dom%elem%strain(el_count,gp, 6,1)) !!VECTORIZED 
+      !allocate (dom%elem%str_rate(el_count,gp, 6,1))
+      !allocate (dom%elem%rot_rate(el_count,gp, 6,1))
     end if 
     
     elem%gausspc(:) = gp
@@ -172,8 +181,8 @@ contains
     nod%nodel = 0 !Unnecessary
     do e=1,elem_count
       do n=1,nodxelem
-        nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
-        nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
+        nod%elxnod(dom%elem%elnod(e,n)) = nod%elxnod(dom%elem%elnod(e,n)) + 1
+        nod%nodel(dom%elem%elnod(e,n),nod%elxnod(dom%elem%elnod(e,n))) = e
       end do
     end do
   end subroutine
@@ -186,8 +195,8 @@ contains
     nod_data (:)= 0.0d0
     do n=1,node_count
       do e=1,nod%elxnod(n)
-        !nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
-        !nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
+        !nod%elxnod(dom%elem%elnod(e,n)) = nod%elxnod(dom%elem%elnod(e,n)) + 1
+        !nod%nodel(dom%elem%elnod(e,n),nod%elxnod(dom%elem%elnod(e,n))) = e
         !print *, "nod data n e", nod_data(n), n, e
         nod_data(n) = nod_data(n) + el_data(nod%nodel(n,e))
       end do
@@ -444,7 +453,7 @@ subroutine set_edof_from_elnod()
     do n=1,nodxelem
       do d=1,dim
 
-        dof = dim * (elem%elnod(e,n) - 1 ) + d
+        dof = dim * (dom%elem%elnod(e,n) - 1 ) + d
         !print *, "elem ", e, " dof loc", dim*(n-1)+d, "glob ", dof
         elem%dof (e,dim*(n-1)+d) = dof
       end do
