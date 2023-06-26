@@ -32,3 +32,4 @@
 20230617 - Begining to add contact things
 20230625 - Working on cylinder example, mesh reading
          - Working with several elements example (cylinder)
+20230623 - Fixed domain allocation in plane mesh reading (CSV)

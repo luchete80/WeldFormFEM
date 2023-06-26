@@ -6,6 +6,8 @@ enable_language(Fortran CXX)
                             
 INCLUDE      (FindOpenMP)
 
+add_subdirectory("test")
+
 if(OPENMP_FOUND)
     ADD_DEFINITIONS (-DUSE_OMP)
     set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${OpenMP_Fortran_FLAGS}")
@@ -31,6 +33,7 @@ file(GLOB_RECURSE sources  src/*.f90 src/*.cpp src/*.h)
 
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
 add_executable(cylinder ${sources} main_cylinder.f90) #Single case 1 element
+
 
 SET_TARGET_PROPERTIES(WeldForm PROPERTIES LINKER_LANGUAGE Fortran)
 SET_TARGET_PROPERTIES(cylinder PROPERTIES LINKER_LANGUAGE Fortran)

@@ -90,6 +90,7 @@ implicit none
   reduced_int = .True.
   !call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   call MeshCSVreader()
+  elem%rho_0(:,:) = 7850.0
   
   print *, "NODE ELEMENTS "
   ! do i=1,node_count

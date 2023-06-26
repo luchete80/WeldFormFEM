@@ -161,6 +161,7 @@ contains
 
   end subroutine
 
+  !!! THIS IS TO AVERAGE DATA
   !!! ALLOCATE THE FOLLOWING
   ! ! real(fp_kind), dimension(:) :: elxnod !!!Elements shared by each node
   ! ! real(fp_kind), dimension(:,:) :: nodel !!! element node 
@@ -187,7 +188,7 @@ contains
       do e=1,nod%elxnod(n)
         !nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
         !nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
-        print *, "nod data n e", nod_data(n), n, e
+        !print *, "nod data n e", nod_data(n), n, e
         nod_data(n) = nod_data(n) + el_data(nod%nodel(n,e))
       end do
       nod_data(n) = nod_data(n) / nod%elxnod(n)
@@ -261,6 +262,26 @@ contains
     end do
     
     close (7)
+    
+    
+    call AllocateDomain()
+    i = 1
+    do while ( i <= node_count)
+      nod%is_bcv(i,:) = .false.
+      i = i + 1
+    end do
+  
+    ! nod%m(:)   = Density * Lx * Ly * Lz / node_count
+    ! nod%rho(:)   = Density
+    
+    !print *, "Particle mass ", nod%m(2)
+    
+    !nod%id(:) = tag
+    
+    fext_glob (:,:) = 0.0d0
+    
+    call SearchNodelem
+    
     print *, "Done. "
   end subroutine MeshCSVreader
   

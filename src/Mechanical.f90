@@ -65,8 +65,8 @@ subroutine cal_elem_strains ()
       end if
 
       !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-      print *, "strain rate ", elem%str_rate(e,gp,:,:)
-      print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
+      !print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
 end subroutine
@@ -85,8 +85,8 @@ subroutine cal_elem_forces ()
       w = 2.0d0**dim
     end if
     do gp = 1, elem%gausspc(e)
-      print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
-      print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+      !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
       do n=1, nodxelem
       !Is only linear matrix?    
       !elem%f_int(e,n,d) =  
@@ -110,7 +110,7 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-        print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
+        !print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
       end do! nod x elem
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w

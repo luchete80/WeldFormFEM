@@ -69,7 +69,7 @@ subroutine SolveLeapfrog (tf, dt)
   use Mechanical
   
   implicit none
-  integer :: n, d, iglob, step
+  integer :: n, d, iglob, step, e, gp
   
   logical :: first_step 
   logical :: debug_mode 
@@ -162,6 +162,18 @@ subroutine SolveLeapfrog (tf, dt)
   ! calculated by dividing the nodal forces by the nodal masses.   
     !print *, "calc elem forces "
     call cal_elem_forces()
+
+    if (debug_mode .eqv. .true.) then    
+    do e=1, elem_count
+      do gp = 1, elem%gausspc(e)
+      !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+        do n=1, nodxelem
+          print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
+        end do! nod x elem
+      end do !gp
+    end do!elem      
+    end if  
     !print *, "assemble int forces "
     call assemble_forces()
     
@@ -171,9 +183,11 @@ subroutine SolveLeapfrog (tf, dt)
         nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
       end do 
     end do
-  do n=1,node_count
-    print *, "golb res forces ", (fext_glob(n,:)-rint_glob(n,:))
-  end do 
+  if (debug_mode .eqv. .true.) then
+    do n=1,node_count
+      print *, "glob res forces ", (fext_glob(n,:)-rint_glob(n,:))
+    end do 
+  end if
   call impose_bca
   
   !!!!! THIS IS NOT SOLVED AS A COMPLETED STEP (REDUCED VERLET=
@@ -208,14 +222,17 @@ subroutine SolveLeapfrog (tf, dt)
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
-  print *,"Element Vol"
-  do n = 1, elem_count
-    print *, elem%vol(n)
-  end do
-  print *,"Element Mass"
-  do n = 1, elem_count
-    print *, elem%mass(n)
-  end do
+  
+  if (debug_mode .eqv. .true.) then
+    print *,"Element Vol"
+    do n = 1, elem_count
+      print *, elem%vol(n)
+    end do
+    print *,"Element Mass"
+    do n = 1, elem_count
+      print *, elem%mass(n)
+    end do
+  end if
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
@@ -224,16 +241,19 @@ subroutine SolveLeapfrog (tf, dt)
   !!! THIS IS CALCULATE NOW IN ORDER TO UPDATE STRESS WITH CURRENT PRESSURE
   call calc_elem_density
   call calc_elem_pressure
-
-  print *,"Element Density"
-  do n = 1, elem_count
-    print *, elem%rho(n,:)
-  end do
   
-  print *,"Element pressure"
-  do n = 1, elem_count
-    print *, elem%pressure(n,:)
-  end do
+  if (debug_mode .eqv. .true.) then
+    print *,"Element Density"
+    do n = 1, elem_count
+      print *, elem%rho(n,:)
+    end do
+    
+    print *,"Element pressure"
+    do n = 1, elem_count
+      print *, elem%pressure(n,:)
+    end do
+  
+  end if 
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
@@ -241,20 +261,19 @@ subroutine SolveLeapfrog (tf, dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
   call calc_hourglass_forces
-  do n=1,elem_count
-  print *, "hourglass forces ", elem%hourg_nodf(n,:,:)
-  end do
+  if (debug_mode .eqv. .true.) then
+    do n=1,elem_count
+    print *, "hourglass forces ", elem%hourg_nodf(n,:,:)
+    end do
+  end if
 ! (6) The internal energy is updated based on the work done between tn and t_n+1.
 
-
-  
   call AverageData(elem%rho(:,1),nod%rho(:))
-
-
-  
-  do n=1,node_count
-    print *, "nod ", n, "Disp ", nod%u(n,:)  
-  end do  
+  if (debug_mode .eqv. .true.) then
+    do n=1,node_count
+      print *, "nod ", n, "Disp ", nod%u(n,:)  
+    end do  
+  end if
   ! print *, "nod v", nod%v(:,:)
   
 

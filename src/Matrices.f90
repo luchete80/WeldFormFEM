@@ -475,14 +475,14 @@ subroutine assemble_forces()
   integer :: e, i, n, iglob
   real(fp_kind), dimension(nodxelem*dim,1) :: utemp, rtemp
   
-  print *, "assemblying int forces"
+  !print *, "assemblying int forces"
   rint_glob (:,:) = 0.0d0
   fext_glob (:,:) = 0.0d0
   do e = 1, elem_count
     do n = 1, nodxelem
       !print *,"elem mat kl", elem%matkl(e,:,:)
-      print *, "elem fext ", elem%f_ext(e,n,:)
-      print *, "elem fint ", elem%f_int(e,n,:)
+      !print *, "elem fext ", elem%f_ext(e,n,:)
+      !print *, "elem fint ", elem%f_int(e,n,:)
       do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
