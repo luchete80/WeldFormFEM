@@ -37,14 +37,14 @@ implicit none
   integer, pointer :: eltest(:)
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
-  integer:: i, tnr, maxt ,nn
+  integer:: i, tnr, maxt ,nn, e
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
   real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
   logical :: reduced_int
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
-  integer, pointer :: ncount_int, e, n
+  integer, pointer :: ncount_int,  n
   !type(Domain)	::dom
 
    ! Variables for clock
@@ -137,15 +137,18 @@ implicit none
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
   
-  do e=1, elem_count
+  print *, "ELNOD ", elem%elnod(2,8)
+  
+  do e=1,elem_count
   !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
   !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
-    do n=1, nodxelem
+    !do n=1, nodxelem
+    !PRINT *, "elem ", i
       print *, elem%elnod(e,1), elem%elnod(e,2), elem%elnod(e,3), elem%elnod(e,4), elem%elnod(e,5), elem%elnod(e,6), &
-              & elem%elnod(e,7), elem%elnod(e,8) 
-    end do
+       & elem%elnod(e,7), elem%elnod(e,8) 
+    !end do
   end do
-  call WriteMeshVTU('initial.vtu')
+  ! call WriteMeshVTU('initial.vtu')
   
   call SolveLeapfrog(tf,dt)
   print *, "Solving finished. "

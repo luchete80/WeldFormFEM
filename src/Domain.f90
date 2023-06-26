@@ -203,7 +203,7 @@ contains
     INTEGER :: m, n
     CHARACTER first*30
     logical :: readblock
-    integer :: node_count, elem_count, i 
+    integer :: i 
     
     dim = 3
 
@@ -252,13 +252,14 @@ contains
     call AllocateElements(elem_count, 1)
     READ(7,*) first    
     print *, first  
-    print *, elem%elnod(1,1), elem%elnod(1,2)
+    !print *, elem%elnod(1,1), elem%elnod(1,2)
     do i=1, elem_count
       !print *, i
       
       READ(7,*) elem%elnod(i,1), elem%elnod(i,2), elem%elnod(i,3), elem%elnod(i,4), &
               & elem%elnod(i,5), elem%elnod(i,6), elem%elnod(i,7), elem%elnod(i,8)
-      !print *, 
+      ! print *, elem%elnod(i,1), elem%elnod(i,2), elem%elnod(i,3), elem%elnod(i,4), &
+              ! & elem%elnod(i,5), elem%elnod(i,6), elem%elnod(i,7), elem%elnod(i,8)
     end do
     
     close (7)
