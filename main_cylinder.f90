@@ -136,9 +136,12 @@ implicit none
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
+
+  call WriteMeshVTU('initial.vtu')
+  
   call SolveLeapfrog(tf,dt)
   print *, "Solving finished. "
-  call WriteMeshVTU
+  call WriteMeshVTU('output.vtu')
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"

@@ -153,7 +153,7 @@ implicit none
   print *, "time step size with CFL 0.7", dt
   call SolveLeapfrog(tf,dt)
   
-  call WriteMeshVTU
+  call WriteMeshVTU('output.vtu')
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"

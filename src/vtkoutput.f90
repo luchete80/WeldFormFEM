@@ -12,10 +12,11 @@ use Domain
         
 contains
 
-subroutine WriteMeshVTU 
+subroutine WriteMeshVTU (fname)
   implicit none
+  character(len=20), intent(in) :: fname
   integer :: e,dof,d,n, offs
-  open (1,file='output.vtu')!, position='APPEND')  
+  open (1,file=fname)!, position='APPEND')  
   write (1,*)  "<VTKFile type=""UnstructuredGrid"" version=""0.1"" byte_order=""BigEndian"">"
   write (1,*)  "  <UnstructuredGrid>"
   !!!! FOR NOT RETURN CARRIAGE
