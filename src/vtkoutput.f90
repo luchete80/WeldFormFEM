@@ -37,7 +37,7 @@ subroutine WriteMeshVTU (fname)
   do e=1, elem_count
     do n=1,nodxelem
       !write (1,*) elem%elnod(e,n)
-      write(1,"(I3,2x,I5)",advance="no") elem%elnod(e,n) - 1
+      write(1,"(I3,1x)",advance="no") elem%elnod(e,n) - 1
     end do
   end do
   write (1,*) "" !!!! END OF LINE
@@ -46,7 +46,7 @@ subroutine WriteMeshVTU (fname)
   
   offs = nodxelem
   do e=1, elem_count
-      write(1,"(I3,2x,I5)",advance="no") offs
+      write(1,"(I3,1x)",advance="no") offs
       offs = offs + nodxelem
   end do
   write (1,*) "" !!!! END OF LINE
@@ -55,9 +55,9 @@ subroutine WriteMeshVTU (fname)
   write (1,*) "        <DataArray type=""Int32"" Name=""types"" Format=""ascii"">"  
   do e=1, elem_count
       if (dim .eq. 2) then
-        write(1,"(I3,2x,I5)",advance="no") 9
+        write(1,"(I3,1x)",advance="no") 9
       else 
-        write(1,"(I3,2x,I5)",advance="no") 12
+        write(1,"(I3,1x)",advance="no") 12
       end if
   end do
   write (1,*) "" !!!! END OF LINE

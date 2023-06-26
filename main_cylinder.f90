@@ -139,16 +139,7 @@ implicit none
   
   print *, "ELNOD ", elem%elnod(2,8)
   
-  do e=1,elem_count
-  !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
-  !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
-    !do n=1, nodxelem
-    !PRINT *, "elem ", i
-      print *, elem%elnod(e,1), elem%elnod(e,2), elem%elnod(e,3), elem%elnod(e,4), elem%elnod(e,5), elem%elnod(e,6), &
-       & elem%elnod(e,7), elem%elnod(e,8) 
-    !end do
-  end do
-  ! call WriteMeshVTU('initial.vtu')
+  call WriteMeshVTU('initial.vtu')
   
   call SolveLeapfrog(tf,dt)
   print *, "Solving finished. "
