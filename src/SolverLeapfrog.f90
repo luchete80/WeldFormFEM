@@ -257,6 +257,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
   ! that the motion of the material is known.
+  print *, "Calc stresses "
   call CalcStressStrain(dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
@@ -269,11 +270,11 @@ subroutine SolveLeapfrog (tf, dt)
 ! (6) The internal energy is updated based on the work done between tn and t_n+1.
 
   call AverageData(elem%rho(:,1),nod%rho(:))
-  if (debug_mode .eqv. .true.) then
+  !if (debug_mode .eqv. .true.) then
     do n=1,node_count
       print *, "nod ", n, "Disp ", nod%u(n,:)  
     end do  
-  end if
+  !end if
   ! print *, "nod v", nod%v(:,:)
   
 
