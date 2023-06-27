@@ -314,7 +314,7 @@ contains
     write (*,*) "Creating Mesh ...", "Elements ", nel(1), ", ",nel(2)
     
     call AllocateNodes((nel(1) +1)* (nel(2)+1) * (nel(3)+1))
-    
+    print *, "Element count in XYZ: ", nel(:)
     write (*,*) "Box Node count ", node_count
     
     
@@ -395,7 +395,8 @@ contains
     else 
       ez = 0
       i = 1
-      nnodz = (nel(3)+1)*(nel(3)+1)
+      nnodz = (nel(1)+1)*(nel(2)+1)
+      print *, "Element Nodes at z ", nnodz
       do while ( ez < nel(3))
         ey = 0    
         do while ( ey < nel(2))
