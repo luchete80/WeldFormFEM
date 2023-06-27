@@ -11,7 +11,7 @@ integer :: Dim, node_count, elem_count, Nproc, dof
 !!!!! THIS SHOULD BE INSIDE OF DOMAIN
 type(Node)	::nod
 type(Element)	::elem
-
+real(fp_kind):: tot_mass
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
@@ -431,6 +431,9 @@ contains
     !nod%id(:) = tag
     
     fext_glob (:,:) = 0.0d0
+    
+    tot_mass = Density * Lx * Ly * Lz
+    print *, "Total Mass: ", tot_mass
     
     call SearchNodelem
   end subroutine AddBoxLength

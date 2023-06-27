@@ -104,11 +104,18 @@ subroutine SolveLeapfrog (tf, dt)
       end do !col
     end do   
   calc_m = .False.
- ! print *, "M Diag ", mdiag
+  
+  !!!! ONLY FOR TESTING
+  do n=1, node_count  !column
+     mdiag(n) = tot_mass/node_count 
+  end do
+  
+  print *, "M Diag ", mdiag
+  
   !print *, "m glob", m_glob
   ! print *, "done"
   nod%u(:,:) = 0.0d0
-  debug_mode = .false.
+  debug_mode = .true.
   first_step  = .true.
   
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
