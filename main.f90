@@ -69,7 +69,7 @@ implicit none
 
   Dim = 3
   L = 0.1	
-  dx    = 0.05d0
+  dx    = 0.1d0
   r = dx /2.0
   h = dx * 1.2
 
@@ -121,14 +121,28 @@ implicit none
   ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
-  nod%is_bcv(3,2) = .true.
-  nod%is_bcv(4,2) = .true.
-  nod%bcv(3,:) = [0.0d0,-1.0d0]
-  nod%bcv(4,:) = [0.0d0,-1.0d0]
-  
-  nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
-  nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
-  
+  if (dim ==2) then
+    nod%is_bcv(3,2) = .true.
+    nod%is_bcv(4,2) = .true.
+    nod%bcv(3,:) = [0.0d0,-1.0d0]
+    nod%bcv(4,:) = [0.0d0,-1.0d0]
+    
+    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
+  else 
+    nod%is_bcv(5:8,3) = .true.
+    nod%bcv(5:8,3) = -1.0d0
+    
+    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+    
+    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions  
+    nod%is_fix(2,3) = .true. !Node 1 restricted in 2 dimensions  
+    
+    nod%is_fix(3,1) = .true. !Node 1 restricted in 2 dimensions  
+    nod%is_fix(3,3) = .true. !Node 1 restricted in 2 dimensions  
+    
+    nod%is_fix(4,3) = .true. !Node 1 restricted in 2 dimensions  
+  end if
   
  ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
@@ -144,8 +158,9 @@ implicit none
   
   elem%cs(:) = mat_cs
   
-  dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+ !dt = 0.7 * dx/(mat_cs)
+  dt = 5.0e-6
+  tf = dt * 2.0
   
   elem%rho(:,:) = rho
   

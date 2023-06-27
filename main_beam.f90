@@ -96,8 +96,8 @@ implicit none
   reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
-  print *, "NODE ELEMENTS "
   do i=1,node_count
+  print *, "NODE ELEMENTS "
     print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
   end do
   !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
@@ -134,7 +134,7 @@ implicit none
   do i=1,node_count
     if (nod%x(i,1)> (Lx - r) .and. nod%x(i,2) > (Ly -r) ) then
       nod%is_bcv(i,2) = .true.
-      nod%bcv(i,2) = -1.0d0
+      nod%bcv(i,2) = -0.48d0
       print *, "Velocity Node ", i, " at: ", nod%x(i,:)
     end if
   end do
@@ -161,7 +161,8 @@ implicit none
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  tf = dt * 10.0
+  !tf = 0.005
   
   elem%rho(:,:) = rho
   
