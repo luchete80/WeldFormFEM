@@ -90,7 +90,7 @@ contains
     ! allocate (nod%pressure(node_count))
     ! allocate (nod%cs(node_count))
     
-    ! allocate (nod%sigma_eq(node_count))
+
     
 
     !!!!! BOUNDARY CONDITIONS

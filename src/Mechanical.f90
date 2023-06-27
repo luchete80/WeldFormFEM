@@ -371,4 +371,23 @@ subroutine impose_bca
   end do !Node    
 end subroutine
 
+subroutine CalcEquivalentStress
+  use Domain
+  real(fp_kind) :: J2
+  integer :: e, gp
+  
+  do e=1,elem_count
+    do gp=1,elem%gausspc(e)
+    J2	= 0.5*(elem%shear_stress(e,gp,0,0)*elem%shear_stress(e,gp,0,0) + &
+          2.0*elem%shear_stress(e,gp,0,1)*elem%shear_stress(e,gp,1,0) + &
+          2.0*elem%shear_stress(e,gp,0,2)*elem%shear_stress(e,gp,2,0) + &
+              elem%shear_stress(e,gp,1,1)*elem%shear_stress(e,gp,1,1) + &
+          2.0*elem%shear_stress(e,gp,1,2)*elem%shear_stress(e,gp,2,1) + &
+              elem%shear_stress(e,gp,2,2)*elem%shear_stress(e,gp,2,2));
+    !print *, "J2 ", J2
+    elem%sigma_eq(e,gp) = sqrt(3.0*J2)
+    end do
+  end do
+end subroutine CalcEquivalentStress
+
 end module

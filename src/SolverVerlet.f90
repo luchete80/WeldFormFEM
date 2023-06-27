@@ -151,6 +151,7 @@ subroutine SolveVerlet (tf, dt)
   call calc_elem_pressure
 
   call CalcStressStrain(dt)
+  
   call calc_hourglass_forces
   call cal_elem_forces()
   call assemble_forces()

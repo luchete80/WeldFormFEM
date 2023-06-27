@@ -11,6 +11,7 @@ use SolverLeapfrog
 use SolverVerlet
 use VTKOutput
 use class_ContMesh
+use Mechanical  !Calc equivalent stress
 !use SolverVerlet
 !use Thermal
 !use Mechanical
@@ -161,7 +162,7 @@ implicit none
   
  !dt = 0.7 * dx/(mat_cs)
   dt = 5.0e-6
-  tf = dt * 2.0
+  tf = 1.0e-4
   
   elem%rho(:,:) = rho
   
@@ -169,6 +170,7 @@ implicit none
   print *, "time step size with CFL 0.7", dt
   !call SolveLeapfrog(tf,dt)
   call SolveVerlet(tf,dt)
+  call CalcEquivalentStress()
   
   call WriteMeshVTU('output.vtu')
   
@@ -188,6 +190,7 @@ implicit none
   do i=1,elem_count
     do gp=1, elem%gausspc(i)
       print *, elem%sigma(i,gp,:,:)
+      print *, "Sigma eq ", elem%sigma_eq(i,gp)
     end do
   end do
   print *, "Element strain rates" 
