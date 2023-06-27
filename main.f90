@@ -184,6 +184,12 @@ implicit none
       print *, elem%sigma(i,gp,:,:)
     end do
   end do
+  print *, "Element strain rates" 
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%str_rate(i,gp,:,:)
+    end do
+  end do
   
   !(fname, node, elnod, dimm, issurf)
   !print *, "dim: ", dim, "is surf "
