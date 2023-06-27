@@ -8,6 +8,7 @@ use Domain
 use omp_lib
 use Matrices
 use SolverLeapfrog
+use SolverVerlet
 use VTKOutput
 use class_ContMesh
 !use SolverVerlet
@@ -166,13 +167,18 @@ implicit none
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
-  call SolveLeapfrog(tf,dt)
+  !call SolveLeapfrog(tf,dt)
+  call SolveVerlet(tf,dt)
   
   call WriteMeshVTU('output.vtu')
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"
-  
+
+  do i=1,node_count
+    print *, "nod ", i, "Disp ", nod%u(i,:)  
+  end do  
+    
   do i=1,node_count
     write (1,*) nod%x(i,1), ", ", nod%x(i,2), ", " ,nod%x(i,3)  
     end do

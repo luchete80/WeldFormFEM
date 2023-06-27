@@ -1,0 +1,19 @@
+////////////////////////////////////////////////////////
+////////////////////// BASED ON RANDLES AND LIBERSKY(1996):
+/////////////////////////////////////////////////////////
+/// Randles and Libersky calculate density from current velocity, here is from the velocity at t+1/2
+    // // // 1 CalcAccel(); //Nor density or neither strain rates
+    // // // if (nonlock_sum)AccelReduction();
+
+    // // // if (contact) CalcContactForcesWang();
+
+    // // // 3. Particles[i]->v += Particles[i]->a*deltat/2.*factor;
+
+    // // // 4. //If density is calculated AFTER displacements, it fails
+    // // // CalcDensInc(); //TODO: USE SAME KERNEL?
+    // // // Particles[i]->Density += deltat*Particles[i]->dDensity*factor;
+    // // // 5. x += (Particles[i]->v + Particles[i]->VXSPH)*deltat*factor;
+    
+    // // // 6. Particles[i]->v += Particles[i]->a*deltat/2.*factor;
+    // // // 7. CalcRateTensors();  //With v and xn+1
+    // // // 8. Particles[i]->CalcStressStrain(deltat); //Uses density  
