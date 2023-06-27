@@ -14,9 +14,9 @@ contains
 
 subroutine WriteMeshVTU (fname)
   implicit none
-  character(len=20), intent(in) :: fname
+  character(len=*), intent(in) :: fname
   integer :: e,dof,d,n, offs
-  open (1,file=fname)!, position='APPEND')  
+  open (1,file=fname, action="write")!, position='APPEND')  
   write (1,*)  "<VTKFile type=""UnstructuredGrid"" version=""0.1"" byte_order=""BigEndian"">"
   write (1,*)  "  <UnstructuredGrid>"
   !!!! FOR NOT RETURN CARRIAGE
@@ -36,8 +36,7 @@ subroutine WriteMeshVTU (fname)
   write (1,*) "         <DataArray type=""Int32"" Name=""connectivity"" Format=""ascii"">"
   do e=1, elem_count
     do n=1,nodxelem
-      !write (1,*) elem%elnod(e,n)
-      write(1,"(I3,1x)",advance="no") elem%elnod(e,n) - 1
+      write(1,"(I10,1x)",advance="no") elem%elnod(e,n) - 1
     end do
   end do
   write (1,*) "" !!!! END OF LINE
@@ -46,7 +45,7 @@ subroutine WriteMeshVTU (fname)
   
   offs = nodxelem
   do e=1, elem_count
-      write(1,"(I3,1x)",advance="no") offs
+      write(1,"(I10,1x)",advance="no") offs
       offs = offs + nodxelem
   end do
   write (1,*) "" !!!! END OF LINE
