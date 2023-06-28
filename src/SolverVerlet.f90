@@ -156,6 +156,12 @@ subroutine SolveVerlet (tf, dt)
   call cal_elem_forces()
   call assemble_forces()
 
+  print *, "Element strain rates" 
+  do e=1,elem_count
+    do gp=1, elem%gausspc(e)
+      print *, elem%str_rate(e,gp,:,:)
+    end do
+  end do
 
     do n=1,node_count
       do d=1,dim

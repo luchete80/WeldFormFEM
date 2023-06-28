@@ -23,7 +23,7 @@ integer :: nodxelem !TODO: SET TO ELEMEENT VAR
 
 real(fp_kind), dimension(3):: dommax, dommin
 
-real(fp_kind)::mat_G, mat_E!TODO: change to material
+real(fp_kind)::mat_G, mat_K, mat_cs0, mat_E!TODO: change to material
 real(fp_kind):: time
 logical :: calc_m
 contains 

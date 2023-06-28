@@ -28,9 +28,10 @@ subroutine cal_elem_strains ()
       f = 1.0d0/elem%detJ(e,gp)
       temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
-      print *, "standard stran rate calc (matricial) "
-      test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
-      print *, "e11 e22 e33 2e12 2e23 2e31", test
+      !print *, "standard stran rate calc (matricial) "
+      ! !!!! DEFAULT (TODO: CHECK IF IS SLOW)
+      !test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
+      !print *, "e11 e22 e33 2e12 2e23 2e31", test
 
       do n=1, nodxelem  
         do d=1, dim
@@ -42,7 +43,7 @@ subroutine cal_elem_strains ()
                                    + temp(1,n) * elem%vele (e,dim*(n-1)+2,1)
         elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
                                    - temp(1,n) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
-        if (dim .eq. 3) then
+        if (dim == 3) then
           elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
                                      + temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
           elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
@@ -70,8 +71,8 @@ subroutine cal_elem_strains ()
       end if
 
       !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-      print *, "simlpified strain rate "
-      print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      !print *, "simlpified strain rate "
+      !print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
@@ -116,7 +117,7 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-        !print *, "Node ", n, "Force ", elem%f_int(e,n,:) 
+        !print *, "Node ", n, "Force simplified ", elem%f_int(e,n,:) 
       end do! nod x elem
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
@@ -135,6 +136,7 @@ end subroutine
 subroutine calc_hourglass_forces
   implicit none
   integer :: e, n, j, d, gp, jmax
+  real(fp_kind) :: c_h
   real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   real(fp_kind), dimension(dim,4) :: hmod
@@ -144,10 +146,10 @@ subroutine calc_hourglass_forces
   else
     jmax = 4
   end if
-  !!! TODO: TO BE DEFINED IN DOMAIN ONCE 
-  hmod(:,:) = 0.0d0
+  !!! TODO: TO BE DEFINED IN DOMAIN ONCE hmod(:,:) = 0.0d0
   elem%hourg_nodf(:,:,:) = 0.0d0
   if (dim .eq. 3) then
+    !Also in Flanagan Appendix (data GB in program)
     Sig(1,:) = [ 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125]
     Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
     Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
@@ -159,6 +161,7 @@ subroutine calc_hourglass_forces
   gp = 1
   do e=1, elem_count    
     if (elem%gausspc(e) .eq. 1) then
+      hmod(:,:) = 0.0d0
       !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
       !print *, "test ", test
       !print *, "dHxy ", elem%dHxy(e,gp,:,:)
@@ -168,9 +171,9 @@ subroutine calc_hourglass_forces
           vel (n,d) = nod%v(elem%elnod(e,n),d)    
         end do
       end do
-      do j =1,jmax
-        do n=1,nodxelem
-          hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension, GOUDREAU EQN (30)
+      do j =1,jmax !MODE
+        do n=1,nodxelem !1:4 or 8
+          hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
         end do
       end do
       
@@ -179,6 +182,9 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
+      c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      print *, "hourglass c ", c_h
+      elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) * c_h
   else
     !print *, "NO HOURGLASS"
     end if
