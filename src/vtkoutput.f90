@@ -93,7 +93,12 @@ subroutine WriteMeshVTU (fname)
     write (1,*) nod%rho(n)
   end do   
   write (1,*) "        </DataArray>"  
-  
+
+  write (1,*) "        <DataArray type=""Float32"" Name=""sigma_eq"" NumberOfComponents=""1"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%sigma_eq(n)
+  end do   
+  write (1,*) "        </DataArray>"    
   
   
   
