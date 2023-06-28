@@ -162,14 +162,14 @@ implicit none
   
  !dt = 0.7 * dx/(mat_cs)
   dt = 5.0e-6
-  tf = 1.0e-4
+  tf = 1.5e-4
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
   print *, "time step size with CFL 0.7", dt
-  !call SolveLeapfrog(tf,dt)
-  call SolveVerlet(tf,dt)
+  call SolveLeapfrog(tf,dt)
+  !call SolveVerlet(tf,dt)
   call CalcEquivalentStress()
   
   call WriteMeshVTU('output.vtu')

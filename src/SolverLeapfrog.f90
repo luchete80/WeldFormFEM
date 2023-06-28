@@ -115,7 +115,7 @@ subroutine SolveLeapfrog (tf, dt)
   !print *, "m glob", m_glob
   ! print *, "done"
   nod%u(:,:) = 0.0d0
-  debug_mode = .false.
+  debug_mode = .true.
   first_step  = .true.
   
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
