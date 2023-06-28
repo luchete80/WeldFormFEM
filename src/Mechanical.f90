@@ -16,6 +16,7 @@ subroutine cal_elem_strains ()
   integer :: e, i,j,k, gp, d, n
   real(fp_kind), dimension(dim,nodxelem) ::temp
   real(fp_kind) :: f
+  real(fp_kind) :: test(1,6) !ifwanted to test in tensor form
   
   elem%str_rate = 0.0d0
   elem%rot_rate = 0.0d0
@@ -27,6 +28,10 @@ subroutine cal_elem_strains ()
       f = 1.0d0/elem%detJ(e,gp)
       temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+      print *, "standard stran rate calc (matricial) "
+      test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
+      print *, "e11 e22 e33 2e12 2e23 2e31", test
+
       do n=1, nodxelem  
         do d=1, dim
           elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
@@ -44,7 +49,7 @@ subroutine cal_elem_strains ()
                                      + temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
           elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &
                                      - temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-          elem%rot_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
+          elem%rot_rate(e,gp, 1,3) = elem%rot_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
                                      - temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
         end if     
       end do !Nod x elem
@@ -65,7 +70,8 @@ subroutine cal_elem_strains ()
       end if
 
       !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-      !print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      print *, "simlpified strain rate "
+      print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element

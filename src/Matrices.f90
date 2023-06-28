@@ -348,9 +348,9 @@ subroutine calculate_element_derivMat ()
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0          
           ! print *, "1,1", elem%dHxy(e,gp,1,1), "inv 1,1 1,2 1,3", invJ(1,1), invJ(1,2), invJ(1,3)
           ! print *, "1,1", elem%dHxy(e,gp,2,1), "inv 1,1 1,2 1,3", invJ(2,1), invJ(2,2), invJ(2,3)
-          do k=1,nodxelem
+          do k=1,nodxelem !!! TABLE 6.6 page 556 bathe, 24 x 6
             do d=1,dim
-            elem%bl(e,gp,d,dim*(k-1)+d ) = elem%dHxy_detJ(e,gp,d,k) 
+              elem%bl(e,gp,d,dim*(k-1)+d ) = elem%dHxy_detJ(e,gp,d,k) 
             end do
             elem%bl(e,gp,4,dim*(k-1)+1) = elem%dHxy_detJ(e,gp,2,k)
             elem%bl(e,gp,4,dim*(k-1)+2) = elem%dHxy_detJ(e,gp,1,k)
