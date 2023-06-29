@@ -100,11 +100,11 @@ subroutine cal_elem_forces ()
       sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
                         elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
       test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
-      print *, "test force", test
+      !print *, "test force", test
       
-      print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,1,:)
-      print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
       
       do n=1, nodxelem
       !Is only linear matrix?    
@@ -129,11 +129,11 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-          print *, "Node ", n, "F  ", elem%f_int(e,n,:) * w 
+        !print *, "Node ", n, "F  ", elem%f_int(e,n,:) * w 
       end do! nod x elem
-      print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
-      print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
-      print *, "s33 ", elem%sigma (e,gp, 3,3)
+      !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
+      !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
+      !print *, "s33 ", elem%sigma (e,gp, 3,3)
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
   end do!elem
@@ -254,9 +254,11 @@ subroutine calc_elem_density ()
       do gp = 1, elem%gausspc(e)
         !!!!CALCULATE DEFORMATION GRADIENT
         F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-        !print *, "det F", det(F)
+        print *, "det F", det(F)
         !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
         elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
+        print *, "det F", det(F)
+        print *, "Elem rho_0 rho", elem%rho_0(e,gp) ,elem%rho(e,gp) 
       end do
     end if
   end do
