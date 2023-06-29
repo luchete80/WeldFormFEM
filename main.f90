@@ -167,14 +167,14 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 1.0e-4
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
-  !call SolveLeapfrog(tf,dt)
-  call SolveVerlet(tf,dt)
+  call SolveLeapfrog(tf,dt)
+  !call SolveVerlet(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))

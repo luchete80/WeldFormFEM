@@ -197,7 +197,7 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-      c_h  = 0.1 * 8* elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
   else
@@ -244,23 +244,24 @@ subroutine calc_elem_density ()
   
   integer :: e, n, gp
   do e = 1, elem_count
-
-    if (elem%gausspc(e) .eq. 1) then
-      elem%rho(e,1) = elem%rho_0(e,1)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
-    else 
-      do n=1,nodxelem 
-        x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
-      end do
-      do gp = 1, elem%gausspc(e)
-        !!!!CALCULATE DEFORMATION GRADIENT
-        F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-        print *, "det F", det(F)
-        !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
-        elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
-        print *, "det F", det(F)
-        print *, "Elem rho_0 rho", elem%rho_0(e,gp) ,elem%rho(e,gp) 
-      end do
-    end if
+    do gp=1, elem%gausspc(e)
+    !if (elem%gausspc(e) .eq. 1) then
+      elem%rho(e,gp) = elem%rho_0(e,gp)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
+    end do
+    ! else !!!CORRECT WAY FOFR FULL INTEGRATION 
+      ! do n=1,nodxelem 
+        ! x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      ! end do
+      ! do gp = 1, elem%gausspc(e)
+        ! !!!!CALCULATE DEFORMATION GRADIENT
+        ! F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+        ! print *, "det F", det(F)
+        ! !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
+        ! elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
+        ! print *, "det F", det(F)
+        ! print *, "Elem rho_0 rho", elem%rho_0(e,gp) ,elem%rho(e,gp) 
+      ! end do
+    ! end if
   end do
 end subroutine
 

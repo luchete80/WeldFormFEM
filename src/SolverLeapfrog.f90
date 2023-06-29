@@ -215,75 +215,30 @@ subroutine SolveLeapfrog (tf, dt)
   nod%u = nod%u +  nod%v * dt
   nod%x = nod%x + nod%u
 
-  if (debug_mode .eqv. .true.) then
-  do n=1,node_count
-    print *, "nod ", n, "v ", nod%v(n,:)  
-  end do  
-  print *, "delta t", dt
-  do n=1,node_count
-    print *, "nod ", n, "x ", nod%x(n,:)  
-  end do  
-  end if
   !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
   !!!! IN ORDER TO CALC VOL
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
-  
-  if (debug_mode .eqv. .true.) then
-    print *,"Element Vol"
-    do n = 1, elem_count
-      print *, elem%vol(n)
-    end do
-    print *,"Element Mass"
-    do n = 1, elem_count
-      print *, elem%mass(n)
-    end do
-  end if
+
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
   ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
   ! state.
   !!! THIS IS CALCULATE NOW IN ORDER TO UPDATE STRESS WITH CURRENT PRESSURE
+  do e=1,elem_count
+  if (elem%gausspc(e) > 1) then
+      call calculate_element_dhxy0
+    end if
+  end do
   call calc_elem_density
   call calc_elem_pressure
-  
-  if (debug_mode .eqv. .true.) then
-    print *,"Element Density"
-    do n = 1, elem_count
-      print *, elem%rho(n,:)
-    end do
-    
-    print *,"Element pressure"
-    do n = 1, elem_count
-      print *, elem%pressure(n,:)
-    end do
-  
-  end if 
-  
-  ! (4) The constitutive model for the strength of the material is integrated from t to t_n+1 now
-  ! that the motion of the material is known.
-  print *, "Calc stresses "
+
   call CalcStressStrain(dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
   call calc_hourglass_forces
-  if (debug_mode .eqv. .true.) then
-    do n=1,elem_count
-    print *, "hourglass forces ", elem%hourg_nodf(n,:,:)
-    end do
-  end if
-! (6) The internal energy is updated based on the work done between tn and t_n+1.
-
-  call AverageData(elem%rho(:,1),nod%rho(:))
-  !if (debug_mode .eqv. .true.) then
-    do n=1,node_count
-      print *, "nod ", n, "Disp ", nod%u(n,:)  
-    end do  
-  !end if
-  ! print *, "nod v", nod%v(:,:)
-  
 
   time = time + dt
   end do !time

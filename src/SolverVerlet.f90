@@ -147,9 +147,12 @@ subroutine SolveVerlet (tf, dt)
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
-  if (dim == 2) then
-    call calculate_element_dhxy0
-  end if
+  do e=1,elem_count
+  if (elem%gausspc(e) > 1) then
+      call calculate_element_dhxy0
+    end if
+  end do
+  
   call calc_elem_density
   print *, "Element density ", elem%rho(:,:)
   call calc_elem_pressure
