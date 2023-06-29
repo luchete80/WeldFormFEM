@@ -124,7 +124,12 @@ subroutine SolveVerlet (tf, dt)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
-
+  ! if (time < 10.0d0*dt) then
+    ! nod%bcv(5:8,3) = -0.1 * time/(10.0d0*dt)
+  ! else 
+    ! nod%bcv(5:8,3) = -0.1
+  ! end if 
+  
     do n=1,elem_count
       if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
         call calculate_element_shapeMat() !AND MASS
