@@ -62,16 +62,17 @@ contains
     real(fp_kind), intent(in) :: dens
     real :: area
     
-    integer, dimension(4) :: n
+    integer, dimension(4) :: n, e
     integer, dimension(3) :: dir 
-    integer :: i, j, el, test
+    integer :: i, j, el, test, elcon(2,3)
     real(fp_kind) ::x1,x2,x3,dl
     real(fp_kind), dimension(3) :: p
     
     this%elem_count = dens * dens
     this%node_count = (dens +1) * (dens + 1)
     
-    allocate (this%x(node_count,dim))
+    allocate (this%x(this%node_count,dim))
+    allocate (this%elnod(this%elem_count,dim))
         
     if (dim .eq. 2) then 
       elem_count = dens 
@@ -124,6 +125,7 @@ contains
 	! int i;
   ! cout << "Creating elements "<<endl;
   print *, "Creating contact mesh elements.. "
+
   if (dim .eq. 3) then
     ! for (size_t j = 0 ;j  < dens; j++ ) {
           ! // cout <<"j, dens" <<j<<", "<<dens<<endl;
@@ -138,6 +140,13 @@ contains
                           ! // For all plane orientations
         ! //If connectivity  is anticlockwise normal is outwards
         ! if (positaxisorent) {
+          if (positaxisorent .eqv. .true.) then
+            elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3);
+            elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);
+          else 
+            elcon(1,1) = n(1);elcon(1,2) = n(3);elcon(1,3) = n(2);
+            elcon(2,1) = n(2);elcon(2,2) = n(3);elcon(2,3) = n(4);          
+          endif
           ! elcon[0][0] = n[0];elcon[0][1] = n[1];elcon[0][2] = n[2];
           ! elcon[1][0] = n[1];elcon[1][1] = n[3];elcon[1][2] = n[2];
         ! } else {
@@ -145,6 +154,9 @@ contains
           ! elcon[1][0] = n[1];elcon[1][1] = n[2];elcon[1][2] = n[3];				
         ! }
         ! //cout << "elnodes"<<endl;
+          ! do e=1,2
+            ! !this%elnod(e)
+          ! end do
         ! for ( int e= 0; e<2;e++) { // 2 triangles
           ! element.Push(new Element(elcon[e][0],elcon[e][1],elcon[e][2]));		
           ! //cout << "Element "<< el <<": ";

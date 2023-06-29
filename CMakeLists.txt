@@ -32,11 +32,11 @@ endif()
 file(GLOB_RECURSE sources  src/*.f90 src/*.cpp src/*.h)
 
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
-add_executable(cylinder ${sources} main_cylinder.f90) #Single case 1 element
-add_executable(beam ${sources} main_beam.f90) #Single case 1 element
+# add_executable(cylinder ${sources} main_cylinder.f90) #Single case 1 element
+# add_executable(beam ${sources} main_beam.f90) #Single case 1 element
 
 
 SET_TARGET_PROPERTIES(WeldForm PROPERTIES LINKER_LANGUAGE Fortran)
-SET_TARGET_PROPERTIES(cylinder PROPERTIES LINKER_LANGUAGE Fortran)
+# SET_TARGET_PROPERTIES(cylinder PROPERTIES LINKER_LANGUAGE Fortran)
 
-SET_TARGET_PROPERTIES(beam PROPERTIES LINKER_LANGUAGE Fortran)
+# SET_TARGET_PROPERTIES(beam PROPERTIES LINKER_LANGUAGE Fortran)

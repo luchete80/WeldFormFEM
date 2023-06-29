@@ -10,7 +10,7 @@ use Matrices
 use SolverLeapfrog
 use SolverVerlet
 use VTKOutput
-use class_ContMesh
+!use class_ContMesh
 use Mechanical  !Calc equivalent stress
 !use SolverVerlet
 !use Thermal
@@ -39,7 +39,7 @@ implicit none
   integer, pointer :: eltest(:)
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
-  integer:: i, tnr, maxt ,nn
+  integer:: i, tnr, maxt ,nn, el, d, d2
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
@@ -133,7 +133,7 @@ implicit none
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   else 
     nod%is_bcv(5:8,3) = .true.
-    nod%bcv(5:8,3) = -1.0d0
+    nod%bcv(5:8,3) = -0.1d0
     
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     
@@ -167,7 +167,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-4
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
@@ -178,6 +178,12 @@ implicit none
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
+  
+    do d=1,3
+      do d2=1,3
+      call AverageData(elem%sigma(:,1,d,d2),nod%sigma(:,d,d2))
+      end do
+    end do
   
   call WriteMeshVTU('output.vtu')
   

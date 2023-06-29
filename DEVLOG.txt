@@ -40,4 +40,5 @@
 20230628 - Fixed ERROR in rot rate value
          - Fixed hourglass calculation (increment)
          - Fixed Hourglass forces magnitude
+20230629 - Added sigma symm tensor output to vtk
          
