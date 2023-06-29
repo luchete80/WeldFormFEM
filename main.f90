@@ -93,7 +93,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .True.
+  reduced_int = .False.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   
   print *, "NODE ELEMENTS "
@@ -156,21 +156,28 @@ implicit none
   mat_G= young / (2.0* (1.0 + poisson));
   
   mat_cs = sqrt(mat_modK/rho)
+  mat_cs0 = mat_cs
   print *, "Material Cs: ", mat_cs
   
   elem%cs(:) = mat_cs
   
- !dt = 0.7 * dx/(mat_cs)
-  dt = 5.0e-6
-  tf = 1.5e-4
+  dt = 0.7 * dx/(mat_cs)
+  print *, "time step size with CFL 0.7", dt
+  
+  !dt = 5.0e-6
+  !tf = 1.5e-4
+  dt = 1.0e-5
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
-  print *, "time step size with CFL 0.7", dt
-  call SolveLeapfrog(tf,dt)
-  !call SolveVerlet(tf,dt)
+
+  !call SolveLeapfrog(tf,dt)
+  call SolveVerlet(tf,dt)
   call CalcEquivalentStress()
+  call AverageData(elem%rho(:,1),nod%rho(:))
+  call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
   
   call WriteMeshVTU('output.vtu')
   
@@ -180,7 +187,15 @@ implicit none
   do i=1,node_count
     print *, "nod ", i, "Disp ", nod%u(i,:)  
   end do  
-    
+
+  do i=1,node_count
+    print *, "nod ", i, "Vel ", nod%v(i,:)  
+  end do  
+
+  do i=1,node_count
+    print *, "nod ", i, "Acc ", nod%a(i,:)  
+  end do  
+  
   do i=1,node_count
     write (1,*) nod%x(i,1), ", ", nod%x(i,2), ", " ,nod%x(i,3)  
     end do
@@ -199,7 +214,27 @@ implicit none
       print *, elem%str_rate(i,gp,:,:)
     end do
   end do
+
+  print *, "Global forces "
+    do nn=1,node_count
+        print *, rint_glob(nn,:)
+    end do
+        
+  print *, "Internal forces " 
+  do i=1,elem_count  
+    print *, "elem ", i
+    do nn=1,nodxelem
+      print *, elem%f_int(i,nn,:) 
+    end do
+  end do
   
+  print *, "Hourglass forces " 
+  do i=1,elem_count  
+    print *, "elem ", i
+    do nn=1,nodxelem
+      print *, elem%hourg_nodf(i,nn,:) 
+    end do
+  end do
   !(fname, node, elnod, dimm, issurf)
   !print *, "dim: ", dim, "is surf "
   allocate (ncount_int)

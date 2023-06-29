@@ -37,3 +37,7 @@
          - Fixed addboxlength node arrangement
          - Added Verlet Solver
          - Added Equivalent stress calc
+20230628 - Fixed ERROR in rot rate value
+         - Fixed hourglass calculation (increment)
+         - Fixed Hourglass forces magnitude
+         

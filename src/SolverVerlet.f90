@@ -153,8 +153,8 @@ subroutine SolveVerlet (tf, dt)
   call CalcStressStrain(dt)
   
   call calc_hourglass_forces
-  call cal_elem_forces()
-  call assemble_forces()
+  call cal_elem_forces
+  call assemble_forces
 
   print *, "Element strain rates" 
   do e=1,elem_count
@@ -173,7 +173,7 @@ subroutine SolveVerlet (tf, dt)
   nod%v = nod%v + dt/2.0 * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
   
-  call AverageData(elem%rho(:,1),nod%rho(:))  
+  !call AverageData(elem%rho(:,1),nod%rho(:))  
 
   time = time + dt
   end do !time

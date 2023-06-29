@@ -84,6 +84,9 @@ subroutine cal_elem_forces ()
   integer :: e, i,j,k, gp,n, d
   real(fp_kind), dimension(dim*nodxelem,1) ::f
   real(fp_kind) :: w
+  !TESTING
+  real (fp_kind) :: sigma_test(6,1) !ORDERED
+  real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
 
@@ -94,6 +97,15 @@ subroutine cal_elem_forces ()
     do gp = 1, elem%gausspc(e)
       !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
       !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+      sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
+                        elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
+      test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
+      print *, "test force", test
+      
+      print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+      print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,1,:)
+      print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+      
       do n=1, nodxelem
       !Is only linear matrix?    
       !elem%f_int(e,n,d) =  
@@ -103,7 +115,7 @@ subroutine cal_elem_forces ()
       !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       !!!!! 
         do d=1, dim
-          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          elem%f_int(e,n,d) = elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           !!elem%f_int(e,n,1) = 
@@ -117,8 +129,11 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-        !print *, "Node ", n, "Force simplified ", elem%f_int(e,n,:) 
+          print *, "Node ", n, "F  ", elem%f_int(e,n,:) * w 
       end do! nod x elem
+      print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
+      print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
+      print *, "s33 ", elem%sigma (e,gp, 3,3)
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
   end do!elem
@@ -182,9 +197,9 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-      c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      print *, "hourglass c ", c_h
-      elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) * c_h
+      c_h  = 0.1 * 8* elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      !print *, "hourglass c ", c_h
+      elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
   else
     !print *, "NO HOURGLASS"
     end if
@@ -339,7 +354,7 @@ subroutine calc_elem_vol ()
       print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
-    !print *, "Elem ", e, "vol ",elem%vol(e)
+    print *, "Elem ", e, "vol ",elem%vol(e)
   end do
 
 end subroutine

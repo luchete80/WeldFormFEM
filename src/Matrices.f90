@@ -210,7 +210,7 @@ subroutine calculate_element_Jacobian ()
       end if
     end if !!gp ==1
 ! #if defined _PRINT_DEBUG_
-    ! print *, "jacob ", elem%jacob(e,gp,:,:)
+    print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
   end do !element
 
@@ -324,6 +324,9 @@ subroutine calculate_element_derivMat ()
           
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
       else !!!DIM 3
+          print *, "detJ", elem%detJ(e,gp)
+          print *, "adjJ", invJ
+          print *, "invJ", invJ/elem%detJ(e,gp)
           ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
@@ -398,10 +401,10 @@ subroutine calculate_element_derivMat ()
       if (dim .eq. 3)then  !!!! dim 3
         do gp = 1,8
           invJ = adj(elem%jacob(e,gp,:,:))!!!!/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
-          print *, "detJ", elem%detJ(e,gp)
-          print *, "invJ", invJ
-          elem%dHxy_detJ(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
-          print *, "dHxy", elem%dHxy(e,gp,:,:)
+          !print *, "detJ", elem%detJ(e,gp)
+          !print *, "invJ", invJ
+          elem%dHxy_detJ(e,gp,:,:) = 0.125d0 * matmul(invJ,elem%dHrs(e,gp,:,:))
+          !print *, "dHxy", elem%dHxy(e,gp,:,:)
         end do !!!!gp
       end if!!!di 3
     end if
