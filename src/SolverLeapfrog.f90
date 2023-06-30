@@ -208,6 +208,8 @@ subroutine SolveLeapfrog (tf, dt)
   
   !At the end
   nod%v = nod%v + dt/2. * nod%a   
+  call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  call cal_elem_strains
 
 end subroutine SolveLeapfrog
 
