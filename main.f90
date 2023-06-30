@@ -133,7 +133,7 @@ implicit none
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   else 
     nod%is_bcv(5:8,3) = .true.
-    nod%bcv(5:8,3) = -0.1d0
+    nod%bcv(5:8,3) = -1.0d0
     
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     
@@ -167,14 +167,14 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-4
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
-  !call SolveLeapfrog(tf,dt)
-  call SolveVerlet(tf,dt)
+  call SolveLeapfrog(tf,dt)
+  !call SolveVerlet(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))

@@ -77,7 +77,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
- 
+ real(fp_kind), dimension(node_count,dim) :: v_med !! v_t+1/2
   real(fp_kind), dimension(nodxelem,dim) :: xtest
 
   call set_edof_from_elnod()
@@ -114,6 +114,7 @@ subroutine SolveLeapfrog (tf, dt)
   
   !print *, "m glob", m_glob
   ! print *, "done"
+  v_med = 0.0d0
   nod%u(:,:) = 0.0d0
   debug_mode = .true.
   first_step  = .true.
@@ -201,8 +202,12 @@ subroutine SolveLeapfrog (tf, dt)
     end do
     call impose_bca
     
+    !! IF OUTPUT CORRECT VEL
   time = time + dt
   end do !time
+  
+  !At the end
+  nod%v = nod%v + dt/2. * nod%a   
 
 end subroutine SolveLeapfrog
 
