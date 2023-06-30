@@ -174,7 +174,7 @@ subroutine SolveVerlet (tf, dt)
   print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)
-  
+  print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces
   call assemble_forces
