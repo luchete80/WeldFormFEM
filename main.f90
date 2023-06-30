@@ -167,7 +167,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-4
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
@@ -221,6 +221,13 @@ implicit none
     end do
   end do
 
+  print *, "Element rot rates" 
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%rot_rate(i,gp,:,:)
+    end do
+  end do
+  
   print *, "Global forces "
     do nn=1,node_count
         print *, rint_glob(nn,:)
