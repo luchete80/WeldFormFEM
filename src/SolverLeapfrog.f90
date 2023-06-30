@@ -155,9 +155,8 @@ subroutine SolveLeapfrog (tf, dt)
   call impose_bcv !!!REINFORCE VELOCITY BC
 
 
-  !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%u = nod%u +  nod%v * dt
-  nod%x = nod%x + nod%u
+
+  
 
   !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
   !!!! IN ORDER TO CALC VOL
@@ -167,6 +166,9 @@ subroutine SolveLeapfrog (tf, dt)
 
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+  
+  nod%x = nod%x + nod%u
+  nod%u = nod%u +  nod%v * dt  
 
   ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
   ! state.
@@ -190,7 +192,13 @@ subroutine SolveLeapfrog (tf, dt)
         call calculate_element_shapeMat() !AND MASS
       end if
     end do
-
+  
+  !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS
+  call calculate_element_Jacobian()  
+  call calc_elem_vol
+  call calculate_element_derivMat() !!! WITH NEW SHAPE
+  
+  
     call cal_elem_forces()
     call assemble_forces()
     

@@ -324,9 +324,9 @@ subroutine calculate_element_derivMat ()
           
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
       else !!!DIM 3
-          print *, "detJ", elem%detJ(e,gp)
-          print *, "adjJ", invJ
-          print *, "invJ", invJ/elem%detJ(e,gp)
+          !print *, "detJ", elem%detJ(e,gp)
+          !print *, "adjJ", invJ
+          !print *, "invJ", invJ/elem%detJ(e,gp)
           ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0]
           ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
           ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
