@@ -63,13 +63,13 @@ contains
     integer, intent(in) :: dens
     real :: area
     
-    integer, dimension(4) :: n, e
+    integer, dimension(4) :: n
     integer, dimension(3) :: dir 
-    integer :: i, j, el, test, elcon(2,3), k
+    integer :: i, j, e, test, elcon(2,3), k
     real(fp_kind) ::x1,x2,x3,dl,v(3)
     real(fp_kind), dimension(3) :: p
     
-    this%elem_count = dens * dens
+    this%elem_count = 2 * dens * dens
     this%node_count = (dens +1) * (dens + 1)
     
     print *, "Contact  Mesh with ", this%node_count, " nodes and ", this%elem_count, " elements was created."
@@ -131,63 +131,27 @@ contains
   print *, "Creating contact mesh elements.. "
 
   if (dim .eq. 3) then
+    e = 1
     do j=1,dens
       do i=1,dens    
-        n(1) = (dens + 2)* j + i; 		n(2) = n(1) + 1; 
-        n(3) = (dens + 2)* (j+2) + i; n(4) = n(3) + 1;
+        n(1) = (dens + 1)* (j-1) + i; 		n(2) = n(1) + 1;   !!!! 3--4
+        n(3) = (dens + 1)* j + i;         n(4) = n(3) + 1;   !!!! 1--2
+        !print * , "Node ", n
         if (positaxisorent .eqv. .true.) then
-          elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3);
-          elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);
+          elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3); !! 1, 2, 3
+          elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);!!! 2,4,3
         else 
           elcon(1,1) = n(1);elcon(1,2) = n(3);elcon(1,3) = n(2);
           elcon(2,1) = n(2);elcon(2,2) = n(3);elcon(2,3) = n(4);          
         endif
+        this%elnod(e,:)   = elcon(1,:)
+        this%elnod(e+1,:) = elcon(2,:)
+        !print *, "Element ", e,this%elnod(e,:) 
+        !print *, "Element ", e+1,this%elnod(e+1,:)
+        e = e + 2
       end do
     end do 
-    ! for (size_t j = 0 ;j  < dens; j++ ) {
-          ! // cout <<"j, dens" <<j<<", "<<dens<<endl;
-          ! // cout <<"j<dens"<< (j  < dens)<<endl;
-      ! for ( i = 0; i < dens; i++ ){
-          ! // cout <<"i, dens" <<i<<", "<<dens<<endl;
-          ! // cout <<"i <dens"<< (i  < dens)<<endl;
-          ! n[0] = (dens + 1)* j + i; 		n[1] = n[0] + 1; 
-          ! n[2] = (dens + 1)* (j+1) + i; n[3] = n[2] + 1;
-        ! //cout <<" jj" << jj<<endl;
-        ! int elcon[2][3];	// TODO: check x, y and z normals and node direction 
-                          ! // For all plane orientations
-        ! //If connectivity  is anticlockwise normal is outwards
-        ! if (positaxisorent) {
-          if (positaxisorent .eqv. .true.) then
-            elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3);
-            elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);
-          else 
-            elcon(1,1) = n(1);elcon(1,2) = n(3);elcon(1,3) = n(2);
-            elcon(2,1) = n(2);elcon(2,2) = n(3);elcon(2,3) = n(4);          
-          endif
-          ! elcon[0][0] = n[0];elcon[0][1] = n[1];elcon[0][2] = n[2];
-          ! elcon[1][0] = n[1];elcon[1][1] = n[3];elcon[1][2] = n[2];
-        ! } else {
-          ! elcon[0][0] = n[0];elcon[0][1] = n[2];elcon[0][2] = n[1];
-          ! elcon[1][0] = n[1];elcon[1][1] = n[2];elcon[1][2] = n[3];				
-        ! }
-        ! //cout << "elnodes"<<endl;
-          ! do e=1,2
-            ! !this%elnod(e)
-          ! end do
-        ! for ( int e= 0; e<2;e++) { // 2 triangles
-          ! element.Push(new Element(elcon[e][0],elcon[e][1],elcon[e][2]));		
-          ! //cout << "Element "<< el <<": ";
-          ! // for (int en = 0 ; en<3; en++) cout << elcon[e][en]<<", ";
-          ! // cout <<endl;
-          
-          ! Vec3_t v = ( *node[elcon[e][0]] + *node[elcon[e][1]] + *node[elcon[e][2]] ) / 3. ;
-          ! element[el] -> centroid = v; 
-          ! //cout << "Centroid" << element[el] -> centroid << endl;
-          ! el++;
-        ! }
-      ! }// i for
-      
-    ! }
+
   else ! dim = 2
     ! for ( i = 0; i < dens; i++ ){
           ! n[0] = i; 		n[1] = n[0] + 1; 
