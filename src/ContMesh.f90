@@ -74,6 +74,7 @@ contains
     
     print *, "Contact  Mesh with ", this%node_count, " nodes and ", this%elem_count, " elements was created."
     allocate (this%x(this%node_count,dim))
+    allocate (this%v(this%node_count,dim))
     allocate (this%elnod(this%elem_count,dim))
         
     if (dim .eq. 2) then 
