@@ -194,6 +194,9 @@ subroutine SolveVerlet (tf, dt)
   call impose_bca
   
   nod%v = nod%v + dt/2.0 * nod%a   
+    do e=5,8  
+  elem%f_ext(1,e,:) = [0.0d0,0.0d0,0.0d0] !!!ELEMENT 1, node 3,
+  end do
   call impose_bcv !!!REINFORCE VELOCITY BC
   
   !call AverageData(elem%rho(:,1),nod%rho(:))  

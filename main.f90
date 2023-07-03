@@ -136,8 +136,9 @@ implicit none
     ! nod%is_bcv(5:8,3) = .true.
     ! nod%bcv(5:8,3) = -1.0d0
     !ONLY INTIIAL
-    !elem%f_ext(1,5:8,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
-    
+    do i=5,8
+      elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    end do
   
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     
