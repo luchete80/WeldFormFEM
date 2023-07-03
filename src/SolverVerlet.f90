@@ -100,9 +100,9 @@ subroutine SolveVerlet (tf, dt)
   end do
   call impose_bca
   
-  ! do n=1,node_count
-    ! print *, "Initial accel ", n, "a ", nod%a(n,:)  
-  ! end do  
+  do n=1,node_count
+    print *, "Initial accel ", n, "a ", nod%a(n,:)  
+  end do  
   
   !!!! IF ONLY ARE SET bcv 
   call impose_bcv
