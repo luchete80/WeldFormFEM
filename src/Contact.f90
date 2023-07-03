@@ -12,7 +12,7 @@ subroutine CalcCoontactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
     implicit none
     type (Mesh), intent(in) :: trimesh
     type (dom_type), intent (in):: dom
-    integer :: n
+    integer :: sn, me ! master node, slave element
 		! Vec3_t xij, qj;
 		! double h,K;
     !!!! LOOP FROM MASTER 
@@ -33,8 +33,9 @@ subroutine CalcCoontactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
     
       ! vr = Particles[P1]->v - Particles[P2]->v;		//Fraser 3-137
       !Calculate velocity at element face centroid
-      do n=1, size(dom%slavenod)
-      !vr = - trimesh%v(e) 
+      do sn=1, size(dom%slavenod)
+        do me=1, size(dom%slavenod)
+          !vr = dom%x(dom%slavenod(mn))- trimesh%v(e) 
 			
       ! delta_ = - dot( Particles[P2]->normal , vr);	//Penetration rate, Fraser 3-138
       
@@ -107,6 +108,7 @@ subroutine CalcCoontactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
 
 
             ! Particles[P1] -> a += Particles[P1] -> contforce / Particles[P1] -> Mass; 
+    end do !master element
   end do ! Mesh Slave Nodes
 end subroutine CalcCoontactForces
 
