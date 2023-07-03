@@ -4,6 +4,9 @@ use ModPrecision, only : fp_kind
 use NodeData
 use ElementData
 use Domain
+use class_ContMesh
+ 
+contains
 
 subroutine CalcCoontactForces(trimesh) !!!! TODO: ADD DOMAIN
     type (Mesh), intent(in) :: trimesh
@@ -103,3 +106,5 @@ subroutine CalcCoontactForces(trimesh) !!!! TODO: ADD DOMAIN
             ! Particles[P1] -> a += Particles[P1] -> contforce / Particles[P1] -> Mass; 
 
 end subroutine CalcCoontactForces
+
+end Module Contact
