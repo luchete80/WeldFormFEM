@@ -7,6 +7,11 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
+type Dom_type
+integer, dimension (:), allocatable ::slavenod
+
+end Type Dom_type
+
 integer :: Dim, node_count, elem_count, Nproc, dof 
 !!!!! THIS SHOULD BE INSIDE OF DOMAIN
 type(Node)	::nod
@@ -27,6 +32,8 @@ real(fp_kind)::mat_G, mat_K, mat_cs0, mat_E!TODO: change to material
 real(fp_kind):: time
 logical :: calc_m
 contains 
+
+  
 
   subroutine DomInit(proc)
     integer, intent(in)::proc
