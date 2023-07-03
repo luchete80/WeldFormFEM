@@ -9,6 +9,7 @@ use omp_lib
 use Matrices
 use SolverLeapfrog
 use SolverVerlet
+!use SolverRedVerlet
 use VTKOutput
 !use class_ContMesh
 use Mechanical  !Calc equivalent stress
@@ -167,7 +168,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 1.0e-4
   
   elem%rho(:,:) = rho
   
