@@ -41,4 +41,4 @@
          - Fixed hourglass calculation (increment)
          - Fixed Hourglass forces magnitude
 20230629 - Added sigma symm tensor output to vtk
-         
+20230702 - Added Contact Mesh

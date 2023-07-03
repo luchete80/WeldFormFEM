@@ -53,25 +53,28 @@ contains
 
 
   !AxisPlaneMesh(const int &axis, bool positaxisorent, const Vec3_t p1, const Vec3_t p2,  const int &dens
+  !!! TODO: PASS DIM AS AN ARGUMENT
   subroutine AxisPlaneMesh(this, axis, positaxisorent, p1, p2,  dens)
     implicit none
     type(Mesh), intent(out) :: this
     integer, intent(in)::axis
     logical, intent(in):: positaxisorent
     real(fp_kind), intent(in),dimension(3) :: p1,p2
-    real(fp_kind), intent(in) :: dens
+    integer, intent(in) :: dens
     real :: area
     
-    integer, dimension(4) :: n, e
+    integer, dimension(4) :: n
     integer, dimension(3) :: dir 
-    integer :: i, j, el, test, elcon(2,3)
-    real(fp_kind) ::x1,x2,x3,dl
+    integer :: i, j, e, test, elcon(2,3), k
+    real(fp_kind) ::x1,x2,x3,dl,v(3)
     real(fp_kind), dimension(3) :: p
     
-    this%elem_count = dens * dens
+    this%elem_count = 2 * dens * dens
     this%node_count = (dens +1) * (dens + 1)
     
+    print *, "Contact  Mesh with ", this%node_count, " nodes and ", this%elem_count, " elements was created."
     allocate (this%x(this%node_count,dim))
+    allocate (this%v(this%node_count,dim))
     allocate (this%elnod(this%elem_count,dim))
         
     if (dim .eq. 2) then 
@@ -81,21 +84,25 @@ contains
 	! double x1,x2,x3;
 	! double l1,l2;
 	p = p2-p1;
+  print *, "Point Length: ", p
 	! int dir[3];
   select case (axis )	
     case (1) 
-    dir(1) = 1; dir(2) = 2; 
+    dir(1) = 2; dir(2) = 3; 
     case (2) 
-      dir(1) = 0; dir(2) = 2;
+      dir(1) = 1; dir(2) = 3;
     case(3) 
-    dir(1) = 0; dir(2) = 1;
+      dir(1) = 1; dir(2) = 2;
 	end select
-	! dir [2] = axis; //dir2 is which remains constant
 	
-	! x3 = p1(dir[2]);
 
-	! x2=p1(dir[1]); 
-    dl = p(dir(1))/dens;	!!!!Could be allowed 2 diff densities
+  dir (3) = axis; !dir2 is which remains constant
+  print *, "Direction: ", dir
+	
+	x3 = p1(dir(3));
+	x2 = p1(dir(2)); 
+  dl = p(dir(1))/dens;	!!!!Could be allowed 2 diff densities
+  print *, "dl: ", dl
 	! //cout <<"dens: "<<dens<<endl;
 	! //Plane is in 0 and 1 dirs
 	test =dens + 1 
@@ -104,19 +111,17 @@ contains
   end if 
   
   !!! CREATING NODES
+  k=1
   do j=1, test !for (int j=0; j<test; j++) {
-  ! x1 = p1(dir[0]);
-  ! for (int i=0; i<dens+1; i++){
-    ! Vec3_t v;
-    ! v(dir[0])=x1;v(dir[1])=x2;v(dir[2])=x3;
-    ! //cout << "i,j" << i << ", " << j<<endl; 
-    ! //node.Push(new Vec3_t(x1,x2,x3));
-    ! node.Push(new Vec3_t(v(0),v(1),v(2)));
-    ! node_v.Push(new Vec3_t(0.,0.,0.));
-    ! //cout << "xyz: "<<x1 << ", "<<x2<<", "<<x3<<endl;
-    ! x1+=dl;
-  ! }
-  ! x2+=dl;
+    x1 = p1(dir(1))
+    do i=1,dens+1
+      v(dir(1))=x1;v(dir(2))=x2;v(dir(3))=x3;
+        this%x(k,:)=v
+      print *,  "xyz: ", x1 ,", ",x2,", ",x3
+      x1 = x1 + dl;
+      k=k+1
+    end do
+    x2 = x2 + dl;
   end do
   ! cout << "Created "<<node.Size()<< " nodes "<<endl;
 
@@ -127,51 +132,28 @@ contains
   print *, "Creating contact mesh elements.. "
 
   if (dim .eq. 3) then
-    ! for (size_t j = 0 ;j  < dens; j++ ) {
-          ! // cout <<"j, dens" <<j<<", "<<dens<<endl;
-          ! // cout <<"j<dens"<< (j  < dens)<<endl;
-      ! for ( i = 0; i < dens; i++ ){
-          ! // cout <<"i, dens" <<i<<", "<<dens<<endl;
-          ! // cout <<"i <dens"<< (i  < dens)<<endl;
-          ! n[0] = (dens + 1)* j + i; 		n[1] = n[0] + 1; 
-          ! n[2] = (dens + 1)* (j+1) + i; n[3] = n[2] + 1;
-        ! //cout <<" jj" << jj<<endl;
-        ! int elcon[2][3];	// TODO: check x, y and z normals and node direction 
-                          ! // For all plane orientations
-        ! //If connectivity  is anticlockwise normal is outwards
-        ! if (positaxisorent) {
-          if (positaxisorent .eqv. .true.) then
-            elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3);
-            elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);
-          else 
-            elcon(1,1) = n(1);elcon(1,2) = n(3);elcon(1,3) = n(2);
-            elcon(2,1) = n(2);elcon(2,2) = n(3);elcon(2,3) = n(4);          
-          endif
-          ! elcon[0][0] = n[0];elcon[0][1] = n[1];elcon[0][2] = n[2];
-          ! elcon[1][0] = n[1];elcon[1][1] = n[3];elcon[1][2] = n[2];
-        ! } else {
-          ! elcon[0][0] = n[0];elcon[0][1] = n[2];elcon[0][2] = n[1];
-          ! elcon[1][0] = n[1];elcon[1][1] = n[2];elcon[1][2] = n[3];				
-        ! }
-        ! //cout << "elnodes"<<endl;
-          ! do e=1,2
-            ! !this%elnod(e)
-          ! end do
-        ! for ( int e= 0; e<2;e++) { // 2 triangles
-          ! element.Push(new Element(elcon[e][0],elcon[e][1],elcon[e][2]));		
-          ! //cout << "Element "<< el <<": ";
-          ! // for (int en = 0 ; en<3; en++) cout << elcon[e][en]<<", ";
-          ! // cout <<endl;
-          
-          ! Vec3_t v = ( *node[elcon[e][0]] + *node[elcon[e][1]] + *node[elcon[e][2]] ) / 3. ;
-          ! element[el] -> centroid = v; 
-          ! //cout << "Centroid" << element[el] -> centroid << endl;
-          ! el++;
-        ! }
-      ! }// i for
-      
-    ! }
-  else 
+    e = 1
+    do j=1,dens
+      do i=1,dens    
+        n(1) = (dens + 1)* (j-1) + i; 		n(2) = n(1) + 1;   !!!! 3--4
+        n(3) = (dens + 1)* j + i;         n(4) = n(3) + 1;   !!!! 1--2
+        !print * , "Node ", n
+        if (positaxisorent .eqv. .true.) then
+          elcon(1,1) = n(1);elcon(1,2) = n(2);elcon(1,3) = n(3); !! 1, 2, 3
+          elcon(2,1) = n(2);elcon(2,2) = n(4);elcon(2,3) = n(3);!!! 2,4,3
+        else 
+          elcon(1,1) = n(1);elcon(1,2) = n(3);elcon(1,3) = n(2);
+          elcon(2,1) = n(2);elcon(2,2) = n(3);elcon(2,3) = n(4);          
+        endif
+        this%elnod(e,:)   = elcon(1,:)
+        this%elnod(e+1,:) = elcon(2,:)
+        !print *, "Element ", e,this%elnod(e,:) 
+        !print *, "Element ", e+1,this%elnod(e+1,:)
+        e = e + 2
+      end do
+    end do 
+
+  else ! dim = 2
     ! for ( i = 0; i < dens; i++ ){
           ! n[0] = i; 		n[1] = n[0] + 1; 
         ! //cout <<" jj" << jj<<endl;

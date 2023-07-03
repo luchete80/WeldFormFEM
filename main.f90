@@ -221,6 +221,13 @@ implicit none
     end do
   end do
 
+  print *, "Element rot rates" 
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%rot_rate(i,gp,:,:)
+    end do
+  end do
+  
   print *, "Global forces "
     do nn=1,node_count
         print *, rint_glob(nn,:)

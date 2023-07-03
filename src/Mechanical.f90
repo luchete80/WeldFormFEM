@@ -35,7 +35,7 @@ subroutine cal_elem_strains ()
 
       do n=1, nodxelem  
         do d=1, dim
-          !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
+          print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
           elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
@@ -409,12 +409,12 @@ subroutine CalcEquivalentStress
   
   do e=1,elem_count
     do gp=1,elem%gausspc(e)
-    J2	= 0.5*(elem%shear_stress(e,gp,0,0)*elem%shear_stress(e,gp,0,0) + &
-          2.0*elem%shear_stress(e,gp,0,1)*elem%shear_stress(e,gp,1,0) + &
-          2.0*elem%shear_stress(e,gp,0,2)*elem%shear_stress(e,gp,2,0) + &
-              elem%shear_stress(e,gp,1,1)*elem%shear_stress(e,gp,1,1) + &
+    J2	= 0.5*(elem%shear_stress(e,gp,1,1)*elem%shear_stress(e,gp,1,1) + &
           2.0*elem%shear_stress(e,gp,1,2)*elem%shear_stress(e,gp,2,1) + &
-              elem%shear_stress(e,gp,2,2)*elem%shear_stress(e,gp,2,2));
+          2.0*elem%shear_stress(e,gp,1,3)*elem%shear_stress(e,gp,3,1) + &
+              elem%shear_stress(e,gp,2,2)*elem%shear_stress(e,gp,2,2) + &
+          2.0*elem%shear_stress(e,gp,2,3)*elem%shear_stress(e,gp,3,2) + &
+              elem%shear_stress(e,gp,3,3)*elem%shear_stress(e,gp,3,3));
     !print *, "J2 ", J2
     elem%sigma_eq(e,gp) = sqrt(3.0*J2)
     end do

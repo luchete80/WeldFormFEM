@@ -140,17 +140,27 @@ subroutine SolveVerlet (tf, dt)
   nod%v = nod%v + dt/2.0 * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
   
-  !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%u = nod%u +  nod%v * dt
-  nod%x = nod%x + nod%u
+
   
+  !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
+  !!!!! ALTERNATED WITH POSITIONS AND FORCES
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
-  
-
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+
+  !!(3) The velocity is integrated to give the displacement at tn+1.
+  nod%u = nod%u +  nod%v * dt  
+  nod%x = nod%x + nod%u
+
+  !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
+  call calculate_element_Jacobian()  
+  call calc_elem_vol
+  call calculate_element_derivMat() !!! WITH NEW SHAPE  
+
+  
+  
 
   do e=1,elem_count
   if (elem%gausspc(e) > 1) then
@@ -164,7 +174,7 @@ subroutine SolveVerlet (tf, dt)
   print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)
-  
+  print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces
   call assemble_forces
