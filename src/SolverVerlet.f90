@@ -140,6 +140,8 @@ subroutine SolveVerlet (tf, dt)
   nod%v = nod%v + dt/2.0 * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
   
+  ! nod%u = nod%u +  nod%v * dt!/2.0  
+  ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
   
   !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
@@ -150,8 +152,8 @@ subroutine SolveVerlet (tf, dt)
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
-  !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%u = nod%u +  nod%v * dt  
+  ! !!(3) The velocity is integrated to give the displacement at tn+1.
+  nod%u = nod%u +  nod%v * dt!/2.0  
   nod%x = nod%x + nod%u
 
   !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
@@ -194,10 +196,11 @@ subroutine SolveVerlet (tf, dt)
   call impose_bca
   
   nod%v = nod%v + dt/2.0 * nod%a   
-    do e=5,8  
-  elem%f_ext(1,e,:) = [0.0d0,0.0d0,0.0d0] !!!ELEMENT 1, node 3,
-  end do
   call impose_bcv !!!REINFORCE VELOCITY BC
+
+    ! do e=5,8  
+  ! elem%f_ext(1,e,:) = [0.0d0,0.0d0,0.0d0] !!!ELEMENT 1, node 3,
+  ! end do
   
   !call AverageData(elem%rho(:,1),nod%rho(:))  
 

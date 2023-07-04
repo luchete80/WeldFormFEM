@@ -442,6 +442,9 @@ contains
     fext_glob (:,:) = 0.0d0
     
     tot_mass = Density * Lx * Ly * Lz
+    if (dim == 2) then !!!assuming plain strain
+      tot_mass = tot_mass / Lz
+    end if
     print *, "Total Mass: ", tot_mass
     
     call SearchNodelem
