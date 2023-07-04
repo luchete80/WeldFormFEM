@@ -124,7 +124,7 @@ implicit none
   ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
-  if (dim ==2) then
+  if (dim == 3 ) then
     do i=3,4
       elem%f_ext(1,i,:) = [0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
     end do
@@ -181,7 +181,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 1.0e-4
   
   elem%rho(:,:) = rho
   

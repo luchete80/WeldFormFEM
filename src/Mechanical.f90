@@ -35,7 +35,7 @@ subroutine cal_elem_strains ()
 
       do n=1, nodxelem  
         do d=1, dim
-          print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
+          !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
           elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
