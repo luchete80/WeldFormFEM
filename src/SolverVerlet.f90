@@ -54,8 +54,9 @@ subroutine SolveVerlet (tf, dt)
 
   call set_edof_from_elnod()
   
-  call calculate_element_Jacobian()
-  call calculate_element_shapeMat() !AND MASS
+  call calculate_element_Jacobian
+  print *, "shape mat"
+  !call calculate_element_shapeMat() !AND MASS
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
   elem%vol_0(:) = elem%vol(:)
@@ -139,7 +140,7 @@ subroutine SolveVerlet (tf, dt)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
   nod%v = nod%v + dt/2.0 * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  
+  print *, "veloc", nod%v 
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 

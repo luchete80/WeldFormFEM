@@ -87,6 +87,7 @@ contains
     allocate (nod%u(node_count,dim))
     allocate (nod%v(node_count,dim))
     allocate (nod%a(node_count,dim))
+    allocate (nod%f_hour(node_count,dim))
     allocate (nod%disp(node_count,dim))
     allocate (nod%sigma_eq(node_count))
     
@@ -186,6 +187,7 @@ contains
     end do
   end subroutine
   
+  !Average element constant data to elements
   subroutine AverageData(el_data, nod_data)
     !implicit none 
     integer :: e, n
@@ -200,6 +202,23 @@ contains
         nod_data(n) = nod_data(n) + el_data(nod%nodel(n,e))
       end do
       nod_data(n) = nod_data(n) / nod%elxnod(n)
+    end do
+  end subroutine
+
+  !Average element Nodal Data data to elements
+  subroutine AssembleElNodData(el_data, nod_data)
+    !implicit none 
+    integer :: e, n
+    real(fp_kind),dimension(node_count), intent(out) :: nod_data  
+    real(fp_kind),dimension(elem_count,nodxelem), intent(in) :: el_data  
+    nod_data (:)= 0.0d0
+    do e=1,elem_count !Element per node
+      do n=1,nodxelem
+        !nod%elxnod(elem%elnod(e,n)) = nod%elxnod(elem%elnod(e,n)) + 1
+        !nod%nodel(elem%elnod(e,n),nod%elxnod(elem%elnod(e,n))) = e
+        !print *, "nod data n e", nod_data(n), n, e
+        nod_data(elem%elnod(e,n)) = nod_data(elem%elnod(e,n)) + el_data(e,n)
+      end do
     end do
   end subroutine
   

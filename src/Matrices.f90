@@ -177,7 +177,7 @@ subroutine calculate_element_Jacobian ()
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
-      gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+      gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r]; !These are the 4 points for 2D full elem
       gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
     
       if (dim .eq. 3) then
@@ -205,17 +205,13 @@ subroutine calculate_element_Jacobian ()
           ! print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif          
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-          print *, "detJ ", elem%detJ(e,gp)
+          !print *, "detJ ", elem%detJ(e,gp)
         end do !gp
       else !dim =2
         do gp = 1,4
           dHrs(1,:)=[-1.0*(1-gpc(gp,2)),     (1-gpc(gp,2))&
-                    ,     (1+gpc(gp,2)),-1.0*(1+gpc(gp,2))&
-                    ,-1.0*(1-gpc(gp,2)),     (1-gpc(gp,2))&
                     ,     (1+gpc(gp,2)),-1.0*(1+gpc(gp,2))]
           dHrs(2,:)=[-1.0*(1-gpc(gp,1)),-1.0*(1+gpc(gp,1))&
-                         ,(1+gpc(gp,1)),     (1-gpc(gp,1))&
-                    ,-1.0*(1-gpc(gp,1)),-1.0*(1+gpc(gp,1))&
                          ,(1+gpc(gp,1)),     (1-gpc(gp,1))]                
           
           elem%dHrs(e,gp,:,:) =  dHrs(:,:)         
@@ -225,10 +221,10 @@ subroutine calculate_element_Jacobian ()
           !print *, "x2", x2 
           elem%jacob(e,gp,:,:) = 0.25*matmul(dHrs,x2)
 ! #if defined _PRINT_DEBUG_
-          ! print *, "jacob ", elem%jacob(e,gp,:,:)
+          !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif          
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
-          print *, "detJ ", elem%detJ(e,gp)
+          !print *, "detJ ", elem%detJ(e,gp)
         end do !gp      
         
       end if !dim

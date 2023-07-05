@@ -42,3 +42,4 @@
          - Fixed Hourglass forces magnitude
 20230629 - Added sigma symm tensor output to vtk
 20230702 - Added Contact Mesh
+2023075  - Fixed Derived matrices, volume and jacobian calc for 2D full integration

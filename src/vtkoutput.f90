@@ -84,6 +84,12 @@ subroutine WriteMeshVTU (fname)
     write (1,*) nod%a(n,1), nod%a(n,2), nod%a(n,3)
   end do   
   write (1,*) "        </DataArray>" 
+
+  write (1,*) "        <DataArray type=""Float32"" Name=""f_hourg"" NumberOfComponents=""3"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%f_hour(n,1), nod%f_hour(n,2), nod%f_hour(n,3)
+  end do   
+  write (1,*) "        </DataArray>" 
   
   !write (1,*) "      </PointData>"
 

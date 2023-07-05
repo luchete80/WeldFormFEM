@@ -173,6 +173,7 @@ subroutine calc_hourglass_forces
     Sig(:,:) = Sig(:,:) * 8
   else 
     Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
+    Sig(:,:) = Sig(:,:) * 4
   end if
   
   gp = 1
@@ -201,8 +202,14 @@ subroutine calc_hourglass_forces
           end do
       end do
       c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      
       print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
+      print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
+ 
+      elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
+      
+      print *, "alt hourglass forces", elem%hourg_nodf(e,:,:) 
   else
     !print *, "NO HOURGLASS"
     end if
@@ -352,12 +359,12 @@ subroutine calc_elem_vol ()
     !print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
       w = 2.0**dim
-    else if (elem%gausspc(e).eq. 8 ) then
+    else 
       w = 1.0
     end if
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
-      print *, "elem e j, w", elem%detJ(e,gp), w
+      !print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
     print *, "Elem ", e, "vol ",elem%vol(e)

@@ -70,7 +70,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 3
+  Dim = 2
   L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
@@ -191,6 +191,11 @@ implicit none
   call SolveVerlet(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
+
+  do d=1,dim
+    call AssembleElNodData(elem%hourg_nodf(:,:,d),nod%f_hour(:,d))
+  end do
+  
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
   
     do d=1,3
