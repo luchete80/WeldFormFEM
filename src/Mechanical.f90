@@ -103,8 +103,8 @@ subroutine cal_elem_forces ()
       test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
       !print *, "test force", test
       
-      !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,1,:)
+      print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+      print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
       !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
       
       do n=1, nodxelem
@@ -116,7 +116,7 @@ subroutine cal_elem_forces ()
       !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       !!!!! 
         do d=1, dim
-          elem%f_int(e,n,d) = elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           !!elem%f_int(e,n,1) = 
@@ -130,7 +130,7 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-        !print *, "Node ", n, "F  ", elem%f_int(e,n,:) * w 
+        print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
       end do! nod x elem
       !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
       !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
