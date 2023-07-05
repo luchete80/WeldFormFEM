@@ -188,10 +188,8 @@ subroutine SolveVerlet (tf, dt)
     end do
   end do
 
+  fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
 
-  !do e=3,4  
-  !fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
-  !end do
   
   print *, "global int forces ", rint_glob(3,:)
   

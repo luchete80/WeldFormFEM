@@ -70,7 +70,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 2
+  Dim = 3
   L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
@@ -124,7 +124,7 @@ implicit none
   ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
-  if (dim == 3 ) then
+  if (dim == 2 ) then
     do i=3,4
       elem%f_ext(1,i,:) = [0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
     end do
@@ -137,17 +137,17 @@ implicit none
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   else 
-    ! nod%is_bcv(5:8,3) = .true.
-    ! nod%bcv(5:8,3) = -1.0d0
+    nod%is_bcv(5:8,3) = .true.
+    nod%bcv(5:8,3) = -1.0d0
 
     ! nod%is_bcv(6,1) = .true.
     ! nod%bcv(6,2) = 0.0d0
     ! nod%is_bcv(8,1) = .true.
     ! nod%bcv(8,2) = 0.0d0    
     ! !ONLY INTIIAL
-    do i=5,8
-      elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
-    end do
+    ! do i=5,8
+      ! elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    ! end do
   
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     
@@ -181,7 +181,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-4
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
