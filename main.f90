@@ -125,14 +125,14 @@ implicit none
   ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
   !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
   if (dim == 2 ) then
-    do i=3,4
-      elem%f_ext(1,i,:) = [0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
-    end do
+    ! do i=3,4
+      ! elem%f_ext(1,i,:) = [0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    ! end do
     
-    ! nod%is_bcv(3,2) = .true.
-    ! nod%is_bcv(4,2) = .true.
-    ! nod%bcv(3,:) = [0.0d0,-1.0d0]
-    ! nod%bcv(4,:) = [0.0d0,-1.0d0]
+    nod%is_bcv(3,2) = .true.
+    nod%is_bcv(4,2) = .true.
+    nod%bcv(3,:) = [0.0d0,-1.0d0]
+    nod%bcv(4,:) = [0.0d0,-1.0d0]
     
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
@@ -180,8 +180,8 @@ implicit none
   
   !dt = 5.0e-6
   !tf = 1.5e-4
-  dt = 1.0e-5
-  tf = 1.0e-5
+  dt = 1.0e-7
+  tf = 1.0e-4
   
   elem%rho(:,:) = rho
   
