@@ -207,7 +207,31 @@ subroutine calculate_element_Jacobian ()
           elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
           print *, "detJ ", elem%detJ(e,gp)
         end do !gp
-      end if
+      else !dim =2
+        do gp = 1,4
+          dHrs(1,:)=[-1.0*(1-gpc(gp,2)),     (1-gpc(gp,2))&
+                    ,     (1+gpc(gp,2)),-1.0*(1+gpc(gp,2))&
+                    ,-1.0*(1-gpc(gp,2)),     (1-gpc(gp,2))&
+                    ,     (1+gpc(gp,2)),-1.0*(1+gpc(gp,2))]
+          dHrs(2,:)=[-1.0*(1-gpc(gp,1)),-1.0*(1+gpc(gp,1))&
+                         ,(1+gpc(gp,1)),     (1-gpc(gp,1))&
+                    ,-1.0*(1-gpc(gp,1)),-1.0*(1+gpc(gp,1))&
+                         ,(1+gpc(gp,1)),     (1-gpc(gp,1))]                
+          
+          elem%dHrs(e,gp,:,:) =  dHrs(:,:)         
+          !dHrs(2,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))]         
+          !dHrs(3,:)=[(1+r(i)), (1-r(i)),-(1-r(i)),-(1+r(i))] 
+          !print *, "dhrs", dHrs 
+          !print *, "x2", x2 
+          elem%jacob(e,gp,:,:) = 0.25*matmul(dHrs,x2)
+! #if defined _PRINT_DEBUG_
+          ! print *, "jacob ", elem%jacob(e,gp,:,:)
+! #endif          
+          elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
+          print *, "detJ ", elem%detJ(e,gp)
+        end do !gp      
+        
+      end if !dim
     end if !!gp ==1
 ! #if defined _PRINT_DEBUG_
     print *, "jacob ", elem%jacob(e,gp,:,:)
@@ -404,8 +428,16 @@ subroutine calculate_element_derivMat ()
           !print *, "detJ", elem%detJ(e,gp)
           !print *, "invJ", invJ
           elem%dHxy_detJ(e,gp,:,:) = 0.125d0 * matmul(invJ,elem%dHrs(e,gp,:,:))
-          !print *, "dHxy", elem%dHxy(e,gp,:,:)
+          !print *, "dHxy", elem%dHxy_detJ(e,gp,:,:)
         end do !!!!gp
+      else !dim =2 
+        do gp = 1,4
+          invJ = adj(elem%jacob(e,gp,:,:))!!!!/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
+          !print *, "detJ", elem%detJ(e,gp)
+          !print *, "invJ", invJ
+          elem%dHxy_detJ(e,gp,:,:) = 0.25d0 * matmul(invJ,elem%dHrs(e,gp,:,:))
+          !print *, "dHxy", elem%dHxy_detJ(e,gp,:,:)
+        end do !!!!gp      
       end if!!!di 3
     end if
   end do
@@ -429,11 +461,11 @@ subroutine calculate_element_dhxy0 ()
         ! print *, "detJ", elem%detJ(e,gp)
         
         invJ = adj(elem%jacob(e,gp,:,:))/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
-        print *, "invJ", invJ
-        print *,"dHrs",elem%dHrs(e,gp,:,:)
+        !print *, "invJ", invJ
+        !print *,"dHrs",elem%dHrs(e,gp,:,:)
           elem%dHxy0(e,gp,:,:) = matmul(invJ,elem%dHrs(e,gp,:,:))
         end do
-        print *, "dHxy0", elem%dHxy(e,:,:,:)
+        !print *, "dHxy0", elem%dHxy(e,:,:,:)
       end if!!!! dim
     end if
   end do

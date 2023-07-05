@@ -170,6 +170,7 @@ subroutine calc_hourglass_forces
     Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
     Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
     Sig(4,:) = [-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125]
+    Sig(:,:) = Sig(:,:) * 8
   else 
     Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
   end if
@@ -189,6 +190,7 @@ subroutine calc_hourglass_forces
       end do
       do j =1,jmax !MODE
         do n=1,nodxelem !1:4 or 8
+          print *, "elem v ", vel (n,:)
           hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
         end do
       end do
@@ -199,7 +201,7 @@ subroutine calc_hourglass_forces
           end do
       end do
       c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      !print *, "hourglass c ", c_h
+      print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
   else
     !print *, "NO HOURGLASS"
