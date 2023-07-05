@@ -289,6 +289,29 @@ subroutine calc_elem_pressure ()
 end subroutine
 
 
+!!!! ACORDING TO STANDARD SOLID FEM, PRESSURE FROM strain rate increment
+! //-----------------------------------------------------------------------------
+! void Element::computePressure()
+! //-----------------------------------------------------------------------------
+! {
+  ! short intPointId;
+  ! double K = material->getBulkModulus();
+  ! double pressureIncrement = 0.0;
+
+  ! for (intPointId = 0; intPointId < getNumberOfIntegrationPoints(); intPointId++)
+  ! {
+    ! pressureIncrement += getIntegrationPoint(intPointId)->StrainInc.trace();
+  ! }
+
+  ! pressureIncrement /= getNumberOfIntegrationPoints();
+
+  ! for (intPointId = 0; intPointId < getNumberOfIntegrationPoints(); intPointId++)
+  ! {
+    ! getIntegrationPoint(intPointId)->pressure = getIntegrationPoint(intPointId)->Stress.thirdTrace() + K * pressureIncrement;
+  ! }
+! }
+
+
 !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 subroutine CalcStressStrain (dt) 
