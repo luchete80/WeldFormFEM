@@ -1,7 +1,18 @@
+  ! ! // Compute the Jacobian
+  ! ! model->computeJacobian(true);
+  ! ! model->computeUnderJacobian(true);
+  ! ! model->computeMassMatrix();
+  ! ! computeTimeStep(true);
+  ! ! model->computeStrains();
+  ! ! model->computePressure();
+  ! ! model->computeStress(timeStep);
+  ! ! model->computeFinalRotation();
+  ! ! model->computeInternalForces();
 !!! FROM DYNAELA
+!!!! :____ MAIN LOOP 
     ! computePredictions();
-    ! model->computeStrains();
-    ! model->computePressure();
+    ! model->computeStrains(); !With deformation gradient !F.polarCuppenLnU(_integrationPoint->StrainInc, _integrationPoint->R);
+    ! model->computePressure(); !Stress.thirdTrace() + K * pressureIncrement; pressureIncrement += StrainInc.trace();
     ! model->computeStress(timeStep);
     ! model->computeFinalRotation();
     ! model->computeInternalForces();
