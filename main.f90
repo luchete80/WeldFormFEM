@@ -9,6 +9,7 @@ use omp_lib
 use Matrices
 use SolverLeapfrog
 use SolverVerlet
+use SolverChungHulbert
 !use SolverRedVerlet
 use VTKOutput
 !use class_ContMesh
@@ -70,7 +71,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 2
+  Dim = 3
   L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
@@ -137,8 +138,8 @@ implicit none
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   else 
-    ! nod%is_bcv(5:8,3) = .true.
-    ! nod%bcv(5:8,3) = -1.0d0
+    nod%is_bcv(5:8,3) = .true.
+    nod%bcv(5:8,3) = -1.0d0
 
     ! nod%is_bcv(6,1) = .true.
     ! nod%bcv(6,2) = 0.0d0
@@ -180,7 +181,7 @@ implicit none
   
   !dt = 5.0e-6
   !tf = 1.5e-4
-  dt = 1.0e-7
+  dt = 1.0e-5
   tf = 1.0e-4
   
   elem%rho(:,:) = rho
@@ -188,7 +189,8 @@ implicit none
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
   !call SolveLeapfrog(tf,dt)
-  call SolveVerlet(tf,dt)
+  !call SolveVerlet(tf,dt)
+  call SolveChungHulbert(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
 
