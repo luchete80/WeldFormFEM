@@ -153,9 +153,9 @@ subroutine SolveChungHulbert (tf, dt)
       end if
     end do
   !!! PREDICTION PHASE
-  u = dt * (nod%v + (0.5d0 - beta) * dt * nod%a)
+  u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
-  nod%v = nod%v + (1.0d0-gamma)* dt * nod%a
+  nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
@@ -174,9 +174,9 @@ subroutine SolveChungHulbert (tf, dt)
   
 
   !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
-  call calculate_element_Jacobian()  
-  call calc_elem_vol
-  call calculate_element_derivMat() !!! WITH NEW SHAPE  
+  ! call calculate_element_Jacobian()  
+  ! call calc_elem_vol
+  ! call calculate_element_derivMat() !!! WITH NEW SHAPE  
 
   
   

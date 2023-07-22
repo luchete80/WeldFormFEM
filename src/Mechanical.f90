@@ -275,7 +275,7 @@ subroutine calc_elem_density ()
   end do
 end subroutine
 
-subroutine calc_elem_pressure ()
+subroutine calc_elem_pressure_EOS ()
   implicit none
   integer :: e, gp
   
@@ -288,6 +288,31 @@ subroutine calc_elem_pressure ()
   end do
 end subroutine
 
+!!!! STANDARD FORM- NON HYDRODYNAMIC WITH EOS
+  ! double pressureIncrement = 0.0;
+
+  ! for (intPointId = 0;
+    ! pressureIncrement += getIntegrationPoint(intPointId)->StrainInc.trace();
+  ! pressureIncrement /= getNumberOfIntegrationPoints();
+
+  ! for (intPointId = 0
+    ! getIntegrationPoint(intPointId)->pressure = getIntegrationPoint(intPointId)->Stress.thirdTrace() + K * pressureIncrement;
+!    // Polar decomposition
+!    F.polarCuppenLnU(_integrationPoint->StrainInc, _integrationPoint->R);    
+subroutine calc_elem_pressure ()
+  implicit none
+  integer :: e, gp
+  
+  real(fp_kind) :: press_inc
+  gp = 1
+  do e = 1, elem_count
+    press_inc = 0.0d0
+    do gp = 1, elem%gausspc(e)
+      !print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
+      elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
+    end do
+  end do
+end subroutine
 
 !!!! ACORDING TO STANDARD SOLID FEM, PRESSURE FROM strain rate increment
 ! //-----------------------------------------------------------------------------
