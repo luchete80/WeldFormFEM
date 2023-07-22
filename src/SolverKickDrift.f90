@@ -1,41 +1,30 @@
-    !!calculate v)t+1/2)
+! ////////////////////////////////////////////////////////
+! ////////////////////// BASED ON RANDLES AND LIBERSKY(1996):
+! /////////////////////////////////////////////////////////
+! /// Randles and Libersky calculate density from current velocity, here is from the velocity at t+1/2
+    ! // // // 1 CalcAccel(); //Nor density or neither strain rates
+    ! // // // if (nonlock_sum)AccelReduction();
 
-    ! CalcAccel(); //Nor density or neither strain rates
-    ! AccelReduction();
-    ! GeneralAfter(*this); //Fix free accel
+    ! // // // if (contact) CalcContactForcesWang();
 
-  ! if (contact) CalcContactForcesWang();
+    ! // // // 3. Particles[i]->v += Particles[i]->a*deltat/2.*factor;
+
+    ! // // // 4. //If density is calculated AFTER displacements, it fails
+    ! // // // CalcDensInc(); //TODO: USE SAME KERNEL?
+    ! // // // Particles[i]->Density += deltat*Particles[i]->dDensity*factor;
+    ! // // // 5. x += (Particles[i]->v + Particles[i]->VXSPH)*deltat*factor;
     
-    ! Particles[i]->v += Particles[i]->a*deltat/2.*factor;
-    ! MoveGhost();   
-    ! GeneralAfter(*this);//Reinforce BC vel   
+    ! // // // 6. Particles[i]->v += Particles[i]->a*deltat/2.*factor;
+    ! // // // 7. CalcRateTensors();  //With v and xn+1
+    ! // // // 8. Particles[i]->CalcStressStrain(deltat); //Uses density  
 
-    ! CalcDensInc(); //TODO: USE SAME KERNEL?
-      ! Particles[i]->Density += deltat*Particles[i]->dDensity*factor;
-      
-      ! du = (Particles[i]->v + Particles[i]->VXSPH)*deltat*factor;
-      ! Particles[i]->Displacement += du;
-      ! Particles[i]->x += du;
 
-    ! for (size_t i=0; i<Particles.Size(); i++){
-      ! Particles[i]->v += Particles[i]->a*deltat/2.*factor;
-
-    ! GeneralAfter(*this);
-    ! CalcRateTensors();  //With v and xn+1
-    ! Particles[i]->CalcStressStrain(deltat); //Uses density  
-
-		! clock_beg = clock();        
-    ! CalcKinEnergyEqn();    
-    ! CalcIntEnergyEqn();    
-    ! UpdateContactParticles(); //Updates normal and velocities
-		
-
-module SolverVerlet
+module SolverKickDrift
 use ModPrecision, only : fp_kind
 
 contains 
 
-subroutine SolveVerlet (tf, dt)
+subroutine SolveKickDrift (tf, dt)
   use omp_lib
   use Matrices
   use Mechanical
@@ -91,15 +80,6 @@ subroutine SolveVerlet (tf, dt)
   debug_mode = .false.
   first_step  = .true.
   
-  !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
-  !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
-  print *, "Assemblying forces..."
-  call assemble_forces()
-  do n=1,node_count
-      nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
-      print *, "fext n ", n, fext_glob(n,:)
-  end do
-  call impose_bca
   
   do n=1,node_count
     print *, "Initial accel ", n, "a ", nod%a(n,:)  
@@ -125,6 +105,19 @@ subroutine SolveVerlet (tf, dt)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
+  !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
+  !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
+  print *, "Assemblying forces..."
+  fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
+  call cal_elem_forces
+  call assemble_forces()
+  do n=1,node_count
+      nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
+      print *, "fext n ", n, fext_glob(n,:)
+  end do
+  call impose_bca
+  
+  
   ! if (time < 100.0d0*dt) then
     ! nod%bcv(5:8,3) = -0.1 * time/(10.0d0*dt)
     ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
@@ -146,25 +139,30 @@ subroutine SolveVerlet (tf, dt)
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
-  
-  !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
-  !!!!! ALTERNATED WITH POSITIONS AND FORCES
-  nod%u = nod%u +  nod%v * dt/2.0  
+  call calc_elem_density
+
+  ! !!(3) The velocity is integrated to give the displacement at tn+1.
+  nod%u = nod%u +  nod%v * dt!/2.0  
   nod%x = nod%x + nod%u
+    
+  nod%v = nod%v + dt/2.0 * nod%a   
+  call impose_bcv !!!REINFORCE VELOCITY BC
+
+  
+  ! !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
+  ! !!!!! ALTERNATED WITH POSITIONS AND FORCES
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
-  ! !!(3) The velocity is integrated to give the displacement at tn+1.
-  nod%u = nod%u +  nod%v * dt/2.0  
-  nod%x = nod%x + nod%u
+
 
   !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
-  call calculate_element_Jacobian()  
-  call calc_elem_vol
-  call calculate_element_derivMat() !!! WITH NEW SHAPE  
+  ! call calculate_element_Jacobian()  
+  ! call calc_elem_vol
+  ! call calculate_element_derivMat() !!! WITH NEW SHAPE  
 
   
   
@@ -175,41 +173,11 @@ subroutine SolveVerlet (tf, dt)
     end if
   end do
   
-  call calc_elem_density
-  print *, "Element density ", elem%rho(:,:)
+
+
   call calc_elem_pressure
-  print *, "Element pressure ", elem%pressure(:,:)
-
   call CalcStressStrain(dt)
-  print *, "VELOCITY", nod%v(:,:)  
-  call calc_hourglass_forces
-  call cal_elem_forces
-  call assemble_forces
 
-  print *, "Element strain rates" 
-  do e=1,elem_count
-    do gp=1, elem%gausspc(e)
-      print *, elem%str_rate(e,gp,:,:)
-    end do
-  end do
-
-  fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
-
-  
-  print *, "global int forces ", rint_glob(3,:)
-  
-    do n=1,node_count
-      do d=1,dim
-        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
-      end do 
-    end do
-  call impose_bca
-  
-  nod%v = nod%v + dt/2.0 * nod%a   
-  call impose_bcv !!!REINFORCE VELOCITY BC
-
-  
-  !call AverageData(elem%rho(:,1),nod%rho(:))  
 
   time = time + dt
   end do !time
@@ -217,6 +185,6 @@ subroutine SolveVerlet (tf, dt)
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains
   
-end subroutine SolveVerlet
+end subroutine SolveKickDrift
 
-end module SolverVerlet
+end module SolverKickDrift

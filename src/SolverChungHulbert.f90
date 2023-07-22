@@ -35,6 +35,11 @@ use ModPrecision, only : fp_kind
 
 contains 
 
+!!!COMPUTE STEP SIZE
+!!!maximumFrequency = 2.0 / model->computeCourantTimeStep();
+!!!timeStep = _timeStepSafetyFactor * _omegaS / maximumFrequency;
+
+
 subroutine SolveChungHulbert (tf, dt)
   use omp_lib
   use Matrices
@@ -43,13 +48,13 @@ subroutine SolveChungHulbert (tf, dt)
   implicit none
   integer :: n, d, iglob, step, e, gp
   
-  logical :: first_step 
+  logical :: first_step, x_at_midtime
   logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
   
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
-  real(fp_kind), dimension(node_count,dim) :: u, prev_a
+  real(fp_kind), dimension(node_count,dim) :: u, prev_a, x_temp
   
   real(fp_kind) :: alpha, beta, gamma, rho_b !!! CHUNG HULBERT PARAMETERS
  
@@ -129,9 +134,14 @@ subroutine SolveChungHulbert (tf, dt)
   print *, "beta ", beta
   print *, "gamma ", gamma
   
+  !In central difference (leapfrog)
+  
+  
   elem%shear_stress = 0.0d0 
   time = 0.0  
   step = 0
+  
+  x_at_midtime = .False.
   
   print *,"------------------------------------------------------------------------------------------------"
   print *,"main loop, VERLET -------------------------------------------------------------------------------"
@@ -140,11 +150,11 @@ subroutine SolveChungHulbert (tf, dt)
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
   ! if (time < 100.0d0*dt) then
-    ! !nod%bcv(5:8,3) = -0.1 * time/(10.0d0*dt)
-    ! nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
+    ! nod%bcv(5:8,3) = -1.0 * time/(10.0d0*dt)
+    ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
   ! else 
-    ! !nod%bcv(5:8,3) = -0.1
-    ! nod%bcv(3:4,2) = -0.1
+    ! nod%bcv(5:8,3) = -1.0
+    ! !nod%bcv(3:4,2) = -0.1
   ! end if 
   
     do n=1,elem_count
@@ -163,7 +173,10 @@ subroutine SolveChungHulbert (tf, dt)
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
-  
+  x_temp = nod%x  
+  if (x_at_midtime  .eqv. .True. ) then
+  nod%x = nod%x + (1.0d0-gamma)* dt * nod%v
+  end if 
   !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
   !!!!! ALTERNATED WITH POSITIONS AND FORCES
   call calculate_element_Jacobian()  
@@ -171,7 +184,8 @@ subroutine SolveChungHulbert (tf, dt)
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
-  
+
+  nod%x = x_temp
 
   !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
   ! call calculate_element_Jacobian()  
