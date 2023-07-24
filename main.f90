@@ -10,7 +10,7 @@ use Matrices
 use SolverLeapfrog
 use SolverVerlet
 use SolverChungHulbert
-use SolverKickDrift
+!use SolverKickDrift
 !use SolverRedVerlet
 use VTKOutput
 !use class_ContMesh
@@ -147,9 +147,9 @@ implicit none
     ! nod%is_bcv(8,1) = .true.
     ! nod%bcv(8,2) = 0.0d0    
     ! !ONLY INTIIAL
-    do i=5,8
-      elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
-    end do
+    ! do i=5,8
+      ! elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    ! end do
   
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     

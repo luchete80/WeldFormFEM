@@ -3,7 +3,6 @@
 !               using Explicit Finite Element Method                               !
 ! Copyright (C) 2023 Luciano Buglioni                                              !
 !                                                                                  !
-! This file is part of PersianSPH                                                  !
 !                                                                                  !
 ! This is free software; you can redistribute it andor modify it under the         !
 ! terms of the GNU General Public License as published by the Free Software        !
