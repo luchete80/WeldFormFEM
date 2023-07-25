@@ -35,7 +35,7 @@ use ModPrecision, only : fp_kind
 
 contains 
 
-subroutine SolveVerlet (tf, dt)
+subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   use omp_lib
   use Matrices
   use Mechanical
@@ -46,6 +46,7 @@ subroutine SolveVerlet (tf, dt)
   logical :: first_step 
   logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
+  type (dom_type), intent (in) :: domi
   
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
@@ -183,6 +184,12 @@ subroutine SolveVerlet (tf, dt)
   call CalcStressStrain(dt)
   print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
+  
+  !!!! THIS IS FOR SHOCK
+  call calc_elem_wave_speed(domi%mat_K)
+  call calc_elem_shock_visc(dt)
+  !!!!
+  
   call cal_elem_forces
   call assemble_forces
 
