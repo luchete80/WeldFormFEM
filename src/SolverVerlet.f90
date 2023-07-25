@@ -126,13 +126,13 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
-  ! if (time < 100.0d0*dt) then
-    ! nod%bcv(5:8,3) = -0.1 * time/(10.0d0*dt)
-    ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
-  ! else 
-    ! nod%bcv(5:8,3) = -0.1
-    ! !nod%bcv(3:4,2) = -0.1
-  ! end if 
+  if (time < 5.0e-3) then
+    nod%bcv(5:8,3) = 0.1 * time/(10.0d0*dt)
+    !nod%bcv(3:4,2) = 0.1 * time/(100.0d0*dt)
+  else 
+    nod%bcv(5:8,3) = 0.1
+    !nod%bcv(3:4,2) = 0.1
+  end if 
   
     do n=1,elem_count
       if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
