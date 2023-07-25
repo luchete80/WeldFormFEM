@@ -275,6 +275,10 @@ subroutine calc_elem_density ()
   end do
 end subroutine
 
+subroutine calc_elem_pressure ()
+  call calc_elem_pressure_EOS
+end subroutine
+
 subroutine calc_elem_pressure_EOS ()
   implicit none
   integer :: e, gp
@@ -299,7 +303,7 @@ end subroutine
     ! getIntegrationPoint(intPointId)->pressure = getIntegrationPoint(intPointId)->Stress.thirdTrace() + K * pressureIncrement;
 !    // Polar decomposition
 !    F.polarCuppenLnU(_integrationPoint->StrainInc, _integrationPoint->R);    
-subroutine calc_elem_pressure ()
+subroutine calc_elem_pressure_from_strain ()
   implicit none
   integer :: e, gp
   
