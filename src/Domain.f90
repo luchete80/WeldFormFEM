@@ -10,6 +10,7 @@ implicit none
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
 
+real(fp_kind):: mat_cs0, mat_K
 end Type Dom_type
 
 integer :: Dim, node_count, elem_count, Nproc, dof 
@@ -119,6 +120,7 @@ contains
     allocate (elem%gausspc(el_count))
     allocate (elem%dof(el_count,dim*nodxelem))
     allocate (elem%vol(el_count))
+    allocate (elem%vol_inc(el_count))
     allocate (elem%vol_0(el_count))
     allocate (elem%x2(el_count,nodxelem,dim))
     allocate (elem%jacob(el_count,gp,dim,dim))
@@ -135,6 +137,10 @@ contains
     allocate (elem%vele (el_count,dim*nodxelem,1)) 
     
     allocate (elem%mass(el_count)) !Mass matrix    
+    
+    allocate (elem%c_s(el_count,gp))
+    allocate (elem%p_visc(el_count,gp))
+    allocate (elem%e_length(el_count))
 
     allocate (elem%matm(el_count,nodxelem,nodxelem)) !Mass matrix
     allocate (elem%math(el_count,gp,1,nodxelem)) !Mass matrix
@@ -459,6 +465,8 @@ contains
     !nod%id(:) = tag
     
     fext_glob (:,:) = 0.0d0
+    
+    elem%e_length(:) = Lx !TODO: CHANGE!
     
     tot_mass = Density * Lx * Ly * Lz
     if (dim == 2) then !!!assuming plain strain

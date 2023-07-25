@@ -57,7 +57,8 @@ implicit none
    integer count_rate, count_max
    double precision time_init, time_final, elapsed_time
 
-    
+  type(Dom_type) :: dom
+  
   call omp_set_num_threads(12);
   
   maxt = omp_get_max_threads()
@@ -170,6 +171,8 @@ implicit none
   
   mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
   mat_G= young / (2.0* (1.0 + poisson));
+  
+  dom%mat_K = mat_K !!!TODO CREATE MATERIAL
   
   mat_cs = sqrt(mat_modK/rho)
   mat_cs0 = mat_cs

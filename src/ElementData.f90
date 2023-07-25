@@ -16,7 +16,7 @@ Type Element
   Integer, Dimension(:), Allocatable :: ID, gausspc
   !GENERAL
   !QUESTION: IS IT NECESARY TO STORE CS ON EACH ERLEMENT???
-  real(fp_kind), dimension(:), Allocatable :: h, t, cs, mass, vol, drhodt, vol_0 !influence radius, temp
+  real(fp_kind), dimension(:), Allocatable :: h, t, cs, mass, vol, drhodt, vol_0, vol_inc !influence radius, temp
   
   real(fp_kind), dimension(:,:), Allocatable :: rho_0,pressure,rho   !!!!elcount, gp
   !THERMAL
@@ -24,6 +24,8 @@ Type Element
   real(fp_kind), dimension(:,:,:,:), allocatable :: sigma, str_rate, rot_rate , shear_stress,strain !tau is Cauchy Stress (do not confuse with shear)
   real(fp_kind), dimension(:), allocatable:: mat_g
   
+  real(fp_kind), dimension(:,:), allocatable :: c_s, p_visc !WAVE SPEED AND SHOCK VISCOSITY PRESSURE
+  real(fp_kind), dimension(:), allocatable :: e_length
   real(fp_kind), dimension(:,:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
   
   !Matrices --assembles or by gauss point...

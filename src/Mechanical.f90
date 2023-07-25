@@ -314,6 +314,39 @@ subroutine calc_elem_pressure ()
   end do
 end subroutine
 
+!TODO: MMAKE A MATERIAL OBJECT
+!ASUMES constant K
+subroutine calc_elem_wave_speed (modK)
+  implicit none
+  integer :: e, gp
+  real(fp_kind), intent(in) :: modK
+  do e = 1, elem_count
+    do gp = 1, elem%gausspc(e)
+      elem%c_s(e,gp) = sqrt(modK/elem%rho(e,gp))
+    end do
+  end do  
+end subroutine
+
+!!!!!ACCORDING TO ABAQUS
+!!!!!! p v1 = b1 rho cd Le e_vol_dot
+!!!!!! p v2 = rho (b2 Le e_vol_dot)**2
+!!!!!! SECOND ONE IS ONLY CALCULATED COMPRESSIVE LOADS
+!!!!! AND ACCORDING TO BENSON 1992
+
+subroutine calc_elem_shock_visc (dt)
+  implicit none
+  integer :: e, gp
+  real(fp_kind), intent(in) :: dt
+  
+  real(fp_kind) :: press_inc
+  gp = 1
+  do e = 1, elem_count
+    do gp = 1, elem%gausspc(e)
+      elem%p_visc = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * elem%vol_inc(e) / dt
+    end do
+  end do
+end subroutine
+
 !!!! ACORDING TO STANDARD SOLID FEM, PRESSURE FROM strain rate increment
 ! //-----------------------------------------------------------------------------
 ! void Element::computePressure()
@@ -399,10 +432,11 @@ end subroutine CalcStressStrain
 subroutine calc_elem_vol ()
   implicit none
   integer :: e, gp
-  real(fp_kind):: w
+  real(fp_kind):: w, prev_vol
   
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
+    prev_vol = elem%vol(e)
     elem%vol(e) = 0.0d0
     !print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
@@ -416,7 +450,8 @@ subroutine calc_elem_vol ()
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
     print *, "Elem ", e, "vol ",elem%vol(e)
-  end do
+    elem%vol_inc(e) = elem%vol(e) - prev_vol
+  end do !elem
 
 end subroutine
 
