@@ -186,6 +186,7 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   call calc_hourglass_forces
   
   !!!! THIS IS FOR SHOCK
+  print *, "domi%mat_K", domi%mat_K
   call calc_elem_wave_speed(domi%mat_K)
   call calc_elem_shock_visc(dt)
   !!!!

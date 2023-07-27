@@ -172,7 +172,7 @@ implicit none
   mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
   mat_G= young / (2.0* (1.0 + poisson));
   
-  dom%mat_K = mat_K !!!TODO CREATE MATERIAL
+  dom%mat_K = mat_modK !!!TODO CREATE MATERIAL
   
   mat_cs = sqrt(mat_modK/rho)
   mat_cs0 = mat_cs
@@ -186,7 +186,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.0e-5
-  tf = 1.0e-5
+  tf = 2.0e-5
   
   elem%rho(:,:) = rho
   
