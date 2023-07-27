@@ -347,7 +347,7 @@ subroutine calc_elem_shock_visc (dt)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * elem%vol_inc(e) / dt
-      !print *, "elem%p_visc(e,gp) ", elem%p_visc(e,gp)
+      print *, "elem%p_visc(e,gp) ", elem%p_visc(e,gp)
     end do
   end do
 end subroutine
