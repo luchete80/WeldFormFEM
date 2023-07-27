@@ -327,6 +327,7 @@ subroutine calc_elem_wave_speed (modK)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%c_s(e,gp) = sqrt(modK/elem%rho(e,gp))
+       print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do  
 end subroutine
@@ -341,12 +342,14 @@ subroutine calc_elem_shock_visc (dt)
   implicit none
   integer :: e, gp
   real(fp_kind), intent(in) :: dt
+  real(fp_kind) :: vdot
   
   real(fp_kind) :: press_inc
   gp = 1
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
-      elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * elem%vol_inc(e) / dt
+      vdot = elem%vol_inc(e) / dt
+      elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * vdot + 1.5 * elem%rho(e,gp) * vdot ** 2.0
       print *, "elem%p_visc(e,gp) ", elem%p_visc(e,gp)
       print *, " elem cs  ", elem%c_s(e,gp)
     end do
