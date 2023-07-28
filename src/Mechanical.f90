@@ -3,6 +3,7 @@ use Domain
 use ElementData
 use NodeData
 use Matrices
+use mymath  !TRACE
 
 contains
 
@@ -75,6 +76,16 @@ subroutine cal_elem_strains ()
       !print *, "simlpified strain rate "
       !print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
+    end do !gp
+  end do !element
+end subroutine
+
+!!!!! TWO WAYS:FROM STRAIN RATE OR BEING U FROM: F = U R 
+subroutine cal_elem_strain_inc (dt)
+  real(fp_kind), intent(in) :: dt
+  do e=1, elem_count
+    do gp = 1, elem%gausspc(e)
+      elem%str_inc (e,gp, :,:)= elem%str_rate(e,gp,:,:) * dt
     end do !gp
   end do !element
 end subroutine
@@ -313,7 +324,10 @@ subroutine calc_elem_pressure_from_strain ()
     press_inc = 0.0d0
     do gp = 1, elem%gausspc(e)
       !print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
-      elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
+      !elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
+      elem%pressure(e,gp) = 1.0/3.0 * + trace (elem%sigma(e,gp,:,:)) + &
+                                        trace (elem%str_rate(e,gp,:,:))
+                            ! elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3)
     end do
   end do
 end subroutine

@@ -156,6 +156,7 @@ contains
     allocate (elem%cs(el_count))
     allocate (elem%shear_stress(el_count,gp, dim,dim))
     allocate (elem%str_rate(el_count,gp, dim,dim))
+    allocate (elem%str_inc(el_count,gp, dim,dim))
     allocate (elem%rot_rate(el_count,gp, dim,dim))
       
     if (Dim .eq. 2) then

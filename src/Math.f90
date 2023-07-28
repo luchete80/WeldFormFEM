@@ -2,6 +2,14 @@ module mymath
 use ModPrecision, only : fp_kind
 
 contains
+
+function trace(a) result(j)
+    real(fp_kind), intent (in) :: a(3,3) ! input
+    real(fp_kind)              :: j ! output
+
+    j = a(1,1)+a(2,2)+a(3,3)
+end function
+
 !!!!! ATENTION! THIS EIGENVALUE SOLVER IS FOR SYMMETRIC MATRICES!!!
 !FROM https://github.com/awvwgk/diag3x3/blob/master/diag3x3.f90
 pure subroutine eigval3x3(a, w)
