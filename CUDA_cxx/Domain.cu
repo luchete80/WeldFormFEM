@@ -28,16 +28,18 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
     
 
     cout << "Creating Mesh ..."<< "Elements "<< nel[0]<< ", "<<nel[1]<<endl;
-    cout << "Nodes: "<<(nel[0] +1)* (nel[1]+1) * (nel[2]+1)<<endl;
+    int nc = (nel[0] +1)* (nel[1]+1) * (nel[2]+1);
+    cout << "Nodes: "<<nc<<endl;
     
-    // call AllocateNodes((nel(1) +1)* (nel(2)+1) * (nel(3)+1))
+    AllocateNodes(nc);
     // print *, "Element count in XYZ: ", nel(:)
     // write (*,*) "Box Node count ", node_count
     
     
     // write (*,*) "xp ", Xp(:)    
     
-    // if (dim .eq. 2) then
+    //Allocate nodes
+    if (dim ==2) {
     // !write(*,*) "Box Particle Count is ", node_count
     // p = 1
     // !do while (Xp(3) <= (V(3)+Lz))
@@ -56,9 +58,9 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
         // j = j +1
       // end do 
       // Xp(3) = Xp(3) + 2 * r
-    // !end do
+    // end do
     
-    // else 
+    } else {
       // p = 1
       // k = 1; Xp(3) = V(3)
       // do while (k <= (nel(3) +1))
@@ -80,6 +82,7 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
         // k = k + 1
       // end do    
     // end if
+    }
     
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
@@ -158,7 +161,11 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
   
  }
  
- void Domain::AllocateNodes(const int node_count){
-   
+ void Domain::AllocateNodes(const int nc){
+   node_count = nc;
+  cudaMalloc((void **)&x, node_count * sizeof (double3));
+  cudaMalloc((void **)&v, node_count * sizeof (double3));
+  cudaMalloc((void **)&a, node_count * sizeof (double3));
+  cudaMalloc((void **)&u, node_count * sizeof (double3));
  }
  
