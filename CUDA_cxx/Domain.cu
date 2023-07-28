@@ -1,7 +1,9 @@
 #include "Domain.cuh"
+#include <iostream>
 
+using namespace std;
 
- void Domain::AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h, redint){		
+void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, double Lz, double &r){		
     // integer, intent(in):: tag
     // logical, intent(in) :: redint
     // !real(fp_kind), intent(in), allocatable :: V
@@ -10,22 +12,23 @@
     // real(fp_kind), dimension (1:3) :: Xp
     // integer :: i, j, k, p, ex, ey, ez, nnodz, gp
       
-    // integer, dimension(1:3) :: nel 
+    int nel [3];
     
-    // nel(1) = nint(Lx/(2.0*r)) 
-    // nel(2) = nint(Ly/(2.0*r)) 
-    // if (Dim .eq. 2) then
-      // nel(3) = 0
-      // nodxelem = 4
-    // else
-      // nel(3) = nint(Lz/(2.0*r)) 
-      // nodxelem = 8
-    // end if
+    nel[0] = (int)(Lx/(2.0*r)); 
+    nel[1] = (int)(Ly/(2.0*r)); 
+    if (dim == 2) {
+      nel[2] = 0;
+      nodxelem = 4;
+    } else {
+      nel [2] = (int)(Lz/(2.0*r)); 
+      nodxelem = 8;
+    }
     
     // Xp(3) = V(3) 
     
 
-    // write (*,*) "Creating Mesh ...", "Elements ", nel(1), ", ",nel(2)
+    cout << "Creating Mesh ..."<< "Elements "<< nel[0]<< ", "<<nel[1]<<endl;
+    cout << "Nodes: "<<(nel[0] +1)* (nel[1]+1) * (nel[2]+1)<<endl;
     
     // call AllocateNodes((nel(1) +1)* (nel(2)+1) * (nel(3)+1))
     // print *, "Element count in XYZ: ", nel(:)
@@ -155,4 +158,7 @@
   
  }
  
+ void Domain::AllocateNodes(const int node_count){
+   
+ }
  

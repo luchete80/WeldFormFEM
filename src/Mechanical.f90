@@ -314,20 +314,22 @@ end subroutine
     ! getIntegrationPoint(intPointId)->pressure = getIntegrationPoint(intPointId)->Stress.thirdTrace() + K * pressureIncrement;
 !    // Polar decomposition
 !    F.polarCuppenLnU(_integrationPoint->StrainInc, _integrationPoint->R);    
-subroutine calc_elem_pressure_from_strain ()
+! Assumes const module K (TODO: pass to element pointer)
+! Needs to be calculated AFTER CALC STRAIN_INC FROM STRAIN RATE
+subroutine calc_elem_pressure_from_strain (modK)
   implicit none
-  integer :: e, gp
-  
+  real(fp_kind), intent(in) :: modK
+  integer :: e, gp  
   real(fp_kind) :: press_inc
+  
   gp = 1
   do e = 1, elem_count
     press_inc = 0.0d0
     do gp = 1, elem%gausspc(e)
-      !print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
-      !elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
-      elem%pressure(e,gp) = 1.0/3.0 * + trace (elem%sigma(e,gp,:,:)) + &
-                                        trace (elem%str_rate(e,gp,:,:))
-                            ! elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3)
+      press_inc = press_inc + trace (elem%str_inc(e,gp,:,:))
+    end do
+    do gp = 1, elem%gausspc(e)    
+          elem%pressure(e,gp) = 1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
     end do
   end do
 end subroutine

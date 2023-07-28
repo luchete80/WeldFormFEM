@@ -220,7 +220,8 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   !call AverageData(elem%rho(:,1),nod%rho(:))  
 
   time = time + dt
-  end do !time
+  end do !time ----------------------------------------------------------------------------------
+  
 
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains
