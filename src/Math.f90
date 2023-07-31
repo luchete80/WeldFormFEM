@@ -252,14 +252,15 @@ end subroutine buildFTF
 ! void SymTensor2::polarExtract(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
 ! //-----------------------------------------------------------------------------
 ! {
-  subroutine polarExtract ( eigenVectors, eigenValues, U, R)
-  real(fp_kind), intent(in) :: eigenVectors(3,3),eigenValues(3)
+  subroutine polarExtract ( tin, eigenVectors, eigenValues, U, R)
+  real(fp_kind), intent(in) :: tin(6), eigenVectors(3,3),eigenValues(3)
   real(fp_kind), intent(out) :: U(6), R(3,3)
   ! double sq[3];
 
   ! // eigenVectors 1
   ! double U0[6];
   real(fp_kind) ::U0(6), U1(6), U2(6), Um1(6), sq(3), deter
+  real(fp_kind) :: t1,t2,t3,t4,t5,t6
   ! U0[0] = dnlSquare(eigenVectors[0][0]);
   ! U0[1] = eigenVectors[0][0] * eigenVectors[1][0];
   ! U0[2] = eigenVectors[0][0] * eigenVectors[2][0];
@@ -325,7 +326,12 @@ end subroutine buildFTF
   ! double t5 = U._data[1] * U._data[5];
   ! double t6 = U._data[2] * U._data[3];
 
+  t1 = U(4) * U(6); t2 = U(3) * U(5);
+  t4 = U(5) * U(5); t5 = U(2) * U(6);
+  t6 = U(3) * U(4);
+
   ! double deter = U._data[0] * t1 + 2.0 * U._data[1] * t2 - U._data[0] * t4 - U._data[1] * t5 - U._data[2] * t6;
+  deter = U(1) * t1 + 2.0 * U(2) * t2 - U(1) * t4 - U(2) * t5 - U(3) * t6;
 
   ! Um1[0] = (t1 - t4) / deter;
   ! Um1[1] = (t2 - t5) / deter;
@@ -343,6 +349,23 @@ end subroutine buildFTF
   ! R._data[6] = _data[6] * Um1[0] + _data[7] * Um1[1] + _data[8] * Um1[2];
   ! R._data[7] = _data[6] * Um1[1] + _data[7] * Um1[3] + _data[8] * Um1[4];
   ! R._data[8] = _data[6] * Um1[2] + _data[7] * Um1[4] + _data[8] * Um1[5];
+
+  Um1(1) = (t1 - t4) / deter;
+  Um1(2) = (t2 - t5) / deter;
+  Um1(3) = (U(2) * U(5) - t6) / deter;
+  Um1(4) = (U(1) * U(6) - U(3) * U(3)) / deter;
+  Um1(5) = (U(3) * U(2) - U(1) * U(5)) / deter;
+  Um1(6) = (U(1) * U(4) - U(2) * U(2)) / deter;
+
+  R(1,1) = tin(1) * Um1(1) + tin(2) * Um1(2) + tin(3) * Um1(3)
+  R(1,2) = tin(1) * Um1(2) + tin(2) * Um1(4) + tin(3) * Um1(5)
+  R(1,3) = tin(1) * Um1(3) + tin(2) * Um1(5) + tin(3) * Um1(6);
+  ! R(3) = tin(3) * Um1(0) + tin(4) * Um1(1) + tin(5) * Um1(2);
+  ! R(4) = tin(3) * Um1(1) + tin(4) * Um1(3) + tin(5) * Um1(4);
+  ! R(5) = tin(3) * Um1(2) + tin(4) * Um1(4) + tin(5) * Um1(5);
+  ! R(6) = tin(6) * Um1(0) + tin(7) * Um1(1) + tin(8) * Um1(2);
+  ! R(7) = tin(6) * Um1(1) + tin(7) * Um1(3) + tin(8) * Um1(4);
+  ! R(8) = tin(6) * Um1(2) + tin(7) * Um1(4) + tin(8) * Um1(5);
 end subroutine polarExtract
 
 end module mymath

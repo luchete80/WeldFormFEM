@@ -517,6 +517,7 @@ subroutine assemble_forces()
       do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
+        !print *, "rint ",rint_glob(elem%elnod(e,n),i), "fint ", elem%f_int(e,n,i)
         rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + elem%f_int(e,n,i)
         fext_glob(elem%elnod(e,n),i) =  fext_glob(elem%elnod(e,n),i) + elem%f_ext(e,n,i)
       end do !element row

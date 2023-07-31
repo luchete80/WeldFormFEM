@@ -61,10 +61,10 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
   elem%vol_0(:) = elem%vol(:)
-  !print *,"Element Initial Vol"
-  ! do n = 1, elem_count
-    ! print *, elem%vol(n)
-  ! end do    
+  print *,"Element Initial Vol"
+  do n = 1, elem_count
+    print *, elem%vol(n)
+  end do    
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "Assemblying mass matrix" 
@@ -91,14 +91,23 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   nod%u(:,:) = 0.0d0
   debug_mode = .false.
   first_step  = .true.
+
+  !!!! IS THERE ANY STRESS?
+  elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
+  elem%f_int (:,:,:)   = 0.0d0 !!!! I Ncal_elem_forces
   
+  
+  elem%sigma = 0.0d0
+  fext_glob = 0.0d0
   !!!!!!!!!!!!!!! IF EXTERNAL FORCES (AND IF NOT?????, IF BCs ARE ONLY VELOCITY??
   !!!!!!!!!!!!!! CALCULATE Ku0 = RINT0, Initial internal forces
   print *, "Assemblying forces..."
+  call cal_elem_forces
   call assemble_forces()
   do n=1,node_count
       nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
       print *, "fext n ", n, fext_glob(n,:)
+      print *, "rint_glob", rint_glob(n,:)
   end do
   call impose_bca
   
@@ -113,9 +122,7 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
     ! print *, "Initial v nod ", n, "v ", nod%v(n,:)  
   ! end do  
   
-  !!!! IS THERE ANY STRESS?
-  elem%sigma (:,:,:,:) = 0.0d0 !!!! FOR INT FORCES (elem%f_int(e,gp,d,d)) CALCULATION
-  !elem%f_int (:,:,:)   = 0.0d0 !!!! I Ncal_elem_forces
+
 
   elem%shear_stress = 0.0d0 
   time = 0.0  
@@ -182,13 +189,14 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)
-  print *, "VELOCITY", nod%v(:,:)  
-  call calc_hourglass_forces
+  ! print *, "VELOCITY", nod%v(:,:)  
+  elem%hourg_nodf(:,:,:) = 0.0d0
+  ! call calc_hourglass_forces
   
-  !!!! THIS IS FOR SHOCK
-  print *, "domi%mat_K", domi%mat_K
-  call calc_elem_wave_speed(domi%mat_K)
-  call calc_elem_shock_visc(dt)
+  ! !!!! THIS IS FOR SHOCK
+  ! print *, "domi%mat_K", domi%mat_K
+  ! call calc_elem_wave_speed(domi%mat_K)
+  ! call calc_elem_shock_visc(dt)
   !!!!
   
   call cal_elem_forces
