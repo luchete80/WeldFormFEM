@@ -13,16 +13,21 @@ class Domain{
   int dim, nodxelem; //TODO: CHANGE BY ELEMENT 
   int node_count,elem_count;
   
-  //// ELEMENT DATA
+  unsigned long *elnod;
+
+  
+  //// ELEMENT DATA, WITH GAUSS POINT
   double *p;
   double *str_rate;
   double *str_inc;
   
+  int redint; //!Reduced integration
   
  __device__ inline void UpdateDensity(double dt);
  
  void AddBoxLength(const int &tag, double3 V, double Lx, double Ly, double Lz, double &r);
- void AllocateNodes(const int node_count);
+ void AllocateNodes(const int &);
+ void AllocateElements(const int &, const int &);
 };
 
 
