@@ -182,7 +182,9 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
   elem_count = ne;
   cudaMalloc((void **)&elnod, elem_count * nodxelem * sizeof (unsigned long ));
   
-  //cudaMalloc((void **)&dHxy_detJ, elem_count,gp,dim,nodxelem))
+  //Assuming reduced integration
+  cudaMalloc((void **)&dHxy_detJ, elem_count * dim * nodxelem* sizeof (double)); //8 values per dim 
+  //Called dHxy_detJ(elem + elnod)
   // cudaMalloc((void **)&v, node_count * sizeof (double3));
   // cudaMalloc((void **)&a, node_count * sizeof (double3));
   // cudaMalloc((void **)&u, node_count * sizeof (double3));
