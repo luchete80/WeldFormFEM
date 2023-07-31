@@ -181,8 +181,70 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
   void Domain::AllocateElements(const int &ne, const int &gp){
   elem_count = ne;
   cudaMalloc((void **)&elnod, elem_count * nodxelem * sizeof (unsigned long ));
+  
+  //cudaMalloc((void **)&dHxy_detJ, elem_count,gp,dim,nodxelem))
   // cudaMalloc((void **)&v, node_count * sizeof (double3));
   // cudaMalloc((void **)&a, node_count * sizeof (double3));
   // cudaMalloc((void **)&u, node_count * sizeof (double3));
+ 
+ 
+     // allocate (elem%elnod(el_count,nodxelem))
+    // allocate (elem%gausspc(el_count))
+    // allocate (elem%dof(el_count,dim*nodxelem))
+    // allocate (elem%vol(el_count))
+    // allocate (elem%vol_inc(el_count))
+    // allocate (elem%vol_0(el_count))
+    // allocate (elem%x2(el_count,nodxelem,dim))
+    // allocate (elem%jacob(el_count,gp,dim,dim))
+    // allocate (elem%detj(el_count,gp))
+    // allocate (elem%sigma_eq(el_count,gp)) !But is constant??
+    // allocate (elem%dHxy(el_count,gp,dim,nodxelem))
+    // allocate (elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
+    // allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
+    // allocate (elem%dHrs(el_count,gp,dim,nodxelem))
+    // allocate (elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
+
+    // allocate (elem%uele (el_count,dim*nodxelem,1)) 
+
+    // allocate (elem%vele (el_count,dim*nodxelem,1)) 
+    
+    // allocate (elem%mass(el_count)) !Mass matrix    
+    
+    // allocate (elem%c_s(el_count,gp))
+    // allocate (elem%p_visc(el_count,gp))
+    // allocate (elem%e_length(el_count))
+
+    // allocate (elem%matm(el_count,nodxelem,nodxelem)) !Mass matrix
+    // allocate (elem%math(el_count,gp,1,nodxelem)) !Mass matrix
+    
+    // allocate (elem%hourg_nodf(el_count,nodxelem,dim)) !AS 1 COLUMN OR NOT????? Mass matrix
+    
+    // allocate (elem%f_int(el_count,nodxelem,dim))
+    // allocate (elem%f_ext(el_count,nodxelem,dim))
+    
+    // allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
+    // allocate (elem%rho_0(el_count,gp))
+    // allocate (elem%pressure(el_count,gp))
+    // allocate (elem%cs(el_count))
+    // allocate (elem%shear_stress(el_count,gp, dim,dim))
+    // allocate (elem%str_rate(el_count,gp, dim,dim))
+    // allocate (elem%str_inc(el_count,gp, dim,dim))
+    // allocate (elem%rot_rate(el_count,gp, dim,dim))
+      
+    // if (Dim .eq. 2) then
+      // allocate (elem%bl (el_count,gp,3,dim*nodxelem))
+      // allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))
+      // allocate (elem%strain(el_count,gp, 4,1))
+      // !allocate (elem%str_rate(el_count,gp, 4,1))
+      // !allocate (elem%rot_rate(el_count,gp, 4,1))
+    // else 
+      // allocate (elem%bl (el_count,gp,6,dim*nodxelem)) 
+      // allocate (elem%strain(el_count,gp, 6,1)) !!VECTORIZED 
+      // !allocate (elem%str_rate(el_count,gp, 6,1))
+      // !allocate (elem%rot_rate(el_count,gp, 6,1))
+    // end if 
+    
+    // elem%gausspc(:) = gp
+ 
  }
  
