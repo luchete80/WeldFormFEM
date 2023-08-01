@@ -186,17 +186,17 @@ implicit none
   
   !dt = 5.0e-6
   !tf = 1.5e-4
-  dt = 1.5e-5
-  tf = 1.5e-5
+  dt = 1.0e-5
+  tf = 1.05e-5
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
   !call SolveLeapfrog(tf,dt)
-  !call SolveVerlet(dom,tf,dt)
+  call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt)
-  call SolveGreenNag(tf,dt)
+  !call SolveGreenNag(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
 
@@ -234,13 +234,13 @@ implicit none
     end do
   close(1)
   
-  ! print *, "Element stresses"
-  ! do i=1,elem_count
-    ! do gp=1, elem%gausspc(i)
-      ! print *, elem%sigma(i,gp,:,:)
-      ! print *, "Sigma eq ", elem%sigma_eq(i,gp)
-    ! end do
-  ! end do
+  print *, "Element stresses"
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%sigma(i,gp,:,:)
+      !print *, "Sigma eq ", elem%sigma_eq(i,gp)
+    end do
+  end do
   ! print *, "Element strain rates" 
   ! do i=1,elem_count
     ! do gp=1, elem%gausspc(i)

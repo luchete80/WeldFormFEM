@@ -487,44 +487,19 @@ subroutine CalcStressStrain (dt)
 
 end subroutine CalcStressStrain
 
-! subroutine calc_elem_vol ()
-  ! implicit none
-  ! integer :: e, gp
-  ! real(fp_kind):: w, prev_vol
-  
-  ! ! P00+(Cs0*Cs0)*(Density-Density0);
-  ! do e = 1, elem_count
-    ! prev_vol = elem%vol(e)
-    ! elem%vol(e) = 0.0d0
-    ! !print *, "elem%gausspc(e)", elem%gausspc(e)
-    ! if (elem%gausspc(e).eq.1) then
-      ! w = 2.0**dim
-    ! else 
-      ! w = 1.0
-    ! end if
-    ! do gp=1,elem%gausspc(e)
-      ! !elem%vol(e) = 
-      ! !print *, "elem e j, w", elem%detJ(e,gp), w
-      ! elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
-    ! end do !gp  
-    ! print *, "Elem ", e, "vol ",elem%vol(e)
-    ! elem%vol_inc(e) = elem%vol(e) - prev_vol
-  ! end do !elem
-
-! end subroutine
-
 subroutine calc_elem_vol ()
   implicit none
   integer :: e, gp
-  real(fp_kind):: w
+  real(fp_kind):: w, prev_vol
   
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
+    prev_vol = elem%vol(e)
     elem%vol(e) = 0.0d0
     !print *, "elem%gausspc(e)", elem%gausspc(e)
     if (elem%gausspc(e).eq.1) then
       w = 2.0**dim
-    else if (elem%gausspc(e).eq. 8 ) then
+    else 
       w = 1.0
     end if
     do gp=1,elem%gausspc(e)
@@ -532,11 +507,11 @@ subroutine calc_elem_vol ()
       !print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
-    !print *, "Elem ", e, "vol ",elem%vol(e)
-  end do
+    print *, "Elem ", e, "vol ",elem%vol(e)
+    elem%vol_inc(e) = elem%vol(e) - prev_vol
+  end do !elem
 
 end subroutine
-
 
 
 subroutine impose_bcv
