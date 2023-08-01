@@ -85,11 +85,11 @@ subroutine WriteMeshVTU (fname)
   end do   
   write (1,*) "        </DataArray>" 
 
-  write (1,*) "        <DataArray type=""Float32"" Name=""f_hourg"" NumberOfComponents=""3"" Format=""ascii"">"
-  do n =1, node_count
-    write (1,*) nod%f_hour(n,1), nod%f_hour(n,2), nod%f_hour(n,3)
-  end do   
-  write (1,*) "        </DataArray>" 
+  ! write (1,*) "        <DataArray type=""Float32"" Name=""f_hourg"" NumberOfComponents=""3"" Format=""ascii"">"
+  ! do n =1, node_count
+    ! write (1,*) nod%f_hour(n,1), nod%f_hour(n,2), nod%f_hour(n,3)
+  ! end do   
+  ! write (1,*) "        </DataArray>" 
   
   !write (1,*) "      </PointData>"
 
@@ -106,13 +106,13 @@ subroutine WriteMeshVTU (fname)
   end do   
   write (1,*) "        </DataArray>"    
  
-  write (1,*) "        <DataArray type=""Float32"" Name=""sigma"" NumberOfComponents=""6"" Format=""ascii"">"
-  do n =1, node_count
-    write (1,*) nod%sigma(n,1,1), nod%sigma(n,2,2), nod%sigma(n,3,3), &
-                nod%sigma(n,1,2), nod%sigma(n,2,3), nod%sigma(n,3,1)!, &
-                !nod%sigma(n,3,1), nod%sigma(n,3,2), nod%sigma(n,3,3)
-  end do   
-  write (1,*) "        </DataArray>"    
+  ! write (1,*) "        <DataArray type=""Float32"" Name=""sigma"" NumberOfComponents=""6"" Format=""ascii"">"
+  ! do n =1, node_count
+    ! write (1,*) nod%sigma(n,1,1), nod%sigma(n,2,2), nod%sigma(n,3,3), &
+                ! nod%sigma(n,1,2), nod%sigma(n,2,3), nod%sigma(n,3,1)!, &
+                ! !nod%sigma(n,3,1), nod%sigma(n,3,2), nod%sigma(n,3,3)
+  ! end do   
+  ! write (1,*) "        </DataArray>"    
    
   
   

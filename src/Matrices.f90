@@ -230,7 +230,7 @@ subroutine calculate_element_Jacobian ()
       end if !dim
     end if !!gp ==1
 ! #if defined _PRINT_DEBUG_
-    print *, "jacob ", elem%jacob(e,gp,:,:)
+    !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
   end do !element
 

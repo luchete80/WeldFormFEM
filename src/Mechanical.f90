@@ -151,6 +151,15 @@ subroutine cal_elem_forces ()
   end do!elem
 end subroutine
 
+!!!!! ONLY FOR GREEN-NAHGDI
+subroutine polardecomp()
+  do e=1, elem_count
+    do gp = 1, elem%gausspc(e)
+      call polarExtract ( tin, eigenVectors, eigenValues, U, R)
+      
+    end do 
+  end do
+end subroutine
 
 !!!! AFTER CALCULATING VELE 
 !!!!!THIS HOURGLASS CONTROL IS BASED ON 
@@ -202,7 +211,7 @@ subroutine calc_hourglass_forces
       end do
       do j =1,jmax !MODE
         do n=1,nodxelem !1:4 or 8
-          print *, "elem v ", vel (n,:)
+          !print *, "elem v ", vel (n,:)
           hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
         end do
       end do
@@ -214,9 +223,9 @@ subroutine calc_hourglass_forces
       end do
       c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
-      print *, "hourglass c ", c_h
+      !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
-      print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
+      !print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
  
       elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
       
@@ -283,6 +292,32 @@ subroutine calc_elem_density ()
         ! print *, "Elem rho_0 rho", elem%rho_0(e,gp) ,elem%rho(e,gp) 
       ! end do
     ! end if
+  end do
+end subroutine
+
+
+!!!!! ONLY FOR GREEN NAGHDI OR COMPUTE JAUMANN FROM DL = I -FINV
+subroutine calc_def_grad ()
+  implicit none
+  real(fp_kind), dimension(dim,dim) :: F !def gradient
+  real(fp_kind), dimension(nodxelem,dim) :: x,u !def gradient
+  
+  integer :: e, n, gp
+  do e = 1, elem_count
+    do gp=1, elem%gausspc(e)
+
+    do n=1,nodxelem 
+      !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
+    end do
+    do gp = 1, elem%gausspc(e)
+      !!!!CALCULATE DEFORMATION GRADIENT
+      !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+      F = matmul(elem%dHxy0(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
+      print *, "det F", det(F)
+
+    end do
+
   end do
 end subroutine
 

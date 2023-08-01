@@ -48,7 +48,7 @@ implicit none
   logical :: reduced_int
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
   integer, pointer :: ncount_int
-  !type(Domain)	::dom
+  type(dom_type)	::dom
 
    ! Variables for clock
    integer count_0, count_1, gp
@@ -71,9 +71,9 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 3
-  Lx = 0.1	
+  Lx = 0.01	
   Ly = 0.01
-  Lz = 0.01
+  Lz = 0.1
   dx    = 0.012d0
   r = dx /2.0
   h = dx * 1.2
@@ -96,7 +96,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .False.
+  reduced_int = .false.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
   do i=1,node_count
@@ -105,16 +105,16 @@ implicit none
   end do
 
   do i=1,node_count
-    if (nod%x(i,1)<r) then
+    if (nod%x(i,3)<r) then
       nod%is_fix(i,:) = .true.
       print *, "Fixed Node ", i, " at: ", nod%x(i,:)
     end if
   end do
 
   do i=1,node_count
-    if (nod%x(i,1)> (Lx - r) .and. nod%x(i,2) > (Ly -r) ) then
-      nod%is_bcv(i,2) = .true.
-      nod%bcv(i,1) = 0.1d0
+    if (nod%x(i,3)> (Lz - r) ) then
+      nod%is_bcv(i,3) = .true.
+      nod%bcv(i,3) = 0.1d0
       print *, "Velocity Node ", i, " at: ", nod%x(i,:)
     end if
   end do
@@ -145,15 +145,15 @@ implicit none
   dt = 0.7 * dx/(mat_cs)
   tf = dt * 1.0
   
-  tf = 1.0e-6
-  tf = 1.0e-4
+  tf = 1.0e-7
+  tf = 1.0e-5
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_K
   print *, "time step size with CFL 0.7", dt
   !call SolveLeapfrog(tf,dt)
-  !call SolveVerlet(tf,dt)
+  !call SolveVerlet(dom,tf,dt)
   call SolveChungHulbert(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
