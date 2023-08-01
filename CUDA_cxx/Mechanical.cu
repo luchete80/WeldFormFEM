@@ -97,18 +97,10 @@
       // !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
       
       // do n=1, nodxelem
-      // !Is only linear matrix?    
-      // !elem%f_int(e,n,d) =  
-      // !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
-      // !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
-      // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
-      // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
-      // !!!!! 
         // do d=1, dim
           // elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         // end do
         // if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          // !!elem%f_int(e,n,1) = 
           // elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
           // elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
         // else 

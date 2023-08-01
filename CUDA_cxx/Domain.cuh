@@ -21,6 +21,8 @@ class Domain{
   double *str_rate;
   double *str_inc;
   
+  double *dHxy_detJ; //(e,gp,dim,n)
+  
   int redint; //!Reduced integration
   
  __device__ inline void UpdateDensity(double dt);
