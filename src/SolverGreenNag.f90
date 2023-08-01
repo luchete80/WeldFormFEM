@@ -164,6 +164,8 @@ subroutine SolveGreenNag (tf, dt)
     end do
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
+  nod%u = nod%u + u
+  print *, "Initial u ", u
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
   nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
   nod%a = 0.0d0
@@ -182,6 +184,11 @@ subroutine SolveGreenNag (tf, dt)
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
+  
+  call calc_def_grad
+  
+  
+  
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   
   print *, "STRAIN RATE ", elem%str_rate
@@ -207,7 +214,8 @@ subroutine SolveGreenNag (tf, dt)
   !print *, "Element density ", elem%rho(:,:)
   call calc_elem_pressure
   print *, "Element pressure ", elem%pressure(:,:)
-
+  
+  
   call CalcStressStrain(dt)
   
   print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)

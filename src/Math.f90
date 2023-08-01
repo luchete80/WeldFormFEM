@@ -234,8 +234,31 @@ end subroutine eigvec3x3
     ! T_{2} & T_{4} & T_{5}
     ! \end{array}\right]
 ! \end{equation*}
+! //-----------------------------------------------------------------------------
+! void Tensor2::buildFTF(double FTF[3][3]) const
+! //-----------------------------------------------------------------------------
+! {
+  ! FTF[0][0] = dnlSquare(_data[0]) + dnlSquare(_data[3]) + dnlSquare(_data[6]);
+  ! FTF[0][1] = _data[0] * _data[1] + _data[3] * _data[4] + _data[6] * _data[7];
+  ! FTF[0][2] = _data[0] * _data[2] + _data[3] * _data[5] + _data[6] * _data[8];
+  ! FTF[1][0] = FTF[0][1];
+  ! FTF[1][1] = dnlSquare(_data[1]) + dnlSquare(_data[4]) + dnlSquare(_data[7]);
+  ! FTF[1][2] = _data[1] * _data[2] + _data[4] * _data[5] + _data[7] * _data[8];
+  ! FTF[2][0] = FTF[0][2];
+  ! FTF[2][1] = FTF[1][2];
+  ! FTF[2][2] = dnlSquare(_data[2]) + dnlSquare(_data[5]) + dnlSquare(_data[8]);
+! }
+! \begin{equation*}
+! \T=\left[\begin{array}{ccc}
+    ! T_{0} & T_{1} & T_{2}\\
+    ! T_{3} & T_{4} & T_{5}\\
+    ! T_{6} & T_{7} & T_{8}
+    ! \end{array}\right]
+! \end{equation*}
+! @END
+! */
 subroutine buildFTF (symt,FTF)
-  real(fp_kind), intent(in) :: symt(6)
+  real(fp_kind), intent(in) :: symt(9)
   real(fp_kind), intent(out) :: FTF(3,3)
   FTF(1,1) = symt(1)*symt(1) + symt(2)*symt(2) + symt(3)*symt(3)
   FTF(1,2) = symt(1) * symt(2) + symt(2) * symt(4) + symt(3) * symt(5)
@@ -245,11 +268,11 @@ subroutine buildFTF (symt,FTF)
   FTF(2,3) = symt(2) * symt(3) + symt(4) * symt(5) + symt(5) * symt(6)
   FTF(3,1) = FTF(1,3)
   FTF(3,2) = FTF(2,3)
-  FTF(3,3) = symt(3)*symt(3) + symt(5)*symt(5) + symt(6)*symt(6)
+  FTF(3,3) = symt(3)*symt(3) + symt(6)*symt(6) + symt(9)*symt(9)
 end subroutine buildFTF
 
 ! //-----------------------------------------------------------------------------
-! void SymTensor2::polarExtract(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
+! void Tensor2::polarExtract(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
 ! //-----------------------------------------------------------------------------
 ! {
   subroutine polarExtract ( tin, eigenVectors, eigenValues, U, R)
@@ -368,6 +391,32 @@ end subroutine buildFTF
   ! R(8) = tin(6) * Um1(2) + tin(7) * Um1(4) + tin(8) * Um1(5);
 end subroutine polarExtract
 
+  ! // This method computes the polar decomposition of a second order tensor with computation of the \f$ ln[U] \f$ and \f$ R \f$ tensors as the returning arguments.
+  ! // The logarithm of a symmetric tensor is givent by the following formulation:
+  ! // \f[ \ln U =\sum _{i=1}^{3}\ln \lambda _{i}(u_{i}\otimes u_{i}) \f]
+  ! // \param U Return second order tensor containing \f$ ln[U] \f$
+  ! // \param R Return second order tensor containing \f$ R \f$
+
+! //-----------------------------------------------------------------------------
+! void SymTensor2::polarCuppen(SymTensor2 &U, Tensor2 &R) const
+! //-----------------------------------------------------------------------------
+! subroutine polarCuppen(tin, U, R)
+  ! real(fp_kind), intent(in) :: FTF(6), eigenVectors(3,3),eigenValues(3)
+  ! real(fp_kind), intent(out) :: U(6), R(3,3)
+  ! ! double FTF[3][3];
+  ! ! double eigenVectors[3][3];
+  ! ! double eigenValues[3];
+
+  ! !Build the F(T).F symmetric matrix
+  ! call buildFTF(FTF)
+
+  ! !Compute the eigenvalues and eigenvectors
+  ! !dsyevd3(FTF, eigenVectors, eigenValues); !!!// Cuppen
+
+  ! !Extract the tensors for U and R
+  ! !polarExtract(eigenVectors, eigenValues, U, R);
+! end subroutine 
+
 end module mymath
 
 ! ! /*
@@ -401,23 +450,23 @@ end module mymath
 ! }
 
 ! //-----------------------------------------------------------------------------
-! void SymTensor2::buildFTF(double FTF[3][3]) const
+! void Tensor2::buildFTF(double FTF[3][3]) const
 ! //-----------------------------------------------------------------------------
 ! {
-  ! FTF[0][0] = dnlSquare(_data[0]) + dnlSquare(_data[1]) + dnlSquare(_data[2]);
-  ! FTF[0][1] = _data[0] * _data[1] + _data[1] * _data[3] + _data[2] * _data[4];
-  ! FTF[0][2] = _data[0] * _data[2] + _data[1] * _data[4] + _data[2] * _data[5];
+  ! FTF[0][0] = dnlSquare(_data[0]) + dnlSquare(_data[3]) + dnlSquare(_data[6]);
+  ! FTF[0][1] = _data[0] * _data[1] + _data[3] * _data[4] + _data[6] * _data[7];
+  ! FTF[0][2] = _data[0] * _data[2] + _data[3] * _data[5] + _data[6] * _data[8];
   ! FTF[1][0] = FTF[0][1];
-  ! FTF[1][1] = dnlSquare(_data[1]) + dnlSquare(_data[3]) + dnlSquare(_data[4]);
-  ! FTF[1][2] = _data[1] * _data[2] + _data[3] * _data[4] + _data[4] * _data[5];
+  ! FTF[1][1] = dnlSquare(_data[1]) + dnlSquare(_data[4]) + dnlSquare(_data[7]);
+  ! FTF[1][2] = _data[1] * _data[2] + _data[4] * _data[5] + _data[7] * _data[8];
   ! FTF[2][0] = FTF[0][2];
   ! FTF[2][1] = FTF[1][2];
-  ! FTF[2][2] = dnlSquare(_data[2]) + dnlSquare(_data[4]) + dnlSquare(_data[5]);
+  ! FTF[2][2] = dnlSquare(_data[2]) + dnlSquare(_data[5]) + dnlSquare(_data[8]);
 ! }
 
 
 ! //-----------------------------------------------------------------------------
-! void SymTensor2::polarExtract(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
+! void Tensor2::polarExtractLnU(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
 ! //-----------------------------------------------------------------------------
 ! {
   ! double sq[3];
@@ -482,4 +531,14 @@ end module mymath
   ! R._data[6] = _data[6] * Um1[0] + _data[7] * Um1[1] + _data[8] * Um1[2];
   ! R._data[7] = _data[6] * Um1[1] + _data[7] * Um1[3] + _data[8] * Um1[4];
   ! R._data[8] = _data[6] * Um1[2] + _data[7] * Um1[4] + _data[8] * Um1[5];
+
+  ! sq[0] = log(eigenValues[0]) / 2;
+  ! sq[1] = log(eigenValues[1]) / 2;
+  ! sq[2] = log(eigenValues[2]) / 2;
+  ! U._data[0] = sq[0] * U0[0] + sq[1] * U1[0] + sq[2] * U2[0];
+  ! U._data[1] = sq[0] * U0[1] + sq[1] * U1[1] + sq[2] * U2[1];
+  ! U._data[2] = sq[0] * U0[2] + sq[1] * U1[2] + sq[2] * U2[2];
+  ! U._data[3] = sq[0] * U0[3] + sq[1] * U1[3] + sq[2] * U2[3];
+  ! U._data[4] = sq[0] * U0[4] + sq[1] * U1[4] + sq[2] * U2[4];
+  ! U._data[5] = sq[0] * U0[5] + sq[1] * U1[5] + sq[2] * U2[5];
 ! }

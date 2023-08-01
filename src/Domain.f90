@@ -158,6 +158,8 @@ contains
     allocate (elem%str_rate(el_count,gp, dim,dim))
     allocate (elem%str_inc(el_count,gp, dim,dim))
     allocate (elem%rot_rate(el_count,gp, dim,dim))
+    
+    allocate (elem%def_grad(el_count,gp, dim,dim))
       
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))

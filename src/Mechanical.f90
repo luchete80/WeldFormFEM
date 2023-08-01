@@ -151,14 +151,7 @@ subroutine cal_elem_forces ()
   end do!elem
 end subroutine
 
-!!!!! ONLY FOR GREEN-NAHGDI
-subroutine polardecomp()
-  do e=1, elem_count
-    do gp = 1, elem%gausspc(e)
-      !call polarExtract ( tin, eigenVectors, eigenValues, U, R)
-    end do 
-  end do
-end subroutine
+
 
 !!!! AFTER CALCULATING VELE 
 !!!!!THIS HOURGLASS CONTROL IS BASED ON 
@@ -277,48 +270,54 @@ subroutine calc_elem_density ()
     !if (elem%gausspc(e) .eq. 1) then
       elem%rho(e,gp) = elem%rho_0(e,gp)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
     end do
-    ! else !!!CORRECT WAY FOFR FULL INTEGRATION 
-      ! do n=1,nodxelem 
-        ! x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
-      ! end do
-      ! do gp = 1, elem%gausspc(e)
-        ! !!!!CALCULATE DEFORMATION GRADIENT
-        ! F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-        ! print *, "det F", det(F)
-        ! !elem%rho(e,gp) = elem%rho_0(e,gp)* elem%detJ(e,gp)
-        ! elem%rho(e,gp) = elem%rho_0(e,gp)* det(F)
-        ! print *, "det F", det(F)
-        ! print *, "Elem rho_0 rho", elem%rho_0(e,gp) ,elem%rho(e,gp) 
-      ! end do
-    ! end if
   end do
 end subroutine
 
 
 !!!!! ONLY FOR GREEN NAGHDI OR COMPUTE JAUMANN FROM DL = I -FINV
+!!!!! JAUMANN IS BETTER TO BE CALCULATED USING W FROM STRAIN RATE
 !!!!! FIRST SHOULD BE CALCULATED DEFORMATION GRADIENT 
 subroutine calc_def_grad ()
-  ! implicit none
-  ! real(fp_kind), dimension(dim,dim) :: F !def gradient
-  ! real(fp_kind), dimension(nodxelem,dim) :: x,u !def gradient
+  implicit none
+  real(fp_kind), dimension(dim,dim) :: F,ident(3,3) !def gradient
+  real(fp_kind), dimension(nodxelem,dim) :: x,u !def gradient
+  integer :: e, n, gp
   
-  ! integer :: e, n, gp
-  ! do e = 1, elem_count
-    ! do gp=1, elem%gausspc(e)
+  ident = 0.0d0
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  
+  do e = 1, elem_count
+    do n=1,nodxelem 
+      !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
+    end do
+    do gp = 1, elem%gausspc(e)
+      !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+      F = ident + 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
+      elem%def_grad(e,gp,:,:) = F
+      print *, "def grad F", F(1,1), F(1,2), F(1,3)
+      print *, F(2,1), F(2,2), F(2,3)
+      print *, F(3,1), F(3,2), F(3,3)
 
-    ! do n=1,nodxelem 
-      ! !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
-      ! u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
-    ! end do
+    end do
+
+  end do!elem
+end subroutine
+
+!!!!! ONLY FOR GREEN-NAHGDI
+subroutine polardecomp()
+  ! real(fp_kind), dimension(dim,dim) :: F
+  ! real(fp_kind), Fsym(6)
+  ! do e=1, elem_count
     ! do gp = 1, elem%gausspc(e)
-      ! !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-      ! F = 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
-      ! print *, "det F", det(F)
-
-    ! end do
-
+      ! F = elem%def_grad(e,gp,:,:)
+      ! Fsym(1) = F(1,1); Fsym(2) = F(1,2); Fsym(3) = F(1,3); 
+      ! Fsym(4) = F(2,2); Fsym(5) = F(2,3); Fsym(6) = F(3,3); 
+      ! !call polarCuppen(F, U, R)
+    ! end do 
   ! end do
 end subroutine
+
 
 subroutine calc_elem_pressure ()
   call calc_elem_pressure_EOS
