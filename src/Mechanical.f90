@@ -155,8 +155,7 @@ end subroutine
 subroutine polardecomp()
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
-      call polarExtract ( tin, eigenVectors, eigenValues, U, R)
-      
+      !call polarExtract ( tin, eigenVectors, eigenValues, U, R)
     end do 
   end do
 end subroutine
@@ -297,28 +296,28 @@ end subroutine
 
 
 !!!!! ONLY FOR GREEN NAGHDI OR COMPUTE JAUMANN FROM DL = I -FINV
+!!!!! FIRST SHOULD BE CALCULATED DEFORMATION GRADIENT 
 subroutine calc_def_grad ()
-  implicit none
-  real(fp_kind), dimension(dim,dim) :: F !def gradient
-  real(fp_kind), dimension(nodxelem,dim) :: x,u !def gradient
+  ! implicit none
+  ! real(fp_kind), dimension(dim,dim) :: F !def gradient
+  ! real(fp_kind), dimension(nodxelem,dim) :: x,u !def gradient
   
-  integer :: e, n, gp
-  do e = 1, elem_count
-    do gp=1, elem%gausspc(e)
+  ! integer :: e, n, gp
+  ! do e = 1, elem_count
+    ! do gp=1, elem%gausspc(e)
 
-    do n=1,nodxelem 
-      !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
-      u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
-    end do
-    do gp = 1, elem%gausspc(e)
-      !!!!CALCULATE DEFORMATION GRADIENT
-      !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
-      F = matmul(elem%dHxy0(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
-      print *, "det F", det(F)
+    ! do n=1,nodxelem 
+      ! !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      ! u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
+    ! end do
+    ! do gp = 1, elem%gausspc(e)
+      ! !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
+      ! F = 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
+      ! print *, "det F", det(F)
 
-    end do
+    ! end do
 
-  end do
+  ! end do
 end subroutine
 
 subroutine calc_elem_pressure ()

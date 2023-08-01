@@ -30,7 +30,7 @@
 
     ! }
 
-module SolverChungHulbert
+module SolverGreenNag
 use ModPrecision, only : fp_kind
 
 contains 
@@ -40,7 +40,7 @@ contains
 !!!timeStep = _timeStepSafetyFactor * _omegaS / maximumFrequency;
 
 
-subroutine SolveChungHulbert (tf, dt)
+subroutine SolveGreenNag (tf, dt)
   use omp_lib
   use Matrices
   use Mechanical
@@ -144,7 +144,7 @@ subroutine SolveChungHulbert (tf, dt)
   x_at_midtime = .False.
   
   print *,"------------------------------------------------------------------------------------------------"
-  print *,"main loop, VERLET -------------------------------------------------------------------------------"
+  print *,"main loop,  -------------------------------------------------------------------------------"
   do while (time < tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
@@ -169,7 +169,7 @@ subroutine SolveChungHulbert (tf, dt)
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  !print *, "veloc", nod%v 
+  print *, "veloc", nod%v 
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
@@ -183,6 +183,8 @@ subroutine SolveChungHulbert (tf, dt)
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  
+  print *, "STRAIN RATE ", elem%str_rate
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
   nod%x = x_temp
@@ -204,9 +206,12 @@ subroutine SolveChungHulbert (tf, dt)
   call calc_elem_density
   !print *, "Element density ", elem%rho(:,:)
   call calc_elem_pressure
-  !print *, "Element pressure ", elem%pressure(:,:)
+  print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)
+  
+  print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)
+  
   !print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces
@@ -250,6 +255,6 @@ subroutine SolveChungHulbert (tf, dt)
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains
   
-end subroutine SolveChungHulbert
+end subroutine SolveGreenNag
 
-end module SolverChungHulbert
+end module SolverGreenNag
