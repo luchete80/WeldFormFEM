@@ -169,7 +169,7 @@ subroutine SolveChungHulbert (tf, dt)
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  print *, "veloc", nod%v 
+  !print *, "veloc", nod%v 
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
@@ -202,17 +202,17 @@ subroutine SolveChungHulbert (tf, dt)
   end do
   
   call calc_elem_density
-  print *, "Element density ", elem%rho(:,:)
+  !print *, "Element density ", elem%rho(:,:)
   call calc_elem_pressure
-  print *, "Element pressure ", elem%pressure(:,:)
+  !print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)
-  print *, "VELOCITY", nod%v(:,:)  
+  !print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces
   call assemble_forces
 
-  print *, "Element strain rates" 
+  !print *, "Element strain rates" 
   do e=1,elem_count
     do gp=1, elem%gausspc(e)
       print *, elem%str_rate(e,gp,:,:)
@@ -221,7 +221,7 @@ subroutine SolveChungHulbert (tf, dt)
 
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
-  print *, "global int forces ", rint_glob(3,:)
+  !print *, "global int forces ", rint_glob(3,:)
   
     do n=1,node_count
       do d=1,dim

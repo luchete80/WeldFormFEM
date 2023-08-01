@@ -114,8 +114,8 @@ subroutine cal_elem_forces ()
       test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
       !print *, "test force", test
       
-      print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
+      !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+      !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
       !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
       
       do n=1, nodxelem
@@ -141,7 +141,7 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
                                                   elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
         end if
-        print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
+        !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
       end do! nod x elem
       !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
       !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
@@ -496,10 +496,10 @@ subroutine calc_elem_vol ()
     end if
     do gp=1,elem%gausspc(e)
       !elem%vol(e) = 
-      print *, "elem e j, w", elem%detJ(e,gp), w
+      !print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
-    print *, "Elem ", e, "vol ",elem%vol(e)
+    !print *, "Elem ", e, "vol ",elem%vol(e)
   end do
 
 end subroutine
