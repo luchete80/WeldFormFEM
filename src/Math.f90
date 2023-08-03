@@ -280,6 +280,7 @@ end subroutine buildFTF
   subroutine polarExtract ( tin, eigenVectors, eigenValues, U, R)
   real(fp_kind), intent(in) :: tin(9), eigenVectors(3,3),eigenValues(3)
   real(fp_kind), intent(out) :: U(6), R(3,3)
+  !real(fp_kind):: U(6)
   ! double sq[3];
 
   ! // eigenVectors 1
@@ -344,6 +345,13 @@ end subroutine buildFTF
   U(5) = sq(1) * U0(5) + sq(2) * U1(5) + sq(3) * U2(5);
   U(6) = sq(1) * U0(6) + sq(2) * U1(6) + sq(3) * U2(6);
 
+  ! U(1,1) = sq(1) * U0(1) + sq(2) * U1(1) + sq(3) * U2(1);
+  ! U(1,2) = sq(1) * U0(2) + sq(2) * U1(2) + sq(3) * U2(2);
+  ! U(1,3) = sq(1) * U0(3) + sq(2) * U1(3) + sq(3) * U2(3);
+  ! U(2,2) = sq(1) * U0(4) + sq(2) * U1(4) + sq(3) * U2(4);
+  ! U(2,3) = sq(1) * U0(5) + sq(2) * U1(5) + sq(3) * U2(5);
+  ! U(3,3) = sq(1) * U0(6) + sq(2) * U1(6) + sq(3) * U2(6);
+  ! U(2,1) = U(1,2);U(3,1) = U(1,3);U(3,2) = U(2,3);
   ! double Um1[6];
   ! double t1 = U._data[3] * U._data[5];
   ! double t2 = U._data[2] * U._data[4];
@@ -396,6 +404,9 @@ end subroutine buildFTF
   ! ! R._data[6] = _data[6] * Um1[0] + _data[7] * Um1[1] + _data[8] * Um1[2];
   ! ! R._data[7] = _data[6] * Um1[1] + _data[7] * Um1[3] + _data[8] * Um1[4];
   ! ! R._data[8] = _data[6] * Um1[2] + _data[7] * Um1[4] + _data[8] * Um1[5];
+  ! Um(1,1) = U(1);    Um(1,2) = U(2); Um(1,2) = U(3);
+  ! Um(2,1) = Um(1,2); Um(2,2) = U(4); Um(2,3) = U(5);
+  ! Um(3,3) = U(6);
 end subroutine polarExtract
 
   ! // This method computes the polar decomposition of a second order tensor with computation of the \f$ ln[U] \f$ and \f$ R \f$ tensors as the returning arguments.

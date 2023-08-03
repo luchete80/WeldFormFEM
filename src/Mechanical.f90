@@ -305,10 +305,15 @@ subroutine calc_def_grad ()
 end subroutine
 
 subroutine calc_polar_urmat 
-
+  real(fp_kind) ::U(6)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
-      call polarCuppen(elem%def_grad(e,gp,:,:),elem%umat(e,gp,:,:),elem%rmat(e,gp,:,:))
+      call polarCuppen(elem%def_grad(e,gp,:,:),U,elem%rmat(e,gp,:,:))
+      elem%umat(e,gp,1,1) = U(1);elem%umat(e,gp,1,2) = U(2);elem%umat(e,gp,1,1) = U(3);
+      elem%umat(e,gp,2,1) = U(4);elem%umat(e,gp,2,2) = U(5);elem%umat(e,gp,2,3) = U(6);
+      elem%umat(e,gp,2,1) = elem%umat(e,gp,1,2);
+
+      
     end do 
   end do
 endsubroutine
