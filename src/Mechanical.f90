@@ -318,6 +318,22 @@ subroutine calc_polar_urmat
   end do
 endsubroutine
 
+subroutine calc_inv_def_grad
+  do e = 1, elem_count
+    do gp = 1, elem%gausspc(e)
+      
+    end do
+  end do
+end subroutine calc_inv_def_grad
+
+subroutine calc_strain_inc
+  do e = 1, elem_count
+    do gp = 1, elem%gausspc(e)
+      
+    end do
+  end do
+end subroutine calc_strain_inc
+
 !!!!! ONLY FOR GREEN-NAHGDI
 subroutine polardecomp()
   ! real(fp_kind), dimension(dim,dim) :: F
