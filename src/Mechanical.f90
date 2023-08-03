@@ -304,6 +304,15 @@ subroutine calc_def_grad ()
   end do!elem
 end subroutine
 
+subroutine calc_polar_urmat 
+
+  do e = 1, elem_count
+    do gp = 1, elem%gausspc(e)
+      call polarCuppen(elem%def_grad(e,gp,:,:),elem%umat(e,gp,:,:),elem%rmat(e,gp,:,:))
+    end do 
+  end do
+endsubroutine
+
 !!!!! ONLY FOR GREEN-NAHGDI
 subroutine polardecomp()
   ! real(fp_kind), dimension(dim,dim) :: F

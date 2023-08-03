@@ -194,9 +194,9 @@ implicit none
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
   !call SolveLeapfrog(tf,dt)
-  call SolveVerlet(dom,tf,dt)
+  !call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt)
-  !call SolveGreenNag(tf,dt)
+  call SolveGreenNag(tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
 

@@ -185,8 +185,9 @@ subroutine SolveGreenNag (tf, dt)
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   
-  call calc_def_grad
-  
+  call calc_def_grad  
+  !call 
+  call calc_polar_urmat
   
   
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC

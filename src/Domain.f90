@@ -160,7 +160,11 @@ contains
     allocate (elem%rot_rate(el_count,gp, dim,dim))
     
     allocate (elem%def_grad(el_count,gp, dim,dim))
-      
+    
+    !!! ONLY IF POLAR DECOMP
+    allocate (elem%umat(el_count,gp, dim,dim)) !TODO; CHANGE TO SYMM
+    allocate (elem%rmat(el_count,gp, dim,dim))
+    
     if (Dim .eq. 2) then
       allocate (elem%bl (el_count,gp,3,dim*nodxelem))
       allocate (elem%bnl(el_count,gp, 4,dim*nodxelem))

@@ -414,6 +414,9 @@ subroutine polarCuppen(tin, U, R)
   ! double eigenValues[3];
 
   !Build the F(T).F symmetric matrix
+  tin_plane(1) = tin(1,1);tin_plane(2) = tin(1,2);tin_plane(3) = tin(1,3);
+  tin_plane(4) = tin(2,1);tin_plane(5) = tin(2,2);tin_plane(6) = tin(2,3);
+  tin_plane(7) = tin(3,1);tin_plane(8) = tin(3,2);tin_plane(9) = tin(3,3);  
   call buildFTF(tin_plane,FTF)
 
   !Compute the eigenvalues and eigenvectors
@@ -421,7 +424,9 @@ subroutine polarCuppen(tin, U, R)
   call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
 
   !Extract the tensors for U and R
-  !call polarExtract(tin_plane, eigenVectors, eigenValues, U, R);
+  call polarExtract(tin_plane, eigenVectors, eigenValues, U, R);
+  print *, "U ", U
+  print *, "R ", R
 end subroutine 
 
 
