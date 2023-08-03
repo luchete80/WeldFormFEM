@@ -382,6 +382,8 @@ end subroutine buildFTF
   R(2,3) = tin(4) * Um1(3) + tin(5) * Um1(5) + tin(6) * Um1(6);
 
   R(3,1) = tin(7) * Um1(1) + tin(8) * Um1(2) + tin(9) * Um1(3);
+  R(3,2) = tin(7) * Um1(2) + tin(8) * Um1(4) + tin(9) * Um1(5);
+  R(3,3) = tin(7) * Um1(3) + tin(8) * Um1(5) + tin(9) * Um1(6);
   
   ! ! R._data[0] = _data[0] * Um1[0] + _data[1] * Um1[1] + _data[2] * Um1[2];
   ! ! R._data[1] = _data[0] * Um1[1] + _data[1] * Um1[3] + _data[2] * Um1[4];
