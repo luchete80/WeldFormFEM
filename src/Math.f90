@@ -261,6 +261,7 @@ end subroutine eigvec3x3
 subroutine buildFTF (tin,FTF)
   real(fp_kind), intent(in) :: tin(9)
   real(fp_kind), intent(out) :: FTF(3,3)
+  
   FTF(1,1) = tin(1) * tin(1) + tin(4) * tin(4) + tin(7) * tin(7)
   FTF(1,2) = tin(1) * tin(2) + tin(4) * tin(5) + tin(7) * tin(8)
   FTF(1,3) = tin(1) * tin(3) + tin(4) * tin(6) + tin(7) * tin(9)
@@ -277,7 +278,7 @@ end subroutine buildFTF
 ! //-----------------------------------------------------------------------------
 ! {
   subroutine polarExtract ( tin, eigenVectors, eigenValues, U, R)
-  real(fp_kind), intent(in) :: tin(6), eigenVectors(3,3),eigenValues(3)
+  real(fp_kind), intent(in) :: tin(9), eigenVectors(3,3),eigenValues(3)
   real(fp_kind), intent(out) :: U(6), R(3,3)
   ! double sq[3];
 
@@ -364,15 +365,6 @@ end subroutine buildFTF
   ! Um1[4] = (U._data[2] * U._data[1] - U._data[0] * U._data[4]) / deter;
   ! Um1[5] = (U._data[0] * U._data[3] - U._data[1] * U._data[1]) / deter;
 
-  ! R._data[0] = _data[0] * Um1[0] + _data[1] * Um1[1] + _data[2] * Um1[2];
-  ! R._data[1] = _data[0] * Um1[1] + _data[1] * Um1[3] + _data[2] * Um1[4];
-  ! R._data[2] = _data[0] * Um1[2] + _data[1] * Um1[4] + _data[2] * Um1[5];
-  ! R._data[3] = _data[3] * Um1[0] + _data[4] * Um1[1] + _data[5] * Um1[2];
-  ! R._data[4] = _data[3] * Um1[1] + _data[4] * Um1[3] + _data[5] * Um1[4];
-  ! R._data[5] = _data[3] * Um1[2] + _data[4] * Um1[4] + _data[5] * Um1[5];
-  ! R._data[6] = _data[6] * Um1[0] + _data[7] * Um1[1] + _data[8] * Um1[2];
-  ! R._data[7] = _data[6] * Um1[1] + _data[7] * Um1[3] + _data[8] * Um1[4];
-  ! R._data[8] = _data[6] * Um1[2] + _data[7] * Um1[4] + _data[8] * Um1[5];
 
   Um1(1) = (t1 - t4) / deter;
   Um1(2) = (t2 - t5) / deter;
@@ -384,12 +376,24 @@ end subroutine buildFTF
   R(1,1) = tin(1) * Um1(1) + tin(2) * Um1(2) + tin(3) * Um1(3)
   R(1,2) = tin(1) * Um1(2) + tin(2) * Um1(4) + tin(3) * Um1(5)
   R(1,3) = tin(1) * Um1(3) + tin(2) * Um1(5) + tin(3) * Um1(6);
-  ! R(3) = tin(3) * Um1(0) + tin(4) * Um1(1) + tin(5) * Um1(2);
-  ! R(4) = tin(3) * Um1(1) + tin(4) * Um1(3) + tin(5) * Um1(4);
-  ! R(5) = tin(3) * Um1(2) + tin(4) * Um1(4) + tin(5) * Um1(5);
-  ! R(6) = tin(6) * Um1(0) + tin(7) * Um1(1) + tin(8) * Um1(2);
-  ! R(7) = tin(6) * Um1(1) + tin(7) * Um1(3) + tin(8) * Um1(4);
-  ! R(8) = tin(6) * Um1(2) + tin(7) * Um1(4) + tin(8) * Um1(5);
+  
+  R(2,1) = tin(4) * Um1(1) + tin(5) * Um1(2) + tin(6) * Um1(3);
+  R(2,2) = tin(4) * Um1(2) + tin(5) * Um1(4) + tin(6) * Um1(5);
+  R(2,3) = tin(4) * Um1(3) + tin(5) * Um1(5) + tin(6) * Um1(6);
+
+  R(3,1) = tin(7) * Um1(1) + tin(8) * Um1(2) + tin(9) * Um1(3);
+  
+  ! ! R._data[0] = _data[0] * Um1[0] + _data[1] * Um1[1] + _data[2] * Um1[2];
+  ! ! R._data[1] = _data[0] * Um1[1] + _data[1] * Um1[3] + _data[2] * Um1[4];
+  ! ! R._data[2] = _data[0] * Um1[2] + _data[1] * Um1[4] + _data[2] * Um1[5];
+  
+  ! ! R._data[3] = _data[3] * Um1[0] + _data[4] * Um1[1] + _data[5] * Um1[2];
+  ! ! R._data[4] = _data[3] * Um1[1] + _data[4] * Um1[3] + _data[5] * Um1[4];
+  ! ! R._data[5] = _data[3] * Um1[2] + _data[4] * Um1[4] + _data[5] * Um1[5];
+  
+  ! ! R._data[6] = _data[6] * Um1[0] + _data[7] * Um1[1] + _data[8] * Um1[2];
+  ! ! R._data[7] = _data[6] * Um1[1] + _data[7] * Um1[3] + _data[8] * Um1[4];
+  ! ! R._data[8] = _data[6] * Um1[2] + _data[7] * Um1[4] + _data[8] * Um1[5];
 end subroutine polarExtract
 
   ! // This method computes the polar decomposition of a second order tensor with computation of the \f$ ln[U] \f$ and \f$ R \f$ tensors as the returning arguments.
@@ -401,22 +405,25 @@ end subroutine polarExtract
 ! //-----------------------------------------------------------------------------
 ! void SymTensor2::polarCuppen(SymTensor2 &U, Tensor2 &R) const
 ! //-----------------------------------------------------------------------------
-! subroutine polarCuppen(tin, U, R)
-  ! real(fp_kind), intent(in) :: FTF(6), eigenVectors(3,3),eigenValues(3)
-  ! real(fp_kind), intent(out) :: U(6), R(3,3)
-  ! ! double FTF[3][3];
-  ! ! double eigenVectors[3][3];
-  ! ! double eigenValues[3];
+subroutine polarCuppen(tin, U, R)
+  real(fp_kind), intent(in) :: tin(3,3)
+  real(fp_kind), intent(out) :: U(6), R(3,3)
+  real (fp_kind) :: tin_plane(9), FTF(3,3), eigenVectors(3,3),eigenValues(3)  
+  ! double FTF[3][3];
+  ! double eigenVectors[3][3];
+  ! double eigenValues[3];
 
-  ! !Build the F(T).F symmetric matrix
-  ! call buildFTF(FTF)
+  !Build the F(T).F symmetric matrix
+  call buildFTF(tin_plane,FTF)
 
-  ! !Compute the eigenvalues and eigenvectors
-  ! !dsyevd3(FTF, eigenVectors, eigenValues); !!!// Cuppen
+  !Compute the eigenvalues and eigenvectors
+  !dsyevd3(FTF, eigenVectors, eigenValues); !!!// Cuppen
+  call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
 
-  ! !Extract the tensors for U and R
-  ! !polarExtract(eigenVectors, eigenValues, U, R);
-! end subroutine 
+  !Extract the tensors for U and R
+  !call polarExtract(tin_plane, eigenVectors, eigenValues, U, R);
+end subroutine 
+
 
 end module mymath
 
