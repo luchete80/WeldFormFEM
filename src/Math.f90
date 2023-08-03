@@ -267,17 +267,16 @@ subroutine buildFTF (tin,FTF)
   FTF(1,3) = tin(1) * tin(3) + tin(4) * tin(6) + tin(7) * tin(9)
   FTF(2,1) = FTF(1,2)
   FTF(2,2) = tin(2) * tin(2) + tin(5) * tin(5) + tin(8) * tin(8)
-  FTF(2,3) = tin(2) * tin(3) + tin(4) * tin(6) + tin(8) * tin(9)
+  FTF(2,3) = tin(2) * tin(3) + tin(5) * tin(6) + tin(8) * tin(9)
   FTF(3,1) = FTF(1,3)
   FTF(3,2) = FTF(2,3)
   FTF(3,3) = tin(3)*tin(3) + tin(6)*tin(6) + tin(9)*tin(9)
 end subroutine buildFTF
 
-! //-----------------------------------------------------------------------------
-! void Tensor2::polarExtract(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
-! //-----------------------------------------------------------------------------
-! {
-  subroutine polarExtract ( tin, eigenVectors, eigenValues, U, R)
+! ! //-----------------------------------------------------------------------------
+! ! void Tensor2::polarExtractLnU(double eigenVectors[3][3], double eigenValues[3], SymTensor2 &U, Tensor2 &R) const
+! ! //-----------------------------------------------------------------------------
+  subroutine polarExtractLnU ( tin, eigenVectors, eigenValues, U, R)
   real(fp_kind), intent(in) :: tin(9), eigenVectors(3,3),eigenValues(3)
   real(fp_kind), intent(out) :: U(6), R(3,3)
   !real(fp_kind):: U(6)
@@ -293,7 +292,7 @@ end subroutine buildFTF
   ! U0[3] = dnlSquare(eigenVectors[1][0]);
   ! U0[4] = eigenVectors[1][0] * eigenVectors[2][0];
   ! U0[5] = dnlSquare(eigenVectors[2][0]);
-  U0(1) = eigenVectors(1,1)*eigenVectors(1,1)
+  U0(1) = eigenVectors(1,1) * eigenVectors(1,1)
   U0(2) = eigenVectors(1,1) * eigenVectors(2,1)
   U0(3) = eigenVectors(1,1) * eigenVectors(3,1)
   U0(4) = eigenVectors(2,1) * eigenVectors(2,1)
@@ -328,7 +327,7 @@ end subroutine buildFTF
   U2(5) = eigenVectors(2,3) * eigenVectors(3,3)
   U2(6) = eigenVectors(3,3) * eigenVectors(3,3)
   
-  sq(:) = eigenValues(:)
+  sq(:) = sqrt(eigenValues(:))
   ! sq[0] = sqrt(eigenValues[0]);
   ! sq[1] = sqrt(eigenValues[1]);
   ! sq[2] = sqrt(eigenValues[2]);
@@ -407,7 +406,16 @@ end subroutine buildFTF
   ! Um(1,1) = U(1);    Um(1,2) = U(2); Um(1,2) = U(3);
   ! Um(2,1) = Um(1,2); Um(2,2) = U(4); Um(2,3) = U(5);
   ! Um(3,3) = U(6);
-end subroutine polarExtract
+  
+  sq(:) = log(eigenValues(:))/2.0d0
+  
+  U(1) = sq(1) * U0(1) + sq(2) * U1(1) + sq(3) * U2(1);
+  U(2) = sq(1) * U0(2) + sq(2) * U1(2) + sq(3) * U2(2);
+  U(3) = sq(1) * U0(3) + sq(2) * U1(3) + sq(3) * U2(3);
+  U(4) = sq(1) * U0(4) + sq(2) * U1(4) + sq(3) * U2(4);
+  U(5) = sq(1) * U0(5) + sq(2) * U1(5) + sq(3) * U2(5);
+  U(6) = sq(1) * U0(6) + sq(2) * U1(6) + sq(3) * U2(6);  
+end subroutine polarExtractLnU
 
   ! // This method computes the polar decomposition of a second order tensor with computation of the \f$ ln[U] \f$ and \f$ R \f$ tensors as the returning arguments.
   ! // The logarithm of a symmetric tensor is givent by the following formulation:
@@ -437,7 +445,7 @@ subroutine polarCuppen(tin, U, R)
   call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
 
   !Extract the tensors for U and R
-  call polarExtract(tin_plane, eigenVectors, eigenValues, U, R);
+  call polarExtractLnU(tin_plane, eigenVectors, eigenValues, U, R);
   print *, "U ", U
   print *, "R ", R
 end subroutine 
