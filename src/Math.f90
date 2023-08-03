@@ -257,18 +257,19 @@ end subroutine eigvec3x3
 ! \end{equation*}
 ! @END
 ! */
-subroutine buildFTF (symt,FTF)
-  real(fp_kind), intent(in) :: symt(9)
+!!!! FI IS NOT SYMMETRIC
+subroutine buildFTF (tin,FTF)
+  real(fp_kind), intent(in) :: tin(9)
   real(fp_kind), intent(out) :: FTF(3,3)
-  FTF(1,1) = symt(1)*symt(1) + symt(2)*symt(2) + symt(3)*symt(3)
-  FTF(1,2) = symt(1) * symt(2) + symt(2) * symt(4) + symt(3) * symt(5)
-  FTF(1,3) = symt(1) * symt(3) + symt(2) * symt(5) + symt(3) * symt(6)
+  FTF(1,1) = tin(1) * tin(1) + tin(4) * tin(4) + tin(7) * tin(7)
+  FTF(1,2) = tin(1) * tin(2) + tin(4) * tin(5) + tin(7) * tin(8)
+  FTF(1,3) = tin(1) * tin(3) + tin(4) * tin(6) + tin(7) * tin(9)
   FTF(2,1) = FTF(1,2)
-  FTF(2,2) = symt(2)*symt(2) + symt(4)*symt(4) + symt(5)*symt(5)
-  FTF(2,3) = symt(2) * symt(3) + symt(4) * symt(5) + symt(5) * symt(6)
+  FTF(2,2) = tin(2) * tin(2) + tin(5) * tin(5) + tin(8) * tin(8)
+  FTF(2,3) = tin(2) * tin(3) + tin(4) * tin(6) + tin(8) * tin(9)
   FTF(3,1) = FTF(1,3)
   FTF(3,2) = FTF(2,3)
-  FTF(3,3) = symt(3)*symt(3) + symt(6)*symt(6) + symt(9)*symt(9)
+  FTF(3,3) = tin(3)*tin(3) + tin(6)*tin(6) + tin(9)*tin(9)
 end subroutine buildFTF
 
 ! //-----------------------------------------------------------------------------

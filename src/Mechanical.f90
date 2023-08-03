@@ -399,7 +399,7 @@ subroutine calc_elem_shock_visc (dt)
     do gp = 1, elem%gausspc(e)
       vdot = elem%vol_inc(e) / dt
       elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * vdot + 1.5 * elem%rho(e,gp) * vdot ** 2.0
-      print *, "elem%p_visc(e,gp) ", elem%p_visc(e,gp)
+      print *, "elem%p_visc(e,gp) tot", elem%p_visc(e,gp), "linear ", 1.5 * elem%rho(e,gp) * vdot ** 2.0
       print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do

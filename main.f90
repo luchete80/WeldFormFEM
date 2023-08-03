@@ -98,7 +98,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .false.
+  reduced_int = .true.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   
   print *, "NODE ELEMENTS "
