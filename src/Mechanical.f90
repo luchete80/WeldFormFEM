@@ -319,9 +319,10 @@ subroutine calc_polar_urmat
 endsubroutine
 
 subroutine calc_inv_def_grad
+  real(fp_kind) :: inv_f_incr(3,3)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
-      
+      !inv_f_incr = ident + 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),nod%x_prev()) !!!!TODO; DO THIS FOR ALL    
     end do
   end do
 end subroutine calc_inv_def_grad

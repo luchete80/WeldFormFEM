@@ -176,6 +176,7 @@ subroutine SolveGreenNag (tf, dt)
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
   x_temp = nod%x  
+  nod%x_prev = nod%x 
   if (x_at_midtime  .eqv. .True. ) then
   nod%x = nod%x + (1.0d0-gamma)* dt * nod%v
   end if 

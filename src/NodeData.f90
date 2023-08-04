@@ -4,7 +4,7 @@ Module NodeData
 
 Type Node
   Integer, Dimension(:), Allocatable :: ID
-  real(fp_kind), dimension(:,:), Allocatable :: x
+  real(fp_kind), dimension(:,:), Allocatable :: x, x_prev
   !GENERAL
   real(fp_kind), dimension(:), Allocatable :: h, t, cs, rho, m, rho_0, drhodt !influence radius, temp
 

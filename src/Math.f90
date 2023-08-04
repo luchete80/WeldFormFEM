@@ -361,7 +361,7 @@ end subroutine buildFTF
   t1 = U(4) * U(6); t2 = U(3) * U(5);
   t4 = U(5) * U(5); t5 = U(2) * U(6);
   t6 = U(3) * U(4);
-
+  print *, "t1 a 6 ", t1,t2,t4,t5,t6
   ! double deter = U._data[0] * t1 + 2.0 * U._data[1] * t2 - U._data[0] * t4 - U._data[1] * t5 - U._data[2] * t6;
   deter = U(1) * t1 + 2.0 * U(2) * t2 - U(1) * t4 - U(2) * t5 - U(3) * t6;
 
@@ -443,6 +443,7 @@ subroutine polarCuppen(tin, U, R)
   !Compute the eigenvalues and eigenvectors
   !dsyevd3(FTF, eigenVectors, eigenValues); !!!// Cuppen
   call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
+  print *, "eigenvalues" , eigenValues
 
   !Extract the tensors for U and R
   call polarExtractLnU(tin_plane, eigenVectors, eigenValues, U, R);

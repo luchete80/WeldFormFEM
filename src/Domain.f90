@@ -63,6 +63,7 @@ contains
     node_count = pt_count
     !!!GENERAL 
     allocate (nod%x(node_count,dim))
+    allocate (nod%x_prev(node_count,dim))
     ! allocate (nod%rho(node_count))
     ! allocate (nod%drhodt(node_count))
     ! allocate (nod%h(node_count))
