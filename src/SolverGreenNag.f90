@@ -189,7 +189,9 @@ subroutine SolveGreenNag (tf, dt)
   call calc_def_grad  
   !call 
   call calc_polar_urmat
+  call cal_elem_strain_inc_from_umat !
   
+  !call calc_elem_pressure_from_strain()
   
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   

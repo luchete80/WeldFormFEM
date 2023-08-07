@@ -318,6 +318,15 @@ subroutine calc_polar_urmat
   end do
 endsubroutine
 
+subroutine cal_elem_strain_inc_from_umat
+  real(fp_kind), intent(in) :: dt
+  do e=1, elem_count
+    do gp = 1, elem%gausspc(e)
+      elem%str_inc (e,gp, :,:)= elem%umat(e,gp,:,:)
+    end do !gp
+  end do !element
+end subroutine
+
 subroutine calc_inv_def_grad
   real(fp_kind) :: inv_f_incr(3,3)
   do e = 1, elem_count
