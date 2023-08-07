@@ -88,7 +88,7 @@ implicit none
   rho = 7850.0
   
   poisson = 0.3
-  young = 200.0e9
+  young = 206.0e9
   
   print *, "mat_C", mat_C
 
@@ -196,7 +196,7 @@ implicit none
   !call SolveLeapfrog(tf,dt)
   !call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt)
-  call SolveGreenNag(tf,dt)
+  call SolveGreenNag(dom,tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
 

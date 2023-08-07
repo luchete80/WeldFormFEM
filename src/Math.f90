@@ -6,7 +6,7 @@ contains
 function trace(a) result(j)
     real(fp_kind), intent (in) :: a(3,3) ! input
     real(fp_kind)              :: j ! output
-
+    j = 0.0d0
     j = a(1,1)+a(2,2)+a(3,3)
 end function
 

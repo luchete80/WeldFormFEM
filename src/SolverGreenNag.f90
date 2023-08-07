@@ -40,7 +40,7 @@ contains
 !!!timeStep = _timeStepSafetyFactor * _omegaS / maximumFrequency;
 
 
-subroutine SolveGreenNag (tf, dt)
+subroutine SolveGreenNag (domi, tf, dt)
   use omp_lib
   use Matrices
   use Mechanical
@@ -59,6 +59,8 @@ subroutine SolveGreenNag (tf, dt)
   real(fp_kind) :: alpha, beta, gamma, rho_b !!! CHUNG HULBERT PARAMETERS
  
   real(fp_kind), dimension(nodxelem,dim) :: xtest
+
+  type (dom_type), intent (in) :: domi
 
   call set_edof_from_elnod()
   
@@ -191,12 +193,12 @@ subroutine SolveGreenNag (tf, dt)
   call calc_polar_urmat
   call cal_elem_strain_inc_from_umat !
   
-  !call calc_elem_pressure_from_strain()
+  call calc_elem_pressure_from_strain(domi%mat_K)
   
-  call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  !call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   
-  print *, "STRAIN RATE ", elem%str_rate
-  call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+  !print *, "STRAIN RATE ", elem%str_rate
+  !call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
   nod%x = x_temp
 
@@ -216,7 +218,7 @@ subroutine SolveGreenNag (tf, dt)
   
   call calc_elem_density
   !print *, "Element density ", elem%rho(:,:)
-  call calc_elem_pressure
+  !call calc_elem_pressure
   print *, "Element pressure ", elem%pressure(:,:)
   
   
@@ -240,6 +242,7 @@ subroutine SolveGreenNag (tf, dt)
   
   !print *, "global int forces ", rint_glob(3,:)
   
+  
     do n=1,node_count
       do d=1,dim
         nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
@@ -250,10 +253,16 @@ subroutine SolveGreenNag (tf, dt)
   nod%a = nod%a - alpha * prev_a
   nod%a = nod%a / (1.0d0 - alpha)
   
+  print *, "Accel "
+  do n=1,node_count
+    print *, nod%a(n,:)
+  end do
+  
   nod%v = nod%v + gamma * dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
-  u = u + beta * nod%v * dt
+  !u = u + beta * nod%v * dt
+  u = u + beta * dt * dt * nod%a   
   nod%u = nod%u + u
   nod%x = nod%x + u
   

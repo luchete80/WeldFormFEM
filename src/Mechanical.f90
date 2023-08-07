@@ -309,20 +309,18 @@ subroutine calc_polar_urmat
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       call polarCuppen(elem%def_grad(e,gp,:,:),U,elem%rmat(e,gp,:,:))
-      elem%umat(e,gp,1,1) = U(1);elem%umat(e,gp,1,2) = U(2);elem%umat(e,gp,1,1) = U(3);
-      elem%umat(e,gp,2,1) = U(4);elem%umat(e,gp,2,2) = U(5);elem%umat(e,gp,2,3) = U(6);
-      elem%umat(e,gp,2,1) = elem%umat(e,gp,1,2);elem%umat(e,gp,3,1) = elem%umat(e,gp,1,3);elem%umat(e,gp,3,2) = elem%umat(e,gp,2,3);
-
-      
+      elem%umat(e,gp,1,1) = U(1);elem%umat(e,gp,1,2) = U(2);elem%umat(e,gp,1,3) = U(3);
+      elem%umat(e,gp,2,2) = U(4);elem%umat(e,gp,2,3) = U(5);elem%umat(e,gp,3,3) = U(6);
+      elem%umat(e,gp,2,1) = elem%umat(e,gp,1,2);elem%umat(e,gp,3,1) = elem%umat(e,gp,1,3);elem%umat(e,gp,3,2) = elem%umat(e,gp,2,3); 
     end do 
   end do
 endsubroutine
 
 subroutine cal_elem_strain_inc_from_umat
-  real(fp_kind), intent(in) :: dt
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%str_inc (e,gp, :,:)= elem%umat(e,gp,:,:)
+      print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
     end do !gp
   end do !element
 end subroutine
@@ -401,9 +399,15 @@ subroutine calc_elem_pressure_from_strain (modK)
     do gp = 1, elem%gausspc(e)
       press_inc = press_inc + trace (elem%str_inc(e,gp,:,:))
     end do
+    press_inc = -press_inc/elem%gausspc(e)
+    
     do gp = 1, elem%gausspc(e)    
-          elem%pressure(e,gp) = 1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
+          elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
     end do
+    print *, "mod K", modK
+    print *, "strain inc", elem%str_inc(e,gp,:,:)
+    print *, "press_inc ", press_inc
+    print *, "elem%pressure(e,gp)", elem%pressure(e,1)
   end do
 end subroutine
 
@@ -508,6 +512,7 @@ subroutine CalcStressStrain (dt)
     ! !print *, "pt%pressure(i)", pt%pressure(i),", cs ", pt%cs(i), "p00", p00, ", rho", p00,pt%rho(i), ", rho 0", p00,pt%rho_0(i)
     ! end if
     ! RotationRateT = transpose (elem%rot_rate(e,:,:))
+    
 
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
@@ -517,6 +522,8 @@ subroutine CalcStressStrain (dt)
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
+      !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
+    
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
