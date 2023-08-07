@@ -236,7 +236,8 @@ subroutine SolveChungHulbert (tf, dt)
   nod%v = nod%v + gamma * dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
-  u = u + beta * nod%v * dt
+  !u = u + beta * nod%v * dt
+  u = u + beta * dt * dt * nod%a   
   nod%u = nod%u + u
   nod%x = nod%x + u
   

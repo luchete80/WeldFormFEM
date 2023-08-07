@@ -187,7 +187,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
   dt = 1.5e-5
-  tf = 1.5e-5
+  tf = 2.0e-5
   
   elem%rho(:,:) = rho
   
@@ -196,6 +196,7 @@ implicit none
   !call SolveLeapfrog(tf,dt)
   !call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt)
+  !call SolveChungHulbert(tf,dt)
   call SolveGreenNag(dom,tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
