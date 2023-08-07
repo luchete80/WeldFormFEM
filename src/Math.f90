@@ -46,186 +46,6 @@ pure subroutine eigval3x3(a, w)
 
 end subroutine eigval3x3
 
-!> Calculates eigenvector using an analytical method based on vector cross
-!  products.
-pure subroutine eigvec3x3(a, w, q)
-
-   !> The symmetric input matrix, destroyed while solving
-   real(fp_kind), intent(inout) :: a(3,3)
-
-   !> Contains eigenvalues on exit
-   real(fp_kind), intent(out) :: w(3)
-
-   !> Contains eigenvectors on exit
-   real(fp_kind), intent(out) :: q(3,3)
-
-   !> Local variables
-   real(fp_kind) :: norm, n1, n2, n3, precon
-   integer :: i
-
-   w(1) = max(abs(a(1, 1)), abs(a(1, 2)))
-   w(2) = max(abs(a(1, 3)), abs(a(2, 2)))
-   w(3) = max(abs(a(2, 3)), abs(a(3, 3)))
-   precon = max(w(1), max(w(2), w(3)))
-
-   ! null matrix
-   if (precon < eps) then
-      w(1) = 0.0_fp_kind
-      w(2) = 0.0_fp_kind
-      w(3) = 0.0_fp_kind
-      q(1, 1) = 1.0_fp_kind
-      q(2, 2) = 1.0_fp_kind
-      q(3, 3) = 1.0_fp_kind
-      q(1, 2) = 0.0_fp_kind
-      q(1, 3) = 0.0_fp_kind
-      q(2, 3) = 0.0_fp_kind
-      q(2, 1) = 0.0_fp_kind
-      q(3, 1) = 0.0_fp_kind
-      q(3, 2) = 0.0_fp_kind
-      return
-   end if
-
-   norm = 1.0_fp_kind / precon
-
-   a(1, 1) = a(1, 1) * norm
-   a(1, 2) = a(1, 2) * norm
-   a(2, 2) = a(2, 2) * norm
-   a(1, 3) = a(1, 3) * norm
-   a(2, 3) = a(2, 3) * norm
-   a(3, 3) = a(3, 3) * norm
-
-   ! Calculate eigenvalues
-   call eigval3x3(a, w)
-
-   ! Compute first eigenvector
-   a(1, 1) = a(1, 1) - w(1)
-   a(2, 2) = a(2, 2) - w(1)
-   a(3, 3) = a(3, 3) - w(1)
-
-   q(1, 1) = a(1, 2) * a(2, 3) - a(1, 3) * a(2, 2)
-   q(2, 1) = a(1, 3) * a(1, 2) - a(1, 1) * a(2, 3)
-   q(3, 1) = a(1, 1) * a(2, 2) - a(1, 2) * a(1, 2)
-   q(1, 2) = a(1, 2) * a(3, 3) - a(1, 3) * a(2, 3)
-   q(2, 2) = a(1, 3) * a(1, 3) - a(1, 1) * a(3, 3)
-   q(3, 2) = a(1, 1) * a(2, 3) - a(1, 2) * a(1, 3)
-   q(1, 3) = a(2, 2) * a(3, 3) - a(2, 3) * a(2, 3)
-   q(2, 3) = a(2, 3) * a(1, 3) - a(1, 2) * a(3, 3)
-   q(3, 3) = a(1, 2) * a(2, 3) - a(2, 2) * a(1, 3)
-   n1 = q(1, 1) * q(1, 1) + q(2, 1) * q(2, 1) + q(3, 1) * q(3, 1)
-   n2 = q(1, 2) * q(1, 2) + q(2, 2) * q(2, 2) + q(3, 2) * q(3, 2)
-   n3 = q(1, 3) * q(1, 3) + q(2, 3) * q(2, 3) + q(3, 3) * q(3, 3)
-
-   norm = n1
-   i = 1
-   if (n2 > norm) then
-      i = 2
-      norm = n1
-   end if
-   if (n3 > norm) then
-      i = 3
-   end if
-
-   if (i == 1) then
-      norm = sqrt(1.0_fp_kind / n1)
-      q(1, 1) = q(1, 1) * norm
-      q(2, 1) = q(2, 1) * norm
-      q(3, 1) = q(3, 1) * norm
-   else if (i == 2) then
-      norm = sqrt(1.0_fp_kind / n2)
-      q(1, 1) = q(1, 2) * norm
-      q(2, 1) = q(2, 2) * norm
-      q(3, 1) = q(3, 2) * norm
-   else
-      norm = sqrt(1.0_fp_kind / n3)
-      q(1, 1) = q(1, 3) * norm
-      q(2, 1) = q(2, 3) * norm
-      q(3, 1) = q(3, 3) * norm
-   end if
-
-   ! Robustly compute a right-hand orthonormal set (ev1, u, v)
-   if (abs(q(1, 1)) > abs(q(2, 1))) then
-      norm = sqrt(1.0_fp_kind / (q(1, 1) * q(1, 1) + q(3, 1) * q(3, 1)))
-      q(1, 2) = -q(3, 1) * norm
-      q(2, 2) = 0.0_fp_kind
-      q(3, 2) = +q(1, 1) * norm
-   else
-      norm = sqrt(1.0_fp_kind / (q(2, 1) * q(2, 1) + q(3, 1) * q(3, 1)))
-      q(1, 2) = 0.0_fp_kind
-      q(2, 2) = +q(3, 1) * norm
-      q(3, 2) = -q(2, 1) * norm
-   end if
-   q(1, 3) = q(2, 1) * q(3, 2) - q(3, 1) * q(2, 2)
-   q(2, 3) = q(3, 1) * q(1, 2) - q(1, 1) * q(3, 2)
-   q(3, 3) = q(1, 1) * q(2, 2) - q(2, 1) * q(1, 2)
-
-   ! Reset A
-   a(1, 1) = a(1, 1) + w(1)
-   a(2, 2) = a(2, 2) + w(1)
-   a(3, 3) = a(3, 3) + w(1)
-
-   ! A*U
-   n1 = a(1, 1) * q(1, 2) + a(1, 2) * q(2, 2) + a(1, 3) * q(3, 2)
-   n2 = a(1, 2) * q(1, 2) + a(2, 2) * q(2, 2) + a(2, 3) * q(3, 2)
-   n3 = a(1, 3) * q(1, 2) + a(2, 3) * q(2, 2) + a(3, 3) * q(3, 2)
-
-   ! A*V, note out of order computation
-   a(3, 3) = a(1, 3) * q(1, 3) + a(2, 3) * q(2, 3) + a(3, 3) * q(3, 3)
-   a(1, 3) = a(1, 1) * q(1, 3) + a(1, 2) * q(2, 3) + a(1, 3) * q(3, 3)
-   a(2, 3) = a(1, 2) * q(1, 3) + a(2, 2) * q(2, 3) + a(2, 3) * q(3, 3)
-
-   ! UT*(A*U) - l2*E
-   n1 = q(1, 2) * n1 + q(2, 2) * n2 + q(3, 2) * n3 - w(2)
-   ! UT*(A*V)
-   n2 = q(1, 2) * a(1, 3) + q(2, 2) * a(2, 3) + q(3, 2) * a(3, 3)
-   ! VT*(A*V) - l2*E
-   n3 = q(1, 3) * a(1, 3) + q(2, 3) * a(2, 3) + q(3, 3) * a(3, 3) - w(2)
-
-   if (abs(n1) >= abs(n3)) then
-      norm = max(abs(n1), abs(n2))
-      if (norm > eps) then
-         if (abs(n1) >= abs(n2)) then
-            n2 = n2 / n1
-            n1 = sqrt(1.0_fp_kind / (1.0_fp_kind + n2 * n2))
-            n2 = n2 * n1
-         else
-            n1 = n1 / n2
-            n2 = sqrt(1.0_fp_kind / (1.0_fp_kind + n1 * n1))
-            n1 = n1 * n2
-         end if
-         q(1, 2) = n2 * q(1, 2) - n1 * q(1, 3)
-         q(2, 2) = n2 * q(2, 2) - n1 * q(2, 3)
-         q(3, 2) = n2 * q(3, 2) - n1 * q(3, 3)
-      end if
-   else
-      norm = max(abs(n3), abs(n2))
-      if (norm > eps) then
-         if (abs(n3) >= abs(n2)) then
-            n2 = n2 / n3
-            n3 = sqrt(1.0_fp_kind / (1.0_fp_kind + n2 * n2))
-            n2 = n2 * n3
-         else
-            n3 = n3 / n2
-            n2 = sqrt(1.0_fp_kind / (1.0_fp_kind + n3 * n3))
-            n3 = n3 * n2
-         end if
-         q(1, 2) = n3 * q(1, 2) - n2 * q(1, 3)
-         q(2, 2) = n3 * q(2, 2) - n2 * q(2, 3)
-         q(3, 2) = n3 * q(3, 2) - n2 * q(3, 3)
-      end if
-   end if
-
-   ! Calculate third eigenvector from cross product
-   q(1, 3) = q(2, 1) * q(3, 2) - q(3, 1) * q(2, 2)
-   q(2, 3) = q(3, 1) * q(1, 2) - q(1, 1) * q(3, 2)
-   q(3, 3) = q(1, 1) * q(2, 2) - q(2, 1) * q(1, 2)
-
-   w(1) = w(1) * precon
-   w(2) = w(2) * precon
-   w(3) = w(3) * precon
-
-end subroutine eigvec3x3
-
-
 ! Concerning the internal storage of data, the SymTensor2 data is stored in vector of $6$ components named \textsf{\_data} using the following storage scheme:
 ! \begin{equation*}
 ! \T=\left[\begin{array}{ccc}
@@ -430,6 +250,11 @@ subroutine polarCuppen(tin, U, R)
   real(fp_kind), intent(in) :: tin(3,3)
   real(fp_kind), intent(out) :: U(6), R(3,3)
   real (fp_kind) :: tin_plane(9), FTF(3,3), eigenVectors(3,3),eigenValues(3)  
+  real (fp_kind) :: xx(3,3)
+  real (fp_kind) :: abserr
+  integer :: i
+  
+  abserr = 1.0e-9
   ! double FTF[3][3];
   ! double eigenVectors[3][3];
   ! double eigenValues[3];
@@ -442,8 +267,15 @@ subroutine polarCuppen(tin, U, R)
 
   !Compute the eigenvalues and eigenvectors
   !dsyevd3(FTF, eigenVectors, eigenValues); !!!// Cuppen
-  call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
-  print *, "eigenvalues" , eigenValues
+  !call eigvec3x3(FTF,eigenValues,eigenVectors) !!!FTF is destroyed!!!!!
+  !print *, "eigenvalues" , eigenValues
+  
+  call Jacobi(FTF,xx,abserr,3)
+  print *, "eigenvalues" , FTF(1,1),FTF(2,2),FTF(3,3)
+  eigenValues(1) = FTF(1,1);eigenValues(2) = FTF(2,2);eigenValues(3) = FTF(3,3);
+  do i=1,3
+    eigenVectors(:,i) = xx(:,i)
+  end do
 
   !Extract the tensors for U and R
   call polarExtractLnU(tin_plane, eigenVectors, eigenValues, U, R);
@@ -451,6 +283,82 @@ subroutine polarCuppen(tin, U, R)
   print *, "R ", R
 end subroutine 
 
+!!!https://github.com/minar09/parallel-computing/blob/master/OMP_Fortran.f90
+subroutine Jacobi(a,x,abserr,n)
+!===========================================================
+! Evaluate eigenvalues and eigenvectors
+! of a real symmetric matrix a(n,n): a*x = lambda*x 
+! method: Jacoby method for symmetric matrices 
+! Alex G. (December 2009)
+!-----------------------------------------------------------
+! input ...
+! a(n,n) - array of coefficients for matrix A
+! n      - number of equations
+! abserr - abs tolerance [sum of (off-diagonal elements)^2]
+! output ...
+! a(i,i) - eigenvalues
+! x(i,j) - eigenvectors
+! comments ...
+!===========================================================
+implicit none
+integer i, j, k, n
+real (fp_kind) :: a(n,n),x(n,n)
+real (fp_kind) :: abserr, b2, bar
+real (fp_kind) :: beta, coeff, c, s, cs, sc
+
+! initialize x(i,j)=0, x(i,i)=1
+! *** the array operation x=0.0 is specific for Fortran 90/95
+x = 0.0
+do i=1,n
+  x(i,i) = 1.0
+end do
+
+! find the sum of all off-diagonal elements (squared)
+b2 = 0.0
+do i=1,n
+  do j=1,n
+    if (i.ne.j) b2 = b2 + a(i,j)**2
+  end do
+end do
+
+if (b2 <= abserr) return
+
+! average for off-diagonal elements /2
+bar = 0.5*b2/float(n*n)
+
+do while (b2.gt.abserr)
+  do i=1,n-1
+    do j=i+1,n
+      if (a(j,i)**2 <= bar) cycle  ! do not touch small elements
+      b2 = b2 - 2.0*a(j,i)**2
+      bar = 0.5*b2/float(n*n)
+! calculate coefficient c and s for Givens matrix
+      beta = (a(j,j)-a(i,i))/(2.0*a(j,i))
+      coeff = 0.5*beta/sqrt(1.0+beta**2)
+      s = sqrt(max(0.5+coeff,0.0))
+      c = sqrt(max(0.5-coeff,0.0))
+! recalculate rows i and j
+      do k=1,n
+        cs =  c*a(i,k)+s*a(j,k)
+        sc = -s*a(i,k)+c*a(j,k)
+        a(i,k) = cs
+        a(j,k) = sc
+      end do
+! new matrix a_{k+1} from a_{k}, and eigenvectors 
+      do k=1,n
+        cs =  c*a(k,i)+s*a(k,j)
+        sc = -s*a(k,i)+c*a(k,j)
+        a(k,i) = cs
+        a(k,j) = sc
+        cs =  c*x(k,i)+s*x(k,j)
+        sc = -s*x(k,i)+c*x(k,j)
+        x(k,i) = cs
+        x(k,j) = sc
+      end do
+    end do
+  end do
+end do
+end subroutine
 
 end module mymath
 
