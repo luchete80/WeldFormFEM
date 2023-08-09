@@ -449,6 +449,53 @@ subroutine calc_elem_shock_visc (dt)
   end do
 end subroutine
 
+subroutine calc_time_step
+  ! // initialisation de la longueur caracteristique de l'element 0
+  ! characteristicLength = elements(0)->getCharacteristicLength();
+
+  ! // vitesse du son dans l'element 0
+  ! elongationWaveSpeed = elements(0)->getElongationWaveSpeed();
+
+  ! // valeur critique du timeStep step
+  ! criticalTimeStep = characteristicLength / elongationWaveSpeed;
+
+  ! for (long elementId = 1; elementId < elements.size(); elementId++)
+  ! {
+    ! // longueur caracteristique de l'element
+    ! characteristicLength = elements(elementId)->getCharacteristicLength();
+
+    ! // vitesse du son dans l'element
+    ! elongationWaveSpeed = elements(elementId)->getElongationWaveSpeed();
+
+    ! // valeur critique
+    ! timeStep = characteristicLength / elongationWaveSpeed;
+
+    ! // minimum des valeurs
+    ! if (timeStep < criticalTimeStep)
+      ! criticalTimeStep = timeStep;
+  ! }
+  ! return criticalTimeStep;
+
+end subroutine
+
+
+! //-----------------------------------------------------------------------------
+! double ElHex8N3D::getCharacteristicLength()
+! //-----------------------------------------------------------------------------
+! {
+    ! double A1, A2, A3, A4, A5, A6;
+    ! AERT(A1, 0, 1, 2, 3)
+    ! AERT(A2, 0, 1, 5, 4)
+    ! AERT(A3, 1, 2, 6, 5)
+    ! AERT(A4, 3, 2, 6, 7)
+    ! AERT(A5, 0, 3, 7, 4)
+    ! AERT(A6, 4, 5, 6, 7)
+    ! A1 = dnlMax3(A1, A2, A3);
+    ! A2 = dnlMax3(A4, A5, A6);
+    ! A1 = dnlMax(A1, A2);
+    ! return getVolume() / A1;
+! }
+
 !!!! ACORDING TO STANDARD SOLID FEM, PRESSURE FROM strain rate increment
 ! //-----------------------------------------------------------------------------
 ! void Element::computePressure()
@@ -560,17 +607,18 @@ subroutine CalcStress (dt)
       dev = deviator(elem%sigma(e,gp,:,:)) !! OBTAIN FROM DEV
       print *, "dev ", dev
       dev = dev + 2.0 * mat_G * deviator(elem%str_inc (e,gp, :,:))
-      print *, "dev str ", deviator(elem%str_inc (e,gp, :,:))
+      print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
       
       elem%shear_stress(e,gp,:,:) = dev
-      print *, "dev ", dev
+      print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
       !print *, "mat g", mat_G
       ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
       !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
-      sig = dev(3,3) - elem%pressure(e,gp) * ident 
+      sig = dev - elem%pressure(e,gp) * ident 
+      print *, "sigma prev rot", sig
       elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
       print *, "sigma ", elem%sigma(e,gp,:,:)
       !!! PERFORM ROTATION

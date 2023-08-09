@@ -56,7 +56,7 @@ subroutine SolveGreenNag (domi, tf, dt)
   real(fp_kind), dimension(dim) :: prev_acc
   real(fp_kind), dimension(node_count,dim) :: u, prev_a, x_temp
   
-  real(fp_kind) :: alpha, beta, gamma, rho_b !!! CHUNG HULBERT PARAMETERS
+  real(fp_kind) :: alpha, beta, gamma, rho_b, omega !!! CHUNG HULBERT PARAMETERS
  
   real(fp_kind), dimension(nodxelem,dim) :: xtest
 
@@ -129,12 +129,13 @@ subroutine SolveGreenNag (domi, tf, dt)
   alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b)
   beta = (5.0 - 3.0 * rho_b) / ((1.0 + rho_b) * (1.0 + rho_b) * (2.0 - rho_b))
   gamma = 1.5 - alpha;
-  ! omegaS = sqrt((12.0 * pow(1.0 + _rho_b, 3) * (2.0 - _rho_b)) /
-                 ! (10.0 + 15.0 * _rho_b - _rho_b * _rho_b + pow(_rho_b, 3) - pow(_rho_b, 4)))
+  omega = sqrt((12.0 * (1.0 + rho_b)**3.0 * (2.0 - rho_b)) / &
+                (10.0 + 15.0 * rho_b - rho_b * rho_b + rho_b**3.0 - rho_b**4.0))
 
   print *, "alpha ", alpha
   print *, "beta ", beta
   print *, "gamma ", gamma
+  print *, "omega ", omega
   
   !In central difference (leapfrog)
   
@@ -150,9 +151,9 @@ subroutine SolveGreenNag (domi, tf, dt)
   do while (time < tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
-    if (step == 1) then
-      dt = tf - time
-    end if
+    ! if (step == 1) then
+      ! dt = tf - time
+    ! end if
   ! if (time < 100.0d0*dt) then
     ! nod%bcv(5:8,3) = -1.0 * time/(10.0d0*dt)
     ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
@@ -239,8 +240,8 @@ subroutine SolveGreenNag (domi, tf, dt)
   print *, "Element pressure ", elem%pressure(:,:)
   
   
-  call CalcStressStrain(dt)
-  !call CalcStress (dt)
+  !call CalcStressStrain(dt)
+  call CalcStress (dt)
   
   !print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)
   
