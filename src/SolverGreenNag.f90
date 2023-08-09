@@ -150,7 +150,9 @@ subroutine SolveGreenNag (domi, tf, dt)
   do while (time < tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
-
+    if (step == 1) then
+      dt = tf - time
+    end if
   ! if (time < 100.0d0*dt) then
     ! nod%bcv(5:8,3) = -1.0 * time/(10.0d0*dt)
     ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
@@ -194,9 +196,9 @@ subroutine SolveGreenNag (domi, tf, dt)
 
   x_temp = nod%x  
   nod%x_prev = nod%x 
-  if (x_at_midtime  .eqv. .True. ) then
-  nod%x = nod%x + (1.0d0-gamma)* dt * nod%v
-  end if 
+  ! if (x_at_midtime  .eqv. .True. ) then
+  ! nod%x = nod%x + (1.0d0-gamma)* dt * nod%v
+  ! end if 
   !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
   !!!!! ALTERNATED WITH POSITIONS AND FORCES
   call calculate_element_Jacobian()  
