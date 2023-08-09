@@ -9,6 +9,17 @@ function trace(a) result(j)
   j = a(1,1)+a(2,2)+a(3,3)
 end function
 
+function deviator(a) result(j)
+  real(fp_kind), intent (in) :: a(3,3) ! input
+  real(fp_kind)              :: j(3,3)! output
+
+  real(fp_kind) :: ident(3,3)
+  ident = 0.0d0
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  
+  j = a - 1.0d0/3.0d0 * trace(a) * ident
+end function
+
 !!!!! ATENTION! THIS EIGENVALUE SOLVER IS FOR SYMMETRIC MATRICES!!!
 !FROM https://github.com/awvwgk/diag3x3/blob/master/diag3x3.f90
 pure subroutine eigval3x3(a, w)

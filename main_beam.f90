@@ -146,7 +146,7 @@ implicit none
   tf = dt * 1.0
   
   tf = 1.0e-6
-  tf = 1.0e-4
+  tf = 1.0e-6
   
   elem%rho(:,:) = rho
   

@@ -85,7 +85,7 @@ subroutine cal_elem_strain_inc (dt)
   real(fp_kind), intent(in) :: dt
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
-      elem%str_inc (e,gp, :,:)= elem%str_rate(e,gp,:,:) * dt
+      elem%str_inc (e,gp, :,:) = elem%str_rate(e,gp,:,:) * dt
     end do !gp
   end do !element
 end subroutine
@@ -525,13 +525,16 @@ subroutine CalcStressStrain (dt)
       !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
   ! !!!!$omp end parallel do    
 end subroutine CalcStressStrain
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!! CALC STRESS FROM ALREADY INTEGRATED STRAIN INCREMENT !!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!! INSTEAD OF STRAIN RATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine CalcStress (dt) 
 
   implicit none
@@ -540,6 +543,8 @@ subroutine CalcStress (dt)
   real(fp_kind) ,intent(in):: dt
   
   real(fp_kind) :: dev(3,3)
+  
+  real(fp_kind) :: sig(3,3)
   
   real(fp_kind) :: p00
   
@@ -552,22 +557,30 @@ subroutine CalcStress (dt)
   do e = 1, elem_count   
     do gp=1,elem%gausspc(e)
       
-      dev = elem%sigma(e,gp,:,:) - 2.0 * mat_G * trace(elem%pressure(e,gp)) * ident !! OBTAIN FROM DEV
-
-      ! !print *, "RS", RS
+      dev = deviator(elem%sigma(e,gp,:,:)) !! OBTAIN FROM DEV
+      print *, "dev ", dev
+      dev = dev + 2.0 * mat_G * deviator(elem%str_inc (e,gp, :,:))
+      print *, "dev str ", deviator(elem%str_inc (e,gp, :,:))
+      
+      elem%shear_stress(e,gp,:,:) = dev
+      print *, "dev ", dev
       !print *, "mat g", mat_G
-      elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
-                                   +SRT+RS) + elem%shear_stress(e,gp,:,:)
+      ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
       !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
-      elem%sigma(e,gp,:,:) = dev(3,3) - elem%pressure(e,gp) * ident 
+      sig = dev(3,3) - elem%pressure(e,gp) * ident 
+      elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
+      print *, "sigma ", elem%sigma(e,gp,:,:)
+      !!! PERFORM ROTATION
+      
       !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
   ! !!!!$omp end parallel do    
-end subroutine CalcStressStrain
+end subroutine CalcStress
 
 subroutine calc_elem_vol ()
   implicit none

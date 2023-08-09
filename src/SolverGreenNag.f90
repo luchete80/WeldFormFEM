@@ -167,13 +167,28 @@ subroutine SolveGreenNag (domi, tf, dt)
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   nod%u = nod%u + u
-  print *, "Initial u ", u
+
+  print *, "Initial a"
+  do n=1,node_count
+  print *, prev_a(n,:)
+  end do
+  
+  do n=1,node_count
+  print *, "Initial u ", u(n,:)
+  end do
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
+  print *, "Initial v"
+  do n=1,node_count
+  print *, nod%v(n,:)
+  end do
   nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  print *, "veloc", nod%v 
+  print *, "Pred v"
+  do n=1,node_count
+  print *, nod%v(n,:)
+  end do
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
@@ -223,8 +238,9 @@ subroutine SolveGreenNag (domi, tf, dt)
   
   
   call CalcStressStrain(dt)
+  !call CalcStress (dt)
   
-  print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)
+  !print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)
   
   !print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
