@@ -530,8 +530,43 @@ subroutine CalcStressStrain (dt)
     end do !gauss point
   end do
   ! !!!!$omp end parallel do    
+end subroutine CalcStressStrain
 
+subroutine CalcStress (dt) 
 
+  implicit none
+  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  integer :: e,gp
+  real(fp_kind) ,intent(in):: dt
+  
+  real(fp_kind) :: dev(3,3)
+  
+  real(fp_kind) :: p00
+  
+  p00 = 0.
+  
+  ident = 0.0d0
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  
+  ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
+  do e = 1, elem_count   
+    do gp=1,elem%gausspc(e)
+      
+      dev = elem%sigma(e,gp,:,:) - 2.0 * mat_G * trace(elem%pressure(e,gp)) * ident !! OBTAIN FROM DEV
+
+      ! !print *, "RS", RS
+      !print *, "mat g", mat_G
+      elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   +SRT+RS) + elem%shear_stress(e,gp,:,:)
+      !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
+    
+      elem%sigma(e,gp,:,:) = dev(3,3) - elem%pressure(e,gp) * ident 
+      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+    ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
+    end do !gauss point
+  end do
+  ! !!!!$omp end parallel do    
 end subroutine CalcStressStrain
 
 subroutine calc_elem_vol ()
