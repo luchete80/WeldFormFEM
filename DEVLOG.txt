@@ -48,4 +48,6 @@
 20230725 - Added shock viscosity calculation
 -----------------------------------------------------------------------------------
 20230810 - Added Stress calculated by deformation (and not by def gradient)
-         - Fixed calc
+         - Fixed calcs
+         - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
+         - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)

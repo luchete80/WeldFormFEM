@@ -206,7 +206,7 @@ subroutine SolveGreenNag (domi, tf, dt)
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   
-  call calc_def_grad  
+  call calc_def_grad  !With u_inc
   !call 
   call calc_polar_urmat
   call cal_elem_strain_inc_from_umat !
@@ -218,7 +218,7 @@ subroutine SolveGreenNag (domi, tf, dt)
   !print *, "STRAIN RATE ", elem%str_rate
   !call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
-  nod%x = x_temp
+  !nod%x = x_temp
 
   !!!! SHAPES DERIVATIVES ARE RECALCULATED FOR FORCES CALCULATIONS IN NEW POSITIONS  
   ! call calculate_element_Jacobian()  
@@ -292,6 +292,7 @@ subroutine SolveGreenNag (domi, tf, dt)
   end do
   
   nod%u = nod%u + u
+  nod%u_inc = u
   nod%x = nod%x + u
 
   do n=1,node_count

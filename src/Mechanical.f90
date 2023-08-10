@@ -289,7 +289,8 @@ subroutine calc_def_grad ()
   do e = 1, elem_count
     do n=1,nodxelem 
       !x(n,:) = nod%x(elem%elnod(e,n),:) !!!CURRENT CONFIG
-      u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      !u(n,:) = nod%u(elem%elnod(e,n),:) !!!CURRENT CONFIG
+      u(n,:) = nod%u_inc(elem%elnod(e,n),:) !!!CURRENT CONFIG
     end do
     do gp = 1, elem%gausspc(e)
       !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
@@ -688,7 +689,7 @@ subroutine impose_bca
         ! nod%v(n,d) = nod%bcv(n,d)
         ! print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       ! end if      
-      if ((nod%is_fix(n,d) .eqv. .true.) .or. (nod%is_bcv(n,d).eqv. .true. )) then
+      if ((nod%is_fix(n,d) .eqv. .true.) .or. (nod%is_bcv(n,d).eqv. .true. )) then !!!!USE PARENTHESES
         print *, "BCA node dim", n, d 
         nod%a(n,d) = 0.0d0
       end if 
