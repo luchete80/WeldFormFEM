@@ -665,10 +665,12 @@ subroutine impose_bcv
     do d=1,dim
       if (nod%is_bcv(n,d) .eqv. .true.) then
         nod%v(n,d) = nod%bcv(n,d)
+        print *, "BCV VEL node dim", n, d 
         !print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       end if
       
       if (nod%is_fix(n,d) .eqv. .true.) then
+        print *, "BCV FIX node dim", n, d 
         nod%v(n,d) = 0.0d0
       end if 
 
@@ -686,7 +688,8 @@ subroutine impose_bca
         ! nod%v(n,d) = nod%bcv(n,d)
         ! print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       ! end if      
-      if (nod%is_fix(n,d) .eqv. .true.) then
+      if ((nod%is_fix(n,d) .eqv. .true.) .or. (nod%is_bcv(n,d).eqv. .true. )) then
+        print *, "BCA node dim", n, d 
         nod%a(n,d) = 0.0d0
       end if 
     end do !dim

@@ -272,18 +272,25 @@ subroutine SolveGreenNag (domi, tf, dt)
   nod%a = nod%a / (1.0d0 - alpha)
  
   
-  print *, "Accel before imposing bca"
+
+
+  call impose_bca !!!! BEFORE APPLYING MODIFIED ALPHA
+
+  print *, "Accel after imposing bca"
   do n=1,node_count
     print *, nod%a(n,:)
   end do
-
-  call impose_bca
   
   nod%v = nod%v + gamma * dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   !u = u + beta * nod%v * dt
   u = u + beta * dt * dt * nod%a   
+  
+  do n=1,node_count
+  print *, "Second u increment ", beta * dt * dt * nod%a   
+  end do
+  
   nod%u = nod%u + u
   nod%x = nod%x + u
 
