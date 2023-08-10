@@ -46,3 +46,6 @@
 2023075  - Fixed Derived matrices, volume and jacobian calc for 2D full integration
 202307XX - Added Chung Hulbert Integrator
 20230725 - Added shock viscosity calculation
+-----------------------------------------------------------------------------------
+20230810 - Added Stress calculated by deformation (and not by def gradient)
+         - Fixed calc

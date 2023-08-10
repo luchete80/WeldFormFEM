@@ -267,15 +267,17 @@ subroutine SolveGreenNag (domi, tf, dt)
         nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
       end do 
     end do
-  call impose_bca
   
   nod%a = nod%a - alpha * prev_a
   nod%a = nod%a / (1.0d0 - alpha)
+ 
   
-  print *, "Accel "
+  print *, "Accel before imposing bca"
   do n=1,node_count
     print *, nod%a(n,:)
   end do
+
+  call impose_bca
   
   nod%v = nod%v + gamma * dt * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
@@ -284,6 +286,10 @@ subroutine SolveGreenNag (domi, tf, dt)
   u = u + beta * dt * dt * nod%a   
   nod%u = nod%u + u
   nod%x = nod%x + u
+
+  do n=1,node_count
+  print *, "Final u ", u(n,:)
+  end do
   
   !call AverageData(elem%rho(:,1),nod%rho(:))  
   prev_a = nod%a
