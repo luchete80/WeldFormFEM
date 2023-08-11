@@ -51,3 +51,5 @@
          - Fixed calcs
          - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
          - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)
+         - Correct first step u_inc definition, now displacements after first step are ok.
+         

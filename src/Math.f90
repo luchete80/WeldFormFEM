@@ -264,7 +264,7 @@ subroutine polarCuppen(tin, U, R)
   real (fp_kind) :: abserr
   integer :: i
   
-  abserr = 1.0e-9
+  abserr = 1.0e-15
   ! double FTF[3][3];
   ! double eigenVectors[3][3];
   ! double eigenValues[3];
@@ -281,7 +281,7 @@ subroutine polarCuppen(tin, U, R)
   !print *, "eigenvalues" , eigenValues
   
   call Jacobi(FTF,xx,abserr,3)
-  print *, "eigenvalues" , FTF(1,1),FTF(2,2),FTF(3,3)
+  !print *, "eigenvalues" , FTF(1,1),FTF(2,2),FTF(3,3)
   eigenValues(1) = FTF(1,1);eigenValues(2) = FTF(2,2);eigenValues(3) = FTF(3,3);
   do i=1,3
     eigenVectors(:,i) = xx(:,i)
@@ -289,8 +289,7 @@ subroutine polarCuppen(tin, U, R)
 
   !Extract the tensors for U and R
   call polarExtractLnU(tin_plane, eigenVectors, eigenValues, U, R);
-  print *, "U ", U
-  print *, "R ", R
+
 end subroutine 
 
 !!!https://github.com/minar09/parallel-computing/blob/master/OMP_Fortran.f90

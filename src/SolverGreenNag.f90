@@ -162,6 +162,7 @@ subroutine SolveGreenNag (domi, tf, dt)
     ! !nod%bcv(3:4,2) = -0.1
   ! end if 
   
+  
     do n=1,elem_count
       if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
         call calculate_element_shapeMat() !AND MASS
@@ -169,8 +170,12 @@ subroutine SolveGreenNag (domi, tf, dt)
     end do
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
-  nod%u = nod%u + u
 
+  if (first_step .eqv. .true.) then 
+    nod%u_inc = u !!! FOR DEFORMATION GRADIENT
+    first_step = .false. 
+  end if
+  
   print *, "Initial a"
   do n=1,node_count
   print *, prev_a(n,:)
@@ -270,9 +275,6 @@ subroutine SolveGreenNag (domi, tf, dt)
   
   nod%a = nod%a - alpha * prev_a
   nod%a = nod%a / (1.0d0 - alpha)
- 
-  
-
 
   call impose_bca !!!! BEFORE APPLYING MODIFIED ALPHA
 
@@ -290,13 +292,20 @@ subroutine SolveGreenNag (domi, tf, dt)
   do n=1,node_count
   print *, "Second u increment ", beta * dt * dt * nod%a   
   end do
+  do n=1,node_count
+  print *, "Total u before inc", nod%u(n,:)
+  end do
   
   nod%u = nod%u + u
   nod%u_inc = u
   nod%x = nod%x + u
 
   do n=1,node_count
-  print *, "Final u ", u(n,:)
+  print *, "Final u inc", u(n,:)
+  end do
+
+  do n=1,node_count
+  print *, "Total u ", nod%u(n,:)
   end do
   
   !call AverageData(elem%rho(:,1),nod%rho(:))  

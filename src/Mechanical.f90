@@ -296,10 +296,11 @@ subroutine calc_def_grad ()
       !F = matmul(elem%dHxy0(e,gp,:,:),x) !!!!TODO; DO THIS FOR ALL 
       F = ident + 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
       elem%def_grad(e,gp,:,:) = F
+      if (gp==1) then
       print *, "def grad F", F(1,1), F(1,2), F(1,3)
       print *, F(2,1), F(2,2), F(2,3)
       print *, F(3,1), F(3,2), F(3,3)
-
+      end if
     end do
 
   end do!elem
@@ -313,6 +314,10 @@ subroutine calc_polar_urmat
       elem%umat(e,gp,1,1) = U(1);elem%umat(e,gp,1,2) = U(2);elem%umat(e,gp,1,3) = U(3);
       elem%umat(e,gp,2,2) = U(4);elem%umat(e,gp,2,3) = U(5);elem%umat(e,gp,3,3) = U(6);
       elem%umat(e,gp,2,1) = elem%umat(e,gp,1,2);elem%umat(e,gp,3,1) = elem%umat(e,gp,1,3);elem%umat(e,gp,3,2) = elem%umat(e,gp,2,3); 
+      if (gp == 1) then
+        print *, "U ", U
+        print *, "R ", elem%rmat(e,gp,:,:)
+      end if 
     end do 
   end do
 endsubroutine
@@ -606,12 +611,11 @@ subroutine CalcStress (dt)
     do gp=1,elem%gausspc(e)
       
       dev = deviator(elem%sigma(e,gp,:,:)) !! OBTAIN FROM DEV
-      print *, "dev ", dev
+
       dev = dev + 2.0 * mat_G * deviator(elem%str_inc (e,gp, :,:))
-      print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
       
       elem%shear_stress(e,gp,:,:) = dev
-      print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
+
       !print *, "mat g", mat_G
       ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
@@ -619,9 +623,13 @@ subroutine CalcStress (dt)
       !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       sig = dev - elem%pressure(e,gp) * ident 
-      print *, "sigma prev rot", sig
+      !print *, "sigma prev rot", sig
       elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
-      print *, "sigma ", elem%sigma(e,gp,:,:)
+      if (gp == 1) then
+        print *, "sigma ", elem%sigma(e,gp,:,:)
+        print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
+        print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
+      end if 
       !!! PERFORM ROTATION
       
       !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
