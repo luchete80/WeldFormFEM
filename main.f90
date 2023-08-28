@@ -195,7 +195,7 @@ implicit none
 
   !call SolveLeapfrog(tf,dt)
   call SolveVerlet(dom,tf,dt)
-  !call SolveKickDrift(tf,dt)
+  !call SolveKickDrift(tf,dt) !!!!!OLD; NOT WORKING
   !call SolveChungHulbert(tf,dt)
   !call SolveGreenNag(dom,tf,dt)
   call CalcEquivalentStress()
