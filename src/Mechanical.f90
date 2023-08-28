@@ -17,7 +17,7 @@ subroutine cal_elem_strains ()
   integer :: e, i,j,k, gp, d, n
   real(fp_kind), dimension(dim,nodxelem) ::temp
   real(fp_kind) :: f
-  real(fp_kind) :: test(1,6) !ifwanted to test in tensor form
+  real(fp_kind) :: test(1,6),test33(3,3) !ifwanted to test in tensor form
   
   elem%str_rate = 0.0d0
   elem%rot_rate = 0.0d0
@@ -31,8 +31,16 @@ subroutine cal_elem_strains ()
       elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       !print *, "standard stran rate calc (matricial) "
       ! !!!! DEFAULT (TODO: CHECK IF IS SLOW)
-      !test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
-      !print *, "e11 e22 e33 2e12 2e23 2e31", test
+      test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
+      print *, "e11 e22 e33 2e12 2e23 2e31", test
+      test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
+      test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
+      test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
+      test33(3,1) = test(1,6)*0.5;test33(1,3) =test33(3,1);
+      
+
+      test33 = 0.5*(test33+transpose(test33));
+      print *, "str rate test", test33
 
       do n=1, nodxelem  
         do d=1, dim

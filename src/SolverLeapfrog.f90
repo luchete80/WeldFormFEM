@@ -161,9 +161,6 @@ subroutine SolveLeapfrog (tf, dt)
   call impose_bcv !!!REINFORCE VELOCITY BC
 
 
-
-  
-
   !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
   !!!! IN ORDER TO CALC VOL
   call calculate_element_Jacobian()  
