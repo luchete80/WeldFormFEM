@@ -144,18 +144,26 @@ subroutine SolveKickDrift (tf, dt)
   ! !!(3) The velocity is integrated to give the displacement at tn+1.
   nod%u = nod%u +  nod%v * dt!/2.0  
   nod%x = nod%x + nod%u
-    
-  nod%v = nod%v + dt/2.0 * nod%a   
-  call impose_bcv !!!REINFORCE VELOCITY BC
 
-  
-  ! !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
+    ! !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
   ! !!!!! ALTERNATED WITH POSITIONS AND FORCES
   call calculate_element_Jacobian()  
   call calc_elem_vol
   call calculate_element_derivMat() !!! WITH NEW SHAPE
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+  
+  nod%v = nod%v + dt/2.0 * nod%a   
+  call impose_bcv !!!REINFORCE VELOCITY BC
+
+
+    ! ! !!!!! ACCORDING TO BENSON; STRAIN RATES ARE CALCULATED AT t+1/2dt
+  ! ! !!!!! ALTERNATED WITH POSITIONS AND FORCES
+  ! call calculate_element_Jacobian()  
+  ! call calc_elem_vol
+  ! call calculate_element_derivMat() !!! WITH NEW SHAPE
+  ! call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  ! call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
 
 
 
