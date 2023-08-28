@@ -219,7 +219,11 @@ subroutine SolveLeapfrog (tf, dt)
   call impose_bcv
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains
+  call calc_elem_density
+  call calc_elem_pressure
 
+  call CalcStressStrain(dt)
+  
 end subroutine SolveLeapfrog
 
 end module SolverLeapfrog

@@ -167,11 +167,11 @@ subroutine SolveKickDrift (tf, dt)
   
   
 
-  do e=1,elem_count
-  if (elem%gausspc(e) > 1) then
-      call calculate_element_dhxy0
-    end if
-  end do
+  ! do e=1,elem_count
+  ! if (elem%gausspc(e) > 1) then
+      ! call calculate_element_dhxy0
+    ! end if
+  ! end do
   
 
 
