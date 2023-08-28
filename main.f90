@@ -10,7 +10,7 @@ use Matrices
 use SolverLeapfrog
 use SolverVerlet
 use SolverChungHulbert
-use SolverGreenNag
+!use SolverGreenNag
 use SolverKickDrift
 !use SolverRedVerlet
 use VTKOutput
@@ -193,8 +193,8 @@ implicit none
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
-  call SolveLeapfrog(tf,dt)
-  !call SolveVerlet(dom,tf,dt)
+  !call SolveLeapfrog(tf,dt)
+  call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt)
   !call SolveChungHulbert(tf,dt)
   !call SolveGreenNag(dom,tf,dt)
