@@ -41,6 +41,9 @@ subroutine cal_elem_strains ()
 
       test33 = 0.5*(test33+transpose(test33));
       print *, "str rate test", test33
+      
+      ! test33 = 0.5*(test33-transpose(test33));
+      ! print *, "rot rate test", test33
 
       do n=1, nodxelem  
         do d=1, dim
