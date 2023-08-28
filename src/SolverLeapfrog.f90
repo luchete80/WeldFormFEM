@@ -75,6 +75,7 @@ subroutine SolveLeapfrog (tf, dt)
   logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
   
+  real(fp_kind) :: prev_dt
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
  real(fp_kind), dimension(node_count,dim) :: v_med !! v_t+1/2
@@ -127,12 +128,16 @@ subroutine SolveLeapfrog (tf, dt)
       nod%a(n,:) = (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
       print *, "fext n ", n, fext_glob(n,:)
   end do
+  do n=1,node_count
+    print *, "Initial accel ", n, "a ", nod%a(n,:)  
+  end do  
+  
   ! do n=1,node_count
     ! print *, "Initial accel ", n, "a ", nod%a(n,:)  
   ! end do  
   
-  nod%v = nod%v - dt * 0.5 * nod%a   !!!!!!!!!!!!!!!!!!v(t -dt/2)
-  call impose_bcv
+  ! nod%v = nod%v - dt * 0.5 * nod%a   !!!!!!!!!!!!!!!!!!v(t -dt/2)
+  ! call impose_bcv
 
   ! do n=1,node_count
     ! print *, "Initial v nod ", n, "v ", nod%v(n,:)  
@@ -145,13 +150,14 @@ subroutine SolveLeapfrog (tf, dt)
   elem%shear_stress = 0.0d0 
   time = 0.0  
   step = 0
+  prev_dt = 0.0
   print *,"main loop-------------------------------------"
   do while (time < tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
 
   
-  nod%v = nod%v + dt * nod%a   
+  nod%v = nod%v + (prev_dt + dt)/2.0 * nod%a   
   call impose_bcv !!!REINFORCE VELOCITY BC
 
 
@@ -212,6 +218,7 @@ subroutine SolveLeapfrog (tf, dt)
     
     !! IF OUTPUT CORRECT VEL
   time = time + dt
+  prev_dt = dt
   end do !time
   
   !At the end
