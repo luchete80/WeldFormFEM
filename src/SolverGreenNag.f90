@@ -251,6 +251,8 @@ subroutine SolveGreenNag (domi, tf, dt)
   !print *, "ELEMENT STRESSES ",elem%sigma(:,:,:,:)
   
   !print *, "VELOCITY", nod%v(:,:)  
+  
+  call disassemble_uvele
   call calc_hourglass_forces
   call cal_elem_forces
   call assemble_forces
