@@ -342,6 +342,16 @@ subroutine cal_elem_strain_inc_from_umat
   end do !element
 end subroutine
 
+subroutine cal_elem_strain_inc_from_str_rate (dt)
+  real(fp_kind) :: dt
+  do e=1, elem_count
+    do gp = 1, elem%gausspc(e)
+      elem%str_inc (e,gp, :,:)= elem%str_rate(e,gp,:,:) * dt
+      print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
+    end do !gp
+  end do !element
+end subroutine
+
 subroutine calc_inv_def_grad
   real(fp_kind) :: inv_f_incr(3,3)
   do e = 1, elem_count
