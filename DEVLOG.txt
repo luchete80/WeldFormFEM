@@ -52,5 +52,9 @@
          - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
          - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)
          - Correct first step u_inc definition, now displacements after first step are ok.
+20230829 - Finally working Verlet integration with strain rates (OpenRadioss, ABAQUS and LS-DYNA style).
+         - This implies is not necessary to solve polar decomposition, neither F (Green Naghdi).
+         - On the other side, results are not exactly as above, so is pending to check TS, and corrections.-
+         - Hourglass and reduced integration is not working yet.
 20230830 - Chung Hulbert with strain rate (without polar decomp) is working ok. BUT LEAPFROG AND VERLET ARE DIVERGING BY THE MOMENT.
          - Added Leapfrog, and Chung hulbert

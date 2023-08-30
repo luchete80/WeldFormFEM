@@ -174,6 +174,15 @@ subroutine SolveLeapfrog (domi, tf, dt)
   nod%x = nod%x + nod%u
   nod%u = nod%u +  nod%v * dt  
 
+  !!!! JACOBIAN TO UPDATE SHAPE right after CHANGE POSITIONS
+  !!!! IN ORDER TO CALC VOL
+  call calculate_element_Jacobian()  
+  call calc_elem_vol
+  call calculate_element_derivMat() !!! WITH NEW SHAPE
+
+  ! call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
+  ! call cal_elem_strains      !!!!!STRAIN AND STRAIN RATES
+  
   ! (7) Based on the density and energy at t_n+l, the pressure is calculated from the equation of
   ! state.
   !!! THIS IS CALCULATE NOW IN ORDER TO UPDATE STRESS WITH CURRENT PRESSURE

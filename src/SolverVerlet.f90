@@ -199,12 +199,12 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   call CalcStressStrain(dt)
   ! print *, "VELOCITY", nod%v(:,:)  
   elem%hourg_nodf(:,:,:) = 0.0d0
-  call calc_hourglass_forces
+  !call calc_hourglass_forces
   
   ! !!!! THIS IS FOR SHOCK
   ! print *, "domi%mat_K", domi%mat_K
-  call calc_elem_wave_speed(domi%mat_K)
-  call calc_elem_shock_visc(dt)
+  ! call calc_elem_wave_speed(domi%mat_K)
+  ! call calc_elem_shock_visc(dt)
   !!!!
   
   call cal_elem_forces
