@@ -40,7 +40,7 @@ contains
 !!!timeStep = _timeStepSafetyFactor * _omegaS / maximumFrequency;
 
 
-subroutine SolveChungHulbert (tf, dt)
+subroutine SolveChungHulbert (domi, tf, dt)
   use omp_lib
   use Matrices
   use Mechanical
@@ -51,6 +51,7 @@ subroutine SolveChungHulbert (tf, dt)
   logical :: first_step, x_at_midtime
   logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
+  type (dom_type), intent (in) :: domi
   
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
   real(fp_kind), dimension(dim) :: prev_acc
@@ -201,7 +202,11 @@ subroutine SolveChungHulbert (tf, dt)
   
   call calc_elem_density
   !print *, "Element density ", elem%rho(:,:)
-  call calc_elem_pressure
+  !!!call calc_elem_pressure
+  
+  call cal_elem_strain_inc_from_str_rate (dt)
+  call calc_elem_pressure_from_strain(domi%mat_K)  
+  
   !print *, "Element pressure ", elem%pressure(:,:)
 
   call CalcStressStrain(dt)

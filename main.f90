@@ -10,7 +10,7 @@ use Matrices
 use SolverLeapfrog
 use SolverVerlet
 use SolverChungHulbert
-!use SolverGreenNag
+use SolverGreenNag
 use SolverKickDrift
 !use SolverRedVerlet
 use VTKOutput
@@ -187,7 +187,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 1.5e-5
+  dt = 0.8e-5
   tf = 1.0e-3
   
   elem%rho(:,:) = rho
@@ -195,11 +195,11 @@ implicit none
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
 
 
-  call SolveVerlet(dom,tf,dt)
+  !call SolveVerlet(dom,tf,dt)
   !call SolveKickDrift(tf,dt) !!!!!OLD; NOT WORKING
-  !call SolveLeapfrog(tf,dt)
+  !call SolveLeapfrog(dom,tf,dt)
 
-  !call SolveChungHulbert(tf,dt)
+  call SolveChungHulbert(dom,tf,dt)
   !call SolveGreenNag(dom,tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))

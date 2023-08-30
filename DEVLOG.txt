@@ -52,4 +52,5 @@
          - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
          - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)
          - Correct first step u_inc definition, now displacements after first step are ok.
-         
+20230830 - Chung Hulbert with strain rate (without polar decomp) is working ok. BUT LEAPFROG AND VERLET ARE DIVERGING BY THE MOMENT.
+         - Added Leapfrog, and Chung hulbert

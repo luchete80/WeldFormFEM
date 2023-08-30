@@ -63,7 +63,7 @@ contains
 	! ShearStressa	= dt*(2.0*G*(StrainRate-1.0/3.0*(StrainRate(0,0)+StrainRate(1,1)+StrainRate(2,2))*OrthoSys::I)+SRT+RS) + ShearStressa;
 
 
-subroutine SolveLeapfrog (tf, dt)
+subroutine SolveLeapfrog (domi, tf, dt)
   use omp_lib
   use Matrices
   use Mechanical
@@ -74,6 +74,7 @@ subroutine SolveLeapfrog (tf, dt)
   logical :: first_step 
   logical :: debug_mode 
   real(fp_kind),intent(in)::tf, dt
+  type (dom_type), intent (in) :: domi
   
   real(fp_kind) :: prev_dt
   real(fp_kind), dimension(node_count) :: mdiag !!DIAGONALIZATION COULD BE DONE INSIDE ACC CALC  
@@ -182,7 +183,10 @@ subroutine SolveLeapfrog (tf, dt)
     end if
   end do
   call calc_elem_density
-  call calc_elem_pressure
+  !!call calc_elem_pressure
+  
+  call cal_elem_strain_inc_from_str_rate (dt)
+  call calc_elem_pressure_from_strain(domi%mat_K)  
 
   call CalcStressStrain(dt)
   
