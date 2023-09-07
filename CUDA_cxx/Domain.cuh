@@ -1,7 +1,9 @@
 #ifndef _DOMAIN_H_
 #define _DOMAIN_H_
 
+#include "NodeData.cuh"
 #include "ElementData.cuh"
+
 
 //DEVICE 
 class Domain{
@@ -18,6 +20,7 @@ class Domain{
   unsigned long *elnod;
   
   ElementData elem;
+  NodeData    nod;
   
   int redint; //!Reduced integration
   

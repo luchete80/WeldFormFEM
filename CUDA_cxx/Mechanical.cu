@@ -120,3 +120,21 @@
     // elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
   // end do!elem
 // end subroutine
+
+
+
+// __device__ inline void Domain::UpdateVel(double dt){
+	// int i = threadIdx.x + blockDim.x*blockIdx.x;
+		
+	// if ( i < particle_count ) {
+    	// v[i] += dt*a[i];   
+  // }
+// }
+
+// __global__ inline void UpdateVelKernel(Domain *dom, double dt) {
+  // //dom->UpdateVel(dt);
+// }
+
+__global__ inline void UpdateVelKernel(Domain *dom, double dt) {
+  //dom->UpdateVel(dt);
+}

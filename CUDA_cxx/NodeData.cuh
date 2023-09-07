@@ -11,5 +11,6 @@ struct NodeData {
   
 };
 
+void AllocateNodeData(NodeData *node, const int &nc);
 
 #endif

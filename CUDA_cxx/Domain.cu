@@ -32,7 +32,8 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
     int nc = (nel[0] +1)* (nel[1]+1) * (nel[2]+1);
     cout << "Nodes: "<<nc<<endl;
     
-    AllocateNodes(nc);
+    //DEPRECATED, NOW ID NODE DATA
+    //AllocateNodes(nc);
     
     double3 *x_h =  new double3 [nc];
     // print *, "Element count in XYZ: ", nel(:)
@@ -83,7 +84,10 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
       }//k  
     }//dim 3
     
-    cudaMemcpy(this->x, x_h, nc * sizeof(double3), cudaMemcpyHostToDevice);	
+    AllocateNodeData(&this->nod,nc);
+    cudaMemcpy(this->nod.x, x_h, nc * sizeof(double3), cudaMemcpyHostToDevice);	
+    
+    //cudaMemcpy(this->x, x_h, nc * sizeof(double3), cudaMemcpyHostToDevice);	
     
     int ne;
     // !! ALLOCATE ELEMENTS
@@ -99,7 +103,10 @@ void Domain::AddBoxLength(const int &tag, double3 V, double Lx, double Ly, doubl
       ne = nel[0] * nel[1]*nel[2];
       nodxelem = 8;
     }
-    AllocateElements(ne,gp);
+    //DEPRECATED
+    //AllocateElements(ne,gp);
+    
+    AllocateElementData(&elem, dim, ne,gp,nodxelem);
     
     unsigned long *elnod_x =  new unsigned long [ne * nodxelem];
     if (dim == 2) {

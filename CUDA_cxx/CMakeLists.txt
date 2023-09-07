@@ -31,7 +31,10 @@ include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 add_executable(main_mech 
 													main.cu
 													Domain.cu 		
-                          ElementData.cu                          
+                          ElementData.cu 
+                          NodeData.cu    
+                          Matrices.cu
+                          Math.cu
 													)                          
 
 
