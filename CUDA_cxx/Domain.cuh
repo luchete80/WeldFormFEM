@@ -1,6 +1,8 @@
 #ifndef _DOMAIN_H_
 #define _DOMAIN_H_
 
+#include "ElementData.cuh"
+
 //DEVICE 
 class Domain{
   public:
@@ -14,14 +16,8 @@ class Domain{
   int node_count,elem_count;
   
   unsigned long *elnod;
-
   
-  //// ELEMENT DATA, WITH GAUSS POINT
-  double *p;
-  double *str_rate;
-  double *str_inc;
-  
-  double *dHxy_detJ; //(e,gp,dim,n)
+  ElementData elem;
   
   int redint; //!Reduced integration
   
