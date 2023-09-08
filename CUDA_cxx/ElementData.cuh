@@ -11,6 +11,8 @@ struct ElementData {
   double *dHxy_detJ; //(e,gp,dim,n)
 
   unsigned long *elnod;
+  unsigned long *elnod_offset;  
+  
 
   // Integer, Dimension(:), Allocatable :: ID; gausspc
   int *ID, *gausspc;

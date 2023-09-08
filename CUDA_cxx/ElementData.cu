@@ -1,12 +1,19 @@
 #include "ElementData.cuh"
 
 
+//// FOR A SINGLE ELEMENT DATA
+
 void AllocateElementData(ElementData *elem, const int &dim, const int &el_count, const int &gp, const int &nodxelem){
   
   cudaMalloc((void **)&elem->pressure, el_count * sizeof (double)); //8 values per dim 
   cudaMalloc((void **)&elem->gausspc, el_count * sizeof (int)); 
   
   cudaMalloc((void **)&elem->dHxy_detJ, el_count*gp*dim*nodxelem*sizeof (double));
+
+  //ATTENTION; THIS SHOULD BE CHANGE WHEN ADDING DIFFERENT TYPEOFELEMENTS
+  cudaMalloc((void **)&elem->elnod, el_count * nodxelem * sizeof (unsigned long));
+  cudaMalloc((void **)&elem->elnod_offset, el_count * sizeof (unsigned long));
+  
   
   //Assuming reduced integration
   //cudaMalloc((void **)&elem->dHxy_detJ, el_count * dim * nodxelem* sizeof (double)); //8 values per dim 
