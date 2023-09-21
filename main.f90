@@ -189,6 +189,7 @@ implicit none
 
   dt = 0.8e-5
   tf = 1.0e-3
+  tf = dt 
   
   elem%rho(:,:) = rho
   

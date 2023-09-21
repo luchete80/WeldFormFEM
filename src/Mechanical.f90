@@ -627,12 +627,20 @@ subroutine CalcStressStrain (dt)
       !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+     
+      
       print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
       print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
       print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
+
+  ! !!! IF PLANE STRESS
+  ! if (dim == 2) then 
+    ! elem%sigma(e,gp,3,3) = 0.0
+    ! elem%sigma(e,gp,3,3) = 0.0    
+  ! end if 
   ! !!!!$omp end parallel do    
 end subroutine CalcStressStrain
 
