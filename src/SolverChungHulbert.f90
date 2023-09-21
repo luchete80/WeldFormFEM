@@ -209,8 +209,8 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   !print *, "Element pressure ", elem%pressure(:,:)
 
-  !call CalcStressStrain(dt)
-  call Calc_Elastic_Stress(domi) !!!ELASTIC_TEST
+  call CalcStressStrain(dt)
+  !call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
   !print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces

@@ -159,6 +159,7 @@ contains
     allocate (elem%shear_stress(el_count,gp, dim,dim))
     allocate (elem%str_rate(el_count,gp, dim,dim))
     allocate (elem%str_inc(el_count,gp, dim,dim))
+    allocate (elem%str_tot(el_count,gp, dim,dim))
     allocate (elem%rot_rate(el_count,gp, dim,dim))
     
     allocate (elem%def_grad(el_count,gp, dim,dim))

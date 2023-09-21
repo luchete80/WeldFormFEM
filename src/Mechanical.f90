@@ -576,29 +576,53 @@ end subroutine
 
 !!!!!! ONLY ELASTIC; FOR VALIDATING 
 !!! ATENTION mat_G is global and mat_E not
-subroutine Calc_Elastic_Stress(dom)
+subroutine Calc_Elastic_Stress(dom, dt)
   integer :: e,gp
+  real(fp_kind), intent (in) :: dt
   real(fp_kind) :: c
   type (dom_type), intent (in) :: dom
   
-  c = dom%mat_E / (1-dom%mat_nu*dom%mat_nu)
+  c = dom%mat_E / (1.0-dom%mat_nu*dom%mat_nu)
   print *, "MAT C", c
   print *, "MAT G", mat_G
   do e = 1, elem_count 
     do gp=1,elem%gausspc(e)
-      elem%sigma(e,gp,1,1) = c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
-      elem%sigma(e,gp,2,2) = c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
-      elem%sigma(e,gp,2,2) = 2.0* mat_G * elem%str_inc(e,gp,1,2)
+      elem%str_tot(e,gp,:,:) = elem%str_tot(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
+      elem%sigma(e,gp,1,1) = c * (elem%str_tot(e,gp,1,1)+dom%mat_nu*elem%str_tot(e,gp,2,2))
+      elem%sigma(e,gp,2,2) = c * (elem%str_tot(e,gp,2,2)+dom%mat_nu*elem%str_tot(e,gp,1,1))
+      elem%sigma(e,gp,1,2) = 2.0* mat_G * elem%str_tot(e,gp,1,2)
+      elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
     end do
   end do  
 end subroutine
+
+! subroutine Calc_Elastic_Stress(dom, dt)
+  ! integer :: e,gp
+  ! real(fp_kind), intent (in) :: dt
+  ! real(fp_kind) :: c
+  ! type (dom_type), intent (in) :: dom
+  
+  ! c = dom%mat_E / (1.0-dom%mat_nu*dom%mat_nu)
+  ! print *, "MAT C", c
+  ! print *, "MAT G", mat_G
+  ! do e = 1, elem_count 
+    ! do gp=1,elem%gausspc(e)
+      ! elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
+      ! elem%sigma(e,gp,1,1) = c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      ! elem%sigma(e,gp,2,2) = c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      ! elem%sigma(e,gp,1,2) = 2.0* mat_G * elem%str_inc(e,gp,1,2)
+      ! elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
+    ! end do
+  ! end do  
+! end subroutine
 
 !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 subroutine CalcStressStrain (dt) 
 
   implicit none
-  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
+  real(fp_kind) :: SRT(dim,dim), RS(dim,dim), ident(dim,dim)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   

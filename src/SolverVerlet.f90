@@ -196,7 +196,8 @@ subroutine SolveVerlet (domi, tf, dt) !!!! TODO: REPLACE DOMI FOR MATERIAL
   !call calc_elem_pressure
   print *, "Element pressure ", elem%pressure(:,:)
 
-  call CalcStressStrain(dt)
+  !call CalcStressStrain(dt)
+  call Calc_Elastic_Stress(domi,dt)
   ! print *, "VELOCITY", nod%v(:,:)  
   elem%hourg_nodf(:,:,:) = 0.0d0
   !call calc_hourglass_forces

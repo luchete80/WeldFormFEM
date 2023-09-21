@@ -21,7 +21,7 @@ Type Element
   real(fp_kind), dimension(:,:), Allocatable :: rho_0,pressure,rho   !!!!elcount, gp
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
-  real(fp_kind), dimension(:,:,:,:), allocatable :: sigma, str_rate, rot_rate , shear_stress,strain, str_inc,def_grad !tau is Cauchy Stress (do not confuse with shear)
+  real(fp_kind), dimension(:,:,:,:), allocatable :: sigma, str_rate, rot_rate , str_tot, shear_stress,strain, str_inc,def_grad !tau is Cauchy Stress (do not confuse with shear)
   real(fp_kind), dimension(:,:,:,:), allocatable :: Umat,Rmat !!POLAR DECOMPOSITION, ONLY FOR GREEN NAGHDI
   real(fp_kind), dimension(:), allocatable:: mat_g
   
