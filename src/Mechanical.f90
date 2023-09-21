@@ -546,33 +546,52 @@ end subroutine
 ! }
 
 
-subroutine CalcStressElastic (dt)   !!!! ONLY TEST
+! subroutine CalcStressElastic (dt)   !!!! ONLY TEST
 
-  implicit none
-  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
-  real(fp_kind) :: strain(3,3)
+  ! implicit none
+  ! real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  ! real(fp_kind) :: strain(3,3)
+  ! integer :: e,gp
+  ! real(fp_kind) ,intent(in):: dt
+  
+  ! real(fp_kind) :: p00
+  
+  ! p00 = 0.
+  
+  ! ident = 0.0d0
+  ! ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  
+  ! ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
+  ! do e = 1, elem_count 
+    ! do gp=1,elem%gausspc(e)
+      ! strain = elem%str_rate(e,gp,:,:) * dt
+      ! elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+      ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+    ! ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
+    ! end do !gauss point
+  ! end do
+  ! ! !!!!$omp end parallel do    
+! end subroutine CalcStressElastic
+
+
+!!!!!! ONLY ELASTIC; FOR VALIDATING 
+!!! ATENTION mat_G is global and mat_E not
+subroutine Calc_Elastic_Stress(dom)
   integer :: e,gp
-  real(fp_kind) ,intent(in):: dt
+  real(fp_kind) :: c
+  type (dom_type), intent (in) :: dom
   
-  real(fp_kind) :: p00
-  
-  p00 = 0.
-  
-  ident = 0.0d0
-  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
-  
-  ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
+  c = dom%mat_E / (1-dom%mat_nu*dom%mat_nu)
+  print *, "MAT C", c
+  print *, "MAT G", mat_G
   do e = 1, elem_count 
     do gp=1,elem%gausspc(e)
-      strain = elem%str_rate(e,gp,:,:) * dt
-      elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-      print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
-    ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
-    end do !gauss point
-  end do
-  ! !!!!$omp end parallel do    
-end subroutine CalcStressElastic
-
+      elem%sigma(e,gp,1,1) = c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      elem%sigma(e,gp,2,2) = c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      elem%sigma(e,gp,2,2) = 2.0* mat_G * elem%str_inc(e,gp,1,2)
+    end do
+  end do  
+end subroutine
 
 !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)

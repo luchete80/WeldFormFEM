@@ -170,6 +170,10 @@ implicit none
 
   nod%a(:,:) = 0.0d0
   
+  !ONLY FOR ELASTIC
+  dom%mat_E = young
+  dom%mat_nu = poisson
+  
   mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
   mat_G= young / (2.0* (1.0 + poisson));
   
@@ -189,7 +193,7 @@ implicit none
 
   dt = 0.8e-5
   tf = 1.0e-3
-  tf = dt 
+  !tf = dt 
   
   elem%rho(:,:) = rho
   

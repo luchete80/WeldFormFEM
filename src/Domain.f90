@@ -10,7 +10,7 @@ implicit none
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
 
-real(fp_kind):: mat_cs0, mat_K
+real(fp_kind):: mat_cs0, mat_K, mat_E, mat_nu
 end Type Dom_type
 
 integer :: Dim, node_count, elem_count, Nproc, dof 
