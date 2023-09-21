@@ -191,7 +191,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 0.8e-5
+  dt = 0.1e-5
   tf = 1.0e-3
   !tf = dt 
   
