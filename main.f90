@@ -205,6 +205,7 @@ implicit none
   !call SolveLeapfrog(dom,tf,dt)
 
   call SolveChungHulbert(dom,tf,dt)
+  !call SolveLeapFrog(dom,tf,dt)
   !call SolveGreenNag(dom,tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))

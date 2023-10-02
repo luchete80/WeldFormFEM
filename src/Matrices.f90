@@ -430,9 +430,9 @@ subroutine calculate_element_derivMat ()
         do gp = 1,4
           invJ = adj(elem%jacob(e,gp,:,:))!!!!/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
           !print *, "detJ", elem%detJ(e,gp)
-          !print *, "invJ", invJ
+          print *, "adjJ", invJ
           elem%dHxy_detJ(e,gp,:,:) = 0.25d0 * matmul(invJ,elem%dHrs(e,gp,:,:))
-          !print *, "dHxy", elem%dHxy_detJ(e,gp,:,:)
+          print *, "dHxy *detJ", elem%dHxy_detJ(e,gp,:,:)
         end do !!!!gp      
       end if!!!di 3
     end if

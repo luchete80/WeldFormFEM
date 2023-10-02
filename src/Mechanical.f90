@@ -602,18 +602,31 @@ subroutine Calc_Elastic_Stress(dom, dt)
   real(fp_kind) :: c
   type (dom_type), intent (in) :: dom
   
-  c = dom%mat_E / (1.0-dom%mat_nu*dom%mat_nu)
+  !!!! PLAIN STRESS
+  !c = dom%mat_E / (1.0-dom%mat_nu*dom%mat_nu)
+  
+  !!!! PLAIN STRAIN
+  c = dom%mat_E / ((1.0+dom%mat_nu)*(1.0-2.0*dom%mat_nu))
   print *, "MAT C", c
   print *, "MAT G", mat_G
   do e = 1, elem_count 
     do gp=1,elem%gausspc(e)
+      ! elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
+      ! elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      ! elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      ! elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + 2.0* mat_G * elem%str_inc(e,gp,1,2)
+      ! elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
+      
+      !!!! PLAIN STRAIN  
       elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
-      elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
-      elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
-      elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + 2.0* mat_G * elem%str_inc(e,gp,1,2)
-      elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
+      elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * ((1.0-dom%mat_nu)*elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * ((1.0-dom%mat_nu)*elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + (1.0-2.0*dom%mat_nu) * elem%str_inc(e,gp,1,2)
+      elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)      
     end do
-  end do  
+  end do 
+  
+
 end subroutine
 
 !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED

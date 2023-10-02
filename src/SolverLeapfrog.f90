@@ -197,6 +197,7 @@ subroutine SolveLeapfrog (domi, tf, dt)
   call cal_elem_strain_inc_from_str_rate (dt)
   call calc_elem_pressure_from_strain(domi%mat_K)  
 
+  !call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
   call CalcStressStrain(dt)
   
   ! (5) The artificial shock viscosity and hourglass viscosity are calculated from un+1/2. ATTENTION
