@@ -192,7 +192,7 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 0.8e-5
+  dt = 1.0e-5
   tf = 1.0e-3 
   !tf = dt 
   
@@ -245,19 +245,19 @@ implicit none
     end do
   close(1)
   
-  ! print *, "Element stresses"
-  ! do i=1,elem_count
-    ! do gp=1, elem%gausspc(i)
-      ! print *, elem%sigma(i,gp,:,:)
-      ! !print *, "Sigma eq ", elem%sigma_eq(i,gp)
-    ! end do
-  ! end do
-  ! print *, "Element strain rates" 
-  ! do i=1,elem_count
-    ! do gp=1, elem%gausspc(i)
-      ! print *, elem%str_rate(i,gp,:,:)
-    ! end do
-  ! end do
+  print *, "Element stresses"
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%sigma(i,gp,:,:)
+      !print *, "Sigma eq ", elem%sigma_eq(i,gp)
+    end do
+  end do
+  print *, "Element strain rates" 
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%str_rate(i,gp,:,:)
+    end do
+  end do
   print *, "Accels"
   do i=1,node_count
     print *, "a ", nod%v(i,:)  

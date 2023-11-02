@@ -308,9 +308,9 @@ subroutine calc_def_grad ()
       F = ident + 1.0d0/elem%detJ(e,gp) * matmul(elem%dHxy_detJ(e,gp,:,:),u) !!!!TODO; DO THIS FOR ALL 
       elem%def_grad(e,gp,:,:) = F
       if (gp==1) then
-      print *, "def grad F", F(1,1), F(1,2), F(1,3)
-      print *, F(2,1), F(2,2), F(2,3)
-      print *, F(3,1), F(3,2), F(3,3)
+      ! print *, "def grad F", F(1,1), F(1,2), F(1,3)
+      ! print *, F(2,1), F(2,2), F(2,3)
+      ! print *, F(3,1), F(3,2), F(3,3)
       end if
     end do
 
@@ -326,8 +326,8 @@ subroutine calc_polar_urmat
       elem%umat(e,gp,2,2) = U(4);elem%umat(e,gp,2,3) = U(5);elem%umat(e,gp,3,3) = U(6);
       elem%umat(e,gp,2,1) = elem%umat(e,gp,1,2);elem%umat(e,gp,3,1) = elem%umat(e,gp,1,3);elem%umat(e,gp,3,2) = elem%umat(e,gp,2,3); 
       if (gp == 1) then
-        print *, "U ", U
-        print *, "R ", elem%rmat(e,gp,:,:)
+        ! print *, "U ", U
+        ! print *, "R ", elem%rmat(e,gp,:,:)
       end if 
     end do 
   end do
@@ -337,7 +337,7 @@ subroutine cal_elem_strain_inc_from_umat
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%str_inc (e,gp, :,:)= elem%umat(e,gp,:,:)
-      print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
+      ! print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
     end do !gp
   end do !element
 end subroutine
@@ -347,7 +347,7 @@ subroutine cal_elem_strain_inc_from_str_rate (dt)
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%str_inc (e,gp, :,:)= elem%str_rate(e,gp,:,:) * dt
-      print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
+      ! print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
     end do !gp
   end do !element
 end subroutine
@@ -395,7 +395,7 @@ subroutine calc_elem_pressure_EOS ()
   gp = 1
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
-      print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
+      ! print *, "cs rho rho0 ", elem%cs(e), elem%rho(e,gp),elem%rho_0(e,gp)
       elem%pressure(e,gp) = EOS(elem%cs(e),0.0d0,elem%rho(e,gp),elem%rho_0(e,gp))
     end do
   end do
@@ -431,10 +431,10 @@ subroutine calc_elem_pressure_from_strain (modK)
     do gp = 1, elem%gausspc(e)    
           elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
     end do
-    print *, "mod K", modK
-    print *, "strain inc", elem%str_inc(e,gp,:,:)
-    print *, "press_inc ", press_inc
-    print *, "elem%pressure(e,gp)", elem%pressure(e,1)
+    ! print *, "mod K", modK
+    ! print *, "strain inc", elem%str_inc(e,gp,:,:)
+    ! print *, "press_inc ", press_inc
+    ! print *, "elem%pressure(e,gp)", elem%pressure(e,1)
   end do
 end subroutine
 
@@ -607,8 +607,8 @@ subroutine Calc_Elastic_Stress(dom, dt)
   
   !!!! PLAIN STRAIN
   c = dom%mat_E / ((1.0+dom%mat_nu)*(1.0-2.0*dom%mat_nu))
-  print *, "MAT C", c
-  print *, "MAT G", mat_G
+  ! print *, "MAT C", c
+  ! print *, "MAT G", mat_G
   do e = 1, elem_count 
     do gp=1,elem%gausspc(e)
       ! elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
@@ -774,7 +774,7 @@ subroutine calc_elem_vol ()
       !print *, "elem e j, w", elem%detJ(e,gp), w
       elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
     end do !gp  
-    print *, "Elem ", e, "vol ",elem%vol(e)
+    ! print *, "Elem ", e, "vol ",elem%vol(e)
     elem%vol_inc(e) = elem%vol(e) - prev_vol
   end do !elem
 
@@ -789,12 +789,12 @@ subroutine impose_bcv
     do d=1,dim
       if (nod%is_bcv(n,d) .eqv. .true.) then
         nod%v(n,d) = nod%bcv(n,d)
-        print *, "BCV VEL node dim", n, d 
+        ! print *, "BCV VEL node dim", n, d 
         !print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       end if
       
       if (nod%is_fix(n,d) .eqv. .true.) then
-        print *, "BCV FIX node dim", n, d 
+        ! print *, "BCV FIX node dim", n, d 
         nod%v(n,d) = 0.0d0
       end if 
 
@@ -813,7 +813,7 @@ subroutine impose_bca
         ! print *, "nod ", n, ", ",nod%bcv(n,d), ", d", d
       ! end if      
       if ((nod%is_fix(n,d) .eqv. .true.) .or. (nod%is_bcv(n,d).eqv. .true. )) then !!!!USE PARENTHESES
-        print *, "BCA node dim", n, d 
+        ! print *, "BCA node dim", n, d 
         nod%a(n,d) = 0.0d0
       end if 
     end do !dim

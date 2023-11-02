@@ -29,10 +29,11 @@ if(CMAKE_Fortran_COMPILER_ID MATCHES GNU)
     set(CMAKE_Fortran_FLAGS_RELEASE "-Ofast -march=native")
 endif()
 
-file(GLOB_RECURSE sources  src/*.f90 src/*.cpp src/*.h)
+# file(GLOB_RECURSE sources  src/*.f90 src/*.cpp src/*.h)
+file(GLOB_RECURSE sources  src/*.f90 )
 
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
-add_executable(WeldForm ${sources} 10_elem.f90) #Single case 1 element
+# add_executable(10_elems ${sources} 10_elems.f90) #Single case 1 element
 # add_executable(contact ${sources} main_contact.f90)
 # add_executable(cylinder ${sources} main_cylinder.f90) #Single case 1 element
 # add_executable(trac ${sources} main_trac.f90) #Single case 1 element

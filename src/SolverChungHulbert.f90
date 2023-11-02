@@ -209,19 +209,23 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   !print *, "Element pressure ", elem%pressure(:,:)
 
-  call CalcStressStrain(dt)
-  !call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
-  !print *, "VELOCITY", nod%v(:,:)  
+	!! TODO: MODIFY THIS
+	if (dim .eq. 3) then 
+		call CalcStressStrain(dt)
+  else
+		call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
+  end if
+	!print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces
   call assemble_forces
 
   !print *, "Element strain rates" 
-  do e=1,elem_count
-    do gp=1, elem%gausspc(e)
-      print *, elem%str_rate(e,gp,:,:)
-    end do
-  end do
+  ! do e=1,elem_count
+    ! do gp=1, elem%gausspc(e)
+      ! print *, elem%str_rate(e,gp,:,:)
+    ! end do
+  ! end do
 
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
