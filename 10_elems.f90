@@ -76,7 +76,7 @@ implicit none
 
   Dim = 3
   L = 0.1	
-  dx    = 0.1d0
+  dx    = 0.01d0
   r = dx /2.0
   h = dx * 1.2
 

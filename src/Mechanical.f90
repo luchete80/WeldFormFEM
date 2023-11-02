@@ -32,7 +32,7 @@ subroutine cal_elem_strains ()
       !print *, "standard stran rate calc (matricial) "
       ! !!!! DEFAULT (TODO: CHECK IF IS SLOW)
       test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
-      print *, "e11 e22 e33 2e12 2e23 2e31", test
+      !print *, "e11 e22 e33 2e12 2e23 2e31", test
       test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
       test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
       test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
@@ -40,7 +40,7 @@ subroutine cal_elem_strains ()
       
 
       test33 = 0.5*(test33+transpose(test33));
-      print *, "str rate test", test33
+      !print *, "str rate test", test33
       
       ! test33 = 0.5*(test33-transpose(test33));
       ! print *, "rot rate test", test33
@@ -685,9 +685,9 @@ subroutine CalcStressStrain (dt)
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
      
       
-      print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
-      print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
-      print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
+      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      !print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
+      !print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
