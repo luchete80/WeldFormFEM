@@ -77,7 +77,7 @@ implicit none
   Lx = 0.1	
   Ly = 0.024
   Lz = 0.012
-  dx    = 0.012d0
+  dx    = 0.006d0
   r = dx /2.0
   h = dx * 1.2
 
@@ -152,9 +152,9 @@ implicit none
   
   !dt = 0.7 * dx/(mat_cs)
   dt = 0.3 * dx/(mat_cs)
-  tf = dt * 1.0
+  ! tf = dt * 1.0
   
-  ! tf = 5.0e-3
+  tf = 1.0e-3
   ! tf = 1.0e-6
   
   elem%rho(:,:) = rho
