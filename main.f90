@@ -75,7 +75,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 2
+  Dim = 3
   L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
@@ -99,7 +99,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .false.
+  reduced_int = .true.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   
   print *, "NODE ELEMENTS "
@@ -194,7 +194,7 @@ implicit none
 
   dt = 0.8e-5
   tf = 1.0e-3 
-  !tf = dt 
+  tf = 10*dt 
   
   elem%rho(:,:) = rho
   

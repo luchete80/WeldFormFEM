@@ -228,9 +228,9 @@ subroutine calc_hourglass_forces
       
       !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
-      !print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
+      print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
  
-      elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
+      ! elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
       
       print *, "alt hourglass forces", elem%hourg_nodf(e,:,:) 
   else

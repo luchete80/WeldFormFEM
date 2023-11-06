@@ -50,6 +50,9 @@ implicit none
   integer, pointer :: ncount_int
   !type(Domain)	::dom
 
+	type(Dom_type) :: dom
+
+	
    ! Variables for clock
    integer count_0, count_1, gp
    integer count_rate, count_max
@@ -137,16 +140,22 @@ implicit none
   
   mat_cs = sqrt(mat_K/rho)
   mat_cs0 = mat_cs
+
+
+  !ONLY FOR ELASTIC
+  dom%mat_E = young
+  dom%mat_nu = poisson
+  dom%mat_K = mat_K !!!TODO CREATE MATERIAL
   print *, "Material Cs: ", mat_cs
   
   elem%cs(:) = mat_cs
   
   !dt = 0.7 * dx/(mat_cs)
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  tf = dt * 10.0
   
-  tf = 1.0e-6
-  tf = 1.0e-6
+  ! tf = 5.0e-3
+  ! tf = 1.0e-6
   
   elem%rho(:,:) = rho
   
@@ -154,7 +163,7 @@ implicit none
   print *, "time step size with CFL 0.7", dt
   !call SolveLeapfrog(tf,dt)
   !call SolveVerlet(tf,dt)
-  call SolveChungHulbert(tf,dt)
+  call SolveChungHulbert(dom,tf,dt)
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
@@ -169,12 +178,12 @@ implicit none
     end do
   close(1)
   
-  print *, "Element stresses"
-  do i=1,elem_count
-    do gp=1, elem%gausspc(i)
-      print *, elem%sigma(i,gp,:,:)
-    end do
-  end do
+  ! print *, "Element stresses"
+  ! do i=1,elem_count
+    ! do gp=1, elem%gausspc(i)
+      ! print *, elem%sigma(i,gp,:,:)
+    ! end do
+  ! end do
 
   do i=1,node_count
     print *, "nod ", i, "Disp ", nod%u(i,:)  
