@@ -151,8 +151,8 @@ implicit none
   elem%cs(:) = mat_cs
   
   !dt = 0.7 * dx/(mat_cs)
-  dt = 0.7 * dx/(mat_cs)
-  tf = dt * 10.0
+  dt = 0.3 * dx/(mat_cs)
+  tf = dt * 1.0
   
   ! tf = 5.0e-3
   ! tf = 1.0e-6
