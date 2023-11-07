@@ -12,7 +12,7 @@ void Domain::AllocateNodes(){
 }
 
 
-void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L){
+void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
 	    // integer, intent(in):: tag
     // logical, intent(in) :: redint
     // !real(fp_kind), intent(in), allocatable :: V
@@ -23,14 +23,14 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L){
       
     int nel[3];
     
-    nel[0] = nint(Lx/(2.0*r)) 
-    nel[1] = nint(Ly/(2.0*r)) 
-    if (m_dim == 2) then
-      nel(3) = 0
-      nodxelem = 4
+    nel[0] = (int)(L(0)/(2.0*r));
+    nel[1] = (int)(L(1)/(2.0*r));
+    if (m_dim == 2)
+      nel[2] = 0;
+      nodxelem = 4;
     else
-      nel(3) = nint(Lz/(2.0*r)) 
-      nodxelem = 8
+      nel(3) = (int)(L(2)/(2.0*r)) 
+      nodxelem = 8;
     end if
     
     // Xp(3) = V(3) 

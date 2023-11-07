@@ -4,9 +4,11 @@
 class Node;
 
 class Element {
+
+  std::vector <Node *> m_node; //CHECK LIST PERFORMANCE
+	
 public:
   /*inline*/ virtual void computeShapeFunctions(){}; //INLINE
-  
-  std::vector <Node *> m_node; //CHECK LIST PERFORMANCE
+
   
 };
