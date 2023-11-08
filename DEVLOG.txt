@@ -58,3 +58,6 @@
          - Hourglass and reduced integration is not working yet.
 20230830 - Chung Hulbert with strain rate (without polar decomp) is working ok. BUT LEAPFROG AND VERLET ARE DIVERGING BY THE MOMENT.
          - Added Leapfrog, and Chung hulbert
+-------------------------------------------------------------------------------------
+20231108 - Fixed 2D plain strain stress decomposition calculation
+         - Fixed output (With numbers like E-221)
