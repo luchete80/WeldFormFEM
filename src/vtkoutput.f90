@@ -67,22 +67,28 @@ subroutine WriteMeshVTU (fname)
   write (1,*) "      <PointData Scalars=""scalars"">"
   !!!!!!!!!!!_--------------------------------------
   
-  write (1,*) "        <DataArray type=""Float32"" Name=""u"" NumberOfComponents=""3"" Format=""ascii"">"
+  write (1,*) "        <DataArray type=""Float32"" Name=""u"" NumberOfComponents=""",dim,""" Format=""ascii"">"
   do n =1, node_count
-    write (1,*) nod%u(n,1), nod%u(n,2), nod%u(n,3)
-  end do   
+		do d =1, dim
+    write (1,"(e13.5)") nod%u(n,d)
+		end do
+	end do   
   write (1,*) "        </DataArray>"  
 
-  write (1,*) "        <DataArray type=""Float32"" Name=""v"" NumberOfComponents=""3"" Format=""ascii"">"
+  write (1,*) "        <DataArray type=""Float32"" Name=""v"" NumberOfComponents=""", dim ,""" Format=""ascii"">"
   do n =1, node_count
-    write (1,*) nod%v(n,1), nod%v(n,2), nod%v(n,3)
-  end do   
+		do d =1, dim
+    write (1,*) nod%v(n,d)
+		end do
+	end do   
   write (1,*) "        </DataArray>"  
 
-  write (1,*) "        <DataArray type=""Float32"" Name=""a"" NumberOfComponents=""3"" Format=""ascii"">"
+  write (1,*) "        <DataArray type=""Float32"" Name=""a"" NumberOfComponents=""",dim,""" Format=""ascii"">"
   do n =1, node_count
-    write (1,*) nod%a(n,1), nod%a(n,2), nod%a(n,3)
-  end do   
+		do d =1, dim
+			write (1, "(e13.4)") nod%a(n,d)
+		end do
+	end do   
   write (1,*) "        </DataArray>" 
 
   ! write (1,*) "        <DataArray type=""Float32"" Name=""f_hourg"" NumberOfComponents=""3"" Format=""ascii"">"

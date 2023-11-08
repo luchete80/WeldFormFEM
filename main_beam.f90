@@ -73,7 +73,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 3
+  Dim = 2
   Lx = 0.1	
   Ly = 0.024
   Lz = 0.012
