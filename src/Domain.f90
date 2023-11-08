@@ -139,7 +139,7 @@ contains
     allocate (elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
     allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
     allocate (elem%dHrs(el_count,gp,dim,nodxelem))
-    allocate (elem%sigma(el_count,gp,dim,dim))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
+    allocate (elem%sigma(el_count,gp,3,3))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
 
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
 
@@ -163,11 +163,11 @@ contains
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
     allocate (elem%cs(el_count))
-    allocate (elem%shear_stress(el_count,gp, dim,dim))
-    allocate (elem%str_rate(el_count,gp, dim,dim))
-    allocate (elem%str_inc(el_count,gp, dim,dim))
-    allocate (elem%str_tot(el_count,gp, dim,dim))
-    allocate (elem%rot_rate(el_count,gp, dim,dim))
+    allocate (elem%shear_stress(el_count,gp, 3,3))
+    allocate (elem%str_rate(el_count,gp, 3,3))
+    allocate (elem%str_inc(el_count,gp, 3,3))
+    allocate (elem%str_tot(el_count,gp, 3,3))
+    allocate (elem%rot_rate(el_count,gp, 3,3))
     
     allocate (elem%def_grad(el_count,gp, dim,dim))
     

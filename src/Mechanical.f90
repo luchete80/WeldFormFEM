@@ -635,7 +635,7 @@ subroutine CalcStressStrain (dt)
 
   implicit none
   !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
-  real(fp_kind) :: SRT(dim,dim), RS(dim,dim), ident(dim,dim)
+  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
@@ -644,11 +644,8 @@ subroutine CalcStressStrain (dt)
   p00 = 0.
   
   ident = 0.0d0
-  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; 
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
   
-  if (dim == 3) then  
-  ident (3,3) = 1.0d0
-  end if 
   
   ! if (dim == 2) then 
     ! if (plane_mode == pl_strain) then
