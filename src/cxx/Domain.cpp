@@ -20,20 +20,21 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     // real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
     // real(fp_kind), dimension (1:3) :: Xp
     // integer :: i, j, k, p, ex, ey, ez, nnodz, gp
-      
+    int nodxelem;
     int nel[3];
     
     nel[0] = (int)(L(0)/(2.0*r));
     nel[1] = (int)(L(1)/(2.0*r));
-    if (m_dim == 2)
+    if (m_dim == 2){
       nel[2] = 0;
       nodxelem = 4;
-    else
-      nel(3) = (int)(L(2)/(2.0*r)) 
+    } else {
+      nel[2] = (int)(L(2)/(2.0*r));
       nodxelem = 8;
-    end if
+    }
     
-    // Xp(3) = V(3) 
+		Vec3D Xp;
+    //Xp(2) = V(2) ;
     
 
     // write (*,*) "Creating Mesh ...", "Elements ", nel(1), ", ",nel(2)

@@ -9,10 +9,10 @@
 //@!BEGIN = PRIVATE
 
 #include <fstream>
-#include <Vec3D.h>
-#include <NumpyInterface.h>
-#include <Tensor2.h>
-#include <SymTensor2.h>
+#include "Vec3D.h"
+//#include <NumpyInterface.h>
+#include "Tensor2.h"
+#include "SymTensor2.h"
 
 /*
 @LABEL:Vec3D::Vec3D()
@@ -474,50 +474,3 @@ void Vec3D::print(std::ostream &os) const
     os << "}";
 }
 
-// Saves the content of a Vec3D into a NumPy file
-//-----------------------------------------------------------------------------
-void Vec3D::numpyWrite(std::string filename, bool initialize) const
-//-----------------------------------------------------------------------------
-{
-    std::string mode = "a";
-    if (initialize)
-        mode = "w";
-    NumpyInterface::npySave(filename, &_data[0], {3}, mode);
-}
-
-// Saves the content of a Vec3D into a NumPyZ file
-//-----------------------------------------------------------------------------
-void Vec3D::numpyWriteZ(std::string filename, std::string name, bool initialize) const
-//-----------------------------------------------------------------------------
-{
-    std::string mode = "a";
-    if (initialize)
-        mode = "w";
-    NumpyInterface::npzSave(filename, name, &_data[0], {3}, mode);
-}
-
-// Read the content of a Vec3D from a NumPy file
-//-----------------------------------------------------------------------------
-void Vec3D::numpyRead(std::string filename)
-//-----------------------------------------------------------------------------
-{
-    NumpyInterface::NumpyArray arr = NumpyInterface::npyLoad(filename);
-    if (arr.num_vals != 3)
-    {
-        std::cout << "ERROR\n";
-    }
-    memcpy(_data, arr.data<double *>(), arr.num_vals * arr.word_size);
-}
-
-// Read the content of a Vec3D from a NumPyZ file
-//-----------------------------------------------------------------------------
-void Vec3D::numpyReadZ(std::string filename, std::string name)
-//-----------------------------------------------------------------------------
-{
-    NumpyInterface::NumpyArray arr = NumpyInterface::npzLoad(filename, name);
-    if (arr.num_vals != 3)
-    {
-        std::cout << "ERROR\n";
-    }
-    memcpy(_data, arr.data<double *>(), arr.num_vals * arr.word_size);
-}
