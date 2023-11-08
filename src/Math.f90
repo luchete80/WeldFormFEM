@@ -1,12 +1,14 @@
 module mymath 
 use ModPrecision, only : fp_kind
-
+use Domain !DIM 
 contains
 
 function trace(a) result(j)
-  real(fp_kind), intent (in) :: a(3,3) ! input
+  real(fp_kind), intent (in) :: a(dim,dim) ! input
   real(fp_kind)              :: j ! output
-  j = a(1,1)+a(2,2)+a(3,3)
+  do i =1, dim
+    j = j + a(dim,dim)
+  end do 
 end function
 
 function deviator(a) result(j)

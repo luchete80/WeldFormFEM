@@ -7,6 +7,8 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
+
+
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
 
@@ -20,6 +22,11 @@ type(Element)	::elem
 real(fp_kind):: tot_mass
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
+
+! enum, bind(C) :: plane_mode_en
+   ! enumerator :: pl_stress, pl_strain, axi_sym
+! end type
+! type(plane_mode_en) :: plane_mode
 
 
 !THESE ARE VECTORS, NOT MATRICES (AND ARE NOT MULTIPLIED)

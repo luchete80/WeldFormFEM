@@ -143,7 +143,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   x_at_midtime = .False.
   
   print *,"------------------------------------------------------------------------------------------------"
-  print *,"main loop, VERLET -------------------------------------------------------------------------------"
+  print *,"main loop, CHUNG HULBERT -----------------------------------------------------------------------"
   do while (time < tf)
     step = step + 1
     print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
@@ -210,11 +210,11 @@ subroutine SolveChungHulbert (domi, tf, dt)
   !print *, "Element pressure ", elem%pressure(:,:)
 
 	!! TODO: MODIFY THIS
-	if (dim .eq. 3) then 
-		call CalcStressStrain(dt)
-  else
-		call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
-  end if
+	! if (dim .eq. 3) then 
+		 call CalcStressStrain(dt)
+  ! else
+		! call Calc_Elastic_Stress(domi, dt) !!!ELASTIC_TEST
+  ! end if
 	!print *, "VELOCITY", nod%v(:,:)  
   call calc_hourglass_forces
   call cal_elem_forces

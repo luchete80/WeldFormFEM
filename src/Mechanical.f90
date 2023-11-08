@@ -427,14 +427,14 @@ subroutine calc_elem_pressure_from_strain (modK)
       press_inc = press_inc + trace (elem%str_inc(e,gp,:,:))
     end do
     press_inc = -press_inc/elem%gausspc(e)
-    
+    ! print *, "press inc ", press_inc
     do gp = 1, elem%gausspc(e)    
           elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
     end do
     ! print *, "mod K", modK
     ! print *, "strain inc", elem%str_inc(e,gp,:,:)
     ! print *, "press_inc ", press_inc
-    ! print *, "elem%pressure(e,gp)", elem%pressure(e,1)
+    ! print *, "elem%pressure(e,gp) FROM STRAIN", elem%pressure(e,1)
   end do
 end subroutine
 
@@ -644,11 +644,20 @@ subroutine CalcStressStrain (dt)
   p00 = 0.
   
   ident = 0.0d0
-  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; 
+  
+  if (dim == 3) then  
+  ident (3,3) = 1.0d0
+  end if 
+  
+  ! if (dim == 2) then 
+    ! if (plane_mode == pl_strain) then
+      
+    ! end if
+  ! end if
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
-  do e = 1, elem_count
-    
+  do e = 1, elem_count  
     do gp=1,elem%gausspc(e)
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
     ! do d=1,dim
@@ -677,17 +686,24 @@ subroutine CalcStressStrain (dt)
       
       ! !print *, "RS", RS
       !print *, "mat g", mat_G
+      ! if (dim ==3) then 
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
-      !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
+      ! else 
+            ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
+      
+      ! end if
+      ! print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
      
       
-      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
-      !print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
-      !print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
+      ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
+      ! print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
