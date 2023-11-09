@@ -1,19 +1,21 @@
 #ifndef _NODE_H_
 #define _NODE_H_
 
-#incldue <list>
+#include <list>
 #include "Math/Vec3D.h"
 
 class Element;
 
 class Node{
-
+	
 public:  
-  const double & operator(int) const;
+	Node(){}
+	Node(const Vec3D &v){m_pos=v;}
+  //const double & operator(int) const;
     
   Vec3D m_pos;	//Coordinates, from DynELA format
   
-  
+  ~Node(){}
 };
 
 

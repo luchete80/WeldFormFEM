@@ -1,10 +1,11 @@
 #ifndef _ELEMENT_H_
 #define _ELEMENT_H_
 
-class Node;
+#include "Node.h"
 
 class Element {
-
+	
+protected:
   std::vector <Node *> m_node; //CHECK LIST PERFORMANCE
 	
 public:
@@ -12,3 +13,5 @@ public:
 
   
 };
+
+#endif

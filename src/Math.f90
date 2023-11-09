@@ -28,6 +28,15 @@ function deviator(a) result(j)
   j = a - 1.0d0/3.0d0 * trace(a) * ident
 end function
 
+FUNCTION cross(a, b)
+  real(fp_kind), DIMENSION(3) :: cross
+  real(fp_kind), DIMENSION(3), INTENT(IN) :: a, b
+
+  cross(1) = a(2) * b(3) - a(3) * b(2)
+  cross(2) = a(3) * b(1) - a(1) * b(3)
+  cross(3) = a(1) * b(2) - a(2) * b(1)
+END FUNCTION cross
+
 !!!!! ATENTION! THIS EIGENVALUE SOLVER IS FOR SYMMETRIC MATRICES!!!
 !FROM https://github.com/awvwgk/diag3x3/blob/master/diag3x3.f90
 pure subroutine eigval3x3(a, w)

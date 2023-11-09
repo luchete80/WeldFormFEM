@@ -1,17 +1,19 @@
 #ifndef _DOMAIN_H_
 #define _DOMAIN_H_
 
+#include "Math/Vec3D.h"
+
 class Element;
 class Node;
-class Vec3D;
 
 #include <vector>;
 
 class Domain {
 public:
   Domain();
+  Domain(const int &dim):m_dim(dim){}
 	void AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r);
-	void AllocateNodes();
+	void AllocateNodes(const int &nc);
 	Element* 	getElement(const int &e) {return m_element[e];}
 	Node* 		getNode		(const int &n) {return m_node[n];}
 	

@@ -24,6 +24,7 @@ use ModPrecision, only : fp_kind
 use NodeData
 use ElementData
 use Domain
+use mymath !!CROSS
 
 implicit none
 public :: Mesh, circle_area, circle_print
@@ -80,12 +81,12 @@ contains
     
     print *, "Contact  Mesh with ", this%node_count, " nodes and ", this%elem_count, " elements was created."
     !! NODAL ALLOCATION
-    allocate (this%x(this%node_count,dim))
-    allocate (this%v(this%node_count,dim))
+    allocate (this%x(this%node_count,3))
+    allocate (this%v(this%node_count,3))
     
     !! ELEMENTAL ALLOCATION
     allocate (this%elnod (this%elem_count,dim))
-    allocate (this%normal(this%elem_count,dim))
+    allocate (this%normal(this%elem_count,3))
    
   
 	! double x1,x2,x3;
@@ -188,6 +189,8 @@ contains
 		end do !dens
   end if !DIMENSION  
     print *, 'Circle: r = ', this%radius, ' area = ', area
+		
+		call CalcNormals(this)
   end subroutine AxisPlaneMesh
   
   subroutine circle_print(this)
@@ -196,8 +199,49 @@ contains
     area = circle_area(this)  ! Call the circle_area function
     print *, 'Circle: r = ', this%radius, ' area = ', area
   end subroutine circle_print
+
+	subroutine CalcNormals(this)
+
+  type(Mesh), intent(out) :: this	
+	real(fp_kind), dimension(3) :: u,v,w
+	integer :: e
+	! Vec3_t u, v, w;
+  if (dim == 2) then
+		do e = 1, elem_count
+		  u = this%x(this%elnod(e,2),:) - this%x(this%elnod(e,1),:)
+		  v = this%x(this%elnod(e,3),:) - this%x(this%elnod(e,1),:)
+			w = cross (u,v)
+		end do
+    ! for (int e = 0; e < element.Size(); e++) {
+        ! u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
+        ! v = *node [element[e]->node[2]] - *node [element[e]->node[0]];
+        ! w = cross(u,v);
+        ! element[e] -> normal = w/norm(w);
+        ! //Fraser Eqn 3.34
+        ! //Uj x Vj / |UjxVj|
+    ! }
+   else  !!!//ROTATE COUNTERCLOCKWISE (SURFACE BOUNDARY IS SORROUNDED CLOCKWISE to outer normal)
+    ! ! /////// i.e. : x.positive line has y positive normal
+      ! for (int e = 0; e < element.Size(); e++) {
+        ! u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
+        ! v[0] = -u[1];
+        ! v[1] =  u[0];
+        ! v[2] =  0.0;
+        ! element[e] -> normal = v/norm(v);
+        ! //cout << "Element normal "<<element[e] -> normal<<endl;
+      ! }
+      ! //x2=cosβx1−sinβy1
+      ! //y2=sinβx1+cosβy1
+      ! //Sin (PI/2.) = -1
+      ! //Cos (PI/2.) = 0,
+	end if !dim
+	
+	end subroutine CalcNormals
   
 end module
+
+
+
 
 !!!!! If wanted to implement
 ! program circle_test
