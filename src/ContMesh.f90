@@ -34,8 +34,11 @@ public :: Mesh, circle_area, circle_print
 !!!!!! THIS TYPE SHOULD BE THE SAME FOR ALL, RIGID AND SOLID
 type Mesh !!! THIS SHOULD BE RIGID MESH THING
   real :: radius
-  real(fp_kind), dimension(:,:), Allocatable:: x,v !POSITION AND VEL
+  !!!! NODAL POSITIONS
+  real(fp_kind), dimension(:,:), Allocatable :: x, v !POSITION AND VEL
   integer, Dimension(:,:), Allocatable :: elnod
+  !!! SURFACE (OR SEGMENT) ARRAYS
+  real(fp_kind), dimension(:,:), Allocatable :: normal
   integer :: elem_count, node_count
   
   !!!type(Node)	::nod
@@ -70,15 +73,20 @@ contains
     
     this%elem_count = 2 * dens * dens
     this%node_count = (dens +1) * (dens + 1)
+
+    if (dim .eq. 2) then 
+      this%elem_count = dens 
+    end if
     
     print *, "Contact  Mesh with ", this%node_count, " nodes and ", this%elem_count, " elements was created."
+    !! NODAL ALLOCATION
     allocate (this%x(this%node_count,dim))
     allocate (this%v(this%node_count,dim))
-    allocate (this%elnod(this%elem_count,dim))
-        
-    if (dim .eq. 2) then 
-      elem_count = dens 
-    end if
+    
+    !! ELEMENTAL ALLOCATION
+    allocate (this%elnod (this%elem_count,dim))
+    allocate (this%normal(this%elem_count,dim))
+   
   
 	! double x1,x2,x3;
 	! double l1,l2;
