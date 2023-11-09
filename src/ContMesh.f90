@@ -153,16 +153,18 @@ contains
     end do 
 
   else ! dim = 2
+		do i=1,dens 
     ! for ( i = 0; i < dens; i++ ){
           ! n[0] = i; 		n[1] = n[0] + 1; 
-        ! //cout <<" jj" << jj<<endl;
-        ! int elcon[2];	// TODO: check x, y and z normals and node direction 
-                          ! // For all plane orientations
-        ! if (positaxisorent) {
-          ! elcon[0] = n[0];elcon[1] = n[1];
-        ! } else {
-          ! elcon[0] = n[1];elcon[1] = n[0];		
-        ! }
+      n(1) = i; 		n(2) = n(1) + 1; 
+			! //cout <<" jj" << jj<<endl;
+			! int elcon[2];	// TODO: check x, y and z normals and node direction 
+												! // For all plane orientations
+			if (positaxisorent .eqv. .true.) then
+				elcon(1,1) = n(1);elcon(1,2) = n(2);
+			else 
+				elcon(1,1) = n(2);elcon(1,2) = n(1);		
+			end if
 
         ! element.Push(new Element(elcon[0],elcon[1],0));		
         ! //cout << "Element "<< el <<": ";
@@ -172,8 +174,10 @@ contains
         ! Vec3_t v = ( *node[elcon[0]] + *node[elcon[1]] ) / 2. ;
         ! element[el] -> centroid = v; 
         ! //cout << "Centroid" << element[el] -> centroid << endl;
-        ! el++;                
+				this%elnod(e,:)   = elcon(1,:)
+        e = e + 1                
     ! }  
+		end do !dens
   end if !DIMENSION  
     print *, 'Circle: r = ', this%radius, ' area = ', area
   end subroutine AxisPlaneMesh
