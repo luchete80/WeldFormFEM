@@ -13,7 +13,7 @@
 
 #include <string>
 #include <string.h>
-#include "Macros.h"
+#include "../Utils/Macros.h"
 #include "../Utils/Errors.h"
 
 class Tensor2;

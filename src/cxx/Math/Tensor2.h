@@ -13,6 +13,7 @@
 
 #include <string>
 #include <string.h>
+#include "../Utils/Macros.h"
 // #include <dnlKernel.h>
 
 class Vec3D;
