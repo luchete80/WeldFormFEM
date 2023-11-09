@@ -27,6 +27,7 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     
     nel[0] = (int)(L(0)/(2.0*r));
     nel[1] = (int)(L(1)/(2.0*r));
+    cout << "Nel x: "<<nel[0]<<", y "<<nel[1]<<endl;
     if (m_dim == 2){
       nel[2] = 0;
       nodxelem = 4;
@@ -36,7 +37,7 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     }
     
 
-    //Xp(2) = V(2) ;
+    Xp(2) = V(2) ;
     
 
     // write (*,*) "Creating Mesh ...", "Elements ", nel(1), ", ",nel(2)
@@ -51,22 +52,21 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     if (m_dim == 2) {
     cout << "Box Particle Count is " << node_count <<endl;
     p = 1;
-    while (Xp(2) <= (V(2)+L(2))) {
-      Xp(2) = V(2);
-      for (int j = 0; j < (nel[2] +1);j++){
-        Xp(0) = V(1);
-        for (int i = 0; j < (nel[2] +1);j++){
+      Xp(1) = V(1);
+      for (int j = 0; j < (nel[1] +1);j++){
+        Xp(0) = V(0);
+        for (int i = 0; i < (nel[0] +1);i++){
 					m_node.push_back(new Node(Xp));
           //nod%x(p,:) = Xp(:);
-          //print *,"node ",p , "X: ",Xp(:)
+          cout << "node " << p <<"X: "<<Xp<<endl;
           p++;
           Xp(0) = Xp(0) + 2 * r;
         }
         Xp(1) = Xp(1) + 2 * r;
       }// 
       Xp(2) = Xp(2) + 2 * r;
-		}//Xp
-    
+
+    cout <<"m_node size"<<m_node.size()<<endl;
     } else {
       // p = 1
       // k = 1; Xp(3) = V(3)
@@ -111,10 +111,15 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     if (m_dim == 2) {
 			n.resize(4);
       for (int ey = 0; ey < nel[1];ey++){
-						n[0]= m_node[(nel[0]+1)*ey + ex];
+        int i[4];
+        i[0] = (nel[0]+1)*ey + ex;        i[1] = (nel[0]+1)*ey + ex+1;
+        i[2] = (nel[0]+1)*(ey+1) + ex+1;        i[3] = (nel[0]+1)*(ey+1) + ex;
+        // cout << i[]
+						n[0]= m_node[];
 						n[1]= m_node[(nel[0]+1)*ey + ex+1];
 						n[2]= m_node[(nel[0]+1)*(ey+1)+ex+1];
 						n[3]= m_node[(nel[0]+1)*(ey+1)+ex];
+            cout << "Nel x : "<<nel[0]<<endl;
            for (int ex = 0; ex < nel[0];ex++){
 						 //m_element.push_back(new El4N2DPE(n));
 																							// m_node[(nel[0]+1)*ey + ex+1],
