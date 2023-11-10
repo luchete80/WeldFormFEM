@@ -8,8 +8,8 @@ int main(){
 	Domain dom(2);
 
 	Vec3D pos(0.,0.,0.);
-	Vec3D L(10.0,1.0,0.);
-	double r = 0.1;
+	Vec3D L(1.0,1.0,0.);
+	double r = 0.25;
 	
 	dom.AddBoxLength(pos,L,r);
 	

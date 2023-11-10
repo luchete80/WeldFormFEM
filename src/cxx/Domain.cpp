@@ -111,19 +111,20 @@ void Domain::AddBoxLength(Vec3D const & V, Vec3D const & L, const double &r){
     if (m_dim == 2) {
 			n.resize(4);
       for (int ey = 0; ey < nel[1];ey++){
+
+           for (int ex = 0; ex < nel[0];ex++){
         int iv[4];
         iv[0] = (nel[0]+1)*ey + ex;        iv[1] = (nel[0]+1)*ey + ex+1;
         iv[2] = (nel[0]+1)*(ey+1) + ex+1;        iv[3] = (nel[0]+1)*(ey+1) + ex;
         // cout << i[]
-						n[0]= m_node[];
+						n[0]= m_node[iv[0]];
 						n[1]= m_node[(nel[0]+1)*ey + ex+1];
 						n[2]= m_node[(nel[0]+1)*(ey+1)+ex+1];
 						n[3]= m_node[(nel[0]+1)*(ey+1)+ex];
             cout << "Nel x : "<<nel[0]<<endl;
            cout << "nodes "<<endl;
-           for (itn i=0;i<4;i++)cout << n[i]<<", ";
-           for (int ex = 0; ex < nel[0];ex++){
-						 //m_element.push_back(new El4N2DPE(n));
+           for (int i=0;i<4;i++)cout << iv[i]<<", ";
+						 m_element.push_back(new El4N2DPE(n));
 																							// m_node[(nel[0]+1)*ey + ex+1],
 																							// m_node[(nel[0]+1)*(ey+1)+ex+1],
 																							// m_node[(nel[0]+1)*(ey+1)+ex]
