@@ -27,10 +27,12 @@ implicit none
   real(fp_kind),dimension(3) :: p1 = [0,0,0], p2 = [1,1,0]
   integer :: dens = 2
   
-  Dim =3 
+  Dim =2 
   
   call  AxisPlaneMesh(msh, axis, positaxisorent, p1, p2,  dens)
+	
+	print *, "Contact elements ", msh%elem_count, ", nodes: ", msh%node_count
  
-  
+  print *, "End program. "
   
 end program contact

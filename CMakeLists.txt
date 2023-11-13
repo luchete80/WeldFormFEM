@@ -35,7 +35,7 @@ file(GLOB_RECURSE sources  src/*.f90 )
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
 add_executable(main_beam ${sources} main_beam.f90) #Single case 1 element
 # add_executable(10_elems ${sources} 10_elems.f90) #Single case 1 element
-# add_executable(contact ${sources} main_contact.f90)
+add_executable(contact ${sources} main_contact.f90)
 # add_executable(cylinder ${sources} main_cylinder.f90) #Single case 1 element
 # add_executable(trac ${sources} main_trac.f90) #Single case 1 element
 

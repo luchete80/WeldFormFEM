@@ -174,7 +174,7 @@ contains
 			else 
 				elcon(1,1) = n(2);elcon(1,2) = n(1);		
 			end if
-
+			print *, "Elcon ", elcon(1,1), ", ", elcon(1,2)
         ! element.Push(new Element(elcon[0],elcon[1],0));		
         ! //cout << "Element "<< el <<": ";
         ! // for (int en = 0 ; en<3; en++) cout << elcon[e][en]<<", ";
@@ -190,7 +190,10 @@ contains
   end if !DIMENSION  
     print *, 'Circle: r = ', this%radius, ' area = ', area
 		
+		print *, "Calculating normals.."
 		call CalcNormals(this)
+	print *, "this el count ", this%elem_count!, "el count ", elem_count		
+		print *, "Mesh generated."
   end subroutine AxisPlaneMesh
   
   subroutine circle_print(this)
@@ -202,11 +205,12 @@ contains
 
 	subroutine CalcNormals(this)
 
-  type(Mesh), intent(out) :: this	
+  type(Mesh), intent(inout) :: this	
 	real(fp_kind), dimension(3) :: u,v,w
 	integer :: e
+
 	! Vec3_t u, v, w;
-  if (dim == 2) then
+  if (dim .eq. 3) then
 		do e = 1, elem_count
 		  u = this%x(this%elnod(e,2),:) - this%x(this%elnod(e,1),:)
 		  v = this%x(this%elnod(e,3),:) - this%x(this%elnod(e,1),:)
@@ -221,6 +225,12 @@ contains
         ! //Uj x Vj / |UjxVj|
     ! }
    else  !!!//ROTATE COUNTERCLOCKWISE (SURFACE BOUNDARY IS SORROUNDED CLOCKWISE to outer normal)
+		do e = 1, this%elem_count
+			print *, " e ", e
+		  u = this%x(this%elnod(e,2),:) - this%x(this%elnod(e,1),:)
+			v(1) = -u(2); v(2) = u(1); v(3) = 0.0d0;
+			this%normal(e,:) = v(:)/norm2(v)
+			print * , "Normal ", this%normal(e,:)
     ! ! /////// i.e. : x.positive line has y positive normal
       ! for (int e = 0; e < element.Size(); e++) {
         ! u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
@@ -234,6 +244,7 @@ contains
       ! //y2=sinβx1+cosβy1
       ! //Sin (PI/2.) = -1
       ! //Cos (PI/2.) = 0,
+		end do
 	end if !dim
 	
 	end subroutine CalcNormals
