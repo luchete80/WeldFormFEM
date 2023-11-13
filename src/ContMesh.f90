@@ -248,6 +248,12 @@ contains
 	end if !dim
 	
 	end subroutine CalcNormals
+	
+	subroutine CalcContactForces()
+	
+	!! LOOP THROUGH CONTACT SEGMENTS
+	
+	ens subroutine CalcContactForces
   
 end module
 

@@ -23,6 +23,8 @@ real(fp_kind):: tot_mass
 real(fp_kind), dimension(:,:), Allocatable :: mat_C !TODO: CHANGE TO SEVERAL MATERIALS
 real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
+integer, dimension(:,:), Allocatable :: cont_side(:,:) !!! ELEMENT AND SEGMENT
+	
 ! enum, bind(C) :: plane_mode_en
    ! enumerator :: pl_stress, pl_strain, axi_sym
 ! end type
