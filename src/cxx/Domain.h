@@ -21,6 +21,7 @@ protected:
   std::vector <Element*>  m_element;
   std::vector <Node*>     m_node;  
 	int 										m_dim;
+  
 	
 																//IN CUDA BEING double3
 	// std::vector <Vec3D>		m_u;		//VELOCITY, IN  ORDER TO BE SIMILAR TO GPU VERSION

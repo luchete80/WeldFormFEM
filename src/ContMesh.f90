@@ -249,11 +249,24 @@ contains
 	
 	end subroutine CalcNormals
 	
-	subroutine CalcContactForces()
-	
-	!! LOOP THROUGH CONTACT SEGMENTS
-	
-	ens subroutine CalcContactForces
+	subroutine CalcContactForces(this, deltat)
+    type(Mesh), intent(in) :: this	
+    real(fp_kind) , intent (in):: deltat
+    real(fp_kind) :: dist
+    integer :: e, sl
+    real(fp_kind), dimension(3) :: mn, x_pred 
+  !! LOOP THROUGH CONTACT SEGMENTS
+    do e = 1, this%elem_count !MASTER SEGMENT 
+      mn(:) = (this%x(this%elnod(e,2),:) + this%x(this%elnod(e,1),:))/2.0
+    do sl = 1, size(cont_nodes) !slave node
+      ! nod%a(cont_nodes,:)
+      ! x_pred = Particles[P1]->x + Particles[P1]->v * deltat + Particles[P1]->a * deltat * deltat/2.0;
+      x_pred(:) = nod%x(sl,:) + nod%v(sl,:) * deltat +  nod%a(sl,:) * deltat * deltat / 2.0
+      dist = dot_product (this%normal(e,:),x_pred(:)) 
+      ! dist =  dot (Particles[P2]->normal, x_pred ) - trimesh[m]-> element[Particles[P2]->element] -> pplane;
+    end do 
+  end do
+	end subroutine CalcContactForces
   
 end module
 
