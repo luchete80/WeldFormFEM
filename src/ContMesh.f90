@@ -37,9 +37,10 @@ type Mesh !!! THIS SHOULD BE RIGID MESH THING
   real :: radius
   !!!! NODAL POSITIONS
   real(fp_kind), dimension(:,:), Allocatable :: x, v !POSITION AND VEL
+	real(fp_kind), dimension(:), Allocatable :: pplane 
   integer, Dimension(:,:), Allocatable :: elnod
   !!! SURFACE (OR SEGMENT) ARRAYS
-  real(fp_kind), dimension(:,:), Allocatable :: normal
+  real(fp_kind), dimension(:,:), Allocatable :: normal, centroid
   integer :: elem_count, node_count
   
   !!!type(Node)	::nod
@@ -87,6 +88,8 @@ contains
     !! ELEMENTAL ALLOCATION
     allocate (this%elnod (this%elem_count,dim))
     allocate (this%normal(this%elem_count,3))
+    allocate (this%centroid(this%elem_count,3))
+		allocate (this%pplane(this%elem_count)
    
   
 	! double x1,x2,x3;
@@ -248,10 +251,31 @@ contains
 	end if !dim
 	
 	end subroutine CalcNormals
+
+	subroutine CalcCentroids(this)
+		type(Mesh), intent(inout) :: this	
+		! for (int e=0;e<element.Size();e++){
+		! element[e]-> centroid = 0.;
+    ! for (int i=0;i<dimension;i++)
+      ! element[e]-> centroid += *node[element[e]->node[i]];
+    ! element[e]-> centroid/= dimension; 
+	! }
+	end subroutine CalcCentroids
+	
+	!PREVIOUS TO CALC CENTROIDS
+	subroutine UpdatePlaneCoeff(this)	
+		type(Mesh), intent(inout) :: this	
+		integer :: e
+		do e=1, this%elem_count
+			!dot(*node [element[e] -> node[element[e] ->nfar]],element[e] -> normal);
+			this%pplane(e) = dot_product ()
+		end do !e
+	end subroutine UpdatePlaneCoeff
 	
 	subroutine CalcContactForces(this, deltat)
     type(Mesh), intent(in) :: this	
     real(fp_kind) , intent (in):: deltat
+		
     real(fp_kind) :: dist
     integer :: e, sl
     real(fp_kind), dimension(3) :: mn, x_pred 
@@ -264,6 +288,11 @@ contains
       x_pred(:) = nod%x(sl,:) + nod%v(sl,:) * deltat +  nod%a(sl,:) * deltat * deltat / 2.0
       dist = dot_product (this%normal(e,:),x_pred(:)) 
       ! dist =  dot (Particles[P2]->normal, x_pred ) - trimesh[m]-> element[Particles[P2]->element] -> pplane;
+			 ! if( dist  < Particles[P1]->h)
+			 if (dist < 0 ) then 
+				
+			 
+			 end if !dist < 0
     end do 
   end do
 	end subroutine CalcContactForces
