@@ -38,6 +38,7 @@ type Mesh !!! THIS SHOULD BE RIGID MESH THING
   !!!! NODAL POSITIONS
   real(fp_kind), dimension(:,:), Allocatable :: x, v !POSITION AND VEL
 	real(fp_kind), dimension(:), Allocatable :: pplane 
+	integer, dimension(:), Allocatable :: nfar
   integer, Dimension(:,:), Allocatable :: elnod
   !!! SURFACE (OR SEGMENT) ARRAYS
   real(fp_kind), dimension(:,:), Allocatable :: normal, centroid
@@ -261,6 +262,34 @@ contains
     ! element[e]-> centroid/= dimension; 
 	! }
 	end subroutine CalcCentroids
+
+	subroutine CalcFarNode(this) !!! IF MESH IS RIGID THIS SHOULD NOT BE UPDATED	
+		type(Mesh), intent(inout) :: this	
+		integer :: e, n
+		real(fp_kind) :: nmax
+		real(fp_kind), dimension(3) :: rv
+		nmax = 0.0d0
+		do e=1, this%elem_count
+			do n=1, dim
+				if (norm2(rv) > nmax) then
+					nmax = norm2(rv)
+					this%nfar(e) = n
+				end if 
+			!dot(*node [element[e] -> node[element[e] ->nfar]],element[e] -> normal);
+				this%nfar(e) = dot_product ()
+			end do !n
+		end do !e
+	! for (int e = 0; e < element.Size(); e++){ 
+		! max = 0.;
+		! Vec3_t rv;
+		! for (int n = 0 ;n < dimension; n++){
+			! rv = *node [element[e]->node[n]] - element[e] -> centroid;
+			! if (norm(rv) > max) max = norm(rv);
+			! element[e]-> nfar = n;
+		! }
+		! element[e]-> radius = max;	//Fraser Eq 3-136
+	! }	
+	end subroutine 
 	
 	!PREVIOUS TO CALC CENTROIDS
 	subroutine UpdatePlaneCoeff(this)	
