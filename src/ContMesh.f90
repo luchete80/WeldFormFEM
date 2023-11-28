@@ -61,7 +61,7 @@ contains
   !!! TODO: PASS DIM AS AN ARGUMENT
   subroutine AxisPlaneMesh(this, axis, positaxisorent, p1, p2,  dens)
     implicit none
-    type(Mesh), intent(out) :: this
+    type(Mesh), intent(inout) :: this
     integer, intent(in)::axis
     logical, intent(in):: positaxisorent
     real(fp_kind), intent(in),dimension(3) :: p1,p2
@@ -90,7 +90,7 @@ contains
     allocate (this%elnod (this%elem_count,dim))
     allocate (this%normal(this%elem_count,3))
     allocate (this%centroid(this%elem_count,3))
-		allocate (this%pplane(this%elem_count)
+		allocate (this%pplane(this%elem_count))
    
   
 	! double x1,x2,x3;
@@ -276,7 +276,7 @@ contains
 					this%nfar(e) = n
 				end if 
 			!dot(*node [element[e] -> node[element[e] ->nfar]],element[e] -> normal);
-				this%nfar(e) = dot_product ()
+				! this%nfar(e) = dot_product ()
 			end do !n
 		end do !e
 	! for (int e = 0; e < element.Size(); e++){ 
@@ -297,7 +297,7 @@ contains
 		integer :: e
 		do e=1, this%elem_count
 			!dot(*node [element[e] -> node[element[e] ->nfar]],element[e] -> normal);
-			this%pplane(e) = dot_product ()
+			! this%pplane(e) = dot_product ()
 		end do !e
 	end subroutine UpdatePlaneCoeff
 	

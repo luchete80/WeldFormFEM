@@ -73,7 +73,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 2
+  Dim = 3
   Lx = 0.1	
   Ly = 0.024
   Lz = 0.012
@@ -131,6 +131,8 @@ implicit none
   
  ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
+	
+	Nproc = 12
   
 
   nod%a(:,:) = 0.0d0
@@ -158,12 +160,27 @@ implicit none
   ! tf = 1.0e-6
   
   elem%rho(:,:) = rho
-  
+
+   ! Starting time
+   call system_clock(count_0, count_rate, count_max)
+   time_init = count_0*1.0/count_rate
+	 
   print *, "Shear and Bulk modulus", mat_modG,mat_K
   print *, "time step size with CFL 0.7", dt
   !call SolveLeapfrog(tf,dt)
   !call SolveVerlet(tf,dt)
   call SolveChungHulbert(dom,tf,dt)
+
+  ! Ending time
+  call system_clock(count_1, count_rate, count_max)
+  time_final = count_1*1.0/count_rate
+  ! Elapsed time
+  elapsed_time = time_final - time_init
+
+  ! Write elapsed time
+  ! write(*,1003) int(elapsed_time),elapsed_time-int(elapsed_time)
+  !write(*,*) "Elapsed time: ", int(elapsed_time),elapsed_time-int(elapsed_time)
+
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))

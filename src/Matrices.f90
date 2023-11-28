@@ -125,6 +125,8 @@ end function
 !!!!!!!! 1 ---- 2
 !!!! CALCULATE JACOBIAN AND DETERMINANT
 subroutine calculate_element_Jacobian ()
+
+	use omp_lib
   integer :: e
   ! !rg=gauss[ig]
   ! !sg=gauss[jg]
@@ -137,7 +139,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
   real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   
-  gp = 1
+	!$omp parallel do num_threads(Nproc) private (e,i,j,k,gp,gpc) 
   do e=1, elem_count
 ! #ifdef _PRINT_DEBUG_  
     ! print *, "el ", e 
@@ -148,7 +150,7 @@ subroutine calculate_element_Jacobian ()
     end do
     
     if (elem%gausspc(e) .eq. 1) then      
-    
+			gp = 1
       if (dim .eq. 2) then 
         !dHdrs [-1,1,1,-1;  -1.-1,1,1] x X2
         !! J = [
@@ -233,7 +235,7 @@ subroutine calculate_element_Jacobian ()
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
   end do !element
-
+	!$omp end parallel do    
 end subroutine
 
 !!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
