@@ -315,9 +315,11 @@ end subroutine
 
 !!!!! ASUMES CALCULATED DETJ AND LOCAL EDRIV MATRICES (dHrs)
 subroutine calculate_element_derivMat ()
-  integer :: e,d
+  use omp_lib	
+	integer :: e,d
   ! !rg=gauss[ig]
   ! !sg=gauss[jg]
+	
   real(fp_kind), dimension(dim,nodxelem) :: dHrs
   real(fp_kind), dimension(dim,dim) :: test, invJ
   
@@ -326,7 +328,7 @@ subroutine calculate_element_derivMat ()
 
   !! Update x2 vector (this is useful for strain and stress things)
   
-
+	!$omp parallel do num_threads(Nproc) private (e,gp,invJ) 
   do e=1, elem_count
     !print *, "el ", e 
 
@@ -439,6 +441,7 @@ subroutine calculate_element_derivMat ()
       end if!!!di 3
     end if
   end do
+	!$omp end parallel do  
 end subroutine
 
 

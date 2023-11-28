@@ -63,3 +63,5 @@
          - Fixed output (With numbers like E-221)
 20231113 - Added contact surfaces and things.
 20231128 - Added parallel processing on jacobian calc
+				 - Ommitted Shape matrix calculation (only derivs needed). 
+				 - Prallelized deriv matrix calc

@@ -1,3 +1,4 @@
+
   ! ! // Compute the Jacobian
   ! ! model->computeJacobian(true);
   ! ! model->computeUnderJacobian(true);
@@ -156,11 +157,11 @@ subroutine SolveChungHulbert (domi, tf, dt)
     ! !nod%bcv(3:4,2) = -0.1
   ! end if 
   
-    do n=1,elem_count
-      if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
-        call calculate_element_shapeMat() !AND MASS
-      end if
-    end do
+    ! do n=1,elem_count
+      ! if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
+        ! call calculate_element_shapeMat() !AND MASS
+      ! end if
+    ! end do
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
