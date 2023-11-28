@@ -139,7 +139,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
   real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
   
-	!$omp parallel do num_threads(Nproc) private (e,i,j,k,gp,gpc) 
+	!$omp parallel do num_threads(Nproc) private (e,i,j,k,gp,gpc,dHrs,x2) 
   do e=1, elem_count
 ! #ifdef _PRINT_DEBUG_  
     ! print *, "el ", e 

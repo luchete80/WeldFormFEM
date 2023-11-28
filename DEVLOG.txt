@@ -62,3 +62,4 @@
 20231108 - Fixed 2D plain strain stress decomposition calculation
          - Fixed output (With numbers like E-221)
 20231113 - Added contact surfaces and things.
+20231128 - Added parallel processing on jacobian calc
