@@ -132,7 +132,7 @@ implicit none
  ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
 	
-	Nproc = 1
+	Nproc = 12
   
 
   nod%a(:,:) = 0.0d0

@@ -231,18 +231,27 @@ subroutine SolveChungHulbert (domi, tf, dt)
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
   !print *, "global int forces ", rint_glob(3,:)
-  
-    do n=1,node_count
-      do d=1,dim
-        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
-      end do 
-    end do
+
+	!$omp parallel do num_threads(Nproc) private (n)  
+	do n=1,node_count
+		! do d=1,dim
+			! nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
+		! end do 
+		nod%a(n,:) =  (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
+	end do
+	!$omp end parallel do
+	
   call impose_bca
   
-  nod%a = nod%a - alpha * prev_a
-  nod%a = nod%a / (1.0d0 - alpha)
+	!$omp parallel do num_threads(Nproc) private (n)
+  do n=1,node_count
+		nod%a(n,:) = nod%a(n,:) - alpha * prev_a(n,:)
+		nod%a(n,:) = nod%a(n,:) / (1.0d0 - alpha)
+		nod%v(n,:) = nod%v(n,:) + gamma * dt * nod%a (n,:)  
+	end do
+	!$omp end parallel do
   
-  nod%v = nod%v + gamma * dt * nod%a   
+
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   !u = u + beta * nod%v * dt

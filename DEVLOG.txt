@@ -65,3 +65,4 @@
 20231128 - Added parallel processing on jacobian calc
 				 - Ommitted Shape matrix calculation (only derivs needed). 
 				 - Prallelized deriv matrix calc
+20231129 - Parallelized Stresses & Strains
