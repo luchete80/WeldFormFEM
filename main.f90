@@ -63,8 +63,10 @@ implicit none
   call omp_set_num_threads(12);
   
   maxt = omp_get_max_threads()
-	
-  dim_2D = .False.
+		
+	Nproc = 12
+  
+	dim_2D = .False.
    write( *, * ) 'Max threads ', maxt
    
   !CALL 10 x 10 element rectangle

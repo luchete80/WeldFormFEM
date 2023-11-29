@@ -85,6 +85,7 @@ implicit none
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
+  call omp_set_num_threads(12); 
   
   rho = 2700.0
   
