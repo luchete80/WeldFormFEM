@@ -13,6 +13,8 @@ contains
 !!!! R = 1/2 (L-LT)
 !THIS SHOULD BE DONE AT t+1/2dt
 subroutine cal_elem_strains ()
+  use omp_lib
+  
   implicit none
   integer :: e, i,j,k, gp, d, n
   real(fp_kind), dimension(dim,nodxelem) ::temp
@@ -22,28 +24,29 @@ subroutine cal_elem_strains ()
   elem%str_rate = 0.0d0
   elem%rot_rate = 0.0d0
   
+  ! !$omp parallel do num_threads(Nproc) private (e,gp,d, temp,n) 
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       !Is only linear matrix?    
       !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
-      f = 1.0d0/elem%detJ(e,gp)
+      ! f = 1.0d0/elem%detJ(e,gp)
       temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
-      elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
-      !print *, "standard stran rate calc (matricial) "
-      ! !!!! DEFAULT (TODO: CHECK IF IS SLOW)
-      test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
-      !print *, "e11 e22 e33 2e12 2e23 2e31", test
-      test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
-      test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
-      test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
-      test33(3,1) = test(1,6)*0.5;test33(1,3) =test33(3,1);
+      ! elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+      ! !print *, "standard stran rate calc (matricial) "
+      ! !!!!!! DEFAULT (TODO: CHECK IF IS SLOW)
+      ! test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
+      ! !!print *, "e11 e22 e33 2e12 2e23 2e31", test
+      ! test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
+      ! test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
+      ! test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
+      ! test33(3,1) = test(1,6)*0.5;test33(1,3) =test33(3,1);
       
 
-      test33 = 0.5*(test33+transpose(test33));
-      !print *, "str rate test", test33
+      ! test33 = 0.5*(test33+transpose(test33));
+      ! ! !print *, "str rate test", test33
       
-      ! test33 = 0.5*(test33-transpose(test33));
-      ! print *, "rot rate test", test33
+      ! ! test33 = 0.5*(test33-transpose(test33));
+      ! ! print *, "rot rate test", test33
 
       do n=1, nodxelem  
         do d=1, dim
@@ -89,6 +92,7 @@ subroutine cal_elem_strains ()
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
+  ! !$omp end parallel do    
 end subroutine
 
 !!!!! TWO WAYS:FROM STRAIN RATE OR BEING U FROM: F = U R 

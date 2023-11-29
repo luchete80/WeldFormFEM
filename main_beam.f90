@@ -132,7 +132,7 @@ implicit none
  ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
 	
-	Nproc = 12
+	Nproc = 1
   
 
   nod%a(:,:) = 0.0d0
@@ -156,7 +156,7 @@ implicit none
   dt = 0.3 * dx/(mat_cs)
   ! tf = dt * 1.0
   
-  tf = 1.0e-4
+  tf = 1.0e-5
   ! tf = 1.0e-6
   
   elem%rho(:,:) = rho
