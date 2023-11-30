@@ -49,6 +49,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   implicit none
   integer :: n, d, iglob, step, e, gp
 	integer :: last_out
+  integer :: step_out
   
   logical :: first_step, x_at_midtime
   logical :: debug_mode 
@@ -144,6 +145,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   x_at_midtime = .False.
   
+  step_out = 1 !FREQUENCY
 	last_out = 0
   print *,"------------------------------------------------------------------------------------------------"
   print *,"main loop, CHUNG HULBERT -----------------------------------------------------------------------"
@@ -151,7 +153,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
     step = step + 1
 		if (step > last_out) then 
 			print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
-			last_out = last_out + 100
+			last_out = last_out + step_out
 		end if 
   ! if (time < 100.0d0*dt) then
     ! nod%bcv(5:8,3) = -1.0 * time/(10.0d0*dt)
