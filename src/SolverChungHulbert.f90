@@ -1,3 +1,4 @@
+
   ! ! // Compute the Jacobian
   ! ! model->computeJacobian(true);
   ! ! model->computeUnderJacobian(true);
@@ -47,6 +48,8 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   implicit none
   integer :: n, d, iglob, step, e, gp
+	integer :: last_out
+  integer :: step_out
   
   logical :: first_step, x_at_midtime
   logical :: debug_mode 
@@ -142,12 +145,16 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   x_at_midtime = .False.
   
+  step_out = 1 !FREQUENCY
+	last_out = 0
   print *,"------------------------------------------------------------------------------------------------"
   print *,"main loop, CHUNG HULBERT -----------------------------------------------------------------------"
   do while (time < tf)
     step = step + 1
-    print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
-
+		if (step > last_out) then 
+			print *, "Time: ", time, ", step: ",step, "---------------------------------------------------------"
+			last_out = last_out + step_out
+		end if 
   ! if (time < 100.0d0*dt) then
     ! nod%bcv(5:8,3) = -1.0 * time/(10.0d0*dt)
     ! !nod%bcv(3:4,2) = -0.1 * time/(100.0d0*dt)
@@ -156,11 +163,11 @@ subroutine SolveChungHulbert (domi, tf, dt)
     ! !nod%bcv(3:4,2) = -0.1
   ! end if 
   
-    do n=1,elem_count
-      if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
-        call calculate_element_shapeMat() !AND MASS
-      end if
-    end do
+    ! do n=1,elem_count
+      ! if (elem%gausspc(n) .eq. 8) then !!!! ELSE IS CONSTANT
+        ! call calculate_element_shapeMat() !AND MASS
+      ! end if
+    ! end do
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
@@ -230,18 +237,27 @@ subroutine SolveChungHulbert (domi, tf, dt)
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
   !print *, "global int forces ", rint_glob(3,:)
-  
-    do n=1,node_count
-      do d=1,dim
-        nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
-      end do 
-    end do
+
+	!$omp parallel do num_threads(Nproc) private (n)  
+	do n=1,node_count
+		! do d=1,dim
+			! nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
+		! end do 
+		nod%a(n,:) =  (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
+	end do
+	!$omp end parallel do
+	
   call impose_bca
   
-  nod%a = nod%a - alpha * prev_a
-  nod%a = nod%a / (1.0d0 - alpha)
+	!$omp parallel do num_threads(Nproc) private (n)
+  do n=1,node_count
+		nod%a(n,:) = nod%a(n,:) - alpha * prev_a(n,:)
+		nod%a(n,:) = nod%a(n,:) / (1.0d0 - alpha)
+		nod%v(n,:) = nod%v(n,:) + gamma * dt * nod%a (n,:)  
+	end do
+	!$omp end parallel do
   
-  nod%v = nod%v + gamma * dt * nod%a   
+
   call impose_bcv !!!REINFORCE VELOCITY BC
 
   !u = u + beta * nod%v * dt

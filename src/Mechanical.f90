@@ -13,6 +13,8 @@ contains
 !!!! R = 1/2 (L-LT)
 !THIS SHOULD BE DONE AT t+1/2dt
 subroutine cal_elem_strains ()
+  use omp_lib
+  
   implicit none
   integer :: e, i,j,k, gp, d, n
   real(fp_kind), dimension(dim,nodxelem) ::temp
@@ -22,28 +24,29 @@ subroutine cal_elem_strains ()
   elem%str_rate = 0.0d0
   elem%rot_rate = 0.0d0
   
+  !$omp parallel do num_threads(Nproc) private (e,gp,d, temp,n) 
   do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       !Is only linear matrix?    
       !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
       f = 1.0d0/elem%detJ(e,gp)
       temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
-      elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
-      !print *, "standard stran rate calc (matricial) "
-      ! !!!! DEFAULT (TODO: CHECK IF IS SLOW)
-      test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
-      !print *, "e11 e22 e33 2e12 2e23 2e31", test
-      test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
-      test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
-      test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
-      test33(3,1) = test(1,6)*0.5;test33(1,3) =test33(3,1);
+      ! elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
+      ! !print *, "standard stran rate calc (matricial) "
+      ! !!!!!! DEFAULT (TODO: CHECK IF IS SLOW)
+      ! test = f* matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:))  ! (6x24)(24x1)
+      ! !!print *, "e11 e22 e33 2e12 2e23 2e31", test
+      ! test33(1,1) = test(1,1);test33(2,2) = test(1,2);test33(3,3) = test(1,3);
+      ! test33(1,2) = test(1,4)*0.5;test33(2,1) =test33(1,2);
+      ! test33(2,3) = test(1,5)*0.5;test33(3,2) =test33(2,3);
+      ! test33(3,1) = test(1,6)*0.5;test33(1,3) =test33(3,1);
       
 
-      test33 = 0.5*(test33+transpose(test33));
-      !print *, "str rate test", test33
+      ! test33 = 0.5*(test33+transpose(test33));
+      ! ! !print *, "str rate test", test33
       
-      ! test33 = 0.5*(test33-transpose(test33));
-      ! print *, "rot rate test", test33
+      ! ! test33 = 0.5*(test33-transpose(test33));
+      ! ! print *, "rot rate test", test33
 
       do n=1, nodxelem  
         do d=1, dim
@@ -82,13 +85,15 @@ subroutine cal_elem_strains ()
         elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
         elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
       end if
-
-      !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
+			
+			!!! IF COMPLETE MULTIPLICATION (MORE CALC)
+      !!!elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       !print *, "simlpified strain rate "
       !print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
+  !$omp end parallel do    
 end subroutine
 
 !!!!! TWO WAYS:FROM STRAIN RATE OR BEING U FROM: F = U R 
@@ -103,6 +108,8 @@ end subroutine
 
 !calc int_forces
 subroutine cal_elem_forces ()
+	use omp_lib
+	
   implicit none
   integer :: e, i,j,k, gp,n, d
   real(fp_kind), dimension(dim*nodxelem,1) ::f
@@ -112,7 +119,8 @@ subroutine cal_elem_forces ()
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
-
+	
+	! !$omp parallel do num_threads(Nproc) private (e,gp,d, w,n) 
   do e=1, elem_count
     if (elem%gausspc(e) .eq. 1) then
       w = 2.0d0**dim
@@ -160,6 +168,7 @@ subroutine cal_elem_forces ()
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
   end do!elem
+	! !$omp end parallel do    
 end subroutine
 
 
@@ -343,13 +352,17 @@ subroutine cal_elem_strain_inc_from_umat
 end subroutine
 
 subroutine cal_elem_strain_inc_from_str_rate (dt)
-  real(fp_kind) :: dt
-  do e=1, elem_count
+  use omp_lib
+	real(fp_kind) :: dt
+	integer::e
+  !$omp parallel do num_threads(Nproc) private (e,gp)
+	do e=1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%str_inc (e,gp, :,:)= elem%str_rate(e,gp,:,:) * dt
       ! print *, "elem%str_inc (e,gp, :,:)", elem%str_inc (e,gp, :,:)
     end do !gp
   end do !element
+	!$omp end parallel do
 end subroutine
 
 subroutine calc_inv_def_grad
@@ -632,7 +645,8 @@ end subroutine
 !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 subroutine CalcStressStrain (dt) 
-
+	use omp_lib
+	
   implicit none
   !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
   real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
@@ -654,6 +668,7 @@ subroutine CalcStressStrain (dt)
   ! end if
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
+	!$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS) 
   do e = 1, elem_count  
     do gp=1,elem%gausspc(e)
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
@@ -704,6 +719,7 @@ subroutine CalcStressStrain (dt)
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
     end do !gauss point
   end do
+	!$omp end parallel do
 
   ! !!! IF PLANE STRESS
   ! if (dim == 2) then 
