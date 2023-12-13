@@ -50,6 +50,6 @@
    
    call reader('tool_metal_cut_mm.nas', node, elnod)
    CALL C_F_POINTER(pX, X, [100])
-   
+   ! write *, "Node: ",node
    write (*,*) result
 end program main
