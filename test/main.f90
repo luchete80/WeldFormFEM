@@ -41,7 +41,7 @@
    !!! ALLOCATION
    !INTEGER, ALLOCATABLE :: X(:)
    INTEGER, pointer:: X(:)
-   real, pointer :: Node(:)
+   real(8), pointer :: Node(:)
    integer :: length, nodecount, i
 
    type(C_PTR) :: pX ! ****

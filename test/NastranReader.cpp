@@ -3,7 +3,7 @@
 //TEST
 extern "C" void c_func(int **x, int s) {
   *x = (int *) malloc(s*sizeof(int));
-  *x[0] = 100; (*x)[1] = 30; //atention, is not *x[] = 
+  *x[0] = 100; (*x)[1] = 30; (*x)[2] = 60; //atention, is not *x[] = 
 }
 
 //#ifdef _COMP_FORTRAN_ 
