@@ -1,6 +1,9 @@
 !https://gcc.gnu.org/onlinedocs/gfortran/C_005fF_005fPOINTER.html
 ! In case of array of character https://stackoverflow.com/questions/59247212/how-to-receive-a-string-from-a-c-function-called-by-fortran-by-iso-c-binding
 
+! https://stackoverflow.com/questions/16385372/allocating-memory-in-c-for-a-fortran-array
+! https://www.ibm.com/docs/es/openxl-fortran-aix/17.1.0?topic=calls-mixing-fortran-c  
+   
  program main
    use iso_c_binding
    implicit none
@@ -21,11 +24,12 @@
       integer,  intent(in) :: s! ****
       END SUBROUTINE c_func
 
-      SUBROUTINE reader(fname, node, elnod) BIND(C, name="ReadNastranTriMesh") ! ****
+      SUBROUTINE reader(fname, node, elnod ,nodecount) BIND(C, name="ReadNastranTriMesh") ! ****
       import :: c_ptr, c_char
       character(C_CHAR), intent(in)  :: fname(*)
 
       TYPE(c_ptr) , intent(out):: node, elnod ! ****
+      integer :: nodecount
 
       END SUBROUTINE reader
       
@@ -34,22 +38,33 @@
    real(c_double), dimension(1:4):: a = [ 2.3, 3.4, 4.5, 5.6 ]
    integer(c_int):: result
    
-   
+   !!! ALLOCATION
    !INTEGER, ALLOCATABLE :: X(:)
-   INTEGER, pointer :: X(:)
+   INTEGER, pointer:: X(:)
+   real, pointer :: Node(:)
+   integer :: length, nodecount, i
 
    type(C_PTR) :: pX ! ****
-   type(C_PTR) :: node,elnod ! ****
+   type(C_PTR) :: pnode,elnod ! ****
    
    CALL c_func(pX,100)
    CALL C_F_POINTER(pX, X, [100])
-   
+   print *, "X values "
    print *, x(1), x(  2), x(3)
-  
+   print *, "size of X: ", size(x)
+   ! print *, "size of pX: ", size(px)
    result = func(a)
    
-   call reader('tool_metal_cut_mm.nas', node, elnod)
-   CALL C_F_POINTER(pX, X, [100])
-   ! write *, "Node: ",node
-   write (*,*) result
+   call reader("tool_metal_cut_mm.nas", pnode, elnod, nodecount)
+   ! print *, "Done, node count ", size(node)
+   length = 3*nodecount
+   CALL C_F_POINTER(pNode, node, [length])
+   ! write (*,*) "size of Nodes: ", size(node)
+   ! write (*,*) result
+   
+    ! print *, node(0)
+   do i = 1, length
+    print *, node(i)
+   end do
+   
 end program main

@@ -5,5 +5,6 @@ int main (){
   double *node = NULL;
   //*node  = new double[1]; 
   int *elcon =NULL;
-  ReadNastranTriMesh( "cylinder.nas", &node, &elcon); //This works calling by the address
+  int nodecount;
+  ReadNastranTriMesh( "cylinder.nas", &node, &elcon,&nodecount); //This works calling by the address
 }
