@@ -151,6 +151,8 @@ std::ostringstream oss;
 
       // if (i<2) of<<", "; 
         (*node)[3*n] = 10.0;
+        (*node)[3*n+1] = 20.0;
+        (*node)[3*n+1] = 30.0;
 			// // if (d<min[i])
 				// // min[i] = d;
 			// // else if (d > max[i])
