@@ -54,8 +54,8 @@ struct ls_spc_node{
 //NON CLASS FUNCTIONS ///
 /////////////////////////
 // FOR FORTRAN OR OTHER LANGUAGE VERSION
-void LSDYNA_getLines(char* fname, char **lines);
-extern "C"  void readNodes(char *fName, double **nodes, int *node_count);
+extern "C" void LSDYNA_getLines(char* fname, char **lines);
+extern "C" void readNodes(char *fName, double **nodes, int *node_count);
 void readSPCNodes(int *sections, int **node_ids, bool **dofs);
 
 class lsdynaReader{

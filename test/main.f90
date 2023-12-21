@@ -3,9 +3,13 @@
 
 ! https://stackoverflow.com/questions/16385372/allocating-memory-in-c-for-a-fortran-array
 ! https://www.ibm.com/docs/es/openxl-fortran-aix/17.1.0?topic=calls-mixing-fortran-c  
+
+    ! FORTRAN TO C STING
+!https://community.intel.com/t5/Intel-Fortran-Compiler/passing-string-from-Fortran-to-C/td-p/1138766
    
  program main
    use iso_c_binding
+   !use String_mod
    implicit none
 
    interface
@@ -41,8 +45,7 @@
       integer :: nodecount
 
       END SUBROUTINE lsdynareadnodes
-      
-   end interface
+    end interface
 
    real(c_double), dimension(1:4):: a = [ 2.3, 3.4, 4.5, 5.6 ]
    integer(c_int):: result
@@ -55,6 +58,13 @@
 
    type(C_PTR) :: pX ! ****
    type(C_PTR) :: pnode,elnod ! ****
+
+  integer :: arg_no
+  character(1024) :: cmd_arg
+  do arg_no = 0, 4
+  call getarg(arg_no, cmd_arg)
+  print *, len_trim(cmd_arg), trim(cmd_arg)
+   end do
    
    CALL c_func(pX,100)
    CALL C_F_POINTER(pX, X, [100])
@@ -75,7 +85,7 @@
    ! !!!
    
    
-   call lsdynareadnodes("sphere-plate.k", pnode, nodecount)
+   call lsdynareadnodes('sphere-plate.k', pnode, nodecount)
    ! length = 3*nodecount
    ! CALL C_F_POINTER(pNode, node, [length])
    

@@ -41,8 +41,6 @@ int findNextCommandLine(const int &curr_line, std::vector <std::string> line) {
   return i;
 }
 
-void LSDYNA_getLines(char* fname, char **lines){}
-
 void lsdynaReader::removeComments(){
   std::vector<std::string>::iterator it;
   int i=0;
@@ -235,10 +233,21 @@ lsdynaReader::lsdynaReader(const char *fname){
 
 //// NON CLASS /////
 void readNodes(char *fName, double **nodes, int *node_count){
-  // lsdynaReader reader(fName);
-  string test = "this";
-  // *node_count = reader.m_node_count;
-  *node_count = 10;
+  string line;
+  int m_line_count = 0;
+  std::vector <string> m_line;
+  int start, end;
+  cout << "Opening:  "<<fName<< " ."<<endl;
+  char dl = ' ';
+  ifstream file(fName);
+  if (file.is_open()) {
+    while (getline(file, line)) {
+      m_line.push_back(line);
+      m_line_count++;
+    }
+  }
+  cout << "lines: "<<m_line_count<<endl;
+  
   // *nodes = (double *) malloc(3*reader.m_node_count*sizeof(double));
   *nodes = (double *) malloc(3*10*sizeof(double));
   for (int n=0;n<*node_count;n++)
@@ -246,4 +255,19 @@ void readNodes(char *fName, double **nodes, int *node_count){
     //(*nodes)[3*n+d] = reader.m_node[n].m_x[d];
     (*nodes)[3*n+d] = 1.;
   }
+}
+
+void LSDYNA_getLines(char* fname, char **lines) {
+  // string line;
+  // m_line_count = 0;
+  // int start, end;
+  // char dl = ' ';
+  // ifstream file(fname);
+  // if (file.is_open()) {
+    // while (getline(file, line)) {
+      // m_line.push_back(line);
+      // m_line_count++;
+    // }
+  // } 
+  // *lines = (char *) malloc(10 * sizeof(char));  
 }
