@@ -41,6 +41,24 @@ int findNextCommandLine(const int &curr_line, std::vector <std::string> line) {
   return i;
 }
 
+void removeComments(std::vector <string> m_line){
+  std::vector<std::string>::iterator it;
+  int i=0;
+  for (it = m_line.begin();it!=m_line.end();){
+    //cout << *it<<endl;
+    string first = it->substr(0,1);
+    //cout << first <<endl;
+    if (first=="$"){
+      m_line.erase(it);
+      //m_line_count--;
+    } else {
+      it ++;
+      //cout << "NOT $ FOUND "<<first<<", LIN: "<<*it<<endl;
+    }
+    i++;
+  }
+}
+
 void lsdynaReader::removeComments(){
   std::vector<std::string>::iterator it;
   int i=0;
@@ -94,6 +112,32 @@ int readIntField(string &str, const int &pos, const int &length) {
   // cout << "readed: "<<ret;
   return ret;
 }
+
+// bool findSection(char **, string str, int * ini_pos, int *end_pos){
+  
+  // bool end = false;
+  // bool found = false;
+  // int i = 0;
+  // cout << "Reading Elements"<<endl;
+  // while (!end){
+
+      // if (m_line[i].find(str) != std::string::npos){
+        // found = true;
+        // cout << "Found section" << str << " at line "<<i<<endl;
+        // *ini_pos = i+1;
+        // m_elem_count = findNextCommandLine(i,m_line) - i;
+        // *end_pos = *ini_pos + m_elem_count -1 ;
+        // cout << "Section length: "<<m_elem_count<<endl;
+        // end = true;
+      // }
+    // if (i==m_line_count) {
+      // end = true;
+      // cout << "ELEMENT not defined "<<endl;
+    // }
+    // i++;
+  // } 
+  // return found;
+// }
 
 bool lsdynaReader::findSection(string str, int * ini_pos, int *end_pos){
   
@@ -247,6 +291,7 @@ void readNodes(char *fName, double **nodes, int *node_count){
     }
   }
   cout << "lines: "<<m_line_count<<endl;
+  *node_count = 100;
   
   // *nodes = (double *) malloc(3*reader.m_node_count*sizeof(double));
   *nodes = (double *) malloc(3*(*node_count)*sizeof(double));
@@ -269,6 +314,15 @@ void LSDYNA_getLines(char* fname, char **lines) {
       m_line.push_back(line);
       m_line_count++;
     }
-  } 
-  *lines = (char *) malloc(10 * sizeof(char));  
+  }
+  removeComments(m_line);
+  
+  cout << "Line size: "<< m_line_count<<endl;
+  
+  lines = (char **) malloc(m_line_count * sizeof(char *));
+  for (int l=0;l<m_line_count;l++){
+    lines[l] = (char *) malloc (100 * sizeof(char));
+    lines[l] = (char *) m_line[l].c_str(); 
+  }
+  
 }

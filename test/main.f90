@@ -45,6 +45,15 @@
       integer :: nodecount
 
       END SUBROUTINE lsdynareadnodes
+
+      SUBROUTINE LSDYNA_getLines(fname, lines) BIND(C, name="LSDYNA_getLines") ! ****
+      import :: c_ptr, c_char
+      character(C_CHAR), intent(in)  :: fname(*)
+
+      TYPE(c_ptr) , intent(out):: lines ! ****
+
+      END SUBROUTINE LSDYNA_getLines
+
     end interface
   
    real(c_double), dimension(1:4):: a = [ 2.3, 3.4, 4.5, 5.6 ]
@@ -58,6 +67,7 @@
 
    type(C_PTR) :: pX ! ****
    type(C_PTR) :: pnode,elnod ! ****
+   type(C_PTR) :: lines
 
   integer :: arg_no
   integer :: str_len
@@ -65,7 +75,8 @@
   CHARACTER(11), POINTER :: fstring
   character(1024) :: string
   TYPE(C_PTR) :: cstring
-  
+
+  character(100),pointer :: flines(:)  
   ! do arg_no = 0, 4
   ! call getarg(arg_no, cmd_arg)
   ! print *, len_trim(cmd_arg), trim(cmd_arg)
@@ -104,5 +115,14 @@
    !https://stackoverflow.com/questions/59247212/how-to-receive-a-string-from-a-c-function-called-by-fortran-by-iso-c-binding
 
    call lsdynareadnodes(string, pnode, nodecount) !"sphere-plate.k"
+   length = 3*nodecount
+   CALL C_F_POINTER(pNode, node, [length])
+   
+   do i = 1, length
+    print *, node(i)
+   end do
+   ! call LSDYNA_getLines(string, lines)
+   ! CALL C_F_POINTER(lines, flines, [100*1000])
+   ! print *, "lines", flines
    
 end program main
