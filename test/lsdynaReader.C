@@ -41,6 +41,8 @@ int findNextCommandLine(const int &curr_line, std::vector <std::string> line) {
   return i;
 }
 
+void LSDYNA_getLines(char* fname, char **lines){}
+
 void lsdynaReader::removeComments(){
   std::vector<std::string>::iterator it;
   int i=0;
