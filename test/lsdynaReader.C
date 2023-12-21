@@ -249,7 +249,7 @@ void readNodes(char *fName, double **nodes, int *node_count){
   cout << "lines: "<<m_line_count<<endl;
   
   // *nodes = (double *) malloc(3*reader.m_node_count*sizeof(double));
-  *nodes = (double *) malloc(3*10*sizeof(double));
+  *nodes = (double *) malloc(3*(*node_count)*sizeof(double));
   for (int n=0;n<*node_count;n++)
     for (int d=0;d<3;d++) {
     //(*nodes)[3*n+d] = reader.m_node[n].m_x[d];
@@ -258,16 +258,17 @@ void readNodes(char *fName, double **nodes, int *node_count){
 }
 
 void LSDYNA_getLines(char* fname, char **lines) {
-  // string line;
-  // m_line_count = 0;
-  // int start, end;
-  // char dl = ' ';
-  // ifstream file(fname);
-  // if (file.is_open()) {
-    // while (getline(file, line)) {
-      // m_line.push_back(line);
-      // m_line_count++;
-    // }
-  // } 
-  // *lines = (char *) malloc(10 * sizeof(char));  
+  string line;
+  std::vector <string> m_line;
+  int m_line_count = 0;
+  int start, end;
+  char dl = ' ';
+  ifstream file(fname);
+  if (file.is_open()) {
+    while (getline(file, line)) {
+      m_line.push_back(line);
+      m_line_count++;
+    }
+  } 
+  *lines = (char *) malloc(10 * sizeof(char));  
 }

@@ -46,7 +46,7 @@
 
       END SUBROUTINE lsdynareadnodes
     end interface
-
+  
    real(c_double), dimension(1:4):: a = [ 2.3, 3.4, 4.5, 5.6 ]
    integer(c_int):: result
    
@@ -60,11 +60,28 @@
    type(C_PTR) :: pnode,elnod ! ****
 
   integer :: arg_no
+  integer :: str_len
   character(1024) :: cmd_arg
-  do arg_no = 0, 4
-  call getarg(arg_no, cmd_arg)
+  CHARACTER(11), POINTER :: fstring
+  character(1024) :: string
+  TYPE(C_PTR) :: cstring
+  
+  ! do arg_no = 0, 4
+  ! call getarg(arg_no, cmd_arg)
+  ! print *, len_trim(cmd_arg), trim(cmd_arg)
+   ! end do
+
+  allocate(fstring)
+
+  call getarg(1, cmd_arg)
   print *, len_trim(cmd_arg), trim(cmd_arg)
-   end do
+  
+   string = trim(cmd_arg)
+   str_len = len_trim(string)
+   string(str_len+1:str_len+1) = c_null_char
+   ! print *, "string: -", string , "-"
+   
+  ! print *, "f string ", fstring
    
    CALL c_func(pX,100)
    CALL C_F_POINTER(pX, X, [100])
@@ -83,10 +100,9 @@
     ! print *, node(i)
    ! end do
    ! !!!
-   
-   
-   call lsdynareadnodes('sphere-plate.k', pnode, nodecount)
-   ! length = 3*nodecount
-   ! CALL C_F_POINTER(pNode, node, [length])
+   !https://stackoverflow.com/questions/45330436/the-correct-way-to-pass-a-string-from-fortran-to-c-c
+   !https://stackoverflow.com/questions/59247212/how-to-receive-a-string-from-a-c-function-called-by-fortran-by-iso-c-binding
+
+   call lsdynareadnodes(string, pnode, nodecount) !"sphere-plate.k"
    
 end program main
