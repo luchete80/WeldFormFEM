@@ -32,6 +32,15 @@
       integer :: nodecount
 
       END SUBROUTINE reader
+
+      SUBROUTINE lsdynareadnodes(fname, node, nodecount) BIND(C, name="readNodes") ! ****
+      import :: c_ptr, c_char
+      character(C_CHAR), intent(in)  :: fname(*)
+
+      TYPE(c_ptr) , intent(out):: node ! ****
+      integer :: nodecount
+
+      END SUBROUTINE lsdynareadnodes
       
    end interface
 
@@ -55,16 +64,19 @@
    ! print *, "size of pX: ", size(px)
    result = func(a)
    
-   call reader("tool_metal_cut_mm.nas", pnode, elnod, nodecount)
-   ! print *, "Done, node count ", size(node)
-   length = 3*nodecount
-   CALL C_F_POINTER(pNode, node, [length])
-   ! write (*,*) "size of Nodes: ", size(node)
-   ! write (*,*) result
+   ! !! THIS WORKS !!
+   ! call reader("tool_metal_cut_mm.nas", pnode, elnod, nodecount)
+   ! length = 3*nodecount
+   ! CALL C_F_POINTER(pNode, node, [length])
+  
+   ! do i = 1, length
+    ! print *, node(i)
+   ! end do
+   ! !!!
    
-    ! print *, node(0)
-   do i = 1, length
-    print *, node(i)
-   end do
+   
+   call lsdynareadnodes("sphere-plate.k", pnode, nodecount)
+   ! length = 3*nodecount
+   ! CALL C_F_POINTER(pNode, node, [length])
    
 end program main
