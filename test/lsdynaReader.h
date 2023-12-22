@@ -55,7 +55,7 @@ struct ls_spc_node{
 /////////////////////////
 // FOR FORTRAN OR OTHER LANGUAGE VERSION
 extern "C" void removeComments(std::vector <std::string>);
-extern "C" void LSDYNA_getLines(char* fname, char **lines);
+extern "C" void LSDYNA_getLines(char* fname, char ***lines);
 extern "C" void readNodes(char *fName, double **nodes, int *node_count);
 void readSPCNodes(int *sections, int **node_ids, bool **dofs);
 

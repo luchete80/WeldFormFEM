@@ -121,8 +121,9 @@
    do i = 1, length
     print *, node(i)
    end do
-   ! call LSDYNA_getLines(string, lines)
-   ! CALL C_F_POINTER(lines, flines, [100*1000])
-   ! print *, "lines", flines
-   
+   call LSDYNA_getLines(string, lines)
+   CALL C_F_POINTER(lines, flines, [10])
+   do i = 1, 10
+    print *, "lines", flines(i)
+   end do
 end program main

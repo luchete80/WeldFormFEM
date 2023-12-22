@@ -302,7 +302,7 @@ void readNodes(char *fName, double **nodes, int *node_count){
   }
 }
 
-void LSDYNA_getLines(char* fname, char **lines) {
+void LSDYNA_getLines(char* fname, char ***lines) {
   string line;
   std::vector <string> m_line;
   int m_line_count = 0;
@@ -319,10 +319,12 @@ void LSDYNA_getLines(char* fname, char **lines) {
   
   cout << "Line size: "<< m_line_count<<endl;
   
-  lines = (char **) malloc(m_line_count * sizeof(char *));
+  *lines = (char **) malloc(m_line_count * sizeof(char *));
   for (int l=0;l<m_line_count;l++){
-    lines[l] = (char *) malloc (100 * sizeof(char));
-    lines[l] = (char *) m_line[l].c_str(); 
+    (*lines)[l] = (char *) malloc (100 * sizeof(char));
+    //(*lines)[l] = (char *) m_line[l].c_str(); 
+    for (int i=0;i<m_line[l].size();i++)
+      (*lines)[l][i] = m_line[l].c_str()[i];
   }
   
 }
