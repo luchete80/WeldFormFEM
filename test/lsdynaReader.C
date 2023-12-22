@@ -113,31 +113,31 @@ int readIntField(string &str, const int &pos, const int &length) {
   return ret;
 }
 
-// bool findSection(char **, string str, int * ini_pos, int *end_pos){
+bool findSection(char **lines, string str, int * ini_pos, int *end_pos){
   
-  // bool end = false;
-  // bool found = false;
-  // int i = 0;
-  // cout << "Reading Elements"<<endl;
-  // while (!end){
+  bool end = false;
+  bool found = false;
+  int i = 0;
+  cout << "Reading Elements"<<endl;
+  while (!end){
 
-      // if (m_line[i].find(str) != std::string::npos){
-        // found = true;
-        // cout << "Found section" << str << " at line "<<i<<endl;
-        // *ini_pos = i+1;
-        // m_elem_count = findNextCommandLine(i,m_line) - i;
-        // *end_pos = *ini_pos + m_elem_count -1 ;
-        // cout << "Section length: "<<m_elem_count<<endl;
-        // end = true;
-      // }
-    // if (i==m_line_count) {
-      // end = true;
-      // cout << "ELEMENT not defined "<<endl;
-    // }
-    // i++;
-  // } 
-  // return found;
-// }
+      if (m_line[i].find(str) != std::string::npos){
+        found = true;
+        cout << "Found section" << str << " at line "<<i<<endl;
+        *ini_pos = i+1;
+        m_elem_count = findNextCommandLine(i,m_line) - i;
+        *end_pos = *ini_pos + m_elem_count -1 ;
+        cout << "Section length: "<<m_elem_count<<endl;
+        end = true;
+      }
+    if (i==m_line_count) {
+      end = true;
+      cout << "ELEMENT not defined "<<endl;
+    }
+    i++;
+  } 
+  return found;
+}
 
 bool lsdynaReader::findSection(string str, int * ini_pos, int *end_pos){
   
