@@ -70,7 +70,7 @@
    type(C_PTR) :: lines
 
   integer :: arg_no
-  integer :: str_len
+  integer :: str_len, d
   character(1024) :: cmd_arg
   CHARACTER(11), POINTER :: fstring
   character(1024) :: string
@@ -118,12 +118,14 @@
    length = 3*nodecount
    CALL C_F_POINTER(pNode, node, [length])
    
-   do i = 1, length
-    print *, node(i)
+   do i = 0, length -1  
+    do d=0, 2
+      print *, i/3, node(3*i), node(3*i+1), node(3*i+2)
+    end do
    end do
-   call LSDYNA_getLines(string, lines)
-   CALL C_F_POINTER(lines, flines, [10])
-   do i = 1, 10
-    print *, "lines", flines(i)
-   end do
+   ! call LSDYNA_getLines(string, lines)
+   ! CALL C_F_POINTER(lines, flines, [10])
+   ! do i = 1, 10
+    ! print *, "lines", flines(i)
+   ! end do
 end program main

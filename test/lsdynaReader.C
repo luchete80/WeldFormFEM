@@ -113,26 +113,27 @@ int readIntField(string &str, const int &pos, const int &length) {
   return ret;
 }
 
-bool findSection(char **lines, string str, int * ini_pos, int *end_pos){
+bool findSection(std::vector<string> m_line, string str, int * ini_pos, int *end_pos){
   
   bool end = false;
   bool found = false;
+  int endpos;
   int i = 0;
-  cout << "Reading Elements"<<endl;
+  cout << "Reading "<<str<<endl;
   while (!end){
 
       if (m_line[i].find(str) != std::string::npos){
         found = true;
         cout << "Found section" << str << " at line "<<i<<endl;
         *ini_pos = i+1;
-        m_elem_count = findNextCommandLine(i,m_line) - i;
-        *end_pos = *ini_pos + m_elem_count -1 ;
-        cout << "Section length: "<<m_elem_count<<endl;
+        endpos = findNextCommandLine(i,m_line) - i;
+        *end_pos = *ini_pos + endpos -1 ;
+        cout << "Section length: "<<endpos<<endl;
         end = true;
       }
-    if (i==m_line_count) {
+    if (i==m_line.size()-1) {
       end = true;
-      cout << "ELEMENT not defined "<<endl;
+      cout << str<<" not defined "<<endl;
     }
     i++;
   } 
@@ -290,19 +291,34 @@ void readNodes(char *fName, double **nodes, int *node_count){
       m_line_count++;
     }
   }
+  removeComments(m_line);
+  //findSection(std::vector<string> m_line, string str, int * ini_pos, int *end_pos)
+  int length = findSection(m_line, "*NODE", &start, &end);
+  cout << "Length: "<< length <<endl;
   cout << "lines: "<<m_line_count<<endl;
-  *node_count = 100;
+  cout << "start: "<<start <<"end"<<end<<endl;
+  *node_count = length;
   
   // *nodes = (double *) malloc(3*reader.m_node_count*sizeof(double));
   *nodes = (double *) malloc(3*(*node_count)*sizeof(double));
-  for (int n=0;n<*node_count;n++)
-    for (int d=0;d<3;d++) {
-    //(*nodes)[3*n+d] = reader.m_node[n].m_x[d];
-    (*nodes)[3*n+d] = 1.;
-  }
+  // for (int n=0;n<*node_count;n++)
+    // for (int d=0;d<3;d++) {
+    // //(*nodes)[3*n+d] = reader.m_node[n].m_x[d];
+    // //(*nodes)[3*n+d] = 1.;
+  // }
+  
+    for (int i=start;i<end;i++){
+      int id;
+      cout << "reading "<<m_line[i]<<endl;
+      id = readDoubleField(m_line[i], 0, 8);
+      ls_node nod;
+      nod.m_id = id;
+      for (int d=0;d<3;d++)
+        nod.m_x[d] = readDoubleField(m_line[i], 8+16*d, 16);
+    }
 }
 
-void LSDYNA_getLines(char* fname, char ***lines) {
+void LSDYNA_getLines(char* fname, char ***lines, double **nodes) {
   string line;
   std::vector <string> m_line;
   int m_line_count = 0;
