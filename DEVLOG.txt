@@ -66,3 +66,6 @@
 				 - Ommitted Shape matrix calculation (only derivs needed). 
 				 - Prallelized deriv matrix calc
 20231129 - Parallelized Stresses & Strains
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+20230207 - FIXED HOURGLASSING 

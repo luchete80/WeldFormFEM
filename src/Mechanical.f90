@@ -229,15 +229,22 @@ subroutine calc_hourglass_forces
         end do
       end do
       
+      
+      
+      !!!!!!!!! GOUDREAU 1982
       do n=1,nodxelem
-        do j =1,4  
+        do j =1,jmax 
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-      c_h  = 1.0e-6 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
       !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
+      
+      
+      !!!!!!!!! FLANAGAN 1981
+      
       
       ! do n=1,nodxelem
       ! print *, "hourglass forces", elem%hourg_nodf(e,n,:) 

@@ -77,7 +77,7 @@ implicit none
   ! h = dx * 1.2
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
-  Dim = 3
+  Dim = 2
   L = 0.1	
   dx    = 0.1d0
   r = dx /2.0
@@ -140,7 +140,7 @@ implicit none
     
     nod%is_bcv(3,2) = .true.
     nod%is_bcv(4,2) = .true.
-    nod%bcv(3,:) = [0.0d0,-1.0d0]
+    nod%bcv(3,:) = [0.0d0,0.0d0]
     nod%bcv(4,:) = [0.0d0,-1.0d0]
     
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
@@ -198,7 +198,7 @@ implicit none
 
   dt = 0.8e-5
   tf = 1.0e-3 
-  !tf = 100* dt 
+  !tf = 10* dt 
   
   elem%rho(:,:) = rho
   

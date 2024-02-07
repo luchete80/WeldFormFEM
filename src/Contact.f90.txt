@@ -8,7 +8,7 @@ use class_ContMesh
  
 contains
 
-subroutine CalcCoontactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
+subroutine CalcContactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
     implicit none
     type (Mesh), intent(in) :: trimesh
     type (dom_type), intent (in):: dom
@@ -110,6 +110,6 @@ subroutine CalcCoontactForces(trimesh, dom) !!!! TODO: ADD DOMAIN
             ! Particles[P1] -> a += Particles[P1] -> contforce / Particles[P1] -> Mass; 
     end do !master element
   end do ! Mesh Slave Nodes
-end subroutine CalcCoontactForces
+end subroutine CalcContactForces
 
 end Module Contact

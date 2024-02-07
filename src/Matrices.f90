@@ -529,7 +529,7 @@ subroutine assemble_forces()
     end do ! Element node
     if (elem%gausspc(e) .eq. 1) then
       do n = 1, nodxelem
-        rint_glob(elem%elnod(e,n),:) = rint_glob(elem%elnod(e,n),:) + elem%hourg_nodf(e,n,:)
+        rint_glob(elem%elnod(e,n),:) = rint_glob(elem%elnod(e,n),:) - elem%hourg_nodf(e,n,:)
       end do
     end if 
   end do ! e
