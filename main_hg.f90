@@ -197,8 +197,8 @@ implicit none
   !tf = 1.5e-4
 
   dt = 0.8e-5
-  !tf = 1.0e-3 
-  tf = dt 
+  tf = 1.0e-3 
+  !tf = 100* dt 
   
   elem%rho(:,:) = rho
   
@@ -287,13 +287,13 @@ implicit none
     end do
   end do
   
-  ! print *, "Hourglass forces " 
-  ! do i=1,elem_count  
-    ! print *, "elem ", i
-    ! do nn=1,nodxelem
-      ! print *, elem%hourg_nodf(i,nn,:) 
-    ! end do
-  ! end do
+  print *, "Hourglass forces " 
+  do i=1,elem_count  
+    print *, "elem ", i
+    do nn=1,nodxelem
+      print *, elem%hourg_nodf(i,nn,:) 
+    end do
+  end do
   !(fname, node, elnod, dimm, issurf)
   !print *, "dim: ", dim, "is surf "
   allocate (ncount_int)

@@ -188,6 +188,7 @@ subroutine calc_hourglass_forces
   real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   real(fp_kind), dimension(dim,4) :: hmod
+  real(fp_kind) :: test
 !real(fp_kind), dimension(1,4) :: test
   if (dim .eq. 2) then
     jmax = 1
@@ -233,15 +234,43 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-      c_h  = 0.1 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      c_h  = 0.0 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
       !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
-      print *, "hourglass forces", elem%hourg_nodf(e,:,:) 
- 
+      
+      do n=1,nodxelem
+      print *, "hourglass forces", elem%hourg_nodf(e,n,:) 
+      end do
       ! elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
       
       print *, "alt hourglass forces", elem%hourg_nodf(e,:,:) 
+      do n=1,nodxelem
+        test = 0
+        do d=1,3
+          test = test + elem%hourg_nodf(e,n,d) *  vel (n,d)
+        end do
+        print *, "dot vel and hg forces ", test
+      end do
+
+      !dimension and modes
+      do d=1,3
+        do j =1,jmax !MODE
+          test = 0
+          do n=1,nodxelem !1:4 or 8
+            !print *, "elem v ", vel (n,:)
+            !hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+            test = test + vel (n,d)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+          end do
+          ! print *, "Mode ", j, "Dim", d
+          print *, "mode", j, "dim ", d, "sum v x Sig", test, ", hmod ", hmod(d,j)
+          ! print *, "force "
+        end do
+      end do
+
+      do n=1,nodxelem
+          print *, "v ", vel (n,:)
+      end do
   else
     !print *, "NO HOURGLASS"
     end if
