@@ -100,7 +100,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .False.
+  reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
   do i=1,node_count
@@ -157,7 +157,7 @@ implicit none
   dt = 0.3 * dx/(mat_cs)
   ! tf = dt * 1.0
   
-  tf = 1.0e-5
+  tf = 5.0e-3
   ! tf = 1.0e-6
   
   elem%rho(:,:) = rho
