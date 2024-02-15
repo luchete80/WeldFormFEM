@@ -1,6 +1,6 @@
 PROJECT(test)
 cmake_minimum_required(VERSION 2.6)
-enable_language(Fortran)
+enable_language(Fortran CXX)
 # Setting the compilers
 # set (CMAKE_Fortran_COMPILER /usr/bin/gfortran)
 # set (CMAKE_CXX_COMPILER /usr/bin/g++)
