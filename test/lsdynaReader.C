@@ -307,14 +307,16 @@ void readNodes(char *fName, double **nodes, int *node_count){
     // //(*nodes)[3*n+d] = 1.;
   // }
   
-    for (int i=start;i<end;i++){
+    for (int i=start;i<end;i++){ //REMOVE COMMENTS DOES NOT WORK IF CALLED BY FORTRAN ....
       int id;
       cout << "reading "<<m_line[i]<<endl;
+      if (m_line[i].substr(0,1)!= "$"){
       id = readDoubleField(m_line[i], 0, 8);
       ls_node nod;
       nod.m_id = id;
       for (int d=0;d<3;d++)
         nod.m_x[d] = readDoubleField(m_line[i], 8+16*d, 16);
+      }
     }
 }
 
