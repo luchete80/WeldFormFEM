@@ -244,6 +244,11 @@ bool readBPMNodes() {
   
 }
 
+//SET_NODE_LIST
+bool lsdynaReader::readSetNodes(){
+  
+}
+
 lsdynaReader::lsdynaReader(const char *fname){
   string line;
   m_line_count = 0;
