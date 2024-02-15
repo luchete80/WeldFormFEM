@@ -45,10 +45,10 @@ void removeComments(std::vector <string> m_line){
   std::vector<std::string>::iterator it;
   int i=0;
   for (it = m_line.begin();it!=m_line.end();){
-    //cout << *it<<endl;
     string first = it->substr(0,1);
-    //cout << first <<endl;
     if (first=="$"){
+      //cout << "first"<<first <<endl;
+      //cout << "it "<<*it<<endl;
       m_line.erase(it);
       //m_line_count--;
     } else {
@@ -180,9 +180,8 @@ void lsdynaReader::readNodes() {
     nod.m_id = id;
     for (int d=0;d<3;d++)
       nod.m_x[d] = readDoubleField(m_line[i], 8+16*d, 16);
-      // cout << "Node "<<id <<"XYZ: "<<nod.m_x[0]<<", "<<nod.m_x[1]<<", "<<nod.m_x[2]<<endl; 
-    
-    
+      // cout << "Node "<<id <<"XYZ: "<<nod.m_x[0]<<", "<<nod.m_x[1]<<", "<<nod.m_x[2]<<endl;    
+    m_node.push_back(nod);
   }
 
 }  //line
@@ -292,6 +291,7 @@ void readNodes(char *fName, double **nodes, int *node_count){
     }
   }
   removeComments(m_line);
+  cout << "New length "<<m_line.size()<<endl;
   //findSection(std::vector<string> m_line, string str, int * ini_pos, int *end_pos)
   int length = findSection(m_line, "*NODE", &start, &end);
   cout << "Length: "<< length <<endl;
