@@ -3,21 +3,25 @@
 
 //////////////////// COMMON DOMAIN FOR CPU/GPU ///////////////////
 
+// #define CUDA_BUILD
 
-#include <cuda.h>
+#ifdef  CUDA_BUILD
+#define vector_t double3
+#else   
+#define vector_t Vec3_t
+#endif
+
 #include <stdio.h>
+
+#ifdef  CUDA_BUILD
+#include <cuda.h>
 #include "cuda/cudautils.cuh"
+#endif
+
 #include "Material.cuh"
 
 #include <vector>
 
-// #define CUDA_BUILD
-
-// #ifdef  CUDA_BUILD
-// #define vector double3
-// #else   
-// #define vector Vec3_t
-// #endif
 
 class Matrix;
 

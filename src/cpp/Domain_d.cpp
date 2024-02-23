@@ -26,7 +26,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   /// dHxy_detJ: DIM X NODXELEM
   /// TO AVOID EXCESSIVE OFFSET, SPLIT DIMENSIONS
   //m_dH_detJ_dx = new []
-  cudaMalloc((void **)&m_dH_detJ_dx, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
+  m_dH_detJ_dx = (double*) malloc(m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
   cudaMalloc((void **)&m_dH_detJ_dy, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
   cudaMalloc((void **)&m_dH_detJ_dz, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
   
@@ -79,8 +79,8 @@ __device__ void Domain_d::UpdatePrediction(){
   // nod%a = 0.0d0  
   if (n < m_node_count){
     printf ("node %d\n", n);
-    double3 x_ = dt * (getV(n) + 0.5 - m_beta);
-    double3_Ptr(x_,x,n);
+    vector x_ = dt * (getV(n) + 0.5 - m_beta);
+    vector_Ptr(x_,x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
@@ -94,7 +94,7 @@ __device__ void Domain_d::UpdateCorrection(){
   // nod%a = 0.0d0  
   if (n < m_node_count){
     printf ("node %d\n", n);
-    double3_Ptr(dt * getV(n),x,n);
+    vector_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
@@ -156,13 +156,9 @@ __device__ void Domain_d::ImposeBCV(const int dim){
   
 }
 
-void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &r,const bool &red_int){
-	    // integer, intent(in):: tag
-    // logical, intent(in) :: redint
-    // !real(fp_kind), intent(in), allocatable :: V
-    // real(fp_kind), dimension(1:3), intent(in)  :: V ! input
-    // real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
-    double3 Xp;
+void Domain_d::AddBoxLength(vector const & V, vector const & L, const double &r,const bool &red_int){
+
+    vector Xp;
     int p, nnodz;
 
     int nel[3];
@@ -193,20 +189,13 @@ void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &
   int nc = (nel[0] +1) * (nel[1]+1) * (nel[2]+1);
   int ne = nel[0]*nel[1]*nel[2];
   cout << "Mesh created. Element count: "<< nel[0]<<", "<<nel[1]<<", "<<nel[2]<<endl;
-  
-  //thisAllocateNodes((nel[0] +1) * (nel[1]+1) * (nel[2]+1));
-    // print *, "Element count in XYZ: ", nel(:)
-    // write (*,*) "Box Node count ", node_count
 
 	this->SetDimension(nc,ne);	 //AFTER CREATING DOMAIN
   cout << "Mesh generated. Node count: " << nc<<". Element count: "<<ne<<endl;
   cout << "Dimension is: "<<m_dim<<endl;
-  //SPH::Domain	dom;
-	//double3 *x =  (double3 *)malloc(dom.Particles.size());
-	double3 *x_H =  new double3 [m_node_count];
 
-
-	//int size = dom.Particles.size() * sizeof(double3);
+	vector *x_H =  new vector [m_node_count];
+  
 	cout << "Copying to device..."<<endl;
     
     cout << "Box Particle Count is " << m_node_count <<endl;
@@ -229,7 +218,7 @@ void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &
 
     //cout <<"m_node size"<<m_node.size()<<endl;
     } 
-		cudaMemcpy(this->x, x_H, sizeof(double3) * m_node_count, cudaMemcpyHostToDevice);    
+		cudaMemcpy(this->x, x_H, sizeof(vector) * m_node_count, cudaMemcpyHostToDevice);    
 
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
@@ -397,7 +386,7 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
       // end do
   int nind = e * m_nodxelem;
   for (int i=0;i<m_nodxelem;i++){
-      double3 x_ = Ptr_double3(x,m_elnod[nind+i]);
+      vector x_ = Ptr_vector(x,m_elnod[nind+i]);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
       //printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
@@ -441,28 +430,7 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
             //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
 
           }
-          // !!!!! SETTING LIKE THIS AVOID MATMUL
-          // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)-x2(5,:)+x2(6,:)+x2(7,:)-x2(8,:)
-          // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)-x2(5,:)-x2(6,:)+x2(7,:)+x2(8,:)
-          // elem%jacob(e,gp,3,:) = -x2(1,:)-x2(2,:)-x2(3,:)-x2(4,:)+x2(5,:)+x2(6,:)+x2(7,:)+x2(8,:)
-          // !elem%jacob(e,gp,2,:) = [-x2(1,2),-x2(2,2), x2(3,2), x2(4,2),-x2(5,2),-x2(6,2), x2(7,2), x2(8,2)]
-          // !elem%jacob(e,gp,3,:) = [-x2(1,3),-x2(2,3), x2(3,3), x2(4,3),-x2(5,3),-x2(6,3), x2(7,3), x2(8,3)]
-          // ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0] AND THIS IS dHrs*x2
-          // ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
-          // ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
-          // ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
-          // elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
-          // !!!! REMAINS ELEM_VOLUME
-          // !!!!! J-1 = dr/dx
-          // !!!! dHxy = J-1 x dHrs 
-          // elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
-          // elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,5) = -invJ(:,1)-invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
+
           for (int d=0;d<m_dim;d++){
             InvMat(*jacob, inv_j);            
             dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
@@ -516,20 +484,6 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
           
           dHrs->Set(0,6,     (1+gpc[gp][1])*(1.0+gpc[gp][2]));  dHrs->Set(1,6,     (1+gpc[gp][0])*(1.0+gpc[gp][2])); dHrs->Set(2,6,     (1+gpc[gp][0])*(1.0+gpc[gp][1]));
           dHrs->Set(0,7,-1.0*(1+gpc[gp][1])*(1.0+gpc[gp][2]));  dHrs->Set(1,7,     (1-gpc[gp][0])*(1.0+gpc[gp][2])); dHrs->Set(2,7,     (1-gpc[gp][0])*(1.0+gpc[gp][1]));
-					
-          // dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),     (1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                    // ,     (1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,3))&
-                    // ,-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3)),     (1-gpc(gp,2))*(1.0+gpc(gp,3))&
-                    // ,     (1+gpc(gp,2))*(1.0+gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0+gpc(gp,3))]
-          // dHrs(2,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,3))&
-                         // ,(1+gpc(gp,1))*(1.0-gpc(gp,3)),     (1-gpc(gp,1))*(1.0-gpc(gp,3))&
-                    // ,-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,3))&
-                         // ,(1+gpc(gp,1))*(1.0+gpc(gp,3)),     (1-gpc(gp,1))*(1.0+gpc(gp,3))]
-          // dHrs(3,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    // ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,2)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
-                    // ,     (1-gpc(gp,1))*(1.0-gpc(gp,2)),     (1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    // ,     (1+gpc(gp,1))*(1.0+gpc(gp,2)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
-          
 
 					//*jacob = 0.125 * MatMul(*dHrs,*x2);
           MatMul(*dHrs,*x2,jacob);
@@ -628,23 +582,3 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
 // }
 
 
-__global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
-		
-		dom_d->calcElemJAndDerivatives();
-}
-
-__global__ void ImposeBCVKernel(Domain_d *dom_d, const int dim){
-  dom_d->ImposeBCV(dim);
-}
-
-__global__ void UpdatePredictionKernel(Domain_d *dom_d){
-  dom_d->UpdatePrediction();
-}
-
-__global__ void UpdateCorrectionKernel(Domain_d *dom_d){
-  dom_d->UpdateCorrection();
-}
-
-
-};
-	

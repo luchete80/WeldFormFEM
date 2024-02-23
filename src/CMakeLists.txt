@@ -1,12 +1,25 @@
 cmake_minimum_required(VERSION 3.2)
 
-SET(BUILD_GPU ON)
+if (NOT DEFINED BUILD_GPU)
+SET(BUILD_GPU OFF)
+endif (NOT DEFINED BUILD_GPU)
 
+if (BUILD_GPU)
+  add_compile_definitions(CUDA_BUILD)
+endif (BUILD_GPU)
 
+PROJECT (MetFEMGPU)
+
+if (BUILD_GPU)
 project (MetFEMGPU LANGUAGES CXX CUDA)
 project (testcuns LANGUAGES CXX CUDA)
+else ()
+project (MetFEMGPU LANGUAGES CXX)
+endif (BUILD_GPU)
+
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/cuda)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 link_directories(${CUNSEARCH_LIB_DIR})
 link_directories(${cuNSearch_BINARY_DIR})
@@ -19,17 +32,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  # compute_20, sm_20, or higher. For other architecture classes, the contraction is     
   # always enabled. 
  # The --use_fast_math option implies --fmad=true, and enables the contraction.
+if (BUILD_GPU)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
+
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
 # FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
 # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
 
-SET(EXES
-
-	main
-
-)
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
@@ -115,3 +125,8 @@ TARGET_LINK_LIBRARIES (MetFEMGPU cuda cudadevrt)
     # ADD_EXECUTABLE        (${EXES} "Plate-Yield.cpp")
     # TARGET_LINK_LIBRARIES (${EXES} ${LIBS} blitz)
     # SET_TARGET_PROPERTIES (${EXES} PROPERTIES COMPILE_FLAGS "${FLAGS}" LINK_FLAGS "${LFLAGS}")
+else()
+add_executable(MetFEMGPU
+              main.cpp)
+
+endif ()
