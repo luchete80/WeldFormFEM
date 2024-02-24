@@ -74,9 +74,9 @@ dev_t void Domain_d::AssignMatAddress(int i){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-  int n;
+  //int n;
 #ifdef  CUDA_BUILD  
-  n = threadIdx.x + blockDim.x*blockIdx.x;
+  int n = threadIdx.x + blockDim.x*blockIdx.x;
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   // !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
@@ -84,7 +84,7 @@ dev_t void Domain_d::UpdatePrediction(){
   // nod%a = 0.0d0  
   if (n < m_node_count){
 #else
-  for ( n=0;n<m_node_count;n++)
+  for (int n=0;n<m_node_count;n++){
 #endif
     printf ("node %d\n", n);
     vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
