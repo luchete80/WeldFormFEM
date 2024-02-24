@@ -52,8 +52,8 @@ public:
   __device__ void assemblyForces();
   __device__ void assemblyForcesNonLock();
   
-  __host__   void AddBCVelNode(const int &node, const int &dim, const double &val);
-  __host__   void AllocateBCs();
+  host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
+  host_   void AllocateBCs();
   
   __device__ void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   

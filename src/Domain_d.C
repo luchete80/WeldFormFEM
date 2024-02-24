@@ -53,7 +53,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
     cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
-     cudaMemcpy(materials, material_h, 1 * sizeof(Material_), cudaMemcpyHostToDevice);	
+    cudaMemcpy(materials, material_h, 1 * sizeof(Material_), cudaMemcpyHostToDevice);	
 }
 
 __device__ void Domain_d::AssignMatAddress(int i){
