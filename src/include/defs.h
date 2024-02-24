@@ -10,7 +10,7 @@
 #define make_vector_t make_double3
 #define vector_t_Ptr  double3_Ptr
 #define Ptr_vector_t  Ptr_double3
-#define par_loop (n,upto)   int n = threadIdx.x + blockDim.x*blockIdx.x; if (n < upto)
+#define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n < upto){
 // typename <T>
 // void malloc_t (T,size_t size){
 	// cudaMalloc((void **)&x, node_count * sizeof (double) * 3);
