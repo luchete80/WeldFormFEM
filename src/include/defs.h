@@ -10,12 +10,10 @@
 #define make_vector_t make_double3
 #define vector_t_Ptr  double3_Ptr
 #define Ptr_vector_t  Ptr_double3
-#define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n < upto){
-// typename <T>
-// void malloc_t (T,size_t size){
-	// cudaMalloc((void **)&x, node_count * sizeof (double) * 3);
-// }
-#define malloc_t(x,t,y) cudaMalloc((void **)&x, y * sizeof (t))
+#define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
+
+#define malloc_t(x,t,y)     cudaMalloc((void **)&x, y * sizeof (t))
+#define par_loop(n,upto)    int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 #else
 
 #include "Vec3D.h"
@@ -28,7 +26,7 @@
 #define make_vector_t Vec3D
 
 #define malloc_t(x,t,y) x = (t*) malloc(y * sizeof(t))
-#define par_loop(n,upto)   for (int n=0;n<upto;n++)
+#define par_loop(n,upto)   int n;for(int n=0;n<upto;n++)
 #endif
 
 #endif

@@ -74,7 +74,8 @@ dev_t void Domain_d::AssignMatAddress(int i){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-    loop (n,m_node_count)
+    par_loop (n,m_node_count){
+    //n=threadIdx.x+blockDim.x*blockIdx.x;if(n<m_node_count){
 //int n = threadIdx.x + blockDim.x*blockIdx.x; if (n < m_node_count){
     printf ("node %d\n", n);
     vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
