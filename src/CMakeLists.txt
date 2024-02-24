@@ -43,6 +43,8 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=fa
 
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
+set_source_files_properties(Domain_d.C PROPERTIES LANGUAGE CUDA)
+
 add_executable(MetFEMGPU
                         # WeldFormGPU.cu
                         # Domain.cpp 
@@ -50,7 +52,7 @@ add_executable(MetFEMGPU
 													# Vector.cpp
                           # Mesh.cpp
                           main.cu
-													cuda/Domain_d.cu
+													Domain_d.C
                           cuda/Matrices.cu
                           cuda/Mechanical.cu
                           cuda/cudautils.cu
@@ -60,6 +62,8 @@ add_executable(MetFEMGPU
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
+
+
 
 # add_executable(main_thermal 
 													# main_thermal.cu
