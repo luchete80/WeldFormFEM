@@ -3,13 +3,7 @@
 
 //////////////////// COMMON DOMAIN FOR CPU/GPU ///////////////////
 
-// #define CUDA_BUILD
-
-#ifdef  CUDA_BUILD
-#define vector_t double3
-#else   
-#define vector_t Vec3_t
-#endif
+#include "defs.h"
 
 #include <stdio.h>
 
@@ -40,26 +34,26 @@ namespace MetFEM{
 class Domain_d {
 public:
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
-  void AddBoxLength(double3 const & V, double3 const & L, const double &r, const bool &red_int = true);
+  void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
   
-  __device__ void calcElemJacobian ();
-  __device__ void calcElemJAndDerivatives/*_FullInt*/();
+  dev_t void calcElemJacobian ();
+  dev_t void calcElemJAndDerivatives/*_FullInt*/();
 
-	__device__ void calcElemStrains();
-  __device__ void calcElemForces();
-  __device__ void calcElemPressure(); //FROM STRAIN
+	dev_t void calcElemStrains();
+  dev_t void calcElemForces();
+  dev_t void calcElemPressure(); //FROM STRAIN
 
-  __device__ void assemblyForces();
-  __device__ void assemblyForcesNonLock();
+  dev_t void assemblyForces();
+  dev_t void assemblyForcesNonLock();
   
   host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
   host_   void AllocateBCs();
   
-  __device__ void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
+  dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   
-  inline __device__ double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
-  inline __device__ void     setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &); //I AND J ARE: DIMENSION AND NODE
-  inline __device__ void     setDerivative(const int &e, const int &gp, Matrix *); //I AND J ARE: DIMENSION AND NODE
+  inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
+  inline dev_t void     setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &); //I AND J ARE: DIMENSION AND NODE
+  inline dev_t void     setDerivative(const int &e, const int &gp, Matrix *); //I AND J ARE: DIMENSION AND NODE
   
 	int threadsPerBlock, blocksPerGrid; //TO BE USED BY SOLVER
 	
@@ -67,25 +61,25 @@ public:
 	const int & getNodeCount()const{return m_node_count;}
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
-  __device__ void AssignMatAddress(int i); //Assign particle data to material array to zero array
-  __device__ void CalcStressStrain(const double dt);
+  dev_t void AssignMatAddress(int i); //Assign particle data to material array to zero array
+  dev_t void CalcStressStrain(const double dt);
 
   
-  inline __device__ double & getSigma  (const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
-  inline __device__ double & getStrRate(const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
+  inline dev_t double & getSigma  (const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
+  inline dev_t double & getStrRate(const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
   
-  __device__ void CalcElemInitialVol();
+  dev_t void CalcElemInitialVol();
   
-  __device__ void CalcElemVol();
-  __device__ void calcElemDensity();
+  dev_t void CalcElemVol();
+  dev_t void calcElemDensity();
   
-  __device__ void UpdatePrediction();
-  __device__ void UpdateCorrection();
+  dev_t void UpdatePrediction();
+  dev_t void UpdateCorrection();
 	
-  //__device__ double3 & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
+  //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
   inline __device__ double  getVElem(const int &e, const int &n,const int &d){return v[m_elnod[n]+d];}  
   
-  inline __device__ double3 getV(const int &n){return make_double3(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
+  inline __device__ vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
   
 	void SolveChungHulbert();
   
@@ -167,6 +161,8 @@ protected:
 	
 };
 
+#ifdef  CUDA_BUILD
+
 __global__ void ImposeBCVKernel(Domain_d *dom_d, const int dim);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
@@ -207,6 +203,8 @@ inline __device__ void Domain_d::setDerivative(const int &e, const int &gp, Matr
       // else if (i==2)  m_dH_detJ_dx[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + i] = v;
       //else printf ("ERROR: WRONG DERIVATIVE DIMENSION.");
 }
+
+#endif
 
 }; //Namespace
 #endif
