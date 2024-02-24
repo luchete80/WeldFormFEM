@@ -1,9 +1,16 @@
 #include "Domain_d.h"
 #include <iostream>
 #include <vector>
+
+#ifdef CUDA_BUILD
+
 #include "vector_math.h"
 #include "tensor.cuh"
 #include "Matrix.cuh"
+
+#else
+
+#endif 
 
 using namespace std;
 
@@ -14,10 +21,10 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   m_node_count = node_count;
   m_elem_count = elem_count;
   
-	cudaMalloc((void **)&x, node_count * sizeof (double) * 3);
-	cudaMalloc((void **)&v, node_count * sizeof (double) * 3);
-	cudaMalloc((void **)&a, node_count * sizeof (double) * 3);
-
+  malloc_t (x,double,node_count*3);
+  malloc_t (v,double,node_count*3);
+  malloc_t (a,double,node_count*3);
+  
 	cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
 	
   /// MATRICES ///
@@ -56,18 +63,13 @@ void Domain_d::AssignMaterial (Material_ *material_h) {
     cudaMemcpy(materials, material_h, 1 * sizeof(Material_), cudaMemcpyHostToDevice);	
 }
 
-__device__ void Domain_d::AssignMatAddress(int i){
+dev_t void Domain_d::AssignMatAddress(int i){
   if (i< m_elem_count)
     mat[i] = &materials[0];
   
 }
 
-__global__ void AssignMatAddressKernel(Domain_d *dom){
-  int i = threadIdx.x + blockDim.x*blockIdx.x;
-  dom->AssignMatAddress(i);
-}
-
-__device__ void Domain_d::UpdatePrediction(){
+dev_t void Domain_d::UpdatePrediction(){
   int n = threadIdx.x + blockDim.x*blockIdx.x;
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
@@ -76,13 +78,13 @@ __device__ void Domain_d::UpdatePrediction(){
   // nod%a = 0.0d0  
   if (n < m_node_count){
     printf ("node %d\n", n);
-    double3 x_ = dt * (getV(n) + 0.5 - m_beta);
-    double3_Ptr(x_,x,n);
+    vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
+    vector_t_Ptr(x_,x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
 
-__device__ void Domain_d::UpdateCorrection(){
+dev_t void Domain_d::UpdateCorrection(){
   int n = threadIdx.x + blockDim.x*blockIdx.x;
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
@@ -91,19 +93,19 @@ __device__ void Domain_d::UpdateCorrection(){
   // nod%a = 0.0d0  
   if (n < m_node_count){
     printf ("node %d\n", n);
-    double3_Ptr(dt * getV(n),x,n);
+    vector_t_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
 
 
-__host__   void Domain_d::AddBCVelNode(const int &node, const int &dim, const double &val){
+host_   void Domain_d::AddBCVelNode(const int &node, const int &dim, const double &val){
   if (dim == 0)       { bcx_nod_h.push_back(node);bcx_val_h.push_back(val);bc_count[0]++;}
   else if (dim == 1)  { bcy_nod_h.push_back(node);bcy_val_h.push_back(val);bc_count[1]++;}
   else if (dim == 2)  { bcz_nod_h.push_back(node);bcz_val_h.push_back(val);bc_count[2]++;}
 }
 
-__host__   void Domain_d::AllocateBCs() {
+host_   void Domain_d::AllocateBCs() {
   for (int d=0;d<m_dim;d++){cout << "Allocated "<<bc_count[d]<< " Velocity BCs for dof "<<d<<endl; }
   cudaMalloc((void **)&bcx_nod, bc_count[0] * sizeof (int)); 
   cudaMalloc((void **)&bcy_nod, bc_count[1] * sizeof (int)); 
@@ -153,13 +155,13 @@ __device__ void Domain_d::ImposeBCV(const int dim){
   
 }
 
-void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &r,const bool &red_int){
+void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int){
 	    // integer, intent(in):: tag
     // logical, intent(in) :: redint
     // !real(fp_kind), intent(in), allocatable :: V
     // real(fp_kind), dimension(1:3), intent(in)  :: V ! input
     // real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
-    double3 Xp;
+    vector_t Xp;
     int p, nnodz;
 
     int nel[3];
@@ -199,11 +201,11 @@ void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &
   cout << "Mesh generated. Node count: " << nc<<". Element count: "<<ne<<endl;
   cout << "Dimension is: "<<m_dim<<endl;
   //SPH::Domain	dom;
-	//double3 *x =  (double3 *)malloc(dom.Particles.size());
-	double3 *x_H =  new double3 [m_node_count];
+	//vector_t *x =  (vector_t *)malloc(dom.Particles.size());
+	vector_t *x_H =  new vector_t [m_node_count];
 
 
-	//int size = dom.Particles.size() * sizeof(double3);
+	//int size = dom.Particles.size() * sizeof(vector_t);
 	cout << "Copying to device..."<<endl;
     
     cout << "Box Particle Count is " << m_node_count <<endl;
@@ -226,7 +228,7 @@ void Domain_d::AddBoxLength(double3 const & V, double3 const & L, const double &
 
     //cout <<"m_node size"<<m_node.size()<<endl;
     } 
-		cudaMemcpy(this->x, x_H, sizeof(double3) * m_node_count, cudaMemcpyHostToDevice);    
+		cudaMemcpy(this->x, x_H, sizeof(vector_t) * m_node_count, cudaMemcpyHostToDevice);    
 
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
@@ -394,7 +396,7 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
       // end do
   int nind = e * m_nodxelem;
   for (int i=0;i<m_nodxelem;i++){
-      double3 x_ = Ptr_double3(x,m_elnod[nind+i]);
+      vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
       //printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
@@ -438,28 +440,7 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
             //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
 
           }
-          // !!!!! SETTING LIKE THIS AVOID MATMUL
-          // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)-x2(5,:)+x2(6,:)+x2(7,:)-x2(8,:)
-          // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)-x2(5,:)-x2(6,:)+x2(7,:)+x2(8,:)
-          // elem%jacob(e,gp,3,:) = -x2(1,:)-x2(2,:)-x2(3,:)-x2(4,:)+x2(5,:)+x2(6,:)+x2(7,:)+x2(8,:)
-          // !elem%jacob(e,gp,2,:) = [-x2(1,2),-x2(2,2), x2(3,2), x2(4,2),-x2(5,2),-x2(6,2), x2(7,2), x2(8,2)]
-          // !elem%jacob(e,gp,3,:) = [-x2(1,3),-x2(2,3), x2(3,3), x2(4,3),-x2(5,3),-x2(6,3), x2(7,3), x2(8,3)]
-          // ! dHrs(1,:)=[-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0,-1.0] AND THIS IS dHrs*x2
-          // ! dHrs(2,:)=[-1.0,-1.0, 1.0, 1.0,-1.0,-1.0, 1.0, 1.0]       
-          // ! dHrs(3,:)=[-1.0,-1.0,-1.0,-1.0, 1.0, 1.0, 1.0, 1.0]  
-          // ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
-          // elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
-          // !!!! REMAINS ELEM_VOLUME
-          // !!!!! J-1 = dr/dx
-          // !!!! dHxy = J-1 x dHrs 
-          // elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
-          // elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)-invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,5) = -invJ(:,1)-invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
-          // elem%dHxy_detJ(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
+          
           for (int d=0;d<m_dim;d++){
             InvMat(*jacob, inv_j);            
             dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
@@ -624,6 +605,7 @@ __device__ void Domain_d::calcElemJAndDerivatives () {
   // //return ret;
 // }
 
+#ifdef CUDA_BUILD
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
 		
@@ -642,6 +624,12 @@ __global__ void UpdateCorrectionKernel(Domain_d *dom_d){
   dom_d->UpdateCorrection();
 }
 
+__global__ void AssignMatAddressKernel(Domain_d *dom){
+  int i = threadIdx.x + blockDim.x*blockIdx.x;
+  dom->AssignMatAddress(i);
+}
+
+#endif
 
 };
 	

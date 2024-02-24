@@ -23,3 +23,5 @@
          - ADDED ASSEMBLY WITHOUT LOCKING
 20240223 - Ended Node Elements generation
          - Added m_nodel_local in order to assemblying through nodal loop
+20240224 - Begining to add Vec3D (from tiny and great DynELA) TODO: MAKING GPU/CPU MATH SUBMODULE (BASED ON DYNELA (CPU) AND (EVENTUALLY) TENSOR (GPUSPH)
+         - DISCARD DOUBLE3 AND REPLACE IT WITH VECTORS/MATRICES

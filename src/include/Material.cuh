@@ -134,8 +134,8 @@ public Material_{
   m(m_),n(n_),eps_0(eps_0_),T_m(T_m_),T_t(T_t_)
   { Material_model = JOHNSON_COOK;
   }
-	inline double dev_ CalcYieldStress(){return 0.0;}	
-	inline double dev_ CalcYieldStress(const double &plstrain){
+	inline double dev_t CalcYieldStress(){return 0.0;}	
+	inline double dev_t CalcYieldStress(const double &plstrain){
      double Et =0.;
 
     if (plstrain > 0.)
@@ -144,8 +144,8 @@ public Material_{
       Et = Elastic().E()*0.1; //ARBITRARY! TODO: CHECK MATHEMATICALLY
     return Et;
   } //TODO: SEE IF INCLUDE	
-	inline double  dev_ CalcYieldStress(const double &strain, const double &strain_rate, const double &temp);	
-	inline double  dev_ CalcTangentModulus(const double &strain, const double &strain_rate, const double &temp);
+	inline double  dev_t CalcYieldStress(const double &strain, const double &strain_rate, const double &temp);	
+	inline double  dev_t CalcTangentModulus(const double &strain, const double &strain_rate, const double &temp);
   //~JohnsonCook(){}
 };
 
@@ -179,12 +179,12 @@ public Material_{
   }
   spec_ double testret(){printf("hollomon testret\n"); return 2.0;}
 	
-  inline double  dev_ CalcTangentModulus(const double &strain);
-	inline double  dev_ CalcYieldStress(){}	
-	inline double  dev_ CalcYieldStress(const double &strain);	
+  inline double  dev_t CalcTangentModulus(const double &strain);
+	inline double  dev_t CalcYieldStress(){}	
+	inline double  dev_t CalcYieldStress(const double &strain);	
 };
 
-dev_ inline double CalcHollomonYieldStress(const double &strain, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
+dev_t inline double CalcHollomonYieldStress(const double &strain, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
   double sy = 0.0;
   //printf("K %f eps0 %f , eps1 %f sy0 %f m %f\n",K,eps0,eps1,sy0,m);
@@ -195,13 +195,13 @@ dev_ inline double CalcHollomonYieldStress(const double &strain, Material_ *mat)
   
 }
 
-dev_ inline void ShowProps(Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
+dev_t inline void ShowProps(Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
   printf("K %f \n eps0 %f \n eps1 \n%f, sy0 \n%f, m %f \n", mat->K,mat->eps0,mat->eps1,mat->sy0,mat->m);
   
 }
 
-dev_ inline double CalcJohnsonCookYieldStress(const double &strain, const double &strain_rate, const double &temp, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
+dev_t inline double CalcJohnsonCookYieldStress(const double &strain, const double &strain_rate, const double &temp, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
 	double T_h = (temp - mat->T_t) / (mat->T_m - mat->T_t);
 	double sr = strain_rate;
@@ -213,7 +213,7 @@ dev_ inline double CalcJohnsonCookYieldStress(const double &strain, const double
 	return sy;
 }
 
-inline double dev_ CalcHollomonTangentModulus(const double &strain, Material_ *mat) {
+inline double dev_t CalcHollomonTangentModulus(const double &strain, Material_ *mat) {
 	double Et;
   if (strain + mat->eps0 > mat->eps1) Et = mat->K * mat->m * pow(strain + mat->eps0, (mat->m-1.0));
   else                      Et = 0.;
@@ -221,7 +221,7 @@ inline double dev_ CalcHollomonTangentModulus(const double &strain, Material_ *m
 	return Et;
 }
 
-inline double dev_ CalcJohnsonCookTangentModulus(const double &plstrain, const double &strain_rate, const double &temp, Material_ *mat)	{
+inline double dev_t CalcJohnsonCookTangentModulus(const double &plstrain, const double &strain_rate, const double &temp, Material_ *mat)	{
 	double sy, T_h;
   //cout << "n, B, C, eps_0, T_t, m"<<n<<", "<<B<<", "<<C<<"eps0, "<<eps_0<<", "<<", "<<T_t<<", "<<m<<endl;
 	T_h = (temp - mat->T_t) / (mat->T_m - mat->T_t);

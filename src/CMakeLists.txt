@@ -34,23 +34,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  # The --use_fast_math option implies --fmad=true, and enables the contraction.
 if (BUILD_GPU)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
+set_source_files_properties(Domain_d.C PROPERTIES LANGUAGE CUDA)
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+ELSE ()
 
+ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
 # FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
 # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
 
 
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+# include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
-set_source_files_properties(Domain_d.C PROPERTIES LANGUAGE CUDA)
+# set_source_files_properties(Domain_d.C PROPERTIES LANGUAGE CUDA)
 
 add_executable(MetFEMGPU
-                        # WeldFormGPU.cu
-                        # Domain.cpp 
-													# Output.cpp
-													# Vector.cpp
-                          # Mesh.cpp
                           main.cu
 													Domain_d.C
                           cuda/Matrices.cu
@@ -129,8 +128,8 @@ TARGET_LINK_LIBRARIES (MetFEMGPU cuda cudadevrt)
     # ADD_EXECUTABLE        (${EXES} "Plate-Yield.cpp")
     # TARGET_LINK_LIBRARIES (${EXES} ${LIBS} blitz)
     # SET_TARGET_PROPERTIES (${EXES} PROPERTIES COMPILE_FLAGS "${FLAGS}" LINK_FLAGS "${LFLAGS}")
-else()
-add_executable(MetFEMGPU
-              main.cpp)
+# else()
+# add_executable(MetFEMGPU
+              # main.cpp)
 
-endif ()
+# endif ()

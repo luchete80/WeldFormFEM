@@ -14,6 +14,8 @@
 #include <string>
 #include <string.h>
 //#include <dnlKernel.h>
+#include <cmath> //sqrt
+#include "Macros.h"
 
 class Tensor2;
 class SymTensor2;
@@ -378,7 +380,7 @@ inline void Vec3D::operator/=(const double lambda)
 {
   if (lambda == 0.0)
   {
-    fatalError("Vec3D:: operator /=", "divide by zero");
+//    fatalError("Vec3D:: operator /=", "divide by zero");
   }
   _data[0] /= lambda;
   _data[1] /= lambda;
