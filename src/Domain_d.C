@@ -74,18 +74,7 @@ dev_t void Domain_d::AssignMatAddress(int i){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-  //int n;
-#ifdef  CUDA_BUILD  
-  int n = threadIdx.x + blockDim.x*blockIdx.x;
-  // !!! PREDICTION PHASE
-  // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
-  // !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
-  // nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
-  // nod%a = 0.0d0  
-  if (n < m_node_count){
-#else
-  for (int n=0;n<m_node_count;n++){
-#endif
+  par_loop (n,m_node_count){
     printf ("node %d\n", n);
     vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
     vector_t_Ptr(x_,x,n);
@@ -94,13 +83,7 @@ dev_t void Domain_d::UpdatePrediction(){
 }
 
 dev_t void Domain_d::UpdateCorrection(){
-  int n = threadIdx.x + blockDim.x*blockIdx.x;
-  // !!! PREDICTION PHASE
-  // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
-  // !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
-  // nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
-  // nod%a = 0.0d0  
-  if (n < m_node_count){
+  par_loop (n,m_node_count){
     printf ("node %d\n", n);
     vector_t_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
@@ -150,7 +133,7 @@ host_   void Domain_d::AllocateBCs() {
   
 }
 
-__device__ void Domain_d::ImposeBCV(const int dim){
+dev_t void Domain_d::ImposeBCV(const int dim){
   int n = threadIdx.x + blockDim.x*blockIdx.x;
 
   if (n<bc_count[dim]){
@@ -364,7 +347,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		delete [] elnod_h, nodel_count_h, nodel_h, nodel_loc_h;
 }
 
-__device__ void Domain_d::calcElemJAndDerivatives () {
+dev_t void Domain_d::calcElemJAndDerivatives () {
 	//printf("calculating\n");
 	//printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
   
