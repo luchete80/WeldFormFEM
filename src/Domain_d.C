@@ -73,7 +73,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
     cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
-    cudaMemcpy(materials, material_h, 1 * sizeof(Material_), cudaMemcpyHostToDevice);	
+    memcpy_t(materials, material_h, 1 * sizeof(Material_));	
 }
 
 dev_t void Domain_d::AssignMatAddress(int i){
@@ -116,6 +116,7 @@ host_   void Domain_d::AllocateBCs() {
   cudaMalloc((void **)&bcy_val, bc_count[1] * sizeof (double)); 
   cudaMalloc((void **)&bcz_val, bc_count[2] * sizeof (double)); 
   
+  //ONLY FOR COMPLETENESS IN CASE OF CPU CODE
   double *bcx_val_h_ptr = new double [bc_count[0]];
   int *bcx_nod_h_ptr = new int [bc_count[0]];
 
@@ -130,12 +131,12 @@ host_   void Domain_d::AllocateBCs() {
   for (int i=0;i<bcz_nod_h.size();i++){bcz_nod_h_ptr[i]= bcz_nod_h[i];bcz_val_h_ptr[i]= bcz_val_h[i];}
   
   #ifdef CUDA_BUILD
-  cudaMemcpy(bcx_val, bcx_val_h_ptr, sizeof(double) * bc_count[0], cudaMemcpyHostToDevice);    
-  cudaMemcpy(bcx_nod, bcx_nod_h_ptr, sizeof(int) * bc_count[0], cudaMemcpyHostToDevice);   
-  cudaMemcpy(bcy_val, bcy_val_h_ptr, sizeof(double) * bc_count[1], cudaMemcpyHostToDevice);    
-  cudaMemcpy(bcy_nod, bcy_nod_h_ptr, sizeof(int) * bc_count[1], cudaMemcpyHostToDevice);   
-  cudaMemcpy(bcz_val, bcz_val_h_ptr, sizeof(double) * bc_count[2], cudaMemcpyHostToDevice);    
-  cudaMemcpy(bcz_nod, bcz_nod_h_ptr, sizeof(int) * bc_count[2], cudaMemcpyHostToDevice);   
+  memcpy_t(bcx_val, bcx_val_h_ptr, sizeof(double) * bc_count[0]);    
+  memcpy_t(bcx_nod, bcx_nod_h_ptr, sizeof(int) * bc_count[0]);   
+  memcpy_t(bcy_val, bcy_val_h_ptr, sizeof(double) * bc_count[1]);    
+  memcpy_t(bcy_nod, bcy_nod_h_ptr, sizeof(int) * bc_count[1]);   
+  memcpy_t(bcz_val, bcz_val_h_ptr, sizeof(double) * bc_count[2]);    
+  memcpy_t(bcz_nod, bcz_nod_h_ptr, sizeof(int) * bc_count[2]);   
   #else
   #endif
 
@@ -229,7 +230,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
     //cout <<"m_node size"<<m_node.size()<<endl;
     } 
-		cudaMemcpy(this->x, x_H, sizeof(vector_t) * m_node_count, cudaMemcpyHostToDevice);    
+		memcpy_t(this->x, x_H, sizeof(vector_t) * m_node_count);    
 
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
@@ -305,7 +306,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		}//if dim 
 
     cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));		
-		cudaMemcpy(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem, cudaMemcpyHostToDevice);    
+		memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem);    
     
     cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
     
@@ -334,12 +335,15 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       }//nod x elem 
     }
 
-    //malloc_t ()M
-    cudaMalloc((void **)&m_nodel,     nodel_tot * sizeof (int));
-    cudaMalloc((void **)&m_nodel_loc, nodel_tot * sizeof (int));
-
-		cudaMemcpy(this->m_nodel,     nodel_h,     sizeof(int) * nodel_tot, cudaMemcpyHostToDevice); 
-		cudaMemcpy(this->m_nodel_loc, nodel_loc_h, sizeof(int) * nodel_tot, cudaMemcpyHostToDevice); 
+    // cudaMalloc((void **)&m_nodel,     nodel_tot * sizeof (int));
+    // cudaMalloc((void **)&m_nodel_loc, nodel_tot * sizeof (int));
+    
+    malloc_t (m_nodel,    double,nodel_tot);
+    malloc_t (m_nodel_loc,double,nodel_tot);
+    
+    //THIS IS ONLY FOR COMPLETENESS IN CASE OF CPU, SHOULD BE BETTER TO WRITE ON FINALL ARRAY
+		memcpy_t(this->m_nodel,     nodel_h,     sizeof(int) * nodel_tot); 
+		memcpy_t(this->m_nodel_loc, nodel_loc_h, sizeof(int) * nodel_tot); 
     
     // ///// TESTING
     for (int n=0;n<m_node_count;n++){

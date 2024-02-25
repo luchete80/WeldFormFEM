@@ -15,7 +15,9 @@
 #define Ptr_vector_t  Ptr_double3
 #define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
-#define malloc_t(x,t,y)     cudaMalloc((void **)&x, y * sizeof (t))
+#define malloc_t(x,t,y)           cudaMalloc((void **)&x, y * sizeof (t))
+#define memcpy_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyHostToDevice)
+
 #define par_loop(n,upto)    int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
 #else
@@ -32,6 +34,7 @@ inline void Vec3D_Ptr(const Vec3D v, double *p, const int i);
 #define vector_t_Ptr  Vec3D_Ptr
 
 #define malloc_t(x,t,y) x = (t*) malloc(y * sizeof(t))
+#define memcpy_t(dest,src,size)   memcpy(dest,src,size)
 #define par_loop(n,upto)   int n;for(int n=0;n<upto;n++)
 #endif
 
