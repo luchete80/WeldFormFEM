@@ -145,9 +145,7 @@ host_   void Domain_d::AllocateBCs() {
 }
 
 dev_t void Domain_d::ImposeBCV(const int dim){
-  int n = threadIdx.x + blockDim.x*blockIdx.x;
-
-  if (n<bc_count[dim]){
+  par_loop (n,bc_count[dim]){
     double val;
     printf("thread %d, Imposing Vel in dim %d\n", n, dim);
     
