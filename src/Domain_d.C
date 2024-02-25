@@ -334,6 +334,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       }//nod x elem 
     }
 
+    //malloc_t ()M
     cudaMalloc((void **)&m_nodel,     nodel_tot * sizeof (int));
     cudaMalloc((void **)&m_nodel_loc, nodel_tot * sizeof (int));
 
