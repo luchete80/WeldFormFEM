@@ -24,26 +24,31 @@
     You should have received a copy of the GNU General Public License
     along with GPUSPH.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _MATRIX_CUH_
-#define _MATRIX_CUH_
+#ifndef _MATRIX_H_
+#define _MATRIX_H_
+
+#ifdef CUDA_BUILD
 
 #include <cuda.h>
 #define __spec __device__ __inline__
+#else 
+#define __spec __inline__
+#endif
 
 class Matrix {
 public: 
   __spec Matrix(){}
   __spec Matrix(const int &row, const int &col);
   
-  __spec double & getVal(const int &a, const int &b);
-  __spec double & operator()(const int &a, const int &b);
+  __spec double & getVal(int a, int b);
+  __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int &r, const int &c, const double &d);
 	__spec void Print();
   __spec Matrix & Transpose();
   
-  __device__ ~Matrix(){/*cudaFree (m_data);*/
+  __spec ~Matrix(){/*cudaFree (m_data);*/
                        free(m_data);}
 	
 	__spec double calcDet();
@@ -62,7 +67,7 @@ __spec Matrix::Matrix(const int &row, const int &col) {
   m_row = row;
   m_col = col;
 	if (m_row == m_col) m_dim = m_row;
-  //cudaMalloc((void**)&m_data, row * col * sizeof(double));
+  //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
   m_data = (double*)malloc(row * col);
   //for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
@@ -88,11 +93,11 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
 
 }
 
-  __spec double & Matrix::getVal(const int &a, const int &b){
+  __spec double & Matrix::getVal(int a, int b){
     return m_data[m_row*a+b];
   }
   
-  __spec double & Matrix::operator()(const int &a, const int &b){
+  __spec double & Matrix::operator()(int a, int b){
     return m_data[m_row*a+b];
   }
 

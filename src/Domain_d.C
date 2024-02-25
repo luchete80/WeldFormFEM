@@ -2,11 +2,12 @@
 #include <iostream>
 #include <vector>
 
+#include "Matrix.h"
+
 #ifdef CUDA_BUILD
 
 #include "vector_math.h"
 #include "tensor.cuh"
-#include "Matrix.cuh"
 
 #else
 
@@ -57,14 +58,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(rho,    double, m_elem_count * m_gp_count );   
   malloc_t(rho_0,  double, m_elem_count * m_gp_count ); 
   
-  cudaMalloc((void **)&vol,       m_elem_count * sizeof (double)); 
-  cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
-  
-  cudaMalloc((void **)&m_f_elem,  m_elem_count * m_dim * m_nodxelem * sizeof (double)); 
+  malloc_t(vol,      double, m_elem_count); 
+  malloc_t(vol_0,    double, m_elem_count); 
+  // cudaMalloc((void **)&vol,       m_elem_count * sizeof (double)); 
+  // cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
 
+  malloc_t(m_f_elem,    double, m_elem_count * m_dim * m_nodxelem);   
+  //cudaMalloc((void **)&m_f_elem,  m_elem_count * m_dim * m_nodxelem * sizeof (double)); 
 
-
-  cudaMalloc((void**)&mat,    m_elem_count * sizeof(Material_ *));
+  malloc_t(mat,    Material_*, m_elem_count);   
+  //cudaMalloc((void**)&mat,    m_elem_count * sizeof(Material_ *));
   
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
@@ -338,8 +341,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     // cudaMalloc((void **)&m_nodel,     nodel_tot * sizeof (int));
     // cudaMalloc((void **)&m_nodel_loc, nodel_tot * sizeof (int));
     
-    malloc_t (m_nodel,    double,nodel_tot);
-    malloc_t (m_nodel_loc,double,nodel_tot);
+    malloc_t (m_nodel,    int,nodel_tot);
+    malloc_t (m_nodel_loc,int,nodel_tot);
     
     //THIS IS ONLY FOR COMPLETENESS IN CASE OF CPU, SHOULD BE BETTER TO WRITE ON FINALL ARRAY
 		memcpy_t(this->m_nodel,     nodel_h,     sizeof(int) * nodel_tot); 

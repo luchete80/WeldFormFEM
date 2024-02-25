@@ -33,8 +33,8 @@
 inline void Vec3D_Ptr(const Vec3D v, double *p, const int i);
 #define vector_t_Ptr  Vec3D_Ptr
 
-#define malloc_t(x,t,y) x = (t*) malloc(y * sizeof(t))
-#define memcpy_t(dest,src,size)   memcpy(dest,src,size)
+#define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))
+#define memcpy_t(dest,src,size)   memcpy(dest,src,size)     
 #define par_loop(n,upto)   int n;for(int n=0;n<upto;n++)
 #endif
 
