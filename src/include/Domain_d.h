@@ -9,8 +9,9 @@
 
 #ifdef  CUDA_BUILD
 #include <cuda.h>
-#include "cuda/cudautils.cuh"
 #endif
+
+#include "utils.h"
 
 #include "Material.cuh"
 

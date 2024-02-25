@@ -38,16 +38,24 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (m_dH_detJ_dy,double, m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dy,double, m_nodxelem * m_elem_count * m_gp_count);
   
-  cudaMalloc((void **)&m_detJ,  m_elem_count * m_gp_count * sizeof (double)); 
-  
-  cudaMalloc((void **)&m_str_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
-  cudaMalloc((void **)&m_rot_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
-  cudaMalloc((void **)&m_sigma,     m_elem_count * m_gp_count * 6 * sizeof (double)); 
-  
+
+  malloc_t(m_detJ, double, m_elem_count * m_gp_count );     
+  //cudaMalloc((void **)&m_detJ,  m_elem_count * m_gp_count * sizeof (double)); 
+
+  //cudaMalloc((void **)&m_str_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  //cudaMalloc((void **)&m_rot_rate,  m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  //cudaMalloc((void **)&m_sigma,     m_elem_count * m_gp_count * 6 * sizeof (double)); 
+  malloc_t(m_str_rate,  double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_rot_rate,  double, 6 * m_elem_count * m_gp_count );     
+  malloc_t(m_sigma,     double, 6 * m_elem_count * m_gp_count );   
+
   ///// ELEMENTAL VALUES
-  cudaMalloc((void **)&p,         m_elem_count * m_gp_count * sizeof (double)); 
-  cudaMalloc((void **)&rho,       m_elem_count * m_gp_count * sizeof (double)); 
-  cudaMalloc((void **)&rho_0,     m_elem_count * m_gp_count * sizeof (double)); 
+  // cudaMalloc((void **)&p,         m_elem_count * m_gp_count * sizeof (double)); 
+  // cudaMalloc((void **)&rho,       m_elem_count * m_gp_count * sizeof (double)); 
+  // cudaMalloc((void **)&rho_0,     m_elem_count * m_gp_count * sizeof (double)); 
+  malloc_t(p,      double, m_elem_count * m_gp_count ); 
+  malloc_t(rho,    double, m_elem_count * m_gp_count );   
+  malloc_t(rho_0,  double, m_elem_count * m_gp_count ); 
   
   cudaMalloc((void **)&vol,       m_elem_count * sizeof (double)); 
   cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
@@ -58,8 +66,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   cudaMalloc((void**)&mat,    m_elem_count * sizeof(Material_ *));
   
+  #ifdef CUDA_BUILD
 	report_gpu_mem_();
-
+  #endif
 }
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
@@ -74,9 +83,7 @@ dev_t void Domain_d::AssignMatAddress(int i){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-    par_loop (n,m_node_count){
-    //n=threadIdx.x+blockDim.x*blockIdx.x;if(n<m_node_count){
-//int n = threadIdx.x + blockDim.x*blockIdx.x; if (n < m_node_count){
+  par_loop (n,m_node_count){
     printf ("node %d\n", n);
     vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
     vector_t_Ptr(x_,x,n);
@@ -122,14 +129,16 @@ host_   void Domain_d::AllocateBCs() {
   for (int i=0;i<bcy_nod_h.size();i++){bcy_nod_h_ptr[i]= bcy_nod_h[i];bcy_val_h_ptr[i]= bcy_val_h[i];} 
   for (int i=0;i<bcz_nod_h.size();i++){bcz_nod_h_ptr[i]= bcz_nod_h[i];bcz_val_h_ptr[i]= bcz_val_h[i];}
   
-  
+  #ifdef CUDA_BUILD
   cudaMemcpy(bcx_val, bcx_val_h_ptr, sizeof(double) * bc_count[0], cudaMemcpyHostToDevice);    
   cudaMemcpy(bcx_nod, bcx_nod_h_ptr, sizeof(int) * bc_count[0], cudaMemcpyHostToDevice);   
   cudaMemcpy(bcy_val, bcy_val_h_ptr, sizeof(double) * bc_count[1], cudaMemcpyHostToDevice);    
   cudaMemcpy(bcy_nod, bcy_nod_h_ptr, sizeof(int) * bc_count[1], cudaMemcpyHostToDevice);   
   cudaMemcpy(bcz_val, bcz_val_h_ptr, sizeof(double) * bc_count[2], cudaMemcpyHostToDevice);    
   cudaMemcpy(bcz_nod, bcz_nod_h_ptr, sizeof(int) * bc_count[2], cudaMemcpyHostToDevice);   
-  
+  #else
+  #endif
+
   delete bcx_val_h_ptr,bcy_val_h_ptr,bcz_val_h_ptr;
   delete bcx_nod_h_ptr,bcy_nod_h_ptr,bcz_nod_h_ptr;
   

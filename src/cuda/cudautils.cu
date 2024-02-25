@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "cudautils.cuh"
+#include "utils.h"
 
 
 

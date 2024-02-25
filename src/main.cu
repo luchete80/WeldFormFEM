@@ -1,7 +1,7 @@
 #include "Domain_d.h"
 
 #include <iostream>
-#include "cuda/cudautils.cuh"
+#include "defs.h"
 
 using namespace MetFEM;
 
