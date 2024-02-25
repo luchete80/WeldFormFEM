@@ -23,7 +23,7 @@
 #else
 
 #include "Vec3D.h"
-
+#define __global__ 
 #define spec_
 #define vector_t Vec3D
 #define dev_t

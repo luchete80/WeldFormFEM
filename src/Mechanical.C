@@ -4,7 +4,7 @@
 
 #include "tensor.cuh"
 // #include "tensor.cu"
-#include "Matrix.cuh"
+#include "Matrix.h"
 
 using namespace std;
 
@@ -95,14 +95,14 @@ namespace MetFEM {
   // end do !element
 // end subroutine
 
-__device__ void Domain_d::calcElemStrains(){
-
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
+dev_t void Domain_d::calcElemStrains(){
   Matrix *str_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
   Matrix *rot_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
+  par_loop(e,m_elem_count){
+
   //Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
 
-  if (e < m_elem_count) {
+//  if (e < m_elem_count) {
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count * 6 + gp;
   // elem%str_rate = 0.0d0
@@ -207,9 +207,8 @@ __device__ void Domain_d::calcElemStrains(){
 }
 
 //To calculate before elemet Jacobian calc
-__device__ void Domain_d::CalcElemVol(){
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+dev_t void Domain_d::CalcElemVol(){
+  par_loop(e,m_elem_count){
     double w;
     if (m_gp_count == 1)  w = 2 * m_dim;      
     else                  w = pow(2.0, m_dim);
@@ -221,9 +220,8 @@ __device__ void Domain_d::CalcElemVol(){
   }
 }
 
-__device__ void Domain_d::calcElemDensity(){ 
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+dev_t void Domain_d::calcElemDensity(){ 
+  par_loop(e,m_elem_count){
 //!!!!! ASSUME VOLUME IS ALREADY CALCULATED
 //subroutine calc_elem_density ()
   // implicit none
@@ -246,10 +244,9 @@ __device__ void Domain_d::calcElemDensity(){
   }
 }
 
-__device__ void Domain_d::CalcElemInitialVol(){
+dev_t void Domain_d::CalcElemInitialVol(){
   CalcElemVol();
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+  par_loop(e,m_elem_count){
     int offset = m_gp_count * e;
     for (int gp=0;gp<m_gp_count;gp++){
       vol_0[e] = vol[e];
@@ -258,9 +255,8 @@ __device__ void Domain_d::CalcElemInitialVol(){
   }  
 }
 
-__device__ void Domain_d::calcElemForces(){
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+dev_t void Domain_d::calcElemForces(){
+  par_loop(e,m_elem_count){
     for (int gp=0;gp<m_gp_count;gp++){
 	
   // integer :: e, i,j,k, gp,n, d
@@ -347,15 +343,9 @@ __device__ void Domain_d::calcElemForces(){
     }//if e<elem_count
 }
 
-  __global__ void calcElemForcesKernel(Domain_d *dom_d){
-		
-		dom_d->calcElemForces();
-}
+dev_t void Domain_d::calcElemPressure(){
 
-__device__ void Domain_d::calcElemPressure(){
-
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+  par_loop(e,m_elem_count){
     Matrix *sigma = new Matrix(m_dim,m_dim);
     //sigma.FromFlatSymPtr();
     double trace;
@@ -405,7 +395,7 @@ __device__ void Domain_d::calcElemPressure(){
 // 
 // !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
-__device__ void Domain_d::CalcStressStrain(const double dt){
+dev_t void Domain_d::CalcStressStrain(const double dt){
 
     // Jaumann rate terms
   tensor3 RotationRateT,SRT,RS;
@@ -427,8 +417,7 @@ __device__ void Domain_d::CalcStressStrain(const double dt){
   // ident = 0.0d0
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
 
-  int e = threadIdx.x + blockDim.x*blockIdx.x;  
-  if (e < m_elem_count) {
+  par_loop(e,m_elem_count){
     int offset = e * m_gp_count ;
     for (int gp=0;gp<m_gp_count;gp++){
   // do e = 1, elem_count  
@@ -564,6 +553,7 @@ __device__ void Domain_d::CalcStressStrain(const double dt){
 	// }//particle count
 // }
 
+  /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		
     dom_d->calcElemPressure();
   }
@@ -585,6 +575,10 @@ __device__ void Domain_d::CalcStressStrain(const double dt){
     dom_d->CalcStressStrain(dt);
   }
 
+  __global__ void calcElemForcesKernel(Domain_d *dom_d){
+		
+		dom_d->calcElemForces();
+  }
 
  
 }; //Namespace MetFEM

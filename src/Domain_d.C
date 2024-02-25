@@ -614,8 +614,6 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   // //return ret;
 // }
 
-#ifdef CUDA_BUILD
-
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
 		
 		dom_d->calcElemJAndDerivatives();
@@ -637,8 +635,6 @@ __global__ void AssignMatAddressKernel(Domain_d *dom){
   int i = threadIdx.x + blockDim.x*blockIdx.x;
   dom->AssignMatAddress(i);
 }
-
-#endif
 
 };
 	
