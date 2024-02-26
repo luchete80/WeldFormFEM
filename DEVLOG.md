@@ -26,3 +26,4 @@
 20240224 - Begining to add Vec3D (from tiny and great DynELA) TODO: MAKING GPU/CPU MATH SUBMODULE (BASED ON DYNELA (CPU) AND (EVENTUALLY) TENSOR (GPUSPH)
          - DISCARD DOUBLE3 AND REPLACE IT WITH VECTORS/MATRICES
 20240225 - Added memcpy
+20240226 - Added Solver, Mechanical and Matrices files for CPU Solver

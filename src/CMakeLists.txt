@@ -34,7 +34,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  # The --use_fast_math option implies --fmad=true, and enables the contraction.
 if (BUILD_GPU)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Mechanical.C PROPERTIES LANGUAGE CUDA)
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
 
@@ -52,10 +52,10 @@ ENDIF()
 add_executable(MetFEMGPU
                           main.cu
 													Domain_d.C
-                          cuda/Matrices.cu
+                          Matrices.C
                           Mechanical.C
                           cuda/cudautils.cu
-													cuda/Solver.cu
+													Solver.C
 
               )
 

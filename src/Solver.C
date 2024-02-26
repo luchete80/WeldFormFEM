@@ -5,19 +5,23 @@ using namespace std;
 
 namespace MetFEM{
 
-	void __host__ Domain_d::SolveChungHulbert(){
-	
-	int N = getElemCount();
+	void host_ Domain_d::SolveChungHulbert(){
+
+  int N;
+	N = getElemCount();
+  #if CUDA_BUILD
 	threadsPerBlock = 256; //Or BlockSize
 	//threadsPerBlock = 1; //Or BlockSize
 	blocksPerGrid =				// Or gridsize
 	(N + threadsPerBlock - 1) / threadsPerBlock;
 	cout << "Blocks per grid"<<blocksPerGrid<<", Threads per block"<< threadsPerBlock<<endl;
 
-
   ////// MATERIAL
   AssignMatAddressKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize();
+  #else 
+  AssignMatAddress();
+  #endif
   
 
   double rho_b = 0.8182;  // DEFAULT SPECTRAL RADIUS
@@ -31,21 +35,31 @@ namespace MetFEM{
   printf ("gamma %f", m_gamma);
   
   
-	
+	#if CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-
-	calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
+  #else
+  calcElemJAndDerivatives();
+  CalcElemInitialVol();
+  #endif
+	
   
   Time = 0.0;
   
   while (Time < end_t) {
 
+  #if CUDA_BUILD
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+  #endif
+  #if CUDA_BUILD
   UpdatePredictionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
+  #else
+  UpdatePrediction();  
+  #endif
   
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
@@ -59,15 +73,21 @@ namespace MetFEM{
   for (int d=0;d<m_dim;d++){
     N = bc_count[d];
     blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-
+    
+    #ifdef CUDA_BUILD
     ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
     cudaDeviceSynchronize();
+    #else
+      ImposeBCV(d);
+    #endif
   }
 
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  
+  //ELEMENT PARALLEL
 
-
+  #ifdef CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
 
@@ -82,16 +102,26 @@ namespace MetFEM{
 
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize();   
-
+  #else
+  calcElemJAndDerivatives();
+  #endif
   // calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   // cudaDeviceSynchronize();   
 
+
+
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  
+
+  #ifdef CUDA_BUILD
   UpdateCorrectionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-
+  
+  #else
+    
+  UpdateCorrection();
+  
+  #endif
 
 	// !$omp parallel do num_threads(Nproc) private (n)  
 	// do n=1,node_count

@@ -45,7 +45,6 @@ public:
   dev_t void calcElemPressure(); //FROM STRAIN
 
   dev_t void assemblyForces();
-  dev_t void assemblyForcesNonLock();
   
   host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
   host_   void AllocateBCs();

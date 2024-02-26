@@ -30,7 +30,10 @@
 #include <cmath> //POW
 #define host_ 
 #define make_vector_t Vec3D
+//#define V_.x   V_[0]
 inline void Vec3D_Ptr(const Vec3D v, double *p, const int i);
+inline Vec3D Ptr_Vec3D(double *p, const int i);
+#define Ptr_vector_t  Ptr_Vec3D
 #define vector_t_Ptr  Vec3D_Ptr
 
 #define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))

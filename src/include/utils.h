@@ -9,7 +9,8 @@ inline  __device__ void double3_Ptr(const double3 v, double *p, const int i){p[3
 inline  __device__ double3 Ptr_double3(double *p, const int i){return make_double3(p[3*i],p[3*i+1],p[3*i+2]);}
 
 #else
-inline dev_t void Vec3D_Ptr(const Vec3D v, double *p, const int i){p[3*i]=v(0);p[3*i+1]=v(1);p[3*i+2]=v(2);}
+inline void Vec3D_Ptr(const Vec3D v, double *p, const int i){p[3*i]=v(0);p[3*i+1]=v(1);p[3*i+2]=v(2);}
+inline Vec3D Ptr_Vec3D(double *p, const int i){return Vec3D(p[3*i],p[3*i+1],p[3*i+2]);}
 #endif
 
 #endif
