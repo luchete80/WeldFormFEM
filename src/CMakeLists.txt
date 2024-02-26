@@ -1,14 +1,5 @@
-cmake_minimum_required(VERSION 3.2)
 
-if (NOT DEFINED BUILD_GPU)
-SET(BUILD_GPU OFF)
-endif (NOT DEFINED BUILD_GPU)
 
-if (BUILD_GPU)
-  add_compile_definitions(CUDA_BUILD)
-endif (BUILD_GPU)
-
-PROJECT (MetFEMGPU)
 
 if (BUILD_GPU)
 project (MetFEMGPU LANGUAGES CXX CUDA)
@@ -20,6 +11,8 @@ endif (BUILD_GPU)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/cuda)
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
+
 
 link_directories(${CUNSEARCH_LIB_DIR})
 link_directories(${cuNSearch_BINARY_DIR})
@@ -34,7 +27,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
  # The --use_fast_math option implies --fmad=true, and enables the contraction.
 if (BUILD_GPU)
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C PROPERTIES LANGUAGE CUDA)
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
 

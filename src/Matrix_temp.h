@@ -28,6 +28,7 @@
 #define _MATRIX_H_
 
 #ifdef CUDA_BUILD
+#include "defs.h"
 
 #include <cuda.h>
 #define __spec __device__ __inline__

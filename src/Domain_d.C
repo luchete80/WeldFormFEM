@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 
-#include "Matrix.h"
+#include "Matrix_temp.h"
 
 #ifdef CUDA_BUILD
 
@@ -10,7 +10,7 @@
 #include "tensor.cuh"
 
 #else
-
+// #include "Matrix.h"
 #endif 
 
 using namespace std;
@@ -424,8 +424,12 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         // ! print *, "nodes X ", x2(:,1)
         // ! print *, "nodes Y ", x2(:,2)
         for (int d=0;d<2;d++){
+          #ifdef CUDA_BUILD
           jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
           jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
+          #else 
+          jacob->operator()(0,d) = -x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d);
+          #endif
         }
         // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)

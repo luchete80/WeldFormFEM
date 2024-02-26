@@ -4,7 +4,12 @@
 
 #include "tensor.cuh"
 // #include "tensor.cu"
-#include "Matrix.h"
+#include "Matrix_temp.h"
+#if CUDA_BUILD
+
+#else
+//#include "Matrix.h"
+#endif
 
 using namespace std;
 
