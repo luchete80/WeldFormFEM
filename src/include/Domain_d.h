@@ -62,7 +62,7 @@ public:
 	const int & getNodeCount()const{return m_node_count;}
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
-  dev_t void AssignMatAddress(int i); //Assign particle data to material array to zero array
+  dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
   dev_t void CalcStressStrain(const double dt);
 
   

@@ -75,12 +75,13 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 }
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
-    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
+//    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
+    malloc_t(materials, Material_,1);
     memcpy_t(materials, material_h, 1 * sizeof(Material_));	
 }
 
-dev_t void Domain_d::AssignMatAddress(int i){
-  if (i< m_elem_count)
+dev_t void Domain_d::AssignMatAddress(){
+  par_loop(i, m_elem_count)
     mat[i] = &materials[0];
   
 }
@@ -368,7 +369,6 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 	//printf("calculating\n");
 	//printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
   
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
   
 	Matrix *jacob = new Matrix(m_dim, m_dim);    
 	Matrix *inv_j = new Matrix(m_dim, m_dim);    
@@ -378,7 +378,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   
    
 	//printf ("e %d, elem_count %d\n",m_elem_count);
-  if (e < m_elem_count) {
+  par_loop (e, m_elem_count) {
   int offset = m_gp_count * e;
   // integer :: e
   // ! !rg=gauss[ig]
@@ -632,8 +632,7 @@ __global__ void UpdateCorrectionKernel(Domain_d *dom_d){
 }
 
 __global__ void AssignMatAddressKernel(Domain_d *dom){
-  int i = threadIdx.x + blockDim.x*blockIdx.x;
-  dom->AssignMatAddress(i);
+  dom->AssignMatAddress();
 }
 
 };
