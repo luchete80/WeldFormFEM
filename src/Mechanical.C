@@ -2,15 +2,16 @@
 #include <iostream>
 #include <vector>
 
-#include "tensor.cuh"
 // #include "tensor.cu"
 #include "Matrix_temp.h"
-#include "tensor.cuh"
-#if CUDA_BUILD
 
+#if CUDA_BUILD
+#include "tensor.cuh"
 #else
 //#include "Matrix.h"
 #endif
+
+#include "Tensor3.C"
 
 using namespace std;
 
@@ -404,11 +405,11 @@ dev_t void Domain_d::calcElemPressure(){
 dev_t void Domain_d::CalcStressStrain(const double dt){
 
     // Jaumann rate terms
-  tensor3 RotationRateT,SRT,RS;
+  symtensor3 RotationRateT,SRT,RS;
   tensor3 RotationRate;
-  tensor3 StrainRate;
+  symtensor3 StrainRate;
   tensor3 ShearStress,ShearStressa,ShearStressb;
-  tensor3 Sigma;
+  symtensor3 Sigma;
   tensor3 Strain,Straina,Strainb;
 	
   // implicit none
@@ -428,14 +429,17 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
     for (int gp=0;gp<m_gp_count;gp++){
   // do e = 1, elem_count  
     // do gp=1,elem%gausspc(e)
-
+      SRT = Sigma * Trans(RotationRate);
+      RS = RotationRate * ShearStress;
       // SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       // RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
-
+      
+      ShearStress = dt * (2.0 * ( StrainRate -SRT + RS));
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    // +SRT+RS) + elem%shear_stress(e,gp,:,:)
-    
+      // Sigma = ShearStress;
+      // ToFlatSymPtr(Sigma,m_sigma,offset);
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
     }//gp
   }//el < elcount

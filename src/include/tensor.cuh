@@ -61,5 +61,6 @@ typedef struct {
 	double zz;
 } tensor3 ;
 
+#include "tensor3.C"
 
 #endif

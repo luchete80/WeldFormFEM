@@ -28,10 +28,14 @@
 #define TENSOR_IMPL
 
 #include "tensor.cuh"
+#if CUDA_BUILD
 #include "vector_math.h"
+
 //#define __spec __device__ __forceinline__
 #define __spec __device__ __inline__
-
+#else
+  
+#endif
 
 #include <stdio.h> //Debug
 
@@ -221,7 +225,7 @@ clear(tensor3& T)
 	
 	// return ret;
 // }
-
+#ifdef CUDA_BUILD
 __spec double3 operator* (const tensor3 &m_data, const double3 &v){
 	double3 ret;
 	ret.x = m_data.xx*v.x + m_data.xy * v.y+m_data.xz*v.z;	
@@ -237,6 +241,9 @@ __spec double3 operator* (const double3 &v, const tensor3 &m_data){
 	ret.z = m_data.zx*v.x+m_data.zy*v.y+m_data.zz*v.z;	
 	return ret;
 }
+#else
+
+#endif
 
 __spec tensor3 operator* (const tensor3 &a, const tensor3 &b){
 	tensor3 ret;
@@ -282,7 +289,7 @@ __spec tensor3 operator* (const tensor3 &a, const tensor3 &b){
 	// return ret;
 // }
 
-__device__ tensor3 Trans (const tensor3 &m_data){
+__spec tensor3 Trans (const tensor3 &m_data){
 	tensor3 ret;
 	ret.xx = m_data.xx; 	ret.yy = m_data.yy; 	ret.zz = m_data.zz;
 	ret.xy = m_data.yx; 	ret.xz = m_data.zx; 	
