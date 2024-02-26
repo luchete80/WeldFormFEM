@@ -5,6 +5,7 @@
 #include "tensor.cuh"
 // #include "tensor.cu"
 #include "Matrix_temp.h"
+#include "tensor.cuh"
 #if CUDA_BUILD
 
 #else
