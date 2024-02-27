@@ -39,13 +39,13 @@
 class Matrix {
 public: 
   __spec Matrix(){}
-  __spec Matrix(const int &row, const int &col);
+  __spec Matrix(const int row, const int col);
   
   __spec double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   __spec Matrix & Mul(const double &f);
-  __spec void Set(const int &r, const int &c, const double &d);
+  __spec void Set(const int r, const int c, const double d);
 	__spec void Print();
   __spec Matrix & Transpose();
   
@@ -64,31 +64,36 @@ public:
 };
 
 
-__spec Matrix::Matrix(const int &row, const int &col) {
+__spec Matrix::Matrix(const int row, const int col) {
   m_row = row;
   m_col = col;
 	if (m_row == m_col) m_dim = m_row;
   //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
-  m_data = (double*)malloc(row * col * sizeof(double));
-  //for (int i=0;i<row*col;i++) m_data[i] = 0.0;
+  m_data = (double*)malloc(row * col * sizeof (double));
+  for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
 
 //// OPERATION WITH MATRIX CREATION COULD PRODUCE MEM LEAKING
 __spec Matrix MatMul(Matrix &A, Matrix &B){
   Matrix ret(A.m_row,B.m_col);
   for (int i = 0; i<A.m_row; i++)
-    for (int j = 0; j<A.m_col; j++)
+    for (int j = 0; j<B.m_col; j++)
       for (int k = 0; k<A.m_col; k++)
-        ret.m_data[i * A.m_row + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
+        //ret.m_data[i * A.m_ + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
+        ret.getVal(i,j) += A.getVal(i,k) * B.getVal(k,j); 
+  
+  
   
   return ret;
 }
 
 __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
+  for (int i=0;i<A.m_row*B.m_col;i++) ret->m_data[i] = 0.0;
   for (int i = 0; i<A.m_row; i++)
-    for (int j = 0; j<A.m_col; j++)
+    for (int j = 0; j<B.m_col; j++)
       for (int k = 0; k<A.m_col; k++)
-        ret->m_data[i * A.m_row + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
+        //ret->m_data[i * A.m_row + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
+        ret->getVal(i,j) += A.getVal(i,k) * B.getVal(k,j); 
 
 }
 
@@ -97,10 +102,11 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
   }
   
   __spec double & Matrix::operator()(int a, int b){
-    return m_data[m_row*a+b];
+    return m_data[m_col*a+b];
   }
 
-  __spec void Matrix::Set(const int &r, const int &c, const double &d){
+  __spec void Matrix::Set(const int r, const int c, const double d){
+    if (r>m_row) printf("ERROR, trying to set row %d, max row %d",r, m_row);
     m_data[m_col*r+c] = d;
   }
   
