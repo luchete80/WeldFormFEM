@@ -36,6 +36,8 @@ int main(){
 	report_gpu_mem();
 	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
 	report_gpu_mem();
+  #else
+    dom_d = new Domain_d;
   #endif
 	
   double3 V = make_double3(0.0,0.0,0.0);
