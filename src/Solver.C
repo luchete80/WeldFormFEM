@@ -30,21 +30,23 @@ namespace MetFEM{
   m_beta  = (5.0 - 3.0 * rho_b) / ((1.0 + rho_b) * (1.0 + rho_b) * (2.0 - rho_b));
   m_gamma = 1.5 - m_alpha;
 
-  printf ("alpha %f", m_alpha);
-  printf ("beta %f",  m_beta);
-  printf ("gamma %f", m_gamma);
+  printf ("alpha %f\n", m_alpha);
+  printf ("beta %f\n",  m_beta);
+  printf ("gamma %f\n", m_gamma);
   
   
+  cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
+  cout << "Calculating Volume..."<<endl;
   calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
   #else
   calcElemJAndDerivatives();
   CalcElemInitialVol();
   #endif
-	
+	cout << "Done. "<<endl;
   
   Time = 0.0;
   

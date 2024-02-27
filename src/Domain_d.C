@@ -403,7 +403,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 	//double dHrs_fl[m_dim* m_nodxelem];
 	//dHrs->Print();
    Matrix *x2 = new Matrix(m_nodxelem, m_dim);
-
+  printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
    
    // printf("Jacob\n");jacob->Print();
    double gpc[8][3];
@@ -417,6 +417,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   int nind = e * m_nodxelem;
   for (int i=0;i<m_nodxelem;i++){
       vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
+      printf("elnod %d\n",m_elnod[nind+i]);
+      printf("x: %f %f %f\n",x_.x, x_.y,x_.z);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
       //printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
@@ -442,18 +444,6 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           jacob->operator()(0,d) = -x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d);
           #endif
         }
-        // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
-        // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
-        // elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
-          // !!!!! J-1 = dr/dx
-          // !!!! dHxy = J-1 x dHrs = [ ] x 0.25[-1 1 -1 1]
-          // !!!!                               [-1 -1 1 1]
-          // elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2) !For each 3 rows of inv J and dHdxy
-          // elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)
-          // elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)
-          // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
-          
-          // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
           
 			} else { //!!!DIM 3
 
@@ -518,20 +508,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           
           dHrs->Set(0,6,     (1+gpc[gp][1])*(1.0+gpc[gp][2]));  dHrs->Set(1,6,     (1+gpc[gp][0])*(1.0+gpc[gp][2])); dHrs->Set(2,6,     (1+gpc[gp][0])*(1.0+gpc[gp][1]));
           dHrs->Set(0,7,-1.0*(1+gpc[gp][1])*(1.0+gpc[gp][2]));  dHrs->Set(1,7,     (1-gpc[gp][0])*(1.0+gpc[gp][2])); dHrs->Set(2,7,     (1-gpc[gp][0])*(1.0+gpc[gp][1]));
-					
-          // dHrs(1,:)=[-1.0*(1-gpc(gp,2))*(1.0-gpc(gp,3)),     (1-gpc(gp,2))*(1.0-gpc(gp,3))&
-                    // ,     (1+gpc(gp,2))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0-gpc(gp,3))&
-                    // ,-1.0*(1-gpc(gp,2))*(1.0+gpc(gp,3)),     (1-gpc(gp,2))*(1.0+gpc(gp,3))&
-                    // ,     (1+gpc(gp,2))*(1.0+gpc(gp,3)),-1.0*(1+gpc(gp,2))*(1.0+gpc(gp,3))]
-          // dHrs(2,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,3))&
-                         // ,(1+gpc(gp,1))*(1.0-gpc(gp,3)),     (1-gpc(gp,1))*(1.0-gpc(gp,3))&
-                    // ,-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,3)),-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,3))&
-                         // ,(1+gpc(gp,1))*(1.0+gpc(gp,3)),     (1-gpc(gp,1))*(1.0+gpc(gp,3))]
-          // dHrs(3,:)=[-1.0*(1-gpc(gp,1))*(1.0-gpc(gp,2)),-1.0*(1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    // ,-1.0*(1+gpc(gp,1))*(1.0+gpc(gp,2)),-1.0*(1-gpc(gp,1))*(1.0+gpc(gp,2))&
-                    // ,     (1-gpc(gp,1))*(1.0-gpc(gp,2)),     (1+gpc(gp,1))*(1.0-gpc(gp,2))&
-                    // ,     (1+gpc(gp,1))*(1.0+gpc(gp,2)),     (1-gpc(gp,1))*(1.0+gpc(gp,2))]                     
-          
+					          
 
 					//*jacob = 0.125 * MatMul(*dHrs,*x2);
           MatMul(*dHrs,*x2,jacob);
@@ -614,7 +591,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
     printf("jacob\n");
     jacob->Print();
 	
-		//printf("END.");
+		printf("END.");
     
   } // e < elem_colunt
   

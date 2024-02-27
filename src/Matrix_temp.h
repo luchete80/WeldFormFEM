@@ -69,7 +69,7 @@ __spec Matrix::Matrix(const int &row, const int &col) {
   m_col = col;
 	if (m_row == m_col) m_dim = m_row;
   //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
-  m_data = (double*)malloc(row * col);
+  m_data = (double*)malloc(row * col * sizeof(double));
   //for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
 
@@ -80,8 +80,6 @@ __spec Matrix MatMul(Matrix &A, Matrix &B){
     for (int j = 0; j<A.m_col; j++)
       for (int k = 0; k<A.m_col; k++)
         ret.m_data[i * A.m_row + j] += A.m_data[i * A.m_row + k] * B.m_data[k * B.m_row + j ];
-  
-  
   
   return ret;
 }
@@ -95,7 +93,7 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
 }
 
   __spec double & Matrix::getVal(int a, int b){
-    return m_data[m_row*a+b];
+    return m_data[m_col*a+b];
   }
   
   __spec double & Matrix::operator()(int a, int b){
@@ -103,7 +101,7 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
   }
 
   __spec void Matrix::Set(const int &r, const int &c, const double &d){
-    m_data[m_row*r+c] = d;
+    m_data[m_col*r+c] = d;
   }
   
   __spec Matrix & Matrix::Transpose(){
