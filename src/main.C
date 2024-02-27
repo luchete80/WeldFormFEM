@@ -6,6 +6,7 @@
 using namespace MetFEM;
 
 using namespace std;
+#ifdef CUDA_BUILD
 void report_gpu_mem()
 {
     size_t free, total;
@@ -23,24 +24,27 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+
+#endif
+
 int main(){
 
 
 	Domain_d *dom_d;
 
+  #ifdef CUDA_BUILD
 	report_gpu_mem();
 	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
 	report_gpu_mem();
-		
-	double3 V = make_double3(0.0,0.0,0.0);
+  #endif
+	
+  double3 V = make_double3(0.0,0.0,0.0);
   double dx = 0.1;
 	double3 L = make_double3(dx,dx,dx);  
 	double r = 0.05;
 	
 	dom_d->AddBoxLength(V,L,r,true);
   
-  double *a;
-  cudaFree(a);
 
   ////// MATERIAL  
   double E, nu, rho;
@@ -48,6 +52,7 @@ int main(){
   nu  = 0.3;
   rho = 7850.0;
   
+  cout << "Creating Material..:"<<endl;
   Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
   Elastic_ el(E,nu);
   // cout << "Mat type  "<<mattype<<endl;
@@ -88,6 +93,7 @@ int main(){
 
     dom_d->AssignMaterial(material_h);
   } 
+  cout << "Done."<<endl;
   // else if (mattype == "Hollomon")    {
     // // material_h  = new Hollomon(el,Fy,c[0],c[1]);
     // // cout << "Material Constants, K: "<<c[0]<<", n: "<<c[1]<<endl;

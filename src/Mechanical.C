@@ -405,11 +405,11 @@ dev_t void Domain_d::calcElemPressure(){
 dev_t void Domain_d::CalcStressStrain(const double dt){
 
     // Jaumann rate terms
-  symtensor3 RotationRateT,SRT,RS;
+  tensor3 RotationRateT,SRT,RS;
   tensor3 RotationRate;
-  symtensor3 StrainRate;
+  tensor3 StrainRate;
   tensor3 ShearStress,ShearStressa,ShearStressb;
-  symtensor3 Sigma;
+  tensor3 Sigma;
   tensor3 Strain,Straina,Strainb;
 	
   // implicit none

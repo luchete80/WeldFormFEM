@@ -18,5 +18,3 @@ include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
 add_subdirectory (${PROJECT_SOURCE_DIR}/src)
 
-set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (conflicts with CXX17)!!!
-set(CMAKE_CXX_STANDARD_REQUIRED ON)

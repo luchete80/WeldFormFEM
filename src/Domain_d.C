@@ -88,9 +88,10 @@ dev_t void Domain_d::AssignMatAddress(){
 
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
+    vector_t prev_a = Ptr_vector_t(a, n);
     printf ("node %d\n", n);
-    vector_t x_ = dt * (getV(n) + 0.5 - m_beta);
-    vector_t_Ptr(x_,x,n);
+    vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
+    vector_t_Ptr(u_,x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
@@ -112,13 +113,21 @@ host_   void Domain_d::AddBCVelNode(const int &node, const int &dim, const doubl
 
 host_   void Domain_d::AllocateBCs() {
   for (int d=0;d<m_dim;d++){cout << "Allocated "<<bc_count[d]<< " Velocity BCs for dof "<<d<<endl; }
-  cudaMalloc((void **)&bcx_nod, bc_count[0] * sizeof (int)); 
-  cudaMalloc((void **)&bcy_nod, bc_count[1] * sizeof (int)); 
-  cudaMalloc((void **)&bcz_nod, bc_count[2] * sizeof (int)); 
+  // cudaMalloc((void **)&bcx_nod, bc_count[0] * sizeof (int)); 
+  // cudaMalloc((void **)&bcy_nod, bc_count[1] * sizeof (int)); 
+  // cudaMalloc((void **)&bcz_nod, bc_count[2] * sizeof (int)); 
 
-  cudaMalloc((void **)&bcx_val, bc_count[0] * sizeof (double)); 
-  cudaMalloc((void **)&bcy_val, bc_count[1] * sizeof (double)); 
-  cudaMalloc((void **)&bcz_val, bc_count[2] * sizeof (double)); 
+  malloc_t(bcx_nod, int, bc_count[0] );     
+  malloc_t(bcy_nod, int, bc_count[1] );     
+  malloc_t(bcz_nod, int, bc_count[2] );     
+
+  malloc_t(bcx_val, double, bc_count[0] );     
+  malloc_t(bcy_val, double, bc_count[1] );     
+  malloc_t(bcz_val, double, bc_count[2] );     
+  
+  // cudaMalloc((void **)&bcx_val, bc_count[0] * sizeof (double)); 
+  // cudaMalloc((void **)&bcy_val, bc_count[1] * sizeof (double)); 
+  // cudaMalloc((void **)&bcz_val, bc_count[2] * sizeof (double)); 
   
   //ONLY FOR COMPLETENESS IN CASE OF CPU CODE
   double *bcx_val_h_ptr = new double [bc_count[0]];
@@ -309,10 +318,12 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
 		}//if dim 
 
-    cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));		
+    //cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));	
+    malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
 		memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem);    
     
-    cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
+    //cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
+    malloc_t(m_jacob, Matrix, m_elem_count );
     
     //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
     int nodel_tot = 0;
