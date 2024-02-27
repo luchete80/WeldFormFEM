@@ -111,8 +111,8 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
   }
   
   __spec Matrix & Matrix::Transpose(){
-    for (int i=0;i<m_row*m_col;i++)
-      for (int j=0;j<m_col*m_col;j++)
+    for (int i=0;i<m_row;i++)
+      for (int j=0;j<m_col;j++)
         this->Set(j,i,this->getVal(i,j) );
     return *this;
   }
