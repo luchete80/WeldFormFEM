@@ -52,6 +52,12 @@ WITH INITIAL GEOMETRY
 
 Y LA INVERSA DEL JACOB ES
    
+    shape mat
+ INVJ   2.5000000000000005E-003  -0.0000000000000000        0.0000000000000000       
+ -0.0000000000000000        2.5000000000000005E-003  -0.0000000000000000        0
+ .0000000000000000       -0.0000000000000000        2.5000000000000005E-003
+ 
+ 
              elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2)-invJ(:,3) !For each 3 rows of inv J and dHdxy
           elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)-invJ(:,3)
           elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)-invJ(:,3)
