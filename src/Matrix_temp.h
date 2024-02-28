@@ -45,6 +45,39 @@ public:
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   //__spec Matrix  operator=(const Matrix &m);
+
+// Copy constructor
+    Matrix(const Matrix& other) : m_row(other.m_row), m_col(other.m_col) {
+        m_data = (double *)malloc(m_row * m_col * sizeof(double));
+        if (m_data == nullptr) {
+            std::cerr << "Memory allocation failed!" << std::endl;
+            //exit(EXIT_FAILURE);
+        }
+        memcpy(m_data, other.m_data, m_row * m_col * sizeof(double));
+    }
+
+    // Assignment operator
+    Matrix& operator=(const Matrix& other) {
+        if (this != &other) {
+            // Free existing memory
+            free(m_data);
+            
+            // Allocate new memory
+            m_row = other.m_row;
+            m_col = other.m_col;
+            m_data = (double *)malloc(m_row * m_col * sizeof(double));
+            if (m_data == nullptr) {
+                std::cerr << "Memory allocation failed!" << std::endl;
+                //exit(EXIT_FAILURE);
+            }
+
+            // Copy data
+            memcpy(m_data, other.m_data, m_row * m_col * sizeof(double));
+        }
+        return *this;
+    }
+
+
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int r, const int c, const double d);
 	__spec void Print();
