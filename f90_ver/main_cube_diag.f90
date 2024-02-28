@@ -8,8 +8,14 @@ use Domain
 use omp_lib
 use Matrices
 use SolverLeapfrog
+use SolverVerlet
+use SolverChungHulbert
+use SolverGreenNag
+use SolverKickDrift
+!use SolverRedVerlet
 use VTKOutput
-use class_ContMesh
+!use class_ContMesh
+use Mechanical  !Calc equivalent stress
 !use SolverVerlet
 !use Thermal
 !use Mechanical
@@ -37,12 +43,12 @@ implicit none
   integer, pointer :: eltest(:)
   real(fp_kind), dimension(1:3) :: V
   real(fp_kind) :: dx, r, Rxy, Lz, h , ck, young, poisson
-  integer:: i, tnr, maxt ,nn
+  integer:: i, tnr, maxt ,nn, el, d, d2
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
   real(fp_kind) :: start, finish
   real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
-  logical :: reduced_int
+  logical :: reduced_int, dim_2D
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
   integer, pointer :: ncount_int
   !type(Domain)	::dom
@@ -52,11 +58,15 @@ implicit none
    integer count_rate, count_max
    double precision time_init, time_final, elapsed_time
 
-    
+  type(Dom_type) :: dom
+  
   call omp_set_num_threads(12);
   
   maxt = omp_get_max_threads()
+		
+	Nproc = 12
   
+	dim_2D = .False.
    write( *, * ) 'Max threads ', maxt
    
   !CALL 10 x 10 element rectangle
@@ -69,9 +79,11 @@ implicit none
 
   Dim = 3
   L = 0.1	
-  dx    = 0.05d0
+  dx    = 0.1d0
   r = dx /2.0
   h = dx * 1.2
+  
+  ! plane_mode = pl_strain
 
    V(1) = 0.;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
@@ -81,7 +93,7 @@ implicit none
   rho = 7850.0
   
   poisson = 0.3
-  young = 200.0e9
+  young = 206.0e9
   
   print *, "mat_C", mat_C
 
@@ -91,7 +103,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .True.
+  reduced_int = .true.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   
   print *, "NODE ELEMENTS "
@@ -106,21 +118,56 @@ implicit none
   ! nod%is_bcv(4,:) = .true. !Node 1 restricted in 2 dimensions
 
 
-   do i=1,node_count
-    if (nod%x(i,1)<r) then
-      nod%is_fix(i,:) = .true.
-      print *, "Fixed Node ", i, " at: ", nod%x(i,:)
-    end if
-  end do
-
-  do i=1,node_count
-    if (nod%x(i,1)> (Lx - r) .and. nod%x(i,2) > (Ly -r) ) then
-      nod%is_bcv(i,2) = .true.
-      nod%bcv(i,2) = -1.0d0
-      print *, "Velocity Node ", i, " at: ", nod%x(i,:)
-    end if
-  end do
   
+  
+  ! IF VELOCITY IS APPLIED
+  !nod%is_bcv(6,:) = [.false.,.false.,.true.] !GLOBAL DOF TO ADJUST VELOCITY IN A 2 ELEMENT LENGTH CANTILEVDR BEAM  
+  !nod%bcv(6,:) = [0.0d0,0.0d0,-1.0d0]
+  !fext_glob(6,:) = []
+  !!!!! DIM # FORCE EXAMPLE
+  ! ! nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+  ! ! nod%is_fix(2,:) = .true. !Node 1 restricted in 2 dimensions
+  ! ! nod%is_fix(4,:) = .true. !Node 1 restricted in 2 dimensions
+  !elem%f_ext(1,6,:) = [0.0d0,0.0d0,-10.0d0]
+  !!!!! DIM 2
+  ! elem%f_ext(1,3,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
+  ! elem%f_ext(1,4,:) = [0.0d0,-1.0d0] !!!ELEMENT 1, node 3,
+  !!! CASE ONE ELEMENT VELOCITY, DIMENSION 2
+  if (dim == 2 ) then
+    ! do i=3,4
+      ! elem%f_ext(1,i,:) = [0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    ! end do
+    
+    nod%is_bcv(3,2) = .true.
+    nod%is_bcv(4,2) = .true.
+    nod%bcv(3,:) = [0.0d0,-1.0d0]
+    nod%bcv(4,:) = [0.0d0,-1.0d0]
+    
+    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
+  else 
+    nod%is_bcv(5:8,3) = .true.
+    nod%bcv(5:8,3) = -1.0d0
+
+    ! nod%is_bcv(6,1) = .true.
+    ! nod%bcv(6,2) = 0.0d0
+    ! nod%is_bcv(8,1) = .true.
+    ! nod%bcv(8,2) = 0.0d0    
+    ! !ONLY INTIIAL
+    ! do i=5,8
+      ! elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
+    ! end do
+  
+    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
+    
+    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions  
+    nod%is_fix(2,3) = .true. !Node 1 restricted in 2 dimensions  
+    
+    nod%is_fix(3,1) = .true. !Node 1 restricted in 2 dimensions  
+    nod%is_fix(3,3) = .true. !Node 1 restricted in 2 dimensions  
+    
+    nod%is_fix(4,3) = .true. !Node 1 restricted in 2 dimensions  
+  end if
   
  ! print *, "BCV 6 ", nod%bcv(6,3)
   print *, "Calculating element matrices "
@@ -128,40 +175,125 @@ implicit none
 
   nod%a(:,:) = 0.0d0
   
+  !ONLY FOR ELASTIC
+  dom%mat_E = young
+  dom%mat_nu = poisson
+  
   mat_modK= young / ( 3.0*(1.0 -2.0*poisson) );
   mat_G= young / (2.0* (1.0 + poisson));
   
+  dom%mat_K = mat_modK !!!TODO CREATE MATERIAL
+  
   mat_cs = sqrt(mat_modK/rho)
+  mat_cs0 = mat_cs
   print *, "Material Cs: ", mat_cs
   
   elem%cs(:) = mat_cs
   
   dt = 0.7 * dx/(mat_cs)
-  tf = dt * 1.0
+  print *, "time step size with CFL 0.7", dt
+  
+  !dt = 5.0e-6
+  !tf = 1.5e-4
+
+  dt = 0.8e-5
+  tf = dt 
+  ! tf = 10*dt 
   
   elem%rho(:,:) = rho
   
   print *, "Shear and Bulk modulus", mat_modG,mat_modK
-  print *, "time step size with CFL 0.7", dt
-  call SolveLeapfrog(tf,dt)
+
+
+  !call SolveVerlet(dom,tf,dt)
+  !call SolveKickDrift(tf,dt) !!!!!OLD; NOT WORKING
+  !call SolveLeapfrog(dom,tf,dt)
+
+  call SolveChungHulbert(dom,tf,dt)
+  !call SolveLeapFrog(dom,tf,dt)
+  !call SolveGreenNag(dom,tf,dt)
+  call CalcEquivalentStress()
+  call AverageData(elem%rho(:,1),nod%rho(:))
+
+  do d=1,dim
+    call AssembleElNodData(elem%hourg_nodf(:,:,d),nod%f_hour(:,d))
+  end do
+  
+  call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
+  
+    do d=1,3
+      do d2=1,3
+      call AverageData(elem%sigma(:,1,d,d2),nod%sigma(:,d,d2))
+      end do
+    end do
   
   call WriteMeshVTU('output.vtu')
   
   open (1,file='test.csv')!, position='APPEND')  
   write (1,*) "X, Y, Z"
+
+  do i=1,node_count
+    print *, "nod ", i, "Disp ", nod%u(i,:)  
+  end do  
+
+  do i=1,node_count
+    print *, "nod ", i, "Vel ", nod%v(i,:)  
+  end do  
+
+  do i=1,node_count
+    print *, "nod ", i, "Acc ", nod%a(i,:)  
+  end do  
   
   do i=1,node_count
     write (1,*) nod%x(i,1), ", ", nod%x(i,2), ", " ,nod%x(i,3)  
     end do
   close(1)
   
-  print *, "Element stresses"
-  do i=1,elem_count
-    do gp=1, elem%gausspc(i)
-      print *, elem%sigma(i,gp,:,:)
+  ! print *, "Element stresses"
+  ! do i=1,elem_count
+    ! do gp=1, elem%gausspc(i)
+      ! print *, elem%sigma(i,gp,:,:)
+      ! !print *, "Sigma eq ", elem%sigma_eq(i,gp)
+    ! end do
+  ! end do
+  ! print *, "Element strain rates" 
+  ! do i=1,elem_count
+    ! do gp=1, elem%gausspc(i)
+      ! print *, elem%str_rate(i,gp,:,:)
+    ! end do
+  ! end do
+  print *, "Accels"
+  do i=1,node_count
+    print *, "a ", nod%v(i,:)  
+  end do  
+  
+  ! print *, "Element rot rates" 
+  ! do i=1,elem_count
+    ! do gp=1, elem%gausspc(i)
+      ! print *, elem%rot_rate(i,gp,:,:)
+    ! end do
+  ! end do
+  
+  print *, "Global forces "
+    do nn=1,node_count
+        print *, rint_glob(nn,:)
+    end do
+        
+  print *, "Internal forces " 
+  do i=1,elem_count  
+    print *, "elem ", i
+    do nn=1,nodxelem
+      print *, elem%f_int(i,nn,:) 
     end do
   end do
   
+  ! print *, "Hourglass forces " 
+  ! do i=1,elem_count  
+    ! print *, "elem ", i
+    ! do nn=1,nodxelem
+      ! print *, elem%hourg_nodf(i,nn,:) 
+    ! end do
+  ! end do
   !(fname, node, elnod, dimm, issurf)
   !print *, "dim: ", dim, "is surf "
   allocate (ncount_int)

@@ -371,6 +371,8 @@ subroutine calculate_element_derivMat ()
           elem%dHxy_detJ(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
           elem%dHxy_detJ(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
           elem%dHxy_detJ(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
+          
+          !print *, "INVJ", invJ(:,:)
 
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0          
           ! print *, "1,1", elem%dHxy(e,gp,1,1), "inv 1,1 1,2 1,3", invJ(1,1), invJ(1,2), invJ(1,3)

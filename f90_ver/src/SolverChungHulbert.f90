@@ -71,6 +71,13 @@ subroutine SolveChungHulbert (domi, tf, dt)
   !call calculate_element_shapeMat() !AND MASS
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
+  
+  print *, "INITIAL DERIVATIVE MATRIX dHdxy*devJ"
+  print *, elem%dHxy_detJ(0,0,0,:)
+  print *, elem%dHxy_detJ(0,0,1,:)
+  if (dim .eq. 3) then
+  print *, elem%dHxy_detJ(0,0,2,:)
+  end if
   elem%vol_0(:) = elem%vol(:)
   !print *,"Element Initial Vol"
   ! do n = 1, elem_count

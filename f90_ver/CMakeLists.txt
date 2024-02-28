@@ -6,7 +6,7 @@ enable_language(Fortran CXX)
                             
 INCLUDE      (FindOpenMP)
 
-add_subdirectory("test")
+
 
 if(OPENMP_FOUND)
     ADD_DEFINITIONS (-DUSE_OMP)
@@ -33,6 +33,7 @@ endif()
 file(GLOB_RECURSE sources  src/*.f90 )
 
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
+add_executable(cube ${sources} main_cube_diag.f90) #Single case 1 element
 add_executable(main_beam ${sources} main_beam.f90) #Single case 1 element
 add_executable(main_hg ${sources} main_hg.f90) #Single case 1 element
 # add_executable(10_elems ${sources} 10_elems.f90) #Single case 1 element
