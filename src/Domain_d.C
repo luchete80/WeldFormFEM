@@ -458,7 +458,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           //Matrix inv = jacob->Inv();
           InvMat(*jacob, inv_j);
           printf("INV J ptr\n");
-          // inv_j->Print();          printf("jacob\n");jacob->Print();
+          inv_j->Print();          printf("jacob\n");jacob->Print();
           // jacob->Print();
           //printf("INV J2 not ptr\n");
           //inv.Print();
