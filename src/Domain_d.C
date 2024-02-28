@@ -143,15 +143,12 @@ host_   void Domain_d::AllocateBCs() {
   for (int i=0;i<bcy_nod_h.size();i++){bcy_nod_h_ptr[i]= bcy_nod_h[i];bcy_val_h_ptr[i]= bcy_val_h[i];} 
   for (int i=0;i<bcz_nod_h.size();i++){bcz_nod_h_ptr[i]= bcz_nod_h[i];bcz_val_h_ptr[i]= bcz_val_h[i];}
   
-  #ifdef CUDA_BUILD
   memcpy_t(bcx_val, bcx_val_h_ptr, sizeof(double) * bc_count[0]);    
   memcpy_t(bcx_nod, bcx_nod_h_ptr, sizeof(int) * bc_count[0]);   
   memcpy_t(bcy_val, bcy_val_h_ptr, sizeof(double) * bc_count[1]);    
   memcpy_t(bcy_nod, bcy_nod_h_ptr, sizeof(int) * bc_count[1]);   
   memcpy_t(bcz_val, bcz_val_h_ptr, sizeof(double) * bc_count[2]);    
   memcpy_t(bcz_nod, bcz_nod_h_ptr, sizeof(int) * bc_count[2]);   
-  #else
-  #endif
 
   delete bcx_val_h_ptr,bcy_val_h_ptr,bcz_val_h_ptr;
   delete bcx_nod_h_ptr,bcy_nod_h_ptr,bcz_nod_h_ptr;
@@ -161,11 +158,11 @@ host_   void Domain_d::AllocateBCs() {
 dev_t void Domain_d::ImposeBCV(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
-    printf("thread %d, Imposing Vel in dim %d\n", n, dim);
+    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
     
-    if (dim == 0)       {v[3*bcx_nod[n]+dim] = bcx_val[n]; printf ("val %f \n",bcx_val[n]);}
+    if (dim == 0)       {printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]); v[3*bcx_nod[n]+dim] = bcx_val[n]; }
     else if (dim == 1)  {v[3*bcy_nod[n]+dim] = bcy_val[n]; printf ("val %f \n",bcy_val[n]);}
-    else if (dim == 2)  {v[3*bcz_nod[n]+dim] = bcz_val[n]; printf ("val %f \n",bcz_val[n]);}
+    else if (dim == 2)  {printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); v[3*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
