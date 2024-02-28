@@ -282,15 +282,15 @@ __spec Matrix InvMat(Matrix &A, Matrix *invA){
     cofactor->Transpose();
     printf ("COFACTOR: \n");
     cofactor->Print();
-    Matrix temp(3,3);
-    temp=cofactor->Mul(1.0/A.calcDet());
+    Matrix *temp = new Matrix(3,3);
+    *temp=cofactor->Mul(1.0/A.calcDet());
     //*invA = cofactor->Mul(1.0/A.calcDet());
     //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
-    for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=temp.m_data[i];}
+    for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=temp->m_data[i];}
     printf("INVA\n");
     invA->Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
-    delete cofactor;
+    delete cofactor, temp;
   }
   return *invA;
 }
