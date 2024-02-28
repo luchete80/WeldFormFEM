@@ -451,18 +451,29 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
 
           }
+          printf("jacob\n");jacob->Print();
+          
           // printf ("Setting dhxy\n");
-          for (int d=0;d<m_dim;d++){
-            InvMat(*jacob, inv_j);            
-            dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
-            dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));             
-            dHxy_detJ_loc->Set(d,4,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)); 
-            dHxy_detJ_loc->Set(d,5, inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
-          }
+          //*inv_j = jacob->Inv();
+          //Matrix inv = jacob->Inv();
+          InvMat(*jacob, inv_j);
+          printf("INV J ptr\n");
+          // inv_j->Print();          printf("jacob\n");jacob->Print();
+          // jacob->Print();
+          //printf("INV J2 not ptr\n");
+          //inv.Print();
+          
+          //inv.Print();
+          // for (int d=0;d<m_dim;d++){            
+            // dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
+            // dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));  
+            // dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));  
+            // dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));             
+            // dHxy_detJ_loc->Set(d,4,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)); 
+            // dHxy_detJ_loc->Set(d,5, inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));
+            // dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
+            // dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
+          // }
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           
       } // end if  !!!!DIM
@@ -514,8 +525,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
           // x2->Print();
           // jacob->Mul(0.125);
-          // printf("jacob\n");jacob->Print();
-          // // jacob->Print();
+          printf("jacob\n");jacob->Print();
+          jacob->Print();
           // //printf("Jacobian: \n");jacob->Print();
           // printf("dHrs\n"); dHrs->Print();
            
@@ -582,7 +593,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         int offset = e*(m_dim * m_nodxelem * m_gp_count) + gp * m_gp_count;
         printf ("Offset %d \n", offset);
         
-          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->getVal(0,j);
+          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
           m_dH_detJ_dy[offset + m_nodxelem + j    ] = dHxy_detJ_loc->getVal(1,j); 
           m_dH_detJ_dz[offset + 2 * m_nodxelem + j] = dHxy_detJ_loc->getVal(2,j);            
       }
@@ -590,9 +601,9 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           
     printf("jacob\n");
     jacob->Print();
-    printf("dHdx\n");
+    printf("dHdx x detJ\n");
     dHxy_detJ_loc->Print();
-		printf("END.");
+		printf("END.\n");
     
   } // e < elem_colunt
   

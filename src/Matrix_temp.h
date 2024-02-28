@@ -44,11 +44,12 @@ public:
   __spec double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
+  //__spec Matrix  operator=(const Matrix &m);
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int r, const int c, const double d);
 	__spec void Print();
   __spec Matrix & Transpose();
-  
+  __spec Matrix Inv();
   __spec ~Matrix(){/*cudaFree (m_data);*/
                        free(m_data);}
 	
@@ -87,6 +88,12 @@ __spec Matrix MatMul(Matrix &A, Matrix &B){
   return ret;
 }
 
+// __spec Matrix Matrix::operator=(const Matrix &A){
+  // for (int i=0;i<A.m_row*A.m_col;i++) this->m_data[i] = A.m_data[i];
+  // this->m_row=A.m_row;this->m_col=A.m_col;
+  // return *this;
+// }
+
 __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
   for (int i=0;i<A.m_row*B.m_col;i++) ret->m_data[i] = 0.0;
   for (int i = 0; i<A.m_row; i++)
@@ -111,9 +118,10 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
   }
   
   __spec Matrix & Matrix::Transpose(){
+    double t;
     for (int i=0;i<m_row;i++)
-      for (int j=0;j<m_col;j++)
-        this->Set(j,i,this->getVal(i,j) );
+      for (int j=i+1;j<m_col;j++){
+        t= this->getVal(i,j); this->Set(i,j,this->getVal(j,i)); this->Set(j,i,t);}
     return *this;
   }
   
@@ -220,15 +228,50 @@ __spec double Matrix::calcDet (){
 	return ret;
 }
 
-__spec void InvMat(Matrix &A, Matrix *invA){
+
+__spec Matrix Matrix::Inv(){
+  Matrix invA(m_row,m_col);
+  if (this->m_dim ==2){
+    
+    
+  } else if (this->m_dim == 3) {
+    
+    Matrix *cofactor = new Matrix(3,3);
+    
+    cofactor->Set(0,0, (this->getVal(1,1)*this->getVal(2,2)-this->getVal(1,2)*this->getVal(2,1)) );
+    cofactor->Set(0,1,-(this->getVal(1,0)*this->getVal(2,2)-this->getVal(1,2)*this->getVal(2,0)) );
+    cofactor->Set(0,2, (this->getVal(1,0)*this->getVal(2,1)-this->getVal(1,1)*this->getVal(2,0)) );
+    cofactor->Set(1,0,-(this->getVal(0,1)*this->getVal(2,2)-this->getVal(0,2)*this->getVal(2,1)) );
+    cofactor->Set(1,1, (this->getVal(0,0)*this->getVal(2,2)-this->getVal(0,2)*this->getVal(2,0)) );
+    cofactor->Set(1,2,-(this->getVal(0,0)*this->getVal(2,1)-this->getVal(0,1)*this->getVal(2,0)) );
+    cofactor->Set(2,0, (this->getVal(0,1)*this->getVal(1,2)-this->getVal(0,2)*this->getVal(1,1)) );
+    cofactor->Set(2,1,-(this->getVal(0,0)*this->getVal(1,2)-this->getVal(0,2)*this->getVal(1,0)) );
+    cofactor->Set(2,2, (this->getVal(0,0)*this->getVal(1,1)-this->getVal(0,1)*this->getVal(1,0)) );    
+    
+    cofactor->Transpose();
+    printf ("COFACTOR: \n");
+    cofactor->Print();
+    invA = cofactor->Mul(1.0/this->calcDet());
+    printf("INVA\n");
+    invA.Print();
+    //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
+    delete cofactor;
+  }
+  return invA;
+}
+
+__spec Matrix InvMat(Matrix &A, Matrix *invA){
+  //Matrix invA(A.m_row,A.m_col);
   if (A.m_dim ==2){
     
     
   } else if (A.m_dim == 3) {
+    
     Matrix *cofactor = new Matrix(3,3);
+    
     cofactor->Set(0,0, (A(1,1)*A(2,2)-A(1,2)*A(2,1)) );
     cofactor->Set(0,1,-(A(1,0)*A(2,2)-A(1,2)*A(2,0)) );
-    cofactor->Set(0,2, (A(2,0)*A(2,1)-A(1,1)*A(2,0)) );
+    cofactor->Set(0,2, (A(1,0)*A(2,1)-A(1,1)*A(2,0)) );
     cofactor->Set(1,0,-(A(0,1)*A(2,2)-A(0,2)*A(2,1)) );
     cofactor->Set(1,1, (A(0,0)*A(2,2)-A(0,2)*A(2,0)) );
     cofactor->Set(1,2,-(A(0,0)*A(2,1)-A(0,1)*A(2,0)) );
@@ -237,11 +280,17 @@ __spec void InvMat(Matrix &A, Matrix *invA){
     cofactor->Set(2,2, (A(0,0)*A(1,1)-A(0,1)*A(1,0)) );    
     
     cofactor->Transpose();
+    printf ("COFACTOR: \n");
+    cofactor->Print();
     *invA = cofactor->Mul(1.0/A.calcDet());
-    
+    //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
+    //for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=A.m_data[i];}
+    printf("INVA\n");
+    invA->Print();
+    //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
     delete cofactor;
   }
-  
+  return *invA;
 }
 
 ///// ONLY FOR 3X3 MATRICES
