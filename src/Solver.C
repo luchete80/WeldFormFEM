@@ -83,6 +83,7 @@ namespace MetFEM{
       ImposeBCV(d);
     #endif
   }
+  cout <<"Done."<<endl;
 
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
@@ -157,8 +158,8 @@ namespace MetFEM{
   // time = time + dt
     Time += dt;
   
-    }
+    }// WHILE LOOP
   
-  }
+  }//SOLVE
 	
 };
