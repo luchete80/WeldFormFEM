@@ -35,9 +35,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //cudaMalloc((void **)&m_dH_detJ_dx, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
   //cudaMalloc((void **)&m_dH_detJ_dy, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
   //cudaMalloc((void **)&m_dH_detJ_dz, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
-  malloc_t (m_dH_detJ_dx,double, m_nodxelem * m_elem_count * m_gp_count);
-  malloc_t (m_dH_detJ_dy,double, m_nodxelem * m_elem_count * m_gp_count);
-  malloc_t (m_dH_detJ_dy,double, m_nodxelem * m_elem_count * m_gp_count);
+  malloc_t (m_dH_detJ_dx,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  malloc_t (m_dH_detJ_dy,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  malloc_t (m_dH_detJ_dz,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   
 
   malloc_t(m_detJ, double, m_elem_count * m_gp_count );     
@@ -582,20 +582,24 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       //Domain_d::setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &v)
       //setDerivative(e,gp,dHxy_detJ_loc
       for (int j=0;j<m_nodxelem;j++){
-        m_dH_detJ_dx[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + j] = dHxy_detJ_loc->getVal(0,j);
-        m_dH_detJ_dy[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + j] = dHxy_detJ_loc->getVal(1,j); 
-        m_dH_detJ_dz[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + j] = dHxy_detJ_loc->getVal(2,j);            
+        int offset = e*(m_dim * m_nodxelem * m_gp_count) + gp * m_gp_count;
+        printf ("Offset %d \n", offset);
+        
+          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->getVal(0,j);
+          m_dH_detJ_dy[offset + m_nodxelem + j    ] = dHxy_detJ_loc->getVal(1,j); 
+          m_dH_detJ_dz[offset + 2 * m_nodxelem + j] = dHxy_detJ_loc->getVal(2,j);            
       }
     }
           
     printf("jacob\n");
     jacob->Print();
-	
+    printf("dHdx\n");
+    dHxy_detJ_loc->Print();
 		printf("END.");
     
   } // e < elem_colunt
   
-      delete dHrs,x2, jacob;
+      delete dHrs,x2, jacob,dHxy_detJ_loc;
 }
 
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){

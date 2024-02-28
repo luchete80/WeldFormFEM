@@ -27,3 +27,5 @@
          - DISCARD DOUBLE3 AND REPLACE IT WITH VECTORS/MATRICES
 20240225 - Added memcpy
 20240226 - Added Solver, Mechanical and Matrices files for CPU Solver
+20240226 - Added Matrix Derivative dimensions and offset
+         - Fixed another derivarive allocation
