@@ -176,6 +176,7 @@ subroutine calculate_element_Jacobian ()
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
           elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       end if  !!!!DIM
+      print *, "jacob ", elem%jacob(e,gp,:,:)
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
