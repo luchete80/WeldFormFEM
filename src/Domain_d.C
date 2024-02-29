@@ -459,7 +459,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           InvMat(*jacob, inv_j);
           printf("INV J ptr\n");
           inv_j->Print();          printf("jacob\n");jacob->Print();
-          cout << "first factor"<<inv_j->m_data[0]<<endl;          
+                  
           // jacob->Print();
           //printf("INV J2 not ptr\n");
           //inv.Print();

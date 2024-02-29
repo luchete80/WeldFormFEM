@@ -11,7 +11,7 @@
 //#include "Matrix.h"
 #endif
 
-#include "Tensor3.C"
+#include "tensor3.C"
 
 using namespace std;
 

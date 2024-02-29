@@ -3,9 +3,10 @@
 
 #ifdef  CUDA_BUILD
 #include "cuda.h"
+#include <iostream>
 
 using namespace std;
-void report_gpu_mem_()
+inline void report_gpu_mem_()
 {
   size_t free, total;
   cudaMemGetInfo(&free, &total);

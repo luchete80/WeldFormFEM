@@ -29,3 +29,5 @@
 20240226 - Added Solver, Mechanical and Matrices files for CPU Solver
 20240226 - Added Matrix Derivative dimensions and offset
          - Fixed another derivarive allocation
+         - ADDED COPY CONSTRUCTOR TO MATRIX CLASS AND OPERATOR=
+20240229 - Fixed some GPU building, matrix is working

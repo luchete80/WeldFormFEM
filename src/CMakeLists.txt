@@ -44,10 +44,10 @@ ENDIF()
 # set_source_files_properties(Domain_d.C PROPERTIES LANGUAGE CUDA)
 
 add_executable(MetFEMGPU
-                          main.C
-													Domain_d.C
-                          Matrices.C
-                          Mechanical.C
+                        main.C
+						Domain_d.C
+                        Matrices.C
+                        Mechanical.C
 													Solver.C
 
               )
