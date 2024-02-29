@@ -465,16 +465,17 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           //inv.Print();
           
           //inv.Print();
-          // for (int d=0;d<m_dim;d++){            
-            // dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
-            // dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            // dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            // dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));             
-            // dHxy_detJ_loc->Set(d,4,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)); 
-            // dHxy_detJ_loc->Set(d,5, inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            // dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            // dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
-          // }
+          for (int d=0;d<m_dim;d++){            
+            dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
+            dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));  
+            dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));  
+            dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));             
+            dHxy_detJ_loc->Set(d,4,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)); 
+            dHxy_detJ_loc->Set(d,5, inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));
+            dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
+            dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
+          }
+          dHxy_detJ_loc->Mul(0.125*jacob->calcDet());
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           
       } // end if  !!!!DIM

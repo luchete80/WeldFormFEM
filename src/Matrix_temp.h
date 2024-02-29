@@ -178,7 +178,7 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
 	//printf("%lf ",m_data[0]);
   for (int i=0;i<m_row;i++) {
 		for (int j=0;j<m_col;j++) 
-			printf("%lf ", getVal(i,j)) ;
+			printf("%.6e ", getVal(i,j)) ;
 		printf("\n");
 	}
 
