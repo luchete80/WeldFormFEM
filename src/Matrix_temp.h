@@ -293,6 +293,8 @@ __spec Matrix Matrix::Inv(){
   return invA;
 }
 
+
+
 __spec Matrix InvMat(Matrix &A, Matrix *invA){
   //Matrix invA(A.m_row,A.m_col);
   if (A.m_dim ==2){
@@ -316,10 +318,10 @@ __spec Matrix InvMat(Matrix &A, Matrix *invA){
     printf ("COFACTOR: \n");
     cofactor->Print();
     Matrix *temp = new Matrix(3,3);
-    *temp=cofactor->Mul(1.0/A.calcDet());
-    //*invA = cofactor->Mul(1.0/A.calcDet());
+    //*temp=cofactor->Mul(1.0/A.calcDet());
+    *invA = cofactor->Mul(1.0/A.calcDet());
     //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
-    for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=temp->m_data[i];}
+    //for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=temp->m_data[i];}
     printf("INVA\n");
     invA->Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
@@ -327,6 +329,43 @@ __spec Matrix InvMat(Matrix &A, Matrix *invA){
   }
   return *invA;
 }
+
+
+
+__spec Matrix AdjMat(Matrix &A, Matrix *invA){
+  //Matrix invA(A.m_row,A.m_col);
+  if (A.m_dim ==2){
+    
+    
+  } else if (A.m_dim == 3) {
+    
+    Matrix *cofactor = new Matrix(3,3);
+    
+    cofactor->Set(0,0, (A(1,1)*A(2,2)-A(1,2)*A(2,1)) );
+    cofactor->Set(0,1,-(A(1,0)*A(2,2)-A(1,2)*A(2,0)) );
+    cofactor->Set(0,2, (A(1,0)*A(2,1)-A(1,1)*A(2,0)) );
+    cofactor->Set(1,0,-(A(0,1)*A(2,2)-A(0,2)*A(2,1)) );
+    cofactor->Set(1,1, (A(0,0)*A(2,2)-A(0,2)*A(2,0)) );
+    cofactor->Set(1,2,-(A(0,0)*A(2,1)-A(0,1)*A(2,0)) );
+    cofactor->Set(2,0, (A(0,1)*A(1,2)-A(0,2)*A(1,1)) );
+    cofactor->Set(2,1,-(A(0,0)*A(1,2)-A(0,2)*A(1,0)) );
+    cofactor->Set(2,2, (A(0,0)*A(1,1)-A(0,1)*A(1,0)) );    
+    
+    cofactor->Transpose();
+    printf ("COFACTOR: \n");
+    cofactor->Print();
+
+    //*invA = cofactor;
+    //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
+    for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=cofactor->m_data[i];}
+    printf("ADJA\n");
+    invA->Print();
+    //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
+    delete cofactor;
+  }
+  return *invA;
+}
+
 
 ///// ONLY FOR 3X3 MATRICES
 __spec void Matrix::ToFlatSymPtr(double *flat, int initial){

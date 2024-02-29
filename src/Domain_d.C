@@ -456,8 +456,9 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // printf ("Setting dhxy\n");
           //*inv_j = jacob->Inv();
           //Matrix inv = jacob->Inv();
-          InvMat(*jacob, inv_j);
-          printf("INV J ptr\n");
+          //InvMat(*jacob, inv_j);
+          AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+          printf("ADJ J ptr\n");
           inv_j->Print();          printf("jacob\n");jacob->Print();
                   
           // jacob->Print();
@@ -475,7 +476,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
             dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
           }
-          dHxy_detJ_loc->Mul(0.125*jacob->calcDet());
+          dHxy_detJ_loc->Mul(0.125);
+
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           
       } // end if  !!!!DIM
