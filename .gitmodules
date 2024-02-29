@@ -1,0 +1,3 @@
+[submodule "lib/Math"]
+	path = lib/Math
+	url = git@github.com:luchete80/Math.git
