@@ -154,6 +154,7 @@ namespace MetFEM{
 	// !$omp end parallel do
 	
   // call impose_bca
+
   
 	// !$omp parallel do num_threads(Nproc) private (n)
   // do n=1,node_count
@@ -164,6 +165,7 @@ namespace MetFEM{
 	// !$omp end parallel do
   
 
+  ImposeBCVAllDim();
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
   // !u = u + beta * nod%v * dt

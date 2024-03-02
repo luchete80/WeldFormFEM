@@ -44,11 +44,14 @@ public:
   dev_t void calcElemForces();
   dev_t void calcElemPressure(); //FROM STRAIN
 
+  dev_t void assemblyMassMatrix();
   dev_t void assemblyForces();
   
   host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
   host_   void AllocateBCs();
   
+  host_ calcMassDiagFromElementNodes(int *); // To use existing array
+
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
@@ -70,6 +73,8 @@ public:
   inline dev_t double & getStrRate(const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
   
   dev_t void CalcElemInitialVol();
+  
+  dev_t void InitUVA(); 
   
   dev_t void CalcElemVol();
   dev_t void calcElemDensity();
@@ -98,8 +103,10 @@ protected:
 	double* 				x; //Vector is double
 	double* 				v; //CHANGED TO DOUBLE
 	double 				 *a, *prev_a;
-	double* 				u;
-
+	double         *u;
+  
+  double         *m_mglob, *m_mdiag; //Global Matrix and Diagonal masses
+  
 	double 					*p, *rho, *rho_0;
   
   
@@ -133,7 +140,7 @@ protected:
   
   double          *m_str_rate, *m_rot_rate;
   double          *m_f_elem;    //ELEMENT
-  double          *m_f;         //NODAL
+  double          *m_fi, *m_fe; //NODAL
   double          *m_sigma;
 	
   //Updated lagrangian formulation
@@ -170,6 +177,8 @@ __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
 __global__ void calcElemStrainsKernel(Domain_d *dom_d);
 
 __global__ void assemblyForcesKernel(Domain_d *dom_d);
+__global__ void assemblyMassMatrixKernel(Domain_d *dom_d);
+
 __global__ void calcElemForcesKernel (Domain_d *);
 __global__ void calcElemPressureKernel (Domain_d *);
 __global__ void calcElemDensityKernel  (Domain_d *);

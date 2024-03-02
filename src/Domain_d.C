@@ -22,12 +22,18 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   m_node_count = node_count;
   m_elem_count = elem_count;
   
+  // NODAL VARIABLES
+  
   malloc_t (x,      double,node_count*3);
   malloc_t (v,      double,node_count*3);
   malloc_t (a,      double,node_count*3);
+  malloc_t (u,      double,node_count*3);
+  
   malloc_t (prev_a, double,node_count*3);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
-  malloc_t (m_f,double,node_count*3);
+  malloc_t (m_fi,double,node_count*3);
+  malloc_t (m_mdiag, double,node_count);
+  malloc_t (m_mglob, double,node_count); //DEALLOCATED AFER DIAG CALCULATION
 	
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODXELEM
