@@ -22,10 +22,10 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   m_node_count = node_count;
   m_elem_count = elem_count;
   
-  malloc_t (x,double,node_count*3);
-  malloc_t (v,double,node_count*3);
-  malloc_t (a,double,node_count*3);
-  
+  malloc_t (x,      double,node_count*3);
+  malloc_t (v,      double,node_count*3);
+  malloc_t (a,      double,node_count*3);
+  malloc_t (prev_a, double,node_count*3);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_f,double,node_count*3);
 	
@@ -91,7 +91,9 @@ dev_t void Domain_d::UpdatePrediction(){
     vector_t prev_a = Ptr_vector_t(a, n);
     printf ("node %d\n", n);
     vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
+    printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t_Ptr(u_,x,n);
+    vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
@@ -627,8 +629,8 @@ __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
 		dom_d->calcElemJAndDerivatives();
 }
 
-__global__ void ImposeBCVKernel(Domain_d *dom_d, const int dim){
-  dom_d->ImposeBCV(dim);
+__global__ void ImposeBCVKernel(Domain_d *dom_d, const int d){
+    dom_d->ImposeBCV(d);
 }
 
 __global__ void UpdatePredictionKernel(Domain_d *dom_d){

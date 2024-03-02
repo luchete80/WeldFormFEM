@@ -85,7 +85,7 @@ public:
   
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}
-	
+	int & getDim(){return m_dim;}
 protected:
   int symm_idx[3][3] = {{0,3,4},{3,1,5},{4,5,2}};
 	int 						m_dim;
@@ -96,7 +96,7 @@ protected:
 	
 	double* 				x; //Vector is double
 	double* 				v; //CHANGED TO DOUBLE
-	double* 				a;
+	double 				 *a, *prev_a;
 	double* 				u;
 
 	double 					*p, *rho, *rho_0;
@@ -163,7 +163,7 @@ protected:
 
 #ifdef  CUDA_BUILD
 
-__global__ void ImposeBCVKernel(Domain_d *dom_d, const int dim);
+__global__ void ImposeBCVKernel(Domain_d *dom_d, int d);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
 __global__ void calcElemStrainsKernel(Domain_d *dom_d);

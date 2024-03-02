@@ -22,8 +22,20 @@ namespace MetFEM{
   #else 
   AssignMatAddress();
   #endif
-  
 
+  for (int d=0;d<m_dim;d++){
+    N = bc_count[d];
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    
+    #ifdef CUDA_BUILD
+    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+    cudaDeviceSynchronize();
+    #else
+      ImposeBCV(d);
+    #endif
+  }
+  
+  
   double rho_b = 0.8182;  // DEFAULT SPECTRAL RADIUS
   
   m_alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
