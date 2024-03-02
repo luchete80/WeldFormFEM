@@ -91,11 +91,11 @@ dev_t void Domain_d::UpdatePrediction(){
     vector_t prev_a = Ptr_vector_t(a, n);
     printf ("node %d\n", n);
     vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
-    printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
+    //printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t_Ptr(u_,x,n);
     vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     vector_t_Ptr(v_,v,n);
-    printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
 
@@ -170,11 +170,11 @@ host_   void Domain_d::AllocateBCs() {
 dev_t void Domain_d::ImposeBCV(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
-    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
+    //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
     
-    if (dim == 0)       {printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]); v[3*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {v[3*bcy_nod[n]+dim] = bcy_val[n]; printf ("val %f \n",bcy_val[n]);}
-    else if (dim == 2)  {printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+    if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
@@ -607,7 +607,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       //setDerivative(e,gp,dHxy_detJ_loc
       for (int j=0;j<m_nodxelem;j++){
         int offset = e*(m_dim * m_nodxelem * m_gp_count) + gp * m_gp_count;
-        printf ("Offset %d \n", offset);
+        //printf ("Offset %d \n", offset);
         
           m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
           m_dH_detJ_dy[offset + m_nodxelem + j    ] = dHxy_detJ_loc->getVal(1,j); 
