@@ -100,10 +100,15 @@ dev_t void Domain_d::UpdatePrediction(){
 }
 
 dev_t void Domain_d::UpdateCorrection(){
+  double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
     vector_t_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * Ptr_vector_t(prev_a, n));
+    vector_t_Ptr(a_,a,n);
+    vector_t v_ = getV(n) + m_gamma * dt * a_;
+    vector_t_Ptr(v_,v,n);
   }
 
 	// !$omp parallel do num_threads(Nproc) private (n)

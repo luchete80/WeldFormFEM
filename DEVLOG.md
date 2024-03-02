@@ -32,3 +32,4 @@
          - ADDED COPY CONSTRUCTOR TO MATRIX CLASS AND OPERATOR=
 20240229 - Fixed some GPU building, matrix is working
          - Corrected Derivatives calculation
+20240302 - Added velocity and accel corrections.
