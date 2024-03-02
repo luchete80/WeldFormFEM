@@ -94,6 +94,7 @@ dev_t void Domain_d::UpdatePrediction(){
     printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t_Ptr(u_,x,n);
     vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
+    vector_t_Ptr(v_,v,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
 }
