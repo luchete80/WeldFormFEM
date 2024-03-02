@@ -105,6 +105,15 @@ dev_t void Domain_d::UpdateCorrection(){
     vector_t_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
   }
+
+	// !$omp parallel do num_threads(Nproc) private (n)
+  // do n=1,node_count
+		// nod%a(n,:) = nod%a(n,:) - alpha * prev_a(n,:)
+		// nod%a(n,:) = nod%a(n,:) / (1.0d0 - alpha)
+		// nod%v(n,:) = nod%v(n,:) + gamma * dt * nod%a (n,:)  
+	// end do
+	// !$omp end parallel do
+
 }
 
 
