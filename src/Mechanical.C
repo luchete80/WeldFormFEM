@@ -263,7 +263,9 @@ dev_t void Domain_d::CalcElemInitialVol(){
 }
 
 dev_t void Domain_d::calcElemForces(){
+
   par_loop(e,m_elem_count){
+    int offset = e*m_nodxelem*m_dim;
     for (int gp=0;gp<m_gp_count;gp++){
 	
   // integer :: e, i,j,k, gp,n, d
@@ -291,7 +293,7 @@ dev_t void Domain_d::calcElemForces(){
       // !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
       // !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
       // !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
-      int offset = e*m_nodxelem*m_dim;
+      
       int sig_offset = m_elem_count * m_gp_count * 6;
       
       // do n=1, nodxelem

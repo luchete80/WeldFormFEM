@@ -46,7 +46,6 @@ namespace MetFEM{
   printf ("beta %f\n",  m_beta);
   printf ("gamma %f\n", m_gamma);
   
-  
   cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
@@ -61,6 +60,10 @@ namespace MetFEM{
 	cout << "Done. "<<endl;
   
   Time = 0.0;
+  
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   while (Time < end_t) {
 
@@ -117,11 +120,14 @@ namespace MetFEM{
 
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize();   
+
+  calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize
   #else
   calcElemJAndDerivatives();
+  calcElemForces();
   #endif
-  // calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  // cudaDeviceSynchronize();   
+
 
 
 

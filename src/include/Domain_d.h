@@ -50,6 +50,7 @@ public:
   host_   void AllocateBCs();
   
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
+  host_ void ImposeBCVAllDim();
   
   inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
   inline dev_t void     setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &); //I AND J ARE: DIMENSION AND NODE

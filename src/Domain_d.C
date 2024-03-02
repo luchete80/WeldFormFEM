@@ -121,6 +121,20 @@ dev_t void Domain_d::UpdateCorrection(){
 
 }
 
+host_ void Domain_d::ImposeBCVAllDim()//ALL DIM
+{    
+  for (int d=0;d<m_dim;d++){
+    int N = bc_count[d];
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    
+    #ifdef CUDA_BUILD
+    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+    cudaDeviceSynchronize();
+    #else
+      ImposeBCV(d);
+    #endif
+  }
+}
 
 host_   void Domain_d::AddBCVelNode(const int &node, const int &dim, const double &val){
   if (dim == 0)       { bcx_nod_h.push_back(node);bcx_val_h.push_back(val);bc_count[0]++;}
