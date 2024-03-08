@@ -55,7 +55,7 @@ namespace MetFEM{
 	cudaDeviceSynchronize();   
   #else
   calcElemJAndDerivatives();
-  CalcElemInitialVol();
+  CalcElemInitialVol(); //ALSO CALC VOL
   #endif
 	cout << "Done. "<<endl;
   
@@ -131,10 +131,12 @@ namespace MetFEM{
 
   #else
   //SECOND TIME
-  // calcElemJAndDerivatives();
-  // CalcElemVol();
     //STRESSES CALC
   calcElemJAndDerivatives();
+  CalcElemVol();
+  calcElemStrains();
+  calcElemDensity();
+  calcElemPressure();
   calcElemForces();
   //assemblyForces(); //CRASHING
   #endif
