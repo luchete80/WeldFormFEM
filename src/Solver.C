@@ -116,18 +116,30 @@ namespace MetFEM{
 	cudaDeviceSynchronize(); 
 
   calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize(); 
+	cudaDeviceSynchronize();
+
+    //STRESSES CALC
 
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize();   
 
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize
+
+  assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize
+
   #else
+  //SECOND TIME
+  // calcElemJAndDerivatives();
+  // CalcElemVol();
+    //STRESSES CALC
   calcElemJAndDerivatives();
   calcElemForces();
+  //assemblyForces(); //CRASHING
   #endif
 
+  
 
 
 

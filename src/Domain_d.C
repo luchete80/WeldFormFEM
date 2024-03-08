@@ -31,7 +31,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   malloc_t (prev_a, double,node_count*3);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
-  malloc_t (m_fi,double,node_count*3);
+  malloc_t (m_fi,double,node_count*3); //Internal forces
+  malloc_t (m_fe,double,node_count*3);
   malloc_t (m_mdiag, double,node_count);
   malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 	

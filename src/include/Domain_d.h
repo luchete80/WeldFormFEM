@@ -81,6 +81,7 @@ public:
   
   dev_t void UpdatePrediction();
   dev_t void UpdateCorrection();
+  dev_t void calcTotMass();
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
   inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[m_elnod[n]+d];}  
@@ -93,6 +94,7 @@ public:
   void SetEndTime(const double &tf_){end_t=tf_;}
 	int & getDim(){return m_dim;}
 protected:
+  double          m_tot_mass; //Only for testing, not needed
   int symm_idx[3][3] = {{0,3,4},{3,1,5},{4,5,2}};
 	int 						m_dim;
   int             m_node_count, m_elem_count;
@@ -192,6 +194,9 @@ __global__ void calcElemVolKernel(Domain_d *dom_d);
 __global__ void calcElemInitialVolKernel(Domain_d *dom_d);
 
 __global__ void AssignMatAddressKernel(Domain_d *dom/*, Material_ *mat*/);
+
+__global__ void calcTotMassKernel(Domain_d *dom_d);
+
 
 #endif
 

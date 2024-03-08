@@ -262,6 +262,22 @@ dev_t void Domain_d::CalcElemInitialVol(){
   }  
 }
 
+dev_t void Domain_d::calcTotMass(){
+  // par_loop(e,m_elem_count){
+// //!!!!! ASSUME VOLUME IS ALREADY CALCULATED
+// //subroutine calc_elem_density ()
+  // // implicit none
+  // // real(fp_kind), dimension(dim,dim) :: F !def gradient
+  // // real(fp_kind), dimension(nodxelem,dim) :: x !def gradient
+  // int offset = e * m_gp_count ;
+  // // integer :: e, n, gp
+    // for (int gp=0;gp<m_gp_count;gp++){
+      // rho[offset + gp] = rho[offset + gp] * vol_0[e] / vol[e];
+    // }    
+
+  // }  
+}
+
 dev_t void Domain_d::calcElemForces(){
 
   par_loop(e,m_elem_count){
