@@ -93,6 +93,7 @@ dev_t void Domain_d::AssignMatAddress(){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
+  printf("Prediction ----------------\n");
   par_loop (n,m_node_count){
     vector_t prev_a = Ptr_vector_t(a, n);
     printf ("node %d\n", n);
@@ -106,6 +107,7 @@ dev_t void Domain_d::UpdatePrediction(){
 }
 
 dev_t void Domain_d::UpdateCorrection(){
+  printf("Correction ----------------\n");
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
