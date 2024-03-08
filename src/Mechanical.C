@@ -217,8 +217,8 @@ dev_t void Domain_d::calcElemStrains(){
 dev_t void Domain_d::CalcElemVol(){
   par_loop(e,m_elem_count){
     double w;
-    if (m_gp_count == 1)  w = 2 * m_dim;      
-    else                  w = pow(2.0, m_dim);
+    if (m_gp_count == 1)  w = pow(2.0, m_dim);      
+    else                  w = 1.0;
     int offset = m_gp_count * e;
     vol[e] = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
