@@ -105,7 +105,7 @@ protected:
 	double 				 *a, *prev_a;
 	double         *u;
   
-  double         *m_mglob, *m_mdiag; //Global Matrix and Diagonal masses
+  double         *m_mglob, *m_mdiag; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses
   
 	double 					*p, *rho, *rho_0;
   
