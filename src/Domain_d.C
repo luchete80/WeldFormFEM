@@ -102,10 +102,13 @@ dev_t void Domain_d::UpdatePrediction(){
     printf ("node %d\n", n);
     vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
     //printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
-    vector_t_Ptr(u_,x,n);
+    vector_t x_ = Ptr_vector_t(x, n);
+    vector_t_Ptr(u_+x_,x,n);
     vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     vector_t_Ptr(v_,v,n);
     printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    //TEST ONLY----
+    printf("Pred pos: %f %f %f\n",x_.x,x_.y,x_.z);
   }
 }
 

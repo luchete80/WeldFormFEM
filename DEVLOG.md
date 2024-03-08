@@ -36,3 +36,4 @@
          - Added mass matrices
 20240308 - Fixed Vol Calc (Gasuss weight)
          - Added mass matrices
+         - Fixed nodal pos calculations in predictions

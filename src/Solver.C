@@ -192,9 +192,10 @@ namespace MetFEM{
   // !call AverageData(elem%rho(:,1),nod%rho(:))  
   // prev_a = nod%a
   // time = time + dt
-    Time += dt;
+    
+  Time += dt;
   
-    }// WHILE LOOP
+  }// WHILE LOOP
   
   }//SOLVE
 	
