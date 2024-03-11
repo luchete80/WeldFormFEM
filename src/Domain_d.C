@@ -33,8 +33,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_fi,double,node_count*3); //Internal forces
   malloc_t (m_fe,double,node_count*3);
-  malloc_t (m_mdiag, double,node_count);
-  malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+  //malloc_t (m_mdiag, double,node_count);
+  //malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 	
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODXELEM
@@ -201,9 +201,10 @@ host_   void Domain_d::AllocateBCs() {
 }
 
 dev_t void Domain_d::ImposeBCV(const int dim){
+	printf ("DIM %d\n", bc_count[dim]);
   par_loop (n,bc_count[dim]){
     double val;
-    //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
+    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
     
     if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
     else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}

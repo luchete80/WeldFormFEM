@@ -136,7 +136,7 @@ int main(){
   //AFTER THIS CALL
   dom_d->AllocateBCs();
     
-	//SolverChungHulbert solver(&dom);
+
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
 	dom_d->SolveChungHulbert ();
 	cout << "Program ended."<<endl;
