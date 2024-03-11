@@ -124,10 +124,10 @@ namespace MetFEM{
   cudaDeviceSynchronize();   
 
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize
+  cudaDeviceSynchronize();
 
   assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize
+  cudaDeviceSynchronize();
 
   #else
   //SECOND TIME

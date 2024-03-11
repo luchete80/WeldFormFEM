@@ -38,6 +38,11 @@ namespace MetFEM {
   }//assemblyForcesNonLock
 
 
+__global__ void assemblyForcesKernel(Domain_d *dom_d){
+	
+	
+}
+
 //// ORIGINAL WAS ASSEMBLED BY ELEMENT
 //subroutine assemble_mass_matrix ()
 // m_glob (:,:) = 0.0d0
@@ -67,7 +72,7 @@ namespace MetFEM {
   // }//par loop
 // }
 
-  inline dev_t host_ void Domain_d::calcMassDiagFromElementNodes(int *elnod) // To use existing array
+  inline dev_t void Domain_d::calcMassDiagFromElementNodes(int *elnod) // To use existing array
   {
     Matrix m_glob(m_node_count,m_node_count);
     int n1,n2, iglob,jglob;

@@ -50,7 +50,7 @@ public:
   host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
   host_   void AllocateBCs();
   
-  inline void dev_t host_ calcMassDiagFromElementNodes(int *); // To use existing array
+  inline void dev_t calcMassDiagFromElementNodes(int *); // To use existing array
 
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
