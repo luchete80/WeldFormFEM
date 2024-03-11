@@ -88,10 +88,10 @@ namespace MetFEM{
   // TO NOT INTERFERE WITH DIFF THREADS AND DIMENSIONS
   
   for (int d=0;d<m_dim;d++){
-    N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
     
     #ifdef CUDA_BUILD
+    N = bc_count[d];
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
     ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
     cudaDeviceSynchronize();
     #else
