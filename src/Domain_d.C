@@ -96,7 +96,6 @@ dev_t void Domain_d::AssignMatAddress(){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-  printf("Prediction ----------------\n");
   par_loop (n,m_node_count){
     vector_t prev_a = Ptr_vector_t(a, n);
     printf ("node %d\n", n);
@@ -113,7 +112,6 @@ dev_t void Domain_d::UpdatePrediction(){
 }
 
 dev_t void Domain_d::UpdateCorrection(){
-  printf("Correction ----------------\n");
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
@@ -201,7 +199,6 @@ host_   void Domain_d::AllocateBCs() {
 }
 
 dev_t void Domain_d::ImposeBCV(const int dim){
-	printf ("DIM %d\n", bc_count[dim]);
   par_loop (n,bc_count[dim]){
     double val;
     printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);

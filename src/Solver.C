@@ -67,6 +67,7 @@ namespace MetFEM{
   
   while (Time < end_t) {
 
+  printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
@@ -141,14 +142,10 @@ namespace MetFEM{
   //assemblyForces(); //CRASHING
   #endif
 
-  
-
-
-
+  printf("Correction\n");	
+  #ifdef CUDA_BUILD
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-
-  #ifdef CUDA_BUILD
   UpdateCorrectionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   
