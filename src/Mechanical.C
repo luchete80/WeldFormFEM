@@ -112,6 +112,7 @@ dev_t void Domain_d::calcElemStrains(){
 //  if (e < m_elem_count) {
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count * 6 + gp;
+	  int offset_det = e * m_gp_count;
   // elem%str_rate = 0.0d0
   // elem%rot_rate = 0.0d0
   
@@ -124,7 +125,8 @@ dev_t void Domain_d::calcElemStrains(){
       // temp = elem%dHxy_detJ(e,gp,:,:) * f!!!!TODO: MODIFY BY MULTIPLYING
       // elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       // !print *, "standard stran rate calc (matricial) "
-
+		
+	printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset + gp];
       printf("f factor: %f\n",f);
       for (int n=0; n<m_nodxelem;n++) {

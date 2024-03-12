@@ -526,7 +526,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       } // end if  !!!!DIM
       
       m_detJ[offset] = jacob->calcDet();
-      printf("det J %f\n",m_detJ[offset]);
+      printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
       // elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     } else { //!!!!! GP > 1
 			
