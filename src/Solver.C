@@ -141,10 +141,10 @@ namespace MetFEM{
   calcElemForces();
   //assemblyForces(); //CRASHING
   #endif
-
+  N = getNodeCount();
   printf("Correction\n");	
   #ifdef CUDA_BUILD
-  N = getNodeCount();
+  
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   UpdateCorrectionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
