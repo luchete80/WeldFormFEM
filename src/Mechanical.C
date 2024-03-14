@@ -138,6 +138,7 @@ dev_t void Domain_d::calcElemStrains(){
           // elem%rot_rate(e,gp, d,d) = 0.0d0
         // end do
         for (int d=0;d<m_dim;d++){
+          printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
