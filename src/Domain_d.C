@@ -28,6 +28,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (v,      double,node_count*3);
   malloc_t (a,      double,node_count*3);
   malloc_t (u,      double,node_count*3);
+  malloc_t (u_dt,   double,node_count*3);
   
   malloc_t (prev_a, double,node_count*3);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
@@ -102,7 +103,8 @@ dev_t void Domain_d::UpdatePrediction(){
     vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
     //printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t x_ = Ptr_vector_t(x, n);
-    vector_t_Ptr(u_+x_,x,n);
+    //vector_t_Ptr(u_+x_,x,n); //NOT UPDATE YET
+    vector_t_Ptr(u_,u_dt,n);
     vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     vector_t_Ptr(v_,v,n);
     printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
@@ -111,7 +113,12 @@ dev_t void Domain_d::UpdatePrediction(){
   }
 }
 
-dev_t void Domain_d::UpdateCorrection(){
+//////////////////////////////////////
+////////// THIS NOT INCLUDE DISPLACEMENT BECAUSE OF 
+////////// VELOCITY BC ARE PARALLELLIZED BY BCs
+////////// INSTEAD OF NODES
+
+dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
@@ -133,13 +140,40 @@ dev_t void Domain_d::UpdateCorrection(){
 
 }
 
+
+  // !u = u + beta * nod%v * dt
+  // u = u + beta * dt * dt * nod%a   
+  // nod%u = nod%u + u
+  // nod%x = nod%x + u
+
+dev_t void Domain_d   ::UpdateCorrectionPos(){
+  double f = 1.0/(1.0-m_alpha);
+  par_loop (n,m_node_count){
+    vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(a, n); // = dt * (getV(n) + 0.5 - m_beta);
+    vector_t u_     = Ptr_vector_t(u, n) + uinc_;
+    vector_t x_     = Ptr_vector_t(x, n);
+    vector_t_Ptr(uinc_+x_,x,n);
+    vector_t_Ptr(u_,u,n);
+    
+    printf ("node %d Corr disp %f %f %f \n", n, u_.x, u_.y,u_.z);
+    // printf ("node %d\n", n);
+    // vector_t_Ptr(dt * getV(n),x,n);
+    // printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    // vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * Ptr_vector_t(prev_a, n));
+    // vector_t_Ptr(a_,a,n);
+    // vector_t v_ = getV(n) + m_gamma * dt * a_;
+    // vector_t_Ptr(v_,v,n);
+  }
+
+}
+
 host_ void Domain_d::ImposeBCVAllDim()//ALL DIM
 {    
   for (int d=0;d<m_dim;d++){
     int N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
     
     #ifdef CUDA_BUILD
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
     ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
     cudaDeviceSynchronize();
     #else
@@ -684,8 +718,12 @@ __global__ void UpdatePredictionKernel(Domain_d *dom_d){
   dom_d->UpdatePrediction();
 }
 
-__global__ void UpdateCorrectionKernel(Domain_d *dom_d){
-  dom_d->UpdateCorrection();
+__global__ void UpdateCorrectionAccVelKernel(Domain_d *dom_d){
+  dom_d->UpdateCorrectionAccVel();
+}
+
+__global__ void UpdateCorrectionPosKernel(Domain_d *dom_d){
+  dom_d->UpdateCorrectionPos();
 }
 
 __global__ void AssignMatAddressKernel(Domain_d *dom){

@@ -41,3 +41,5 @@
 20240315 - Fixed getVel fnc. Now strains are calculated ok.
          - Corrected velocity components calculation of strani rate
          - Corrected getDerivative function (several indices and offsets were wrong).
+         - Added velocity corrections
+         

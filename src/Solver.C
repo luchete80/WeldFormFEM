@@ -146,12 +146,12 @@ namespace MetFEM{
   #ifdef CUDA_BUILD
   
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  UpdateCorrectionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  UpdateCorrectionAccVelKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   
   #else
     
-  UpdateCorrection();
+  UpdateCorrectionAccVel();
   
   #endif
 
@@ -178,6 +178,14 @@ namespace MetFEM{
 
   ImposeBCVAllDim();
   
+  N = getNodeCount();
+  #ifdef CUDA_BUILD  
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+  UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();   
+  #else
+  UpdateCorrectionPos();
+  #endif  
   
   // call impose_bcv !!!REINFORCE VELOCITY BC
 

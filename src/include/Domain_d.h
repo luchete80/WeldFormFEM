@@ -80,7 +80,8 @@ public:
   dev_t void calcElemDensity();
   
   dev_t void UpdatePrediction();
-  dev_t void UpdateCorrection();
+  dev_t void UpdateCorrectionAccVel();
+  dev_t void UpdateCorrectionPos();
   dev_t void calcTotMass();
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
@@ -102,10 +103,10 @@ protected:
 	unsigned int 		*m_elnod;
   //unsigned int    *m_eloffset; //FROM FIRST ELEMENT NODE
 	
-	double* 				x; //Vector is double
-	double* 				v; //CHANGED TO DOUBLE
+	double 				 *x; //Vector is double
+	double 				 *v; //CHANGED TO DOUBLE
 	double 				 *a, *prev_a;
-	double         *u;
+	double         *u, *u_dt;
   
   double         *m_mglob, *m_mdiag, *m_ematm; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses, and element masses
   
@@ -186,7 +187,8 @@ __global__ void calcElemPressureKernel (Domain_d *);
 __global__ void calcElemDensityKernel  (Domain_d *);
 
 __global__ void UpdatePredictionKernel(Domain_d *dom_d);
-__global__ void UpdateCorrectionKernel(Domain_d *dom_d);
+__global__ void UpdateCorrectionAccVelKernel(Domain_d *dom_d);
+__global__ void UpdateCorrectionPosKernel   (Domain_d *dom_d);
 
 __global__ void calcStressStrainKernel(Domain_d *dom_d, const double dt);
 
