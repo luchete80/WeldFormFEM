@@ -38,3 +38,5 @@
          - Added mass matrices
          - Fixed nodal pos calculations in predictions
 20240312 - Fixed Vector to Ptr allocation
+20240315 - Fixed getVel fnc. Now strains are calculated ok.
+         - Corrected velocity components calculation of strani rate
