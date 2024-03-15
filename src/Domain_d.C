@@ -641,9 +641,11 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         //printf ("Offset %d \n", offset);
         
           //m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
-          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->getVal(0,j);
-          m_dH_detJ_dy[offset + m_nodxelem + j    ] = dHxy_detJ_loc->getVal(1,j); 
-          m_dH_detJ_dz[offset + 2 * m_nodxelem + j] = dHxy_detJ_loc->getVal(2,j);            
+          m_dH_detJ_dx[offset + j] = dHxy_detJ_loc->getVal(0,j);
+          m_dH_detJ_dy[offset + j] = dHxy_detJ_loc->getVal(1,j); 
+          m_dH_detJ_dz[offset + j] = dHxy_detJ_loc->getVal(2,j);      
+          //setDerivative(e,gp,);
+          
       }
     }
           

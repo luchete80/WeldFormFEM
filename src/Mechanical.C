@@ -129,6 +129,7 @@ dev_t void Domain_d::calcElemStrains(){
 	printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset + gp];
       printf("f factor: %f\n",f);
+      double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
         // double vele[3];
         // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
@@ -137,11 +138,14 @@ dev_t void Domain_d::calcElemStrains(){
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
         // end do
+        test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
+        printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
-          printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+          //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
+          
         }//dim
         // !!!! TO AVOID ALL MATMULT
         str_rate->Set(0,1, str_rate->getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
@@ -167,6 +171,7 @@ dev_t void Domain_d::calcElemStrains(){
                                      // - temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
         }// end if     
       }// end do !Nod x elem
+      printf ("test %fn", test);
       
       //str_rate->
       // elem%str_rate(e,gp, 1,2) = 0.5 * elem%str_rate(e,gp, 1,2); 
