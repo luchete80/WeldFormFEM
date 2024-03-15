@@ -640,7 +640,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         int offset = e*(m_dim * m_nodxelem * m_gp_count) + gp * m_gp_count;
         //printf ("Offset %d \n", offset);
         
-          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
+          //m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
+          m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->getVal(0,j);
           m_dH_detJ_dy[offset + m_nodxelem + j    ] = dHxy_detJ_loc->getVal(1,j); 
           m_dH_detJ_dz[offset + 2 * m_nodxelem + j] = dHxy_detJ_loc->getVal(2,j);            
       }
