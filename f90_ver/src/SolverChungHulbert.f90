@@ -73,10 +73,10 @@ subroutine SolveChungHulbert (domi, tf, dt)
   call calculate_element_derivMat()
   
   print *, "INITIAL DERIVATIVE MATRIX dHdxy*devJ"
-  print *, elem%dHxy_detJ(0,0,0,:)
-  print *, elem%dHxy_detJ(0,0,1,:)
+  print *, elem%dHxy_detJ(1,1,1,:)
+  print *, elem%dHxy_detJ(1,1,2,:)
   if (dim .eq. 3) then
-  print *, elem%dHxy_detJ(0,0,2,:)
+  print *, elem%dHxy_detJ(1,1,3,:)
   end if
   elem%vol_0(:) = elem%vol(:)
   !print *,"Element Initial Vol"
