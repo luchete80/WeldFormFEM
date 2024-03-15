@@ -43,6 +43,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
 	
 }
 
+
 //// ORIGINAL WAS ASSEMBLED BY ELEMENT
 //subroutine assemble_mass_matrix ()
 // m_glob (:,:) = 0.0d0
@@ -100,5 +101,123 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
       }
     }
   }
+  
+  
+  
+dev_t void Domain_d::calcElemShapeMat() {
+  
+  // !!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
+// subroutine calculate_element_shapeMat ()
+  // integer :: e,d
+  // ! !rg=gauss[ig]
+  // ! !sg=gauss[jg]
+  // real(fp_kind), dimension(dim,nodxelem) :: dHrs
+  // real(fp_kind), dimension(nodxelem,dim) :: x2
+  // real(fp_kind), dimension(dim,dim) :: test
+  // real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  
+  // integer :: i,j,k, gp
+  // real(fp_kind):: r, w, f
+  // real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
+  // !! Update x2 vector (this is useful for strain and stress things)
+  
+  // r = 1.0/sqrt(3.0)
+  // elem%matm(e,:,:) = 0.0d0
+  par_loop (e, m_elem_count) {
+
+  //Matrix *temph = new Matrix(m_dim, m_nodxelem);
+  Matrix temph(m_dim, m_nodxelem);
+  Matrix tempm(m_nodxelem, m_nodxelem);
+  //Matrix *tempm = new Matrix(m_nodxelem, m_nodxelem);
+
+  int offset = m_gp_count * e;
+  
+  
+  if (m_gp_count == 1 ) {  
+  // do e=1, elem_count
+    // gp = 1
+    // if (elem%gausspc(e) .eq. 1) then
+      // w = 2.0d0*dim
+      // f = 1.0d0/(2.0d0*dim)
+      // elem%math(e,gp,:,:) = 0.0d0
+      // !!if (dim .eq. 2) then 
+      
+      // !!else !!!DIM 3
+          // temph(:,:) = 0.0d0
+          // do k =1, nodxelem
+              // !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
+              // elem%math(e,gp,:,k)=f
+              // !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
+          // end do
+          // ! print *, "temp h", temph(:,:)
+      double w = pow(2.0, m_dim);
+      double f = 1.0/(2.0*m_dim);
+      for (int k=0;k<m_nodxelem;k++){  
+        for (int d=0;d<m_dim;d++)
+          temph.Set(d,k,f);
+      }
+      // TODO: DO NOT PERFORM THIS MULT
+      
+      MatMul(temph.getTranspose(),temph,&tempm);
+      //MatMul(temph->Transpose(),*temph,tempm);
+      printf("print hmat\n");
+      temph.Print();
+      printf("print transpose\n");
+      temph.getTranspose().Print();
+      printf("mmat \n");
+      //temph->Transpose().Print();
+      tempm.Print();
+					// //*jacob = 0.125 * MatMul(*dHrs,*x2);
+          // MatMul(*dHrs,*x2,jacob);
+          
+          // ! temph(1,:) = [1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0]
+          // ! temph(2,:) = [0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0]
+          // ! temph(3,:) = [0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0]
+
+      // !!end if  !!!!dim
+        
+        // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
+        
+        // !print *, "MAT M", elem%matm(e,:,:)
+      
+    // else !!!!! GP > 1
+      // if (dim .eq. 2) then 
+        // w = 1.
+        // else !!!DIM 3
+          // gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+          // gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
+          // do gp = 1,8
+            // elem%math(e,gp, 1,:) = 0.125*[(1-gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)),(1+gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)), &
+                                // (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
+                                // (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
+                                // (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
+            // !print *, "gp ",gp,  "detJ(e,gp)", elem%detJ(e,gp)
+            // elem%matm(e,:,:) = elem%matm(e,:,:) + &
+                               // matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
+          // end do
+            // ! k = 1
+            // ! do while (k <= nodxelem)
+              // ! temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+              // ! k = k + 1
+            // ! end do
+ 
+          // ! elem%math(e,gp,:,:) = temph(:,:)*elem%detJ(e,gp)
+          // !print *, "mat h ", elem%math(e,gp,:,:)        
+      // end if !!! if dim
+    // end if ! GP>1
+  // end do !element
+// end subroutine
+
+  }//if gp == 1
+  
+    //delete temph;
+    //delete tempm;
+  }//par loop element
+
+}
+
+__global__ void calcElemShapeMatKernel(Domain_d *dom_d){
+  dom_d->calcElemShapeMat();
+}
 
 }//MetFEM

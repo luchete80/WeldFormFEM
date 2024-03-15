@@ -39,6 +39,7 @@ public:
   
   dev_t void calcElemJacobian ();
   dev_t void calcElemJAndDerivatives/*_FullInt*/();
+  dev_t void calcElemShapeMat();
 
 	dev_t void calcElemStrains();
   dev_t void calcElemForces();
@@ -155,8 +156,10 @@ protected:
   double         *m_dH_detJ_dx ; //GAUSS_POINT, AGRUPATED BY ELEM 1 GP1, ELEM 1 GP 2 .... ELEM 2 GP 1..
   double         *m_dH_detJ_dy ; 	
   double         *m_dH_detJ_dz ; 
+
+  double         *m_H;          // Shape functions, for mass calculation 
 	
-	double					Time;    				//Current time of simulation at each solving step
+  double					Time;    				//Current time of simulation at each solving step
 	double					dtmin;			//Minimum Time Step
 	double					dtint;			//Initial Time Step
   
@@ -177,6 +180,7 @@ protected:
 __global__ void ImposeBCVKernel(Domain_d *dom_d, int d);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
+__global__ void calcElemShapeMatKernel(Domain_d *dom_d);
 __global__ void calcElemStrainsKernel(Domain_d *dom_d);
 
 __global__ void assemblyForcesKernel(Domain_d *dom_d);

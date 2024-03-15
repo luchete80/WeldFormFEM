@@ -82,6 +82,7 @@ public:
   __spec void Set(const int r, const int c, const double d);
 	__spec void Print();
   __spec Matrix & Transpose();
+  __spec Matrix getTranspose();
   __spec Matrix Inv();
   __spec ~Matrix(){/*cudaFree (m_data);*/
                        free(m_data);}
@@ -127,7 +128,7 @@ __spec Matrix MatMul(Matrix &A, Matrix &B){
   // return *this;
 // }
 
-__spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
+__spec void MatMul(Matrix A, Matrix B, Matrix *ret){
   for (int i=0;i<A.m_row*B.m_col;i++) ret->m_data[i] = 0.0;
   for (int i = 0; i<A.m_row; i++)
     for (int j = 0; j<B.m_col; j++)
@@ -155,7 +156,20 @@ __spec void MatMul(Matrix &A, Matrix &B, Matrix *ret){
     for (int i=0;i<m_row;i++)
       for (int j=i+1;j<m_col;j++){
         t= this->getVal(i,j); this->Set(i,j,this->getVal(j,i)); this->Set(j,i,t);}
+    int temp = this->m_col;
+    this->m_col = this->m_row;
+    this->m_row = temp;
     return *this;
+  }
+
+  __spec Matrix Matrix::getTranspose(){
+    Matrix ret(m_col,m_row);
+    double t;
+    for (int i=0;i<m_row;i++)
+      for (int j=0;j<m_col;j++){
+        ret.Set(j,i,this->getVal(i,j)); 
+      }
+    return ret;
   }
   
 	__spec Matrix operator*(const double &c, Matrix &A) {

@@ -23,6 +23,15 @@ namespace MetFEM{
   AssignMatAddress();
   #endif
 
+
+  N = getElemCount();
+  #ifdef CUDA_BUILD
+	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  calcElemShapeMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  #else 
+  calcElemShapeMat();
+  #endif
+
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD

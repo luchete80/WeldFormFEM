@@ -34,8 +34,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_fi,double,node_count*3); //Internal forces
   malloc_t (m_fe,double,node_count*3);
-  //malloc_t (m_mdiag, double,node_count);
-  //malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+  
+  malloc_t (m_mdiag, double,node_count);
+  malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 	
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODXELEM
@@ -43,6 +44,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //cudaMalloc((void **)&m_dH_detJ_dx, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
   //cudaMalloc((void **)&m_dH_detJ_dy, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
   //cudaMalloc((void **)&m_dH_detJ_dz, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
+  malloc_t (m_H,          double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
+  
   malloc_t (m_dH_detJ_dx,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dy,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dz,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
