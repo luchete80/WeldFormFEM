@@ -51,7 +51,7 @@ public:
   host_   void AddBCVelNode(const int &node, const int &dim, const double &val);
   host_   void AllocateBCs();
   
-  inline void dev_t calcMassDiagFromElementNodes(int *); // To use existing array
+  void calcMassDiagFromElementNodes(const double &rho); // To use existing array, NOT IN PARALLEL
 
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
@@ -141,7 +141,7 @@ protected:
   Matrix          **dH_dxyz; 
   
   Matrix          *m_jacob;
-  
+  int             *elnod_h; ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
   double          *m_str_rate, *m_rot_rate;
   double          *m_f_elem;    //ELEMENT
   double          *m_fi, *m_fe; //NODAL
@@ -202,6 +202,8 @@ __global__ void calcElemInitialVolKernel(Domain_d *dom_d);
 __global__ void AssignMatAddressKernel(Domain_d *dom/*, Material_ *mat*/);
 
 __global__ void calcTotMassKernel(Domain_d *dom_d);
+
+__global__ void calcMassDiag(Domain_d *dom_d);
 
 
 #endif

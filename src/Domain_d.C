@@ -337,7 +337,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       // call AllocateElements(neL.y * neL.z*nel(3),gp) 
     }
 
-		int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened
+		elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened
 
      int *nodel_count_h  = new int [m_node_count];
      int *nodel_offset_h = new int [m_node_count];
@@ -450,7 +450,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   
 
 		
-		delete [] elnod_h, nodel_count_h, nodel_h, nodel_loc_h;
+		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h;
 }
 
 dev_t void Domain_d::calcElemJAndDerivatives () {

@@ -27,7 +27,7 @@ namespace MetFEM {
       for (int e=0; e<m_nodel_count[n];e++) {
         int eglob   = m_nodel     [m_nodel_offset[n]+e];
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-        int offset  = e * m_nodxelem * m_dim;
+        int offset  = eglob * m_nodxelem * m_dim;
         for (int d=0;d<m_dim;d++){
           //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
@@ -39,8 +39,7 @@ namespace MetFEM {
 
 
 __global__ void assemblyForcesKernel(Domain_d *dom_d){
-	
-	
+	dom_d->assemblyForces();
 }
 
 
@@ -72,26 +71,91 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
       // }//elcount 
   // }//par loop
 // }
-
-  inline dev_t void Domain_d::calcMassDiagFromElementNodes(int *elnod) // To use existing array
+  
+  //CPU TEST (SINCE IS CALULATED ONLY ONCE
+  /// THIS IS WRITING AT SAME MEM LOCATION
+  // ONLY FOR CPU, NOT CUDA
+  // USES ELNOD_H; CHANGE TO GPU
+  void Domain_d::calcMassDiagFromElementNodes(const double &rho) // To use existing array
   {
     Matrix m_glob(m_node_count,m_node_count);
+    Matrix temph(m_dim, m_nodxelem);
+    Matrix tempm(m_nodxelem, m_nodxelem);
     int n1,n2, iglob,jglob;
     // m_glob (:,:) = 0.0d0
-      for (int e=0;e<m_elem_count;e++){
-        // !print *, "elem ", e
-        for( n1 =0; n1<m_nodxelem;n1++){
-          for( n2 =0; n2<m_nodxelem;n2++){
-                // !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
-                // iglob  = elnod(e,n1) 
-                // jglob  = elnod(e,n2) 
-                // ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-                // m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
-                //m_glob->Set(iglob,jglob,m_glob->getVal(iglob,jglob)+;
+    for (int e=0;e<m_elem_count;e++){
+      // !print *, "elem ", e
+
+
+    int offset = e * m_nodxelem * m_nodxelem;
+  
+  
+    //if (m_gp_count == 1 ) {  
+
+      double w = pow(2.0, m_dim);
+      double f = 1.0/(pow(2.0,m_dim));
+      for (int k=0;k<m_nodxelem;k++){  
+        for (int d=0;d<m_dim;d++)
+          temph.Set(d,k,f);
+      }
+      // TODO: DO NOT PERFORM THIS MULT
+      
+      MatMul(temph.getTranspose(),temph,&tempm);
+
+
+      for( n1 =0; n1<m_nodxelem;n1++){ //LOCAL n1
+        for( n2 =0; n2<m_nodxelem;n2++){ //LOCAL n2
+              // !print *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
+              int iglob  = elnod_h[e*m_nodxelem+n1];
+              int jglob  = elnod_h[e*m_nodxelem+n2];              
+              // jglob  = elnod(e,n2) 
+              // ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
+              // m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
+              //m_glob.Set(iglob,jglob,m_glob.getVal(iglob,jglob)+ m_ematm[e*m_nodxelem + n1*m_nodxelem+n2]);
+              
+              m_glob.Set(iglob,jglob,(m_glob.getVal(iglob,jglob)+ tempm.getVal(n1,n2))*w*rho);
+        }
+      }
+    } //FOR e //NOT PARALLEL
+    
+    double *mdiag_h = new double[m_node_count];
+
+    printf("mdiag: %f\n");
+    for(int n =0; n<m_nodxelem;n++) {
+      mdiag_h[n] = 0.0;
+      for(int ig =0; ig<m_nodxelem;ig++){       
+        mdiag_h[n] += m_glob.getVal(ig,n);
+      }
+      printf("%f ",mdiag_h[n]); 
+    }
+    printf("\n");
+    
+    memcpy_t(this->m_mdiag, mdiag_h, sizeof(double) * m_node_count);   
+    
+    delete mdiag_h;
+  }
+  
+  //// THIS ASSEMBLES LOOPING THROUGH NODES INSTEAD OF ELEMENTS
+  dev_t void Domain_d::assemblyMassMatrix(){
+
+    //if ()
+  par_loop(n, m_node_count){
+      
+      for (int e=0; e<m_nodel_count[n];e++) {
+        int eglob   = m_nodel     [m_nodel_offset[n]+e];
+        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+        int offset  = eglob * m_nodxelem * m_nodxelem;
+        
+        for (int i=0;i<m_nodxelem;i++){
+          for (int j=0;j<m_nodxelem;j++){
+            //m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
+            //m_mglob[m_mglob*m_mglob*] += m_ematm[offset + i*m_nodxelem + j];
           }
         }
       }
-  }
+    } // element
+
+  }//assemblyForcesNonLock
   
   ///// INITIALIZE Displacements, velocities and Acceleration
   dev_t void Domain_d::InitUVA(){

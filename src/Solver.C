@@ -32,6 +32,9 @@ namespace MetFEM{
   calcElemShapeMat();
   #endif
 
+  //ONLY FROM CPU
+  calcMassDiagFromElementNodes(7850.0);
+  
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD

@@ -45,10 +45,11 @@ ENDIF()
 
 add_executable(MetFEMGPU
                         main.C
-						Domain_d.C
+                        Domain_d.C
                         Matrices.C
                         Mechanical.C
-													Solver.C
+                        Matrices.C
+                        Solver.C
 
               )
 
