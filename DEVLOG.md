@@ -42,4 +42,6 @@
          - Corrected velocity components calculation of strani rate
          - Corrected getDerivative function (several indices and offsets were wrong).
          - Added velocity corrections
-20240315 - Added Shape matrix calculation (for element masses and lumped matrix) 
+20240315 - Added Shape matrix calculation (for element masses and lumped matrix)
+20240320 - Corrected mass matrix dimension
+ 

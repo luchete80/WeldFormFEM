@@ -52,7 +52,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
 
   malloc_t(m_detJ,  double, m_elem_count * m_gp_count );    
-  malloc_t(m_ematm, double, m_nodxelem * m_nodxelem * m_elem_count * m_gp_count ); //Elemental mas matrices
+  malloc_t(m_ematm, double, m_nodxelem * m_nodxelem * m_elem_count); //Elemental mas matrices
 
   //cudaMalloc((void **)&m_detJ,  m_elem_count * m_gp_count * sizeof (double)); 
 

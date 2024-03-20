@@ -102,10 +102,11 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     }
   }
   
+//////////  CALCULATE MATM ///////////
+///////// m_ematm //////
   
   
-dev_t void Domain_d::calcElemShapeMat() {
-  
+dev_t void Domain_d::calcElemShapeMat() {   
   // !!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
 // subroutine calculate_element_shapeMat ()
   // integer :: e,d
@@ -130,7 +131,7 @@ dev_t void Domain_d::calcElemShapeMat() {
   Matrix tempm(m_nodxelem, m_nodxelem);
   //Matrix *tempm = new Matrix(m_nodxelem, m_nodxelem);
 
-  int offset = m_gp_count * e;
+  int offset = e * m_nodxelem * m_nodxelem;
   
   
   if (m_gp_count == 1 ) {  
@@ -175,7 +176,9 @@ dev_t void Domain_d::calcElemShapeMat() {
           // ! temph(3,:) = [0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0]
 
       // !!end if  !!!!dim
-        
+      for (int i=0;i<m_nodxelem;i++)
+      for (int j=0;j<m_nodxelem;j++)
+        m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j);
         // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
         // !print *, "MAT M", elem%matm(e,:,:)
