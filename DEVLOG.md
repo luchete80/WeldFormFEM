@@ -44,4 +44,5 @@
          - Added velocity corrections
 20240315 - Added Shape matrix calculation (for element masses and lumped matrix)
 20240320 - Corrected mass matrix dimension
- 
+         - Added AssemblyForces device call from Kernel.
+         - Added mass matrix calculation (parallel and CPU)

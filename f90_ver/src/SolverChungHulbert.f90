@@ -88,7 +88,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   print *, "Assemblying mass matrix" 
   call assemble_mass_matrix()
   !print * , "done"
-  !print *, "mass matrix",m_glob
+  print *, "mass matrix",m_glob
     mdiag(:)=0.0d0
     do iglob =1, node_count
       do n=1, node_count  !column

@@ -82,6 +82,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     Matrix temph(m_dim, m_nodxelem);
     Matrix tempm(m_nodxelem, m_nodxelem);
     int n1,n2, iglob,jglob;
+    
     // m_glob (:,:) = 0.0d0
     for (int e=0;e<m_elem_count;e++){
       // !print *, "elem ", e
@@ -92,8 +93,8 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   
     //if (m_gp_count == 1 ) {  
 
-      double w = pow(2.0, m_dim);
-      double f = 1.0/(pow(2.0,m_dim));
+      //double w = pow(2.0, m_dim);
+      double f = 1.0/(pow(2.0,m_dim)); //THIS INCLUDES WEIGHT!!!
       for (int k=0;k<m_nodxelem;k++){  
         for (int d=0;d<m_dim;d++)
           temph.Set(d,k,f);
@@ -113,7 +114,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
               // m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
               //m_glob.Set(iglob,jglob,m_glob.getVal(iglob,jglob)+ m_ematm[e*m_nodxelem + n1*m_nodxelem+n2]);
               
-              m_glob.Set(iglob,jglob,(m_glob.getVal(iglob,jglob)+ tempm.getVal(n1,n2))*w*rho);
+              m_glob.Set(iglob,jglob,(m_glob.getVal(iglob,jglob)+ tempm.getVal(n1,n2))*f*rho);
         }
       }
     } //FOR e //NOT PARALLEL
@@ -135,10 +136,10 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     delete mdiag_h;
   }
   
+  /// DEVICE FUNCTION
   //// THIS ASSEMBLES LOOPING THROUGH NODES INSTEAD OF ELEMENTS
   dev_t void Domain_d::assemblyMassMatrix(){
 
-    //if ()
   par_loop(n, m_node_count){
       
       for (int e=0; e<m_nodel_count[n];e++) {
@@ -146,17 +147,21 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
         int offset  = eglob * m_nodxelem * m_nodxelem;
         
-        for (int i=0;i<m_nodxelem;i++){
-          for (int j=0;j<m_nodxelem;j++){
-            //m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
-            //m_mglob[m_mglob*m_mglob*] += m_ematm[offset + i*m_nodxelem + j];
-          }
-        }
-      }
-    } // element
+        for (int n2=0;n2<m_node_count;n2++){
+          for (int e2=0; e2<m_nodel_count[n2];e2++) {
+            int eglob2   = m_nodel     [m_nodel_offset[n2]+e2];
+            int ne2      = m_nodel_loc [m_nodel_offset[n2]+e2]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+            int offset2  = eglob2 * m_nodxelem * m_nodxelem;
 
-  }//assemblyForcesNonLock
-  
+            m_mglob[n*m_nodxelem + n2] +=  m_ematm[offset + ne * m_nodxelem + ne2];
+          }//nodel  count
+          
+        
+        } // N2
+      } // element
+
+    }//assemblyForcesNonLock
+  }
   ///// INITIALIZE Displacements, velocities and Acceleration
   dev_t void Domain_d::InitUVA(){
     par_loop(n, m_node_count){    
@@ -188,6 +193,7 @@ dev_t void Domain_d::calcElemShapeMat() {
   
   // r = 1.0/sqrt(3.0)
   // elem%matm(e,:,:) = 0.0d0
+  // COPY THE DETERMINANT FROM DEV TO HOST
   par_loop (e, m_elem_count) {
 
   //Matrix *temph = new Matrix(m_dim, m_nodxelem);
