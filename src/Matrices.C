@@ -247,8 +247,10 @@ dev_t void Domain_d::calcElemShapeMat() {
 
       // !!end if  !!!!dim
       for (int i=0;i<m_nodxelem;i++)
-      for (int j=0;j<m_nodxelem;j++)
-        m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j);
+        for (int j=0;j<m_nodxelem;j++){
+          m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j) * m_detJ[e];
+          printf("%f ", tempm.getVal(i,j) * m_detJ[e]);
+        }
         // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
         // !print *, "MAT M", elem%matm(e,:,:)
@@ -291,6 +293,10 @@ dev_t void Domain_d::calcElemShapeMat() {
 
 __global__ void calcElemShapeMatKernel(Domain_d *dom_d){
   dom_d->calcElemShapeMat();
+}
+
+__global__ void assemblyMassMatrixKernel(Domain_d *dom_d){
+  dom_d->assemblyMassMatrix();
 }
 
 }//MetFEM

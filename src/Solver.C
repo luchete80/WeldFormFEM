@@ -24,16 +24,7 @@ namespace MetFEM{
   #endif
 
 
-  N = getElemCount();
-  #ifdef CUDA_BUILD
-	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemShapeMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  #else 
-  calcElemShapeMat();
-  #endif
 
-  //ONLY FROM CPU
-  calcMassDiagFromElementNodes(7850.0);
   
   for (int d=0;d<m_dim;d++){
     
@@ -70,6 +61,19 @@ namespace MetFEM{
   CalcElemInitialVol(); //ALSO CALC VOL
   #endif
 	cout << "Done. "<<endl;
+  
+  //AFTER DERIVATIVES (NEEDS JACOBIAN)
+  N = getElemCount();
+  #ifdef CUDA_BUILD
+	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  calcElemShapeMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  #else 
+  calcElemShapeMat();
+  #endif
+
+
+  //ONLY FROM CPU
+  calcMassDiagFromElementNodes(7850.0);
   
   Time = 0.0;
   
