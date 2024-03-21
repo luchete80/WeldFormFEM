@@ -164,6 +164,8 @@ namespace MetFEM{
   assemblyForces(); //CRASHING
   
   #endif
+  
+  
   N = getNodeCount();
   printf("Correction\n");	
   #ifdef CUDA_BUILD

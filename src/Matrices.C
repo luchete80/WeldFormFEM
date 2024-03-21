@@ -235,22 +235,25 @@ dev_t void Domain_d::calcElemMassMat() {
           // end do
           // ! print *, "temp h", temph(:,:)
       double w = pow(2.0, m_dim);
-      double f = 1.0/pow(2.0, m_dim);
+      double f = 1.0/pow(2.0, m_dim)*m_detJ[e] * rho[e];
       for (int k=0;k<m_nodxelem;k++){  
         for (int d=0;d<m_dim;d++)
           temph.Set(d,k,f);
       }
       // TODO: DO NOT PERFORM THIS MULT
       
-      MatMul(temph.getTranspose(),temph,&tempm);
+      //MatMul(temph.getTranspose(),temph,&tempm);
       //MatMul(temph->Transpose(),*temph,tempm);
-      printf("print hmat\n");
-      temph.Print();
-      printf("print transpose\n");
-      temph.getTranspose().Print();
-      printf("mmat \n");
+      for (int i=0;i<m_nodxelem;i++)
+        for (int j=0;j<m_nodxelem;j++)
+          tempm.Set(i,j,f);
+      //printf("print hmat\n");
+      //temph.Print();
+      //printf("print transpose\n");
+      //temph.getTranspose().Print();
+      //printf("mmat \n");
       //temph->Transpose().Print();
-      tempm.Print();
+      //tempm.Print();
 					// //*jacob = 0.125 * MatMul(*dHrs,*x2);
           // MatMul(*dHrs,*x2,jacob);
           
@@ -261,9 +264,9 @@ dev_t void Domain_d::calcElemMassMat() {
       // !!end if  !!!!dim
       for (int i=0;i<m_nodxelem;i++)
         for (int j=0;j<m_nodxelem;j++){
-          printf("rho %f\n", rho[e]);
-          m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j) * m_detJ[e] * rho[e];
-          printf("detJ %e ", tempm.getVal(i,j) * m_detJ[e]);
+          //printf("rho %f\n", rho[e]);
+          m_ematm[offset + i * m_nodxelem + j]=tempm.getVal(i,j); /*tempm.getVal(i,j) * m_detJ[e] * rho[e]*/
+          //printf("detJ %e ", tempm.getVal(i,j) * m_detJ[e]);
         }
         // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         

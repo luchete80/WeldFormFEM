@@ -259,6 +259,11 @@ dev_t void Domain_d::calcElemDensity(){
   }
 }
 
+dev_t void Domain_d::calcAccel(){
+  
+  
+}
+
 dev_t void Domain_d::CalcElemInitialVol(){
   CalcElemVol();
   par_loop(e,m_elem_count){

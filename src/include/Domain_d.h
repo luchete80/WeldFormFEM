@@ -85,6 +85,7 @@ public:
   dev_t void CalcElemVol();
   dev_t void calcElemDensity();
   
+  dev_t void calcAccel();
   dev_t void UpdatePrediction();
   dev_t void UpdateCorrectionAccVel();
   dev_t void UpdateCorrectionPos();
@@ -210,7 +211,7 @@ __global__ void calcTotMassKernel(Domain_d *dom_d);
 
 __global__ void calcMassDiag(Domain_d *dom_d);
 
-
+__global__ void calcAccelKernel(Domain_d *dom_d);
 
 #endif
 
