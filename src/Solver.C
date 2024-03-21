@@ -132,6 +132,7 @@ namespace MetFEM{
   calcElemMassMat();
   #endif
 
+
   N = getNodeCount();
   #ifdef CUDA_BUILD  
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
@@ -144,8 +145,11 @@ namespace MetFEM{
     //STRESSES CALC
 
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  cudaDeviceSynchronize();   
+  cudaDeviceSynchronize(); 
 
+  calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
+  cudaDeviceSynchronize();
+  
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
@@ -163,6 +167,7 @@ namespace MetFEM{
   calcElemStrains();
   calcElemDensity();
   calcElemPressure();
+  CalcStressStrain(dt);
   calcElemForces();
   assemblyForces(); //CRASHING
   calcAccel();
