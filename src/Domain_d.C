@@ -430,27 +430,34 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     // cudaMalloc((void **)&m_nodel,     nodel_tot * sizeof (int));
     // cudaMalloc((void **)&m_nodel_loc, nodel_tot * sizeof (int));
     
-    malloc_t (m_nodel,    int,nodel_tot);
-    malloc_t (m_nodel_loc,int,nodel_tot);
+    malloc_t (m_nodel,        int,nodel_tot);
+    malloc_t (m_nodel_loc,    int,nodel_tot);
+    
+    malloc_t (m_nodel_offset, int, m_node_count);
+    malloc_t (m_nodel_count,  int, m_node_count);
     
     //THIS IS ONLY FOR COMPLETENESS IN CASE OF CPU, SHOULD BE BETTER TO WRITE ON FINALL ARRAY
-		memcpy_t(this->m_nodel,     nodel_h,     sizeof(int) * nodel_tot); 
-		memcpy_t(this->m_nodel_loc, nodel_loc_h, sizeof(int) * nodel_tot); 
-    
+		memcpy_t(this->m_nodel,         nodel_h,        sizeof(int) * nodel_tot); 
+		memcpy_t(this->m_nodel_loc,     nodel_loc_h,    sizeof(int) * nodel_tot);
+		 
+		memcpy_t(this->m_nodel_offset,  nodel_offset_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+		memcpy_t(this->m_nodel_count,    nodel_count_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+		    
     // ///// TESTING
     for (int n=0;n<m_node_count;n++){
+      cout << "M node offset:"<<nodel_offset_h[n];
       cout << "Node  "<< n << " Elements"<<endl;
-      for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_h[nodel_offset_h[n]]<<", ";
+      for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_h[nodel_offset_h[n]+ne]<<", ";
       cout << endl;
       cout << "Node  "<< n << " Elements Internal Node"<<endl;
-      for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]]<<", ";
+      for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]+ne]<<", ";
       cout << endl;
     }
     
   
 
 		
-		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h;
+		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
 }
 
 dev_t void Domain_d::calcElemJAndDerivatives () {

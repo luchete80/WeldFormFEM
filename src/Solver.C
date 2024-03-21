@@ -66,11 +66,20 @@ namespace MetFEM{
   N = getElemCount();
   #ifdef CUDA_BUILD
 	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemShapeMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   #else 
   calcElemShapeMat();
   #endif
 
+  N = getNodeCount();
+  #ifdef CUDA_BUILD  
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();   
+  #else
+  assemblyMassMatrix();
+  #endif  
+  
 
   //ONLY FROM CPU
   calcMassDiagFromElementNodes(7850.0);
@@ -155,7 +164,8 @@ namespace MetFEM{
   calcElemDensity();
   calcElemPressure();
   calcElemForces();
-  //assemblyForces(); //CRASHING
+  assemblyForces(); //CRASHING
+  
   #endif
   N = getNodeCount();
   printf("Correction\n");	

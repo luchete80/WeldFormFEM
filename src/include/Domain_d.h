@@ -39,7 +39,7 @@ public:
   
   dev_t void calcElemJacobian ();
   dev_t void calcElemJAndDerivatives/*_FullInt*/();
-  dev_t void calcElemShapeMat();
+  dev_t void calcElemMassMat();
 
 	dev_t void calcElemStrains();
   dev_t void calcElemForces();
@@ -169,7 +169,7 @@ protected:
   bool            m_nonlock_sum;
   int            *m_nodel;           // NODE ELEMENTS: ELEMENTS SHARED BY EACH NODE [nodxelem* node_count] call:  m_nodel[nod,elcount] =EL i,e m_nodel[nod_offset+elcount]
   int            *m_nodel_loc;        //
-  int            *m_nodel_offset;    //
+  int            *m_nodel_offset;    //OFFSET OF THE
   int            *m_nodel_count;    
 	
 	
@@ -180,7 +180,7 @@ protected:
 __global__ void ImposeBCVKernel(Domain_d *dom_d, int d);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
-__global__ void calcElemShapeMatKernel(Domain_d *dom_d);
+__global__ void calcElemMassMatKernel(Domain_d *dom_d);
 __global__ void calcElemStrainsKernel(Domain_d *dom_d);
 
 __global__ void assemblyForcesKernel(Domain_d *dom_d);
