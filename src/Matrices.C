@@ -25,16 +25,16 @@ namespace MetFEM {
     //if ()
   par_loop(n, m_node_count){
       printf("nodel count %d",m_nodel_count[n]);
-//      for (int e=0; e<m_nodel_count[n];e++) {
-//        int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-//        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-////        int offset  = eglob * m_nodxelem * m_dim;
-//        printf("glob %d, loc %d \n",n,ne);
-////        for (int d=0;d<m_dim;d++){
-////          //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
-////          m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
-////        }
-//      }
+      for (int e=0; e<m_nodel_count[n];e++) {
+        int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+        int offset  = eglob * m_nodxelem * m_dim;
+        printf("glob %d, loc %d \n",n,ne);
+        for (int d=0;d<m_dim;d++){
+          //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+          m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
+        }
+      }
     } // element
 
   }//assemblyForcesNonLock
@@ -145,24 +145,24 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   par_loop(n, m_node_count){
       
       for (int e=0; e<m_nodel_count[n];e++) {
-//        int eglob   = m_nodel     [m_nodel_offset[n]+e];
-//        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-//        int offset  = eglob * m_nodxelem * m_nodxelem;
-//         printf("glob n1, loc ne\n",n,ne);
+        int eglob   = m_nodel     [m_nodel_offset[n]+e];
+        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+        int offset  = eglob * m_nodxelem * m_nodxelem;
+         printf("glob n1, loc ne\n",n,ne);
          
-//        for (int n2=0;n2<m_node_count;n2++){
-//          for (int e2=0; e2<m_nodel_count[n2];e2++) {
+        for (int n2=0;n2<m_node_count;n2++){
+          for (int e2=0; e2<m_nodel_count[n2];e2++) {
 
-//            int eglob2   = m_nodel     [m_nodel_offset[n2]+e2];
-//            int ne2      = m_nodel_loc [m_nodel_offset[n2]+e2]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-//            int offset2  = eglob2 * m_nodxelem * m_nodxelem;
-//            printf("glob n1 n2, ne, ne2\n",n,n2,ne,ne2);
-//            
-//            //m_mglob[n*m_nodxelem + n2] +=  m_ematm[offset + ne * m_nodxelem + ne2];
-//          }//nodel  count
+            int eglob2   = m_nodel     [m_nodel_offset[n2]+e2];
+            int ne2      = m_nodel_loc [m_nodel_offset[n2]+e2]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+            int offset2  = eglob2 * m_nodxelem * m_nodxelem;
+            //printf("glob ij: %d %d, loc ij %d, %d\n",n,n2,ne,ne2);
+            
+            //m_mglob[n*m_nodxelem + n2] +=  m_ematm[offset + ne * m_nodxelem + ne2];
+          }//nodel  count
           
         
-//        } // N2
+        } // N2
       } // element
 
     }//assemblyForcesNonLock
