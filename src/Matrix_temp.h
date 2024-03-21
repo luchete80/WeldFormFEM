@@ -31,7 +31,7 @@
 #include "defs.h"
 
 #include <cuda.h>
-#define __spec __device__ __inline__
+#define __spec __host__ __device__ __inline__
 #else 
 #define __spec __inline__
 #endif
