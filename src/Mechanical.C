@@ -260,7 +260,12 @@ dev_t void Domain_d::calcElemDensity(){
 }
 
 dev_t void Domain_d::calcAccel(){
-  
+  par_loop(n, m_node_count){
+    int i = n*m_dim;
+    for (int d=0;d<m_dim;d++){
+      a[i+d] += m_fi[i+d]/m_mdiag[n];
+    }
+  }    
   
 }
 
@@ -619,6 +624,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
   __global__ void calcElemForcesKernel(Domain_d *dom_d){
 		
 		dom_d->calcElemForces();
+  }
+
+  __global__ void calcAccelKernel(Domain_d *dom_d){
+		
+		dom_d->calcAccel();
   }
 
  

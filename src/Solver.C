@@ -151,6 +151,9 @@ namespace MetFEM{
 
   assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
+  
+  calcAccelKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
 
   #else
   //SECOND TIME
@@ -162,7 +165,7 @@ namespace MetFEM{
   calcElemPressure();
   calcElemForces();
   assemblyForces(); //CRASHING
-  
+  calcAccel();
   #endif
   
   
