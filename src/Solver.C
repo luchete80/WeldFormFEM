@@ -62,27 +62,6 @@ namespace MetFEM{
   #endif
 	cout << "Done. "<<endl;
   
-  //AFTER DERIVATIVES (NEEDS JACOBIAN)
-  N = getElemCount();
-  #ifdef CUDA_BUILD
-	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  #else 
-  calcElemShapeMat();
-  #endif
-
-  N = getNodeCount();
-  #ifdef CUDA_BUILD  
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
-  #else
-  assemblyMassMatrix();
-  #endif  
-  
-
-  //ONLY FROM CPU
-  calcMassDiagFromElementNodes(7850.0);
   
   Time = 0.0;
   
@@ -144,6 +123,24 @@ namespace MetFEM{
   calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();
 
+  //AFTER DERIVATIVES AND RHO CALC (NEEDS JACOBIAN)
+  N = getElemCount();
+  #ifdef CUDA_BUILD
+	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  #else 
+  calcElemMassMat();
+  #endif
+
+  N = getNodeCount();
+  #ifdef CUDA_BUILD  
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();   
+  #else
+  assemblyMassMatrix();
+  #endif  
+  
     //STRESSES CALC
 
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);

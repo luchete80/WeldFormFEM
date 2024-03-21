@@ -246,7 +246,7 @@ dev_t void Domain_d::calcElemDensity(){
   // integer :: e, n, gp
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count ;
-      rho[offset + gp] = rho[offset + gp] * vol_0[e] / vol[e];
+      rho[offset + gp] = rho_0[offset + gp] * vol_0[e] / vol[e];
     }    
   // do e = 1, elem_count
     // do gp=1, elem%gausspc(e)

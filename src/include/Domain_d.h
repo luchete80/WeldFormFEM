@@ -60,6 +60,11 @@ public:
   inline dev_t void     setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &); //I AND J ARE: DIMENSION AND NODE
   inline dev_t void     setDerivative(const int &e, const int &gp, Matrix *); //I AND J ARE: DIMENSION AND NODE
   
+  void setDensity(const double &r);
+  
+  // template <typename T>
+  // void setVector(,const double &r);
+  
 	int threadsPerBlock, blocksPerGrid; //TO BE USED BY SOLVER
 	
 	const int & getElemCount()const{return m_elem_count;}
@@ -204,6 +209,7 @@ __global__ void AssignMatAddressKernel(Domain_d *dom/*, Material_ *mat*/);
 __global__ void calcTotMassKernel(Domain_d *dom_d);
 
 __global__ void calcMassDiag(Domain_d *dom_d);
+
 
 
 #endif

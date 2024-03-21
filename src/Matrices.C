@@ -78,6 +78,8 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   /// THIS IS WRITING AT SAME MEM LOCATION
   // ONLY FOR CPU, NOT CUDA
   // USES ELNOD_H; CHANGE TO GPU
+  
+  /// NOT WORKING
   void Domain_d::calcMassDiagFromElementNodes(const double &rho) // To use existing array
   {
     Matrix m_glob(m_node_count,m_node_count);
@@ -140,16 +142,18 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   
   /// DEVICE FUNCTION
   //// THIS ASSEMBLES LOOPING THROUGH NODES INSTEAD OF ELEMENTS
+  //  CALCULATE ALSO M_DIAG
   dev_t void Domain_d::assemblyMassMatrix(){
 
   par_loop(n, m_node_count){
       
+      double diag = 0.0;      
       for (int e=0; e<m_nodel_count[n];e++) {
         int eglob   = m_nodel     [m_nodel_offset[n]+e];
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
         int offset  = eglob * m_nodxelem * m_nodxelem;
          printf("glob n1, loc ne\n",n,ne);
-         
+        
         for (int n2=0;n2<m_node_count;n2++){
           for (int e2=0; e2<m_nodel_count[n2];e2++) {
 
@@ -157,15 +161,19 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
             int ne2      = m_nodel_loc [m_nodel_offset[n2]+e2]; //LOCAL ELEMENT NODE INDEX m_nodel_local
             int offset2  = eglob2 * m_nodxelem * m_nodxelem;
             //printf("glob ij: %d %d, loc ij %d, %d\n",n,n2,ne,ne2);
-            
-            //m_mglob[n*m_nodxelem + n2] +=  m_ematm[offset + ne * m_nodxelem + ne2];
+            double f = m_ematm[offset + ne * m_nodxelem + ne2];
+            m_mglob[n*m_nodxelem + n2] += f;
+            diag += f;
           }//nodel  count
           
         
         } // N2
+        
+        
       } // element
-
-    }//assemblyForcesNonLock
+      printf("m diag: %f\n",diag);
+      m_mdiag [n] = diag;
+    }//NODE N (N1)
   }
   ///// INITIALIZE Displacements, velocities and Acceleration
   dev_t void Domain_d::InitUVA(){
@@ -227,7 +235,7 @@ dev_t void Domain_d::calcElemMassMat() {
           // end do
           // ! print *, "temp h", temph(:,:)
       double w = pow(2.0, m_dim);
-      double f = 1.0/(2.0*m_dim);
+      double f = 1.0/pow(2.0, m_dim);
       for (int k=0;k<m_nodxelem;k++){  
         for (int d=0;d<m_dim;d++)
           temph.Set(d,k,f);
@@ -253,8 +261,9 @@ dev_t void Domain_d::calcElemMassMat() {
       // !!end if  !!!!dim
       for (int i=0;i<m_nodxelem;i++)
         for (int j=0;j<m_nodxelem;j++){
-          m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j) * m_detJ[e];
-          printf("%f ", tempm.getVal(i,j) * m_detJ[e]);
+          printf("rho %f\n", rho[e]);
+          m_ematm[offset + i * m_nodxelem + j]= tempm.getVal(i,j) * m_detJ[e] * rho[e];
+          printf("detJ %e ", tempm.getVal(i,j) * m_detJ[e]);
         }
         // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         

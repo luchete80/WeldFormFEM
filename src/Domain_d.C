@@ -99,6 +99,16 @@ dev_t void Domain_d::AssignMatAddress(){
   
 }
 
+///// MAKE TEMPLATE SET VECTOR
+void Domain_d::setDensity(const double &r){
+  double *rho_h = new double [m_node_count];
+  for (int n=0;n<m_elem_count;n++) rho_h[n] = r;
+  memcpy_t(this->rho_0, rho_h, sizeof(double) * m_elem_count);    
+  
+  delete rho_h;
+  
+}
+
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
     vector_t prev_a = Ptr_vector_t(a, n);
@@ -739,6 +749,7 @@ __global__ void UpdateCorrectionPosKernel(Domain_d *dom_d){
 __global__ void AssignMatAddressKernel(Domain_d *dom){
   dom->AssignMatAddress();
 }
+
 
 };
 	

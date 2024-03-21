@@ -47,3 +47,4 @@
          - Added AssemblyForces device call from Kernel.
          - Added mass matrix calculation (parallel and CPU)
 20240321 - FIXED assembly (Two allocations were missed).
+         - Changed Initial Density

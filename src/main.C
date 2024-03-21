@@ -54,6 +54,8 @@ int main(){
   nu  = 0.3;
   rho = 7850.0;
   
+  dom_d->setDensity(rho);
+  
   cout << "Creating Material..:"<<endl;
   Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
   Elastic_ el(E,nu);
