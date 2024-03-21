@@ -32,6 +32,7 @@
          - ADDED COPY CONSTRUCTOR TO MATRIX CLASS AND OPERATOR=
 20240229 - Fixed some GPU building, matrix is working
          - Corrected Derivatives calculation
+         ----------------------------------------
 20240302 - Added velocity and accel corrections.
          - Added mass matrices
 20240308 - Fixed Vol Calc (Gasuss weight)
@@ -48,3 +49,4 @@
          - Added mass matrix calculation (parallel and CPU)
 20240321 - FIXED assembly (Two allocations were missed).
          - Changed Initial Density
+         - Added first stress calc

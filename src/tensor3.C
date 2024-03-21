@@ -73,6 +73,16 @@ __spec tensor3 FromFlatSym(double flat[]){
 	return ret;
 }
 
+__spec tensor3 FromFlatSym(double *flat, int initial){
+	tensor3 ret;
+  ret.xx = flat[initial + 0];		ret.yy = flat[initial +1];		ret.zz = flat[initial +2];
+  ret.xy = ret.yx = flat[initial +3];
+  ret.yz = ret.zy = flat[initial +4];
+  ret.xz = ret.zx = flat[initial +5];  
+	
+	return ret;
+}
+
 __spec tensor3 FromFlatAntiSym(double flat[]){
 	tensor3 ret;
   ret.xx = flat[0];		ret.yy = flat[1];		ret.zz = flat[2];  
@@ -84,6 +94,21 @@ __spec tensor3 FromFlatAntiSym(double flat[]){
 	ret.yx = -flat[3]; 
 	ret.zy = -flat[4]; 
 	ret.zx = -flat[5]; 
+  
+  return ret;
+}
+
+__spec tensor3 FromFlatAntiSym(double *flat, int i){
+	tensor3 ret;
+  ret.xx = flat[i+0];		ret.yy = flat[i+1];		ret.zz = flat[i+2];  
+
+	ret.xy = flat[i+3]; 
+	ret.yz = flat[i+4]; 
+	ret.xz = flat[i+5]; 
+	
+	ret.yx = -flat[i+3]; 
+	ret.zy = -flat[i+4]; 
+	ret.zx = -flat[i+5]; 
   
   return ret;
 }

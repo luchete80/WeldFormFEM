@@ -62,7 +62,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(m_str_rate,  double, 6 * m_elem_count * m_gp_count );   
   malloc_t(m_rot_rate,  double, 6 * m_elem_count * m_gp_count );     
   malloc_t(m_sigma,     double, 6 * m_elem_count * m_gp_count );   
-
+  malloc_t(m_tau,       double, 6 * m_elem_count * m_gp_count );   
+  
   ///// ELEMENTAL VALUES
   // cudaMalloc((void **)&p,         m_elem_count * m_gp_count * sizeof (double)); 
   // cudaMalloc((void **)&rho,       m_elem_count * m_gp_count * sizeof (double)); 

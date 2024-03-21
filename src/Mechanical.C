@@ -442,11 +442,12 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 
     // Jaumann rate terms
   tensor3 RotationRateT,SRT,RS;
-  tensor3 RotationRate;
-  tensor3 StrainRate;
-  tensor3 ShearStress,ShearStressa,ShearStressb;
+  tensor3 RotRate;
+  tensor3 StrRate;
+  tensor3 ShearStress;
   tensor3 Sigma;
   tensor3 Strain,Straina,Strainb;
+ 
 	
   // implicit none
   // real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
@@ -461,22 +462,37 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
 
   par_loop(e,m_elem_count){
-    int offset = e * m_gp_count ;
+    
     for (int gp=0;gp<m_gp_count;gp++){
+      int offset_s = e * m_gp_count + gp;   //SCALAR
+      int offset_t = offset_s * 6 ; //SYM TENSOR
+      ShearStress = FromFlatSym(m_tau,          offset_t );
+      StrRate     = FromFlatSym(m_str_rate,     offset_t );
+      RotRate     = FromFlatAntiSym(m_rot_rate, offset_t );
   // do e = 1, elem_count  
     // do gp=1,elem%gausspc(e)
-      SRT = Sigma * Trans(RotationRate);
-      RS = RotationRate * ShearStress;
+      SRT = ShearStress * Trans(RotRate);
+      RS  = RotRate * ShearStress;
       // SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       // RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      ShearStress = dt * (2.0 * ( StrainRate -SRT + RS));
+      //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
+      ShearStress	= dt*(2.0/**G[i]*/*(StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity())+SRT+RS) + ShearStress;
+      printf("Shear Stress\n");
+      print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    // +SRT+RS) + elem%shear_stress(e,gp,:,:)
-      // Sigma = ShearStress;
-      // ToFlatSymPtr(Sigma,m_sigma,offset);
+                                   
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+      Sigma = -p[offset_s] * Identity() + ShearStress;
+      printf("Sigma\n");
+      print(Sigma);
+      ///// OUTPUT TO Flatten arrays
+      ToFlatSymPtr(Sigma, m_sigma,6*offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      //ToFlatSymPtr(Strain, 	strain,6*i);		
+      ToFlatSymPtr(ShearStress, m_tau, 6*offset_t);
+      
     }//gp
   }//el < elcount
     // end do !gauss point

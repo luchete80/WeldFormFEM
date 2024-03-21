@@ -151,7 +151,7 @@ protected:
   double          *m_str_rate, *m_rot_rate;
   double          *m_f_elem;    //ELEMENT
   double          *m_fi, *m_fe; //NODAL
-  double          *m_sigma;
+  double          *m_sigma, *m_tau;
 	
   //Updated lagrangian formulation
   //real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy
