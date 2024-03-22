@@ -161,6 +161,12 @@ dev_t void Domain_d::calcElemStrains(){
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
           str_rate->Set(0,2, str_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
                                                          getDerivative(e,gp,0,n) * getVElem(e,n,2)));
+
+          rot_rate->Set(1,2, rot_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) -
+                                                         getDerivative(e,gp,1,n) * getVElem(e,n,2)));
+          rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
+                                                         getDerivative(e,gp,0,n) * getVElem(e,n,2)));
+
           // elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
                                      // + temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
           // elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
