@@ -249,19 +249,19 @@ implicit none
     end do
   close(1)
   
-  ! print *, "Element stresses"
-  ! do i=1,elem_count
-    ! do gp=1, elem%gausspc(i)
-      ! print *, elem%sigma(i,gp,:,:)
-      ! !print *, "Sigma eq ", elem%sigma_eq(i,gp)
-    ! end do
-  ! end do
-  ! print *, "Element strain rates" 
-  ! do i=1,elem_count
-    ! do gp=1, elem%gausspc(i)
-      ! print *, elem%str_rate(i,gp,:,:)
-    ! end do
-  ! end do
+  print *, "Element stresses"
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%sigma(i,gp,:,:)
+      !print *, "Sigma eq ", elem%sigma_eq(i,gp)
+    end do
+  end do
+  print *, "Element strain rates" 
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%str_rate(i,gp,:,:)
+    end do
+  end do
   print *, "Accels"
   do i=1,node_count
     print *, "a ", nod%v(i,:)  
