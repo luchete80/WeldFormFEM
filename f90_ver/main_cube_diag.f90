@@ -256,6 +256,15 @@ implicit none
       !print *, "Sigma eq ", elem%sigma_eq(i,gp)
     end do
   end do
+
+  print *, "Element shear stresses"
+  do i=1,elem_count
+    do gp=1, elem%gausspc(i)
+      print *, elem%shear_stress(i,gp,:,:)
+      !print *, "Sigma eq ", elem%sigma_eq(i,gp)
+    end do
+  end do
+  
   print *, "Element strain rates" 
   do i=1,elem_count
     do gp=1, elem%gausspc(i)
