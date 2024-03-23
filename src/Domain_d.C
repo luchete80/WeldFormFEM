@@ -169,7 +169,7 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
     vector_t_Ptr(uinc_+x_,x,n);
     vector_t_Ptr(u_,u,n);
     
-    printf ("node %d Corr disp %f %f %f \n", n, u_.x, u_.y,u_.z);
+    printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
     // printf ("node %d\n", n);
     // vector_t_Ptr(dt * getV(n),x,n);
     // printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
