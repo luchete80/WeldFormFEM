@@ -271,6 +271,9 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] += m_fi[i+d]/m_mdiag[n];
     }
+    printf("mass %f\n",m_mdiag[n]);
+    printf("a %f %f %f \n",a[0],a[1],a[2]);
+    printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
   }    
   
 }
@@ -483,7 +486,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       // RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
-      ShearStress	= dt*(2.0/**G[i]*/*(StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity())+SRT+RS) + ShearStress;
+      tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
+      printf("str rat ");print (StrRate);
+      
+      //CHECK IF CALL AS POINTER IS SLOWER THAN VALUE
+      ShearStress	= dt*(2.0* mat[e]->Elastic().E()*(StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz) * Identity() ) + SRT+RS) + ShearStress;
       printf("Shear Stress\n");
       print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &

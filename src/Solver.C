@@ -125,22 +125,18 @@ namespace MetFEM{
 
   //AFTER DERIVATIVES AND RHO CALC (NEEDS JACOBIAN)
   N = getElemCount();
-  #ifdef CUDA_BUILD
+
 	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  #else 
-  calcElemMassMat();
-  #endif
 
-
+  printf("CALCULATING MASS\n");
   N = getNodeCount();
-  #ifdef CUDA_BUILD  
+
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
-  #else
-  assemblyMassMatrix();
-  #endif  
+ 
+
   
     //STRESSES CALC
 
@@ -169,6 +165,8 @@ namespace MetFEM{
   calcElemPressure();
   CalcStressStrain(dt);
   calcElemForces();
+  calcElemMassMat(); 
+  assemblyMassMatrix();  
   assemblyForces(); //CRASHING
   calcAccel();
   #endif
