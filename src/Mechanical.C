@@ -403,15 +403,17 @@ dev_t void Domain_d::calcElemForces(){
 dev_t void Domain_d::calcElemPressure(){
 
   par_loop(e,m_elem_count){
+    int offset_t = e * m_gp_count *6;
     Matrix *sigma   = new Matrix(m_dim,m_dim);
-    Matrix *str_inc = new Matrix(m_dim,m_dim);
+    //Matrix str_inc(m_dim,m_dim);
+    tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t )*dt;
     //sigma.FromFlatSymPtr();
     double trace;
     double press_inc = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
       for (int d = 0; d<m_dim;d++){
-        trace += getSigma(e,gp,d,d);
+        //str_inc = str_inc + getStrRate(e,gp,d,d);
         printf("trace %f\n",trace);
       }
       press_inc += trace; // TODO: TRACE
@@ -422,7 +424,7 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       //  printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
       trace = 0.0;
-      for (int d = 0; d<m_dim;d++){
+      for (int d = 0; d<m_dim;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
     }
