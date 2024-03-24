@@ -117,7 +117,7 @@ namespace MetFEM{
 	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
 
-  calcElemStrainsKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  calcElemStrainRatesKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
 
   calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
@@ -160,7 +160,7 @@ namespace MetFEM{
     //STRESSES CALC
   calcElemJAndDerivatives();
   CalcElemVol();
-  calcElemStrains();
+  calcElemStrainRates();
   calcElemDensity();
   calcElemPressure();
   CalcStressStrain(dt);

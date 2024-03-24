@@ -102,7 +102,7 @@ namespace MetFEM {
   // end do !element
 // end subroutine
 
-dev_t void Domain_d::calcElemStrains(){
+dev_t void Domain_d::calcElemStrainRates(){
   Matrix *str_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
   Matrix *rot_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
   par_loop(e,m_elem_count){
@@ -222,9 +222,14 @@ dev_t void Domain_d::calcElemStrains(){
     delete str_rate,rot_rate;
   } //calcElemStrains
   
+  __global__ void calcElemStrainRatesKernel(Domain_d *dom_d){
+		
+		dom_d->calcElemStrainRates();
+}
+
   __global__ void calcElemStrainsKernel(Domain_d *dom_d){
 		
-		dom_d->calcElemStrains();
+		dom_d->calcElemStrainRates();
 }
 
 //To calculate before elemet Jacobian calc
@@ -398,7 +403,8 @@ dev_t void Domain_d::calcElemForces(){
 dev_t void Domain_d::calcElemPressure(){
 
   par_loop(e,m_elem_count){
-    Matrix *sigma = new Matrix(m_dim,m_dim);
+    Matrix *sigma   = new Matrix(m_dim,m_dim);
+    Matrix *str_inc = new Matrix(m_dim,m_dim);
     //sigma.FromFlatSymPtr();
     double trace;
     double press_inc = 0.0;
@@ -415,8 +421,15 @@ dev_t void Domain_d::calcElemPressure(){
     int offset = e * m_gp_count ;
     for (int gp=0;gp<m_gp_count;gp++){
       //  printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
+      trace = 0.0;
+      for (int d = 0; d<m_dim;d++){
+        trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
     }
+    delete sigma;
+  } // e< elem_count
+}
+    
 // subroutine calc_elem_pressure_from_strain (modK)
   // implicit none
   // real(fp_kind), intent(in) :: modK
@@ -440,9 +453,6 @@ dev_t void Domain_d::calcElemPressure(){
     // ! print *, "elem%pressure(e,gp) FROM STRAIN", elem%pressure(e,1)
   // end do
 // end subroutine 
-    delete sigma;
-  } // e< elem_count
-}
 
 // 
 // !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED

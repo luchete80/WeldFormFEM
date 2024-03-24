@@ -41,7 +41,7 @@ public:
   dev_t void calcElemJAndDerivatives/*_FullInt*/();
   dev_t void calcElemMassMat();
 
-	dev_t void calcElemStrains();
+	dev_t void calcElemStrainRates();
   dev_t void calcElemForces();
   dev_t void calcElemPressure(); //FROM STRAIN
 
@@ -187,7 +187,7 @@ __global__ void ImposeBCVKernel(Domain_d *dom_d, int d);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
 __global__ void calcElemMassMatKernel(Domain_d *dom_d);
-__global__ void calcElemStrainsKernel(Domain_d *dom_d);
+__global__ void calcElemStrainRatesKernel(Domain_d *dom_d);
 
 __global__ void assemblyForcesKernel(Domain_d *dom_d);
 __global__ void assemblyMassMatrixKernel(Domain_d *dom_d);
