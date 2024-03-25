@@ -145,7 +145,6 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   //// THIS ASSEMBLES LOOPING THROUGH NODES INSTEAD OF ELEMENTS
   //  CALCULATE ALSO M_DIAG
   dev_t void Domain_d::assemblyMassMatrix(){
-  printf("ASSEMBLY\n");
   par_loop(n, m_node_count){
       
       double diag = 0.0;      

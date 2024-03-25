@@ -423,6 +423,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<m_dim;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
+      printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
