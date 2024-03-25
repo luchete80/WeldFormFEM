@@ -113,6 +113,10 @@ __spec tensor3 FromFlatAntiSym(double *flat, int i){
   return ret;
 }
 
+__spec double Trace (const tensor3 &m_data) {
+  return (m_data.xx+m_data.yy+m_data.zz);
+};
+
 // __device__ void tensor3::FromFlatSymPtr(double *flat){
 	// for (int i=0;i<3;i++)
 		// m_data [i][i] = flat[i];

@@ -406,17 +406,13 @@ dev_t void Domain_d::calcElemPressure(){
     int offset_t = e * m_gp_count *6;
     Matrix *sigma   = new Matrix(m_dim,m_dim);
     //Matrix str_inc(m_dim,m_dim);
-    tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t )*dt;
     //sigma.FromFlatSymPtr();
     double trace;
     double press_inc = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
-      for (int d = 0; d<m_dim;d++){
-        //str_inc = str_inc + getStrRate(e,gp,d,d);
-        printf("trace %f\n",trace);
-      }
-      press_inc += trace; // TODO: TRACE
+      tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
+      press_inc += Trace(str_inc);
     }//gauss point
     press_inc = -press_inc/m_gp_count;
     //  printf("trace %f\n",trace);
