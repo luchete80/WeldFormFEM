@@ -22,6 +22,7 @@ class Elastic_{
                          G_m= e / (2.0* (1.0 + nu));
                         }
 	 spec_ const double& E()const{return E_m;}
+	 spec_ const double& G()const{return G_m;}
    spec_ const double& BulkMod()const{return K_m;}
 	
 };

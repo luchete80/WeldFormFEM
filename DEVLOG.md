@@ -50,3 +50,6 @@
 20240321 - FIXED assembly (Two allocations were missed).
          - Changed Initial Density
          - Added first stress calc
+20240326 - Corrected Shear Stress calc. NOW GIVES OK STRESSES AND PRESSURE 
+           AT INTERMEDIATE CALCS!!
+         - Fixed material props example. 

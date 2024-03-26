@@ -500,7 +500,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       printf("str rat ");print (StrRate);
       
       //CHECK IF CALL AS POINTER IS SLOWER THAN VALUE
-      ShearStress	= dt*(2.0* mat[e]->Elastic().E()*(StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz) * Identity() ) + SRT+RS) + ShearStress;
+      ShearStress	= dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS) + ShearStress;
       printf("Shear Stress\n");
       print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
