@@ -314,8 +314,16 @@ dev_t void Domain_d::calcElemForces(){
 
   par_loop(e,m_elem_count){
     int offset = e*m_nodxelem*m_dim;
+    double w = 1.;
+    if (m_gp_count == 1) w = pow(2.0,m_dim);
+    
+    for (int gp=0;gp<m_gp_count;gp++)
+      for (int n=0; n<m_nodxelem;n++) 
+        for (int d=0;d<m_dim;d++)
+          m_f_elem[offset + n*m_dim + d] = 0.0;
+        
     for (int gp=0;gp<m_gp_count;gp++){
-	
+    
   // integer :: e, i,j,k, gp,n, d
   // real(fp_kind), dimension(dim*nodxelem,1) ::f
   // real(fp_kind) :: w
@@ -370,34 +378,13 @@ dev_t void Domain_d::calcElemForces(){
                                              getDerivative(e,gp,0,n) * getSigma(e,gp,0,2);     
         }
       
-      }
-        // do d=1, dim
-          // elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
-        // end do
-        // if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          // !!elem%f_int(e,n,1) = 
-          // elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          // elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
-        // else 
-          // elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                                  // elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-          // elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                                  // elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-          // elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                                  // elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
-        // end if
-        // !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
-      // end do! nod x elem
-      // !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
-      // !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
-      // !print *, "s33 ", elem%sigma (e,gp, 3,3)
-    // end do !gp
-    // elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
-  // end do!elem
-	// ! !$omp end parallel do    
+      }// nod x elem
 
-      } // Gauss Point
-    }//if e<elem_count
+    } // Gauss Point
+    for (int n=0; n<m_nodxelem;n++) 
+      for (int d=0;d<m_dim;d++)
+        m_f_elem[offset + n*m_dim + d] *= w;
+  }//if e<elem_count
 }
 
 dev_t void Domain_d::calcElemPressure(){

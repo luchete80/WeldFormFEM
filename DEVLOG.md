@@ -53,3 +53,7 @@
 20240326 - Corrected Shear Stress calc. NOW GIVES OK STRESSES AND PRESSURE 
            AT INTERMEDIATE CALCS!!
          - Fixed material props example. 
+         - Fixed Forces calculation (Gauss integration Weight was lost, and never cleared)
+         - DISPLACEMENTS ARE CORRECT FOR REDUCED INTEGRATION BRICK AFTER FIRST TIME STEP!
+          (CHUNG HULBERT SOLVER)
+         

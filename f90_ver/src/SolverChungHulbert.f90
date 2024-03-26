@@ -243,7 +243,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
 
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
-  !print *, "global int forces ", rint_glob(3,:)
+  print *, "global int forces ", rint_glob(3,:)
 
 	!$omp parallel do num_threads(Nproc) private (n)  
 	do n=1,node_count
