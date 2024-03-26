@@ -50,7 +50,7 @@ int main(){
 
   ////// MATERIAL  
   double E, nu, rho;
-  E   = 200.0e9;
+  E   = 206.0e9;
   nu  = 0.3;
   rho = 7850.0;
   
@@ -124,7 +124,8 @@ int main(){
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
   // } else                              printf("ERROR: Invalid material type.
 
-	double dt = 0.7 * dx/(mat_cs);
+	//double dt = 0.7 * dx/(mat_cs);
+  double dt = 0.8e-5;
   dom_d->SetDT(dt); 
   dom_d->SetEndTime (dt);
   

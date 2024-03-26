@@ -412,6 +412,7 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
       tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
+      printf("str inc, dt %f\n", dt);print(str_inc);
       press_inc += Trace(str_inc);
     }//gauss point
     press_inc = -press_inc/m_gp_count;
