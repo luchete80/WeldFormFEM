@@ -53,9 +53,14 @@ public:
   
   void calcMassDiagFromElementNodes(const double &rho); // To use existing array, NOT IN PARALLEL
 
+  dev_t void ImposeBCA(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
+  host_ void ImposeBCAAllDim();
+
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
+  
+  ///// ATENTION! THIS IS Deriv x DETJ
   inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
   inline dev_t void     setDerivative(const int &e, const int &gp, const int &i, const int &j, const double &); //I AND J ARE: DIMENSION AND NODE
   inline dev_t void     setDerivative(const int &e, const int &gp, Matrix *); //I AND J ARE: DIMENSION AND NODE
@@ -114,7 +119,7 @@ protected:
 	double 				 *v; //CHANGED TO DOUBLE
 	double 				 *a, *prev_a;
 	double         *u, *u_dt;
-  
+  double         *v_h,*u_h, *a_h;
   double         *m_mglob, *m_mdiag, *m_ematm; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses, and element masses
   
 	double 					*p, *rho, *rho_0;
@@ -184,6 +189,7 @@ protected:
 #ifdef  CUDA_BUILD
 
 __global__ void ImposeBCVKernel(Domain_d *dom_d, int d);
+__global__ void ImposeBCAKernel(Domain_d *dom_d, int d);
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d);
 __global__ void calcElemMassMatKernel(Domain_d *dom_d);

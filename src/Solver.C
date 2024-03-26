@@ -171,6 +171,7 @@ namespace MetFEM{
   calcAccel();
   #endif
   
+  ImposeBCAAllDim();
   
   N = getNodeCount();
   printf("Correction\n");	

@@ -181,6 +181,21 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
 
 }
 
+host_ void Domain_d::ImposeBCAAllDim()//ALL DIM
+{    
+  for (int d=0;d<m_dim;d++){
+    int N = bc_count[d];
+    
+    #ifdef CUDA_BUILD
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    ImposeBCAKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+    cudaDeviceSynchronize();
+    #else
+      ImposeBCA(d);
+    #endif
+  }
+}
+
 host_ void Domain_d::ImposeBCVAllDim()//ALL DIM
 {    
   for (int d=0;d<m_dim;d++){
@@ -254,6 +269,18 @@ dev_t void Domain_d::ImposeBCV(const int dim){
     if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
     else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
     else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+  }
+  
+}
+
+dev_t void Domain_d::ImposeBCA(const int dim){
+  par_loop (n,bc_count[dim]){
+    double val;
+    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
+    
+    if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ a[3*bcx_nod[n]+dim] = 0.0; }
+    else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   a[3*bcy_nod[n]+dim] = 0.0;}
+    else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */a[3*bcz_nod[n]+dim] = 0.0; }
   }
   
 }
