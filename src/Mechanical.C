@@ -313,7 +313,7 @@ dev_t void Domain_d::calcTotMass(){
 dev_t void Domain_d::calcElemForces(){
 
   par_loop(e,m_elem_count){
-    int offset = e*m_nodxelem*m_dim;
+    int offset = e*m_nodxelem*m_dim*m_gp_count;
     double w = 1.;
     if (m_gp_count == 1) w = pow(2.0,m_dim);
     
