@@ -35,7 +35,7 @@ namespace MetFEM {
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
       }
-      printf ("force %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+      printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 
   }//assemblyForcesNonLock
