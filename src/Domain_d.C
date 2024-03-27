@@ -762,6 +762,10 @@ __global__ void ImposeBCVKernel(Domain_d *dom_d, const int d){
     dom_d->ImposeBCV(d);
 }
 
+__global__ void ImposeBCAKernel(Domain_d *dom_d, const int d){
+    dom_d->ImposeBCA(d);
+}
+
 __global__ void UpdatePredictionKernel(Domain_d *dom_d){
   dom_d->UpdatePrediction();
 }
