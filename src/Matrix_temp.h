@@ -27,8 +27,11 @@
 #ifndef _MATRIX_H_
 #define _MATRIX_H_
 
+#include <stdarg.h>
+
 #ifdef CUDA_BUILD
 #include "defs.h"
+
 
 #include <cuda.h>
 #define __spec __host__ __device__ __inline__
@@ -399,6 +402,27 @@ __spec void Matrix::FromFlatSymPtr(double *flat, int initial){
   Set(2,2,flat [initial + 5]);
 }
 
+__spec SetMatVals(Matrix *mat, int argcount, ...){
+
+  int counter, total = 0;
+
+  /* Declare a variable of type va_list. */
+  va_list argptr;
+
+  /* Initialize that variable.. */
+  va_start (argptr, argcount);
+
+  for (counter = 0; counter < argcount; counter++)
+  {
+    mat->m_data[counter] = va_arg (argptr, double);
+  }
+
+  /* End use of the argptr variable. */
+  va_end (argptr);
+
+  return total;
+
+}
 
 
 // function invmat (a)

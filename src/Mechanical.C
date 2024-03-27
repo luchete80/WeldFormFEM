@@ -629,6 +629,223 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 	// }//particle count
 // }
 
+
+
+
+
+
+// !!!! AFTER CALCULATING VELE 
+// !!!!!THIS HOURGLASS CONTROL IS BASED ON 
+// !!!!! GOUDREAU 1982 --> Used this simplified hourglass correction
+// !!!!! FLANAGAN 1981
+// !!!!! ATTENTION: IN FLANAGAN INTRINSIC COORDINATES ARE FROM -1/2 to 1/2
+// !!!!! SO: h1=1/4(1-2r)(1-2s) (Flanagan Eqn 55). 
+// !!!!! With our instrinsic from -1 to 1 , in  Table 2 Sigma should be 
+// !!!! Sigma is quadratic (2D) or qubic(3D) coefficient of 
+// subroutine calc_hourglass_forces
+  // implicit none
+  // integer :: e, n, j, d, gp, jmax
+  // real(fp_kind) :: c_h
+  // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
+  // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
+  // real(fp_kind), dimension(dim,4) :: hmod
+  // real(fp_kind) :: test
+// !real(fp_kind), dimension(1,4) :: test
+  // if (dim .eq. 2) then
+    // jmax = 1
+  // else
+    // jmax = 4
+  // end if
+  // !!! TODO: TO BE DEFINED IN DOMAIN ONCE hmod(:,:) = 0.0d0
+  // elem%hourg_nodf(:,:,:) = 0.0d0
+  // if (dim .eq. 3) then
+    // !Also in Flanagan Appendix (data GB in program)
+    // Sig(1,:) = [ 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125]
+    // Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
+    // Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
+    // Sig(4,:) = [-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125]
+    // Sig(:,:) = Sig(:,:) * 8
+  // else 
+    // Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
+    // Sig(:,:) = Sig(:,:) * 4
+  // end if
+  
+  // gp = 1
+  // do e=1, elem_count    
+    // if (elem%gausspc(e) .eq. 1) then
+      // hmod(:,:) = 0.0d0
+      // !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
+      // !print *, "test ", test
+      // !print *, "dHxy ", elem%dHxy(e,gp,:,:)
+          
+      // do n=1,nodxelem
+        // do d=1,dim
+          // vel (n,d) = nod%v(elem%elnod(e,n),d)    
+        // end do
+      // end do
+      // do j =1,jmax !MODE
+        // do n=1,nodxelem !1:4 or 8
+          // !print *, "elem v ", vel (n,:)
+          // hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+        // end do
+      // end do
+      
+      
+      
+      // !!!!!!!!! GOUDREAU 1982
+      // do n=1,nodxelem
+        // do j =1,jmax 
+            // elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
+          // end do
+      // end do
+      // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      
+      // !print *, "hourglass c ", c_h
+      // elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
+      
+      
+      // !!!!!!!!! FLANAGAN 1981
+      
+      
+      // ! do n=1,nodxelem
+      // ! print *, "hourglass forces", elem%hourg_nodf(e,n,:) 
+      // ! end do
+      // ! ! elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
+      
+      // ! print *, "alt hourglass forces", elem%hourg_nodf(e,:,:) 
+      // ! do n=1,nodxelem
+        // ! test = 0
+        // ! do d=1,3
+          // ! test = test + elem%hourg_nodf(e,n,d) *  vel (n,d)
+        // ! end do
+        // ! print *, "dot vel and hg forces ", test
+      // ! end do
+
+      // ! !dimension and modes
+      // ! do d=1,3
+        // ! do j =1,jmax !MODE
+          // ! test = 0
+          // ! do n=1,nodxelem !1:4 or 8
+            // ! !print *, "elem v ", vel (n,:)
+            // ! !hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+            // ! test = test + vel (n,d)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+          // ! end do
+          // ! ! print *, "Mode ", j, "Dim", d
+          // ! print *, "mode", j, "dim ", d, "sum v x Sig", test, ", hmod ", hmod(d,j)
+          // ! ! print *, "force "
+        // ! end do
+      // ! end do
+
+      // ! do n=1,nodxelem
+          // ! print *, "v ", vel (n,:)
+      // ! end do
+  // else
+    // !print *, "NO HOURGLASS"
+    // end if
+  // end do !elemen
+// end subroutine
+
+dev_t void Domain_d:: calcElemHourglassForces()
+{
+  int jmax;
+  if (m_dim==2) jmax = 1;
+  else          jmax = 4;
+  // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
+  // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
+  // real(fp_kind), dimension(dim,4) :: hmod
+  double hmod[m_dim][4];
+    Matrix Sig(4,m_nodxelem);
+
+      
+  // //Sig nodxelem
+  if (m_dim==3){
+    SetMatVals(&Sig,32, 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125,
+    0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125,
+    0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125,
+    -0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125);
+                       
+    printf("Sigma mat HG\n");
+    Sig.Print();
+    // double Sig[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
+                                  // { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
+                                  // { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
+                                  // {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};   
+  } else if (m_dim == 2){
+    // double Sig[4][8] ={{0.25, -0.25, 0.25,-0.25},
+    // {0.25, -0.25, 0.25,-0.25},
+    // {0.25, -0.25, 0.25,-0.25},
+    // {0.25, -0.25, 0.25,-0.25}};    
+  }
+  // !!! TODO: TO BE DEFINED IN DOMAIN ONCE hmod(:,:) = 0.0d0
+  // elem%hourg_nodf(:,:,:) = 0.0d0
+  // if (dim .eq. 3) then
+    // !Also in Flanagan Appendix (data GB in program)
+    // Sig(1,:) = [ 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125]
+    // Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
+    // Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
+    // Sig(4,:) = [-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125]
+    // Sig(:,:) = Sig(:,:) * 8
+  // else 
+    // Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
+    // Sig(:,:) = Sig(:,:) * 4
+  // end if
+  double f = 1/8;
+  par_loop(e,m_elem_count){   
+        
+  if (m_gp_count==1){
+      int offset = e * m_gp_count * m_nodxelem*m_dim;   //SCALAR  
+      double hmod[m_dim][4];
+      
+  for (int d=0;d<m_dim;d++)
+      for (int n=0;n<m_nodxelem;n++)
+        m_f_elem_hg[offset + n*m_dim + d] = 0.0;
+  
+  // do e=1, elem_count    
+    // if (elem%gausspc(e) .eq. 1) then
+      // hmod(:,:) = 0.0d0
+      // !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
+      // !print *, "test ", test
+      // !print *, "dHxy ", elem%dHxy(e,gp,:,:)
+          
+      // do n=1,nodxelem
+        // do d=1,dim
+          // vel (n,d) = nod%v(elem%elnod(e,n),d)    
+        // end do
+      // end do
+      // do j =1,jmax !MODE
+        // do n=1,nodxelem !1:4 or 8
+          // !print *, "elem v ", vel (n,:)
+          // hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
+        // end do
+      // end do
+      for (int d=0;d<m_dim;d++)
+        for (int j=0;j<jmax;j++)
+          for (int n=0;n<m_nodxelem;n++)
+            hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
+      
+      
+      
+      // !!!!!!!!! GOUDREAU 1982
+      for (int d=0;d<m_dim;d++)
+        for (int j=0;j<jmax;j++)
+          for (int n=0;n<m_nodxelem;n++)
+            //elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
+            m_f_elem_hg[offset + n*m_dim + d] -= hmod[d][j] * Sig.getVal(j,n);
+          // end do
+      // end do
+      // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      double c_h = 0.06 * pow(vol[e], 0.66) * rho[e] * 0.25 ;
+      
+      for (int d=0;d<m_dim;d++)
+          for (int n=0;n<m_nodxelem;n++)
+            m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+      // !print *, "hourglass c ", c_h
+      // elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
+      
+  } //gp ==1
+  }//ELEM
+}
+
   /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		
     dom_d->calcElemPressure();
@@ -656,6 +873,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 		dom_d->calcElemForces();
   }
 
+  __global__ void calcElemHourglassForcesKernel(Domain_d *dom_d){
+		
+		dom_d->calcElemHourglassForces();
+  }
+  
   __global__ void calcAccelKernel(Domain_d *dom_d){
 		
 		dom_d->calcAccel();

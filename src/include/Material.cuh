@@ -13,6 +13,8 @@ class Elastic_{
 	private:
 	double E_m, nu_m;	//Poisson and young
 	double K_m, G_m;
+  double cs_m;
+  double rho_m;
 	
 	public:
 	 spec_ Elastic_(){}

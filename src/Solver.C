@@ -149,6 +149,7 @@ namespace MetFEM{
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
+  
   assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
   
@@ -165,6 +166,7 @@ namespace MetFEM{
   calcElemPressure();
   CalcStressStrain(dt);
   calcElemForces();
+  calcElemHourglassForces();
   calcElemMassMat(); 
   assemblyMassMatrix();  
   assemblyForces(); //CRASHING

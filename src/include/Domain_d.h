@@ -43,6 +43,7 @@ public:
 
 	dev_t void calcElemStrainRates();
   dev_t void calcElemForces();
+  dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure(); //FROM STRAIN
 
   dev_t void assemblyMassMatrix();
@@ -154,7 +155,7 @@ protected:
   Matrix          *m_jacob;
   int             *elnod_h; ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
   double          *m_str_rate, *m_rot_rate;
-  double          *m_f_elem;    //ELEMENT
+  double          *m_f_elem, *m_f_elem_hg;    //ELEMENT
   double          *m_fi, *m_fe; //NODAL
   double          *m_sigma, *m_tau;
 	
@@ -198,7 +199,9 @@ __global__ void calcElemStrainRatesKernel(Domain_d *dom_d);
 __global__ void assemblyForcesKernel(Domain_d *dom_d);
 __global__ void assemblyMassMatrixKernel(Domain_d *dom_d);
 
-__global__ void calcElemForcesKernel (Domain_d *);
+__global__ void calcElemForcesKernel          (Domain_d *);
+__global__ void calcElemHourglassForcesKernel (Domain_d *);
+
 __global__ void calcElemPressureKernel (Domain_d *);
 __global__ void calcElemDensityKernel  (Domain_d *);
 

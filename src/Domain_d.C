@@ -78,6 +78,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   // cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
 
   malloc_t(m_f_elem,    double, m_elem_count * m_dim * m_nodxelem);   
+  malloc_t(m_f_elem_hg, double, m_elem_count * m_dim * m_nodxelem);   
   //cudaMalloc((void **)&m_f_elem,  m_elem_count * m_dim * m_nodxelem * sizeof (double)); 
 
   malloc_t(mat,    Material_*, m_elem_count);   
