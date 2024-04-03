@@ -753,7 +753,8 @@ dev_t void Domain_d:: calcElemHourglassForces()
   // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   // real(fp_kind), dimension(dim,4) :: hmod
-  double hmod[m_dim][4];
+  double hmod[3][4]; //m_dim,4
+  //Matrix hmod(m_dim,4);
     Matrix Sig(4,m_nodxelem);
 
       
@@ -794,7 +795,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
         
   if (m_gp_count==1){
       int offset = e * m_gp_count * m_nodxelem*m_dim;   //SCALAR  
-      double hmod[m_dim][4];
+      //double hmod[m_dim][4];
       
   for (int d=0;d<m_dim;d++)
       for (int n=0;n<m_nodxelem;n++)

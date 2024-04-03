@@ -402,7 +402,7 @@ __spec void Matrix::FromFlatSymPtr(double *flat, int initial){
   Set(2,2,flat [initial + 5]);
 }
 
-__spec SetMatVals(Matrix *mat, int argcount, ...){
+__spec int SetMatVals(Matrix *mat, int argcount, ...){
 
   int counter, total = 0;
 
