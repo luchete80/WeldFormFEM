@@ -360,7 +360,7 @@ dev_t void Domain_d::calcElemForces(){
       // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
       // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       // !!!!! 
-
+ 
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){
           m_f_elem[offset + n*m_dim + d] += getDerivative(e,gp,d,n) * getSigma(e,gp,d,d);
@@ -370,6 +370,8 @@ dev_t void Domain_d::calcElemForces(){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
         } else {
+          printf("offset %d\n", offset + n*m_dim    );
+          printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) +
                                              getDerivative(e,gp,2,n) * getSigma(e,gp,0,2);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1) + 
@@ -381,13 +383,14 @@ dev_t void Domain_d::calcElemForces(){
       }// nod x elem
 
     } // Gauss Point
-    for (int n=0; n<m_nodxelem;n++) 
+    for (int n=0; n<m_nodxelem;n++) {
       for (int d=0;d<m_dim;d++){
         m_f_elem[offset + n*m_dim + d] *= w;
-//        printf ("elem %d forces %f %f %f",e,m_f_elem[offset + n*m_dim + 0],
-//                                            m_f_elem[offset + n*m_dim + 1],
-//                                            m_f_elem[offset + n*m_dim + 2]);
-       }
+      }
+       printf ("elem %d forces %f %f %f\n",e,m_f_elem[offset + n*m_dim + 0],
+                                           m_f_elem[offset + n*m_dim + 1],
+                                           m_f_elem[offset + n*m_dim + 2]);
+    }  
   }//if e<elem_count
 }
 
@@ -503,9 +506,9 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       printf("Sigma\n");
       print(Sigma);
       ///// OUTPUT TO Flatten arrays
-      ToFlatSymPtr(Sigma, m_sigma,6*offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		
-      ToFlatSymPtr(ShearStress, m_tau, 6*offset_t);
+      ToFlatSymPtr(ShearStress, m_tau, offset_t);
       
     }//gp
   }//el < elcount

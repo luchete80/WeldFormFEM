@@ -80,9 +80,9 @@ public:
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
   dev_t void CalcStressStrain(const double dt);
 
-  
-  inline dev_t double & getSigma  (const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
-  inline dev_t double & getStrRate(const int &e, const int &gp, const int &i, const int &j){if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
+  //TODO: CHANGE THIS
+  inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
+  inline dev_t double & getStrRate(const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}}; if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
   
   dev_t void CalcElemInitialVol();
   
@@ -90,7 +90,7 @@ public:
   
   dev_t void CalcElemVol();
   dev_t void calcElemDensity();
-  
+    
   dev_t void calcAccel();
   dev_t void UpdatePrediction();
   dev_t void UpdateCorrectionAccVel();
@@ -109,7 +109,7 @@ public:
 	int & getDim(){return m_dim;}
 protected:
   double          m_tot_mass; //Only for testing, not needed
-  int symm_idx[3][3] = {{0,3,4},{3,1,5},{4,5,2}};
+  dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
 	int 						m_dim;
   int             m_node_count, m_elem_count;
 	
