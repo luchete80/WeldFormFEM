@@ -35,6 +35,19 @@ namespace MetFEM {
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
       }
+      if (m_gp_count == 1 ) {  
+        for (int e=0; e<m_nodel_count[n];e++) {
+          int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+          int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+          int offset  = eglob * m_nodxelem * m_dim;
+          printf("glob %d, loc %d \n",n,ne);
+          for (int d=0;d<m_dim;d++){
+            //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+            m_fi[n*m_dim + d] -= m_f_elem_hg [offset + ne*m_dim + d];
+          }
+        }      
+      
+      }
       printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 

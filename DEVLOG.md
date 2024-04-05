@@ -59,4 +59,5 @@
          - Added ACCEL BOUNDARY CONDITIONS
 20240327 - Added HOURGLASS FORCES! Attention: GPU Force Elem calc is wrong
 20240403 - Fixed symm indices
+20240405 - Added hourglass forces sum (GPU)
          
