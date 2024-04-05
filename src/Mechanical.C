@@ -166,35 +166,20 @@ dev_t void Domain_d::calcElemStrainRates(){
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
           rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
                                                          getDerivative(e,gp,0,n) * getVElem(e,n,2)));
+        
+     
 
-          // elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
-                                     // + temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-          // elem%str_rate(e,gp, 1,3) = elem%str_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                     // + temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz     
-          // elem%rot_rate(e,gp, 2,3) = elem%rot_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &
-                                     // - temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
-          // elem%rot_rate(e,gp, 1,3) = elem%rot_rate(e,gp, 1,3) + temp(3,n)* elem%vele (e,dim*(n-1)+1,1) & !!!d/dz*vx     
-                                     // - temp(1,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dx*vz    
         }// end if     
       }// end do !Nod x elem
       printf ("test %fn", test);
+
+      str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
+      rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
       
-      //str_rate->
-      // elem%str_rate(e,gp, 1,2) = 0.5 * elem%str_rate(e,gp, 1,2); 
-      // elem%rot_rate(e,gp, 1,2) = 0.5 * elem%rot_rate(e,gp, 1,2)      
 
-      // elem%str_rate(e,gp, 2,1) =     elem%str_rate(e,gp, 1,2)
-      // elem%rot_rate(e,gp, 2,1) =    -elem%rot_rate(e,gp, 1,2)
-      // if (dim .eq. 3) then
-        // elem%str_rate(e,gp, 1,3) = 0.5 * elem%str_rate(e,gp, 1,3); elem%str_rate(e,gp, 2,3) = 0.5 * elem%str_rate(e,gp, 2,3)
-        // elem%rot_rate(e,gp, 1,3) = 0.5 * elem%rot_rate(e,gp, 1,3); elem%rot_rate(e,gp, 2,3) = 0.5 * elem%rot_rate(e,gp, 2,3)
-        
-        // elem%str_rate(e,gp, 3,2) =     elem%str_rate(e,gp, 2,3)
-        // elem%str_rate(e,gp, 3,1) =     elem%str_rate(e,gp, 1,3)
+      str_rate->Set(2,1,  str_rate->getVal(1,2));  str_rate->Set(2,0,  str_rate->getVal(0,2)); 
+      rot_rate->Set(2,1, -rot_rate->getVal(1,2));  rot_rate->Set(2,0, -rot_rate->getVal(0,2)); 
 
-        // elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
-        // elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
-      // end if
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset);
       
