@@ -88,6 +88,8 @@ int main(){
   if      (mattype == "Bilinear")    {
     Ep = E*c[0]/(E-c[0]);		                              //only constant is tangent modulus
     material_h  = new Material_(el);
+    material_h->cs0 = sqrt(material_h->Elastic().BulkMod()/rho); //TODO: INSIDE MATERIAL 
+    cout << "CS_0: "<<material_h->cs0<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
     // cout << "Material Constants, Et: "<<c[0]<<endl;

@@ -229,7 +229,10 @@ subroutine calc_hourglass_forces
         end do
       end do
       
-      
+      print *, "HMOD"
+        do j =1,dim !MODE
+          print *, hmod(j,:)
+        end do
       
       !!!!!!!!! GOUDREAU 1982
       do n=1,nodxelem

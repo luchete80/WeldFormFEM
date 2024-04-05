@@ -63,4 +63,5 @@
          - Found error in displacement correction.
          - Found error in acceleration (internal forces were inverted)
          - Fixed Strain and Rot rate calc
+         - Added CS0 to hourglass calc
          

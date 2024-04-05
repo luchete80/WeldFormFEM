@@ -760,7 +760,9 @@ dev_t void Domain_d:: calcElemHourglassForces()
   // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
   // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
   // real(fp_kind), dimension(dim,4) :: hmod
-  double hmod[3][4]; //m_dim,4
+  double hmod[3][4] ={{0.0,0.0,0.0,0.0},
+  {0.0,0.0,0.0,0.0},
+  {0.0,0.0,0.0,0.0}}; //m_dim,4
   //Matrix hmod(m_dim,4);
     Matrix Sig(4,m_nodxelem);
 
@@ -769,13 +771,13 @@ dev_t void Domain_d:: calcElemHourglassForces()
   if (m_dim==3){
     
     double sig_[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
-                                  { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
-                                  { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
-                                  {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};  
+                          { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
+                          { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
+                          {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};  
     
     for (int i=0;i<4;i++)
       for (int n=0;n<m_nodxelem;n++)
-        Sig.Set(i,n,sig_[i][n]);
+        Sig.Set(i,n,sig_[i][n]*8.0);
       
     //VA_LIST NOT WORKING PROPERLY
     // SetMatVals(&Sig,32, 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125,
@@ -796,11 +798,11 @@ dev_t void Domain_d:: calcElemHourglassForces()
     // {0.25, -0.25, 0.25,-0.25}};    
   }
 
-  double f = 1/8;
+  //double f = 1/8;
   par_loop(e,m_elem_count){   
         
   if (m_gp_count==1){
-      int offset = e * m_gp_count * m_nodxelem*m_dim;   //SCALAR  
+      int offset = e * m_nodxelem*m_dim;   //SCALAR  
       //double hmod[m_dim][4];
       
     for (int d=0;d<m_dim;d++)
@@ -812,9 +814,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
         for (int j=0;j<jmax;j++)
           for (int n=0;n<m_nodxelem;n++)
             hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
-      
-      
-      
+
       // !!!!!!!!! GOUDREAU 1982
       for (int d=0;d<m_dim;d++)
         for (int j=0;j<jmax;j++)
@@ -824,7 +824,8 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.06 * pow(vol[e], 0.66) * rho[e] * 0.25 ;
+      double c_h = 0.06 * pow(vol[e], 0.6666) * rho[e] * 0.25 * mat[e]->cs0;
+      printf("c_h %.6e\n", c_h);
 
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++)

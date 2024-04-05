@@ -39,6 +39,7 @@ class Material_{
 
   
 	public:
+  double cs0;
   double Ep;  //If Bilinear this is constant, 
   int			Material_model;	//TODO: Change to enum
 
