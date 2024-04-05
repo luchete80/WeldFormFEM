@@ -138,9 +138,12 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
     //vector_t_Ptr(dt * getV(n),x,n);
+    vector_t p_a = Ptr_vector_t(prev_a, n);    
+    printf("Node %d Prev a  %f %f %f\n",n,p_a.x,p_a.y,p_a.z);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
-    vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * Ptr_vector_t(prev_a, n));
-    vector_t_Ptr(a_,a,n);
+    vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
+    //vector_t_Ptr(a_,a,n);
+    vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
     printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
