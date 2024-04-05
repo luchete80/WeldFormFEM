@@ -24,7 +24,12 @@ namespace MetFEM {
 
     //if ()
   par_loop(n, m_node_count){
-      printf("nodel count %d",m_nodel_count[n]);
+
+      for (int e=0; e<m_nodel_count[n];e++) {
+        for (int d=0;d<m_dim;d++)
+          m_fi[n*m_dim + d] = 0.0;
+      }
+          
       for (int e=0; e<m_nodel_count[n];e++) {
         int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
