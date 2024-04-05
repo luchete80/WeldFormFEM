@@ -149,6 +149,8 @@ namespace MetFEM{
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
+  calcElemHourglassForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
   
   assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();

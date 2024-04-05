@@ -404,17 +404,18 @@ __spec void Matrix::FromFlatSymPtr(double *flat, int initial){
 
 __spec int SetMatVals(Matrix *mat, int argcount, ...){
 
-  int counter, total = 0;
+  int total = 0;
 
   /* Declare a variable of type va_list. */
   va_list argptr;
 
   /* Initialize that variable.. */
   va_start (argptr, argcount);
-
-  for (counter = 0; counter < argcount; counter++)
+  printf("arg count %d",argcount);
+  for (int counter = 0; counter < argcount; counter++)
   {
-    mat->m_data[counter] = va_arg (argptr, double);
+    printf("pos %d %lf",counter, va_arg (argptr, double));
+    //mat->m_data[counter] = va_arg (argptr, double);
   }
 
   /* End use of the argptr variable. */

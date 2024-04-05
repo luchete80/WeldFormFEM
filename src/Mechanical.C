@@ -298,18 +298,19 @@ dev_t void Domain_d::calcTotMass(){
 dev_t void Domain_d::calcElemForces(){
 
   par_loop(e,m_elem_count){
-    int offset = e*m_nodxelem*m_dim*m_gp_count;
+    int offset = e*m_nodxelem*m_dim;
     double w = 1.;
     if (m_gp_count == 1) w = pow(2.0,m_dim);
     
-    for (int gp=0;gp<m_gp_count;gp++)
-      for (int n=0; n<m_nodxelem;n++) 
-        for (int d=0;d<m_dim;d++)
-          m_f_elem[offset + n*m_dim + d] = 0.0;
+    for (int n=0; n<m_nodxelem;n++) 
+      for (int d=0;d<m_dim;d++)
+        m_f_elem[offset + n*m_dim + d] = 0.0;
         
     for (int gp=0;gp<m_gp_count;gp++){
-    
-  // integer :: e, i,j,k, gp,n, d
+
+      // tensor3 sigma     = FromFlatSym(m_sigma, e*m_gp_count+gp);
+  // // integer :: e, i,j,k, gp,n, d
+      // printf("SIGMA\n");print(sigma);
   // real(fp_kind), dimension(dim*nodxelem,1) ::f
   // real(fp_kind) :: w
   // !TESTING
@@ -335,7 +336,6 @@ dev_t void Domain_d::calcElemForces(){
       // !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
       // !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
       
-      int sig_offset = m_elem_count * m_gp_count * 6;
       
       // do n=1, nodxelem
       // !Is only linear matrix?    
@@ -345,7 +345,10 @@ dev_t void Domain_d::calcElemForces(){
       // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
       // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       // !!!!! 
- 
+      for (int i=0;i<3;i++)
+        for (int j=0;j<3;j++){
+          printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
+        }
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){
           m_f_elem[offset + n*m_dim + d] += getDerivative(e,gp,d,n) * getSigma(e,gp,d,d);
@@ -364,7 +367,23 @@ dev_t void Domain_d::calcElemForces(){
           m_f_elem[offset + n*m_dim + 2] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,1,2) + 
                                              getDerivative(e,gp,0,n) * getSigma(e,gp,0,2);     
         }
+
       
+        // if (m_dim == 2){
+          // m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * sigma.xy;
+          // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * sigma.xy;
+        // } else {
+          // printf("offset %d\n", offset + n*m_dim    );
+          // printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
+          // m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * sigma.xy +
+                                             // getDerivative(e,gp,2,n) * sigma.xz;
+          // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * sigma.xy + 
+                                             // getDerivative(e,gp,2,n) * sigma.yz;        
+          // m_f_elem[offset + n*m_dim + 2] +=  getDerivative(e,gp,1,n) * sigma.yz + 
+                                             // getDerivative(e,gp,0,n) * sigma.xz;     
+        // }
+
+        
       }// nod x elem
 
     } // Gauss Point
@@ -748,13 +767,24 @@ dev_t void Domain_d:: calcElemHourglassForces()
       
   // //Sig nodxelem
   if (m_dim==3){
-    SetMatVals(&Sig,32, 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125,
-    0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125,
-    0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125,
-    -0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125);
+    
+    double sig_[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
+                                  { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
+                                  { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
+                                  {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};  
+    
+    for (int i=0;i<4;i++)
+      for (int n=0;n<m_nodxelem;n++)
+        Sig.Set(i,n,sig_[i][n]);
+      
+    //VA_LIST NOT WORKING PROPERLY
+    // SetMatVals(&Sig,32, 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125,
+    // 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125,
+    // 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125,
+    // -0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125);
                        
-    printf("Sigma mat HG\n");
-    Sig.Print();
+    //printf("Sigma mat HG\n");
+    //Sig.Print();
     // double Sig[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
                                   // { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
                                   // { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
@@ -765,19 +795,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
     // {0.25, -0.25, 0.25,-0.25},
     // {0.25, -0.25, 0.25,-0.25}};    
   }
-  // !!! TODO: TO BE DEFINED IN DOMAIN ONCE hmod(:,:) = 0.0d0
-  // elem%hourg_nodf(:,:,:) = 0.0d0
-  // if (dim .eq. 3) then
-    // !Also in Flanagan Appendix (data GB in program)
-    // Sig(1,:) = [ 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125]
-    // Sig(2,:) = [ 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125]
-    // Sig(3,:) = [ 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125]
-    // Sig(4,:) = [-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125]
-    // Sig(:,:) = Sig(:,:) * 8
-  // else 
-    // Sig(1,:) = [ 0.25, -0.25, 0.25,-0.25] !!!  
-    // Sig(:,:) = Sig(:,:) * 4
-  // end if
+
   double f = 1/8;
   par_loop(e,m_elem_count){   
         
@@ -785,28 +803,11 @@ dev_t void Domain_d:: calcElemHourglassForces()
       int offset = e * m_gp_count * m_nodxelem*m_dim;   //SCALAR  
       //double hmod[m_dim][4];
       
-  for (int d=0;d<m_dim;d++)
-      for (int n=0;n<m_nodxelem;n++)
-        m_f_elem_hg[offset + n*m_dim + d] = 0.0;
+    for (int d=0;d<m_dim;d++)
+        for (int n=0;n<m_nodxelem;n++)
+          m_f_elem_hg[offset + n*m_dim + d] = 0.0;
   
-  // do e=1, elem_count    
-    // if (elem%gausspc(e) .eq. 1) then
-      // hmod(:,:) = 0.0d0
-      // !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
-      // !print *, "test ", test
-      // !print *, "dHxy ", elem%dHxy(e,gp,:,:)
-          
-      // do n=1,nodxelem
-        // do d=1,dim
-          // vel (n,d) = nod%v(elem%elnod(e,n),d)    
-        // end do
-      // end do
-      // do j =1,jmax !MODE
-        // do n=1,nodxelem !1:4 or 8
-          // !print *, "elem v ", vel (n,:)
-          // hmod(:,j) = hmod(:,j) + vel (n,:)*Sig(j,n) !!!!! ":" is on dimension d, GOUDREAU EQN (30)
-        // end do
-      // end do
+
       for (int d=0;d<m_dim;d++)
         for (int j=0;j<jmax;j++)
           for (int n=0;n<m_nodxelem;n++)
@@ -830,8 +831,6 @@ dev_t void Domain_d:: calcElemHourglassForces()
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
         printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
       }
-      // !print *, "hourglass c ", c_h
-      // elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
       
   } //gp ==1
   }//ELEM
