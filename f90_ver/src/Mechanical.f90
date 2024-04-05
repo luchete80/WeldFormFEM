@@ -89,7 +89,7 @@ subroutine cal_elem_strains ()
 			!!! IF COMPLETE MULTIPLICATION (MORE CALC)
       !!!elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       !print *, "simlpified strain rate "
-      !print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element

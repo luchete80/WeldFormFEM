@@ -137,12 +137,13 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
     printf ("node %d\n", n);
-    vector_t_Ptr(dt * getV(n),x,n);
+    //vector_t_Ptr(dt * getV(n),x,n);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * Ptr_vector_t(prev_a, n));
     vector_t_Ptr(a_,a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
+    printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
   }
 
 	// !$omp parallel do num_threads(Nproc) private (n)
@@ -167,17 +168,17 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
     vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(a, n); // = dt * (getV(n) + 0.5 - m_beta);
     vector_t u_     = Ptr_vector_t(u, n) + uinc_;
     vector_t x_     = Ptr_vector_t(x, n);
-    vector_t_Ptr(uinc_+x_,x,n);
-    vector_t_Ptr(u_,u,n);
+    vector_t_Ptr(u_+x_,x,n);
+    vector_t_Ptr(u_,u,n);       //Copy displacements to device
     
     printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
     // printf ("node %d\n", n);
     // vector_t_Ptr(dt * getV(n),x,n);
-    // printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
-    // vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * Ptr_vector_t(prev_a, n));
-    // vector_t_Ptr(a_,a,n);
-    // vector_t v_ = getV(n) + m_gamma * dt * a_;
-    // vector_t_Ptr(v_,v,n);
+    printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+
+    //test
+    vector_t xc_  =Ptr_vector_t(x, n);
+    printf("Test Node %d Corr DISP %.6e %.6e %.6e\n",n, xc_.x, xc_.y, xc_.z);
   }
 
 }
@@ -541,7 +542,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   for (int i=0;i<m_nodxelem;i++){
       vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
       printf("elnod %d\n",m_elnod[nind+i]);
-      printf("x: %f %f %f\n",x_.x, x_.y,x_.z);
+      printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
       //printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 

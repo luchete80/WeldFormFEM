@@ -274,7 +274,7 @@ dev_t void Domain_d::calcAccel(){
   par_loop(n, m_node_count){
     int i = n*m_dim;
     for (int d=0;d<m_dim;d++){
-      a[i+d] += m_fi[i+d]/m_mdiag[n];
+      a[i+d] = /*m_fe*/-m_fi[i+d]/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
     printf("mass %f\n",m_mdiag[n]);
     printf("a %f %f %f \n",a[0],a[1],a[2]);
@@ -839,10 +839,12 @@ dev_t void Domain_d:: calcElemHourglassForces()
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       double c_h = 0.06 * pow(vol[e], 0.66) * rho[e] * 0.25 ;
-      
-      for (int d=0;d<m_dim;d++)
-          for (int n=0;n<m_nodxelem;n++)
-            m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+
+      for (int n=0;n<m_nodxelem;n++){      
+        for (int d=0;d<m_dim;d++)
+          m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+        printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+      }
       // !print *, "hourglass c ", c_h
       // elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
       
