@@ -142,7 +142,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
     printf("Node %d Prev a  %f %f %f\n",n,p_a.x,p_a.y,p_a.z);
     printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
-    //vector_t_Ptr(a_,a,n);
+
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
@@ -181,7 +181,6 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
 
     //test
     vector_t xc_  =Ptr_vector_t(x, n);
-    printf("Test Node %d Corr DISP %.6e %.6e %.6e\n",n, xc_.x, xc_.y, xc_.z);
   }
 
 }
