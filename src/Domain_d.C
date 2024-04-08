@@ -146,7 +146,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
     //printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
 
-    //vector_t_Ptr(a_,a,n);
+    vector_t_Ptr(a_,a,n);
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
@@ -172,7 +172,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
 dev_t void Domain_d   ::UpdateCorrectionPos(){
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
-    vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(a, n); // = dt * (getV(n) + 0.5 - m_beta);
+    vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(prev_a, n); // = dt * (getV(n) + 0.5 - m_beta);
     vector_t u_     = Ptr_vector_t(u, n) + uinc_;
     vector_t x_     = Ptr_vector_t(x, n);
     vector_t_Ptr(u_+x_,x,n);

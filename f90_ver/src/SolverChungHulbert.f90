@@ -182,7 +182,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  print *, "pred veloc", nod%v 
+  !print *, "veloc", nod%v 
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
