@@ -168,7 +168,7 @@ namespace MetFEM{
   calcElemPressure();
   CalcStressStrain(dt);
   calcElemForces();
-  //calcElemHourglassForces();
+  calcElemHourglassForces();
   calcElemMassMat(); 
   assemblyMassMatrix();  
   assemblyForces(); //CRASHING
