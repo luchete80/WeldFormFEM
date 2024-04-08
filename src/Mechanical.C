@@ -500,7 +500,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       //CHECK IF CALL AS POINTER IS SLOWER THAN VALUE
       ShearStress	= dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS) + ShearStress;
       //printf("Shear Stress\n");
-      print(ShearStress);
+      //print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    // +SRT+RS) + elem%shear_stress(e,gp,:,:)
@@ -508,7 +508,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
       //printf("Sigma\n");
-      print(Sigma);
+      //print(Sigma);
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		

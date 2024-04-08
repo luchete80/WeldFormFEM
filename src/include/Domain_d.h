@@ -37,6 +37,9 @@ public:
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
   
+  void WriteToVTK(char *);
+  int WriteToCSV(char *);
+  
   dev_t void calcElemJacobian ();
   dev_t void calcElemJAndDerivatives/*_FullInt*/();
   dev_t void calcElemMassMat();
@@ -116,7 +119,7 @@ protected:
 	unsigned int 		*m_elnod;
   //unsigned int    *m_eloffset; //FROM FIRST ELEMENT NODE
 	
-	double 				 *x; //Vector is double
+	double 				 *x, *x_h; //Vector is double, x_h is used only on host
 	double 				 *v; //CHANGED TO DOUBLE
 	double 				 *a, *prev_a;
 	double         *u, *u_dt;

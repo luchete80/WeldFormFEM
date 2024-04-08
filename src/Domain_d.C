@@ -3,6 +3,9 @@
 #include <vector>
 
 #include "Matrix_temp.h"
+#include <sstream>
+#include <fstream> 
+#include <iostream>
 
 #ifdef CUDA_BUILD
 
@@ -174,7 +177,7 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
     vector_t_Ptr(u_+x_,x,n);
     vector_t_Ptr(u_,u,n);       //Copy displacements to device
     
-    //printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
+    printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
     // //printf ("node %d\n", n);
     // vector_t_Ptr(dt * getV(n),x,n);
     //printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
@@ -588,7 +591,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           //InvMat(*jacob, inv_j);
           AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
           //printf("ADJ J ptr\n");
-          inv_j->Print();          //printf("jacob\n");jacob->Print();
+          //inv_j->Print();          //printf("jacob\n");jacob->Print();
                   
           // jacob->Print();
           ////printf("INV J2 not ptr\n");
@@ -756,6 +759,42 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   // //}
   // //return ret;
 // }
+
+int Domain_d::WriteToCSV(char *FileKey){
+  std::ostringstream oss;
+	//Writing in a Log file
+	//String fn(FileKey);
+	std::string fn(FileKey);
+	
+	oss << "X, Y, Z"<<endl;;
+  
+  double *xh;
+  
+  xh = x; //IF !CUDA
+  
+	
+	//#pragma omp parallel for schedule(static) num_threads(Nproc)
+	// #ifdef __GNUC__
+	// for (size_t i=0; i<Particles.Size(); i++)	//Like in Domain::Move
+	// #else
+	//printf("Dimension: %d",Dimension);
+	for (int i=0; i<m_node_count; i++)//Like in Domain::Move
+	{
+		//for (int j=0;j<3;j++)
+      printf ("%.6e ,%.6e ,%.6e ",xh[i*3],xh[i*3+1],xh[i*3+2]);
+			oss << xh[i*3]<< ", "<<xh[i*3+1]<<xh[i*3+2]<<endl;
+		
+		//Particles[i]->CalculateEquivalentStress();		//If XML output is active this is calculated twice
+		//oss << Particles[i]->Sigma_eq<< ", "<< Particles[i]->pl_strain <<endl;
+	}
+
+	// fn = FileKey;
+	// fn.append(".csv");	
+	std::ofstream of(fn.c_str(), std::ios::out);
+	of << oss.str();
+	of.close();
+}
+
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
 		
