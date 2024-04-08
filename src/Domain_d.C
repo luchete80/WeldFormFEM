@@ -116,14 +116,14 @@ void Domain_d::setDensity(const double &r){
 
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
-    vector_t prev_a = Ptr_vector_t(a, n);
+    vector_t p_a = Ptr_vector_t(prev_a, n);
     //printf ("node %d\n", n);
-    vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
+    vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *p_a) ;// = dt * (getV(n) + 0.5 - m_beta);
     ////printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t x_ = Ptr_vector_t(x, n);
     //vector_t_Ptr(u_+x_,x,n); //NOT UPDATE YET
     vector_t_Ptr(u_,u_dt,n);
-    vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
+    vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * p_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     vector_t_Ptr(v_,v,n);
     //printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     //TEST ONLY----
@@ -146,6 +146,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
     //printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
 
+    //vector_t_Ptr(a_,a,n);
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
