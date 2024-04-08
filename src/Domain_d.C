@@ -114,17 +114,17 @@ void Domain_d::setDensity(const double &r){
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
     vector_t prev_a = Ptr_vector_t(a, n);
-    printf ("node %d\n", n);
+    //printf ("node %d\n", n);
     vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *prev_a) ;// = dt * (getV(n) + 0.5 - m_beta);
-    //printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
+    ////printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
     vector_t x_ = Ptr_vector_t(x, n);
     //vector_t_Ptr(u_+x_,x,n); //NOT UPDATE YET
     vector_t_Ptr(u_,u_dt,n);
     vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * prev_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
     vector_t_Ptr(v_,v,n);
-    printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    //printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     //TEST ONLY----
-    printf("Pred pos: %f %f %f\n",x_.x,x_.y,x_.z);
+    //printf("Pred pos: %f %f %f\n",x_.x,x_.y,x_.z);
   }
 }
 
@@ -136,17 +136,17 @@ dev_t void Domain_d::UpdatePrediction(){
 dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
   par_loop (n,m_node_count){
-    printf ("node %d\n", n);
+    //printf ("node %d\n", n);
     //vector_t_Ptr(dt * getV(n),x,n);
     vector_t p_a = Ptr_vector_t(prev_a, n);    
-    printf("Node %d Prev a  %f %f %f\n",n,p_a.x,p_a.y,p_a.z);
-    printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    //printf("Node %d Prev a  %f %f %f\n",n,p_a.x,p_a.y,p_a.z);
+    //printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
 
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
-    printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
+    //printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
   }
 
 	// !$omp parallel do num_threads(Nproc) private (n)
@@ -174,10 +174,10 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
     vector_t_Ptr(u_+x_,x,n);
     vector_t_Ptr(u_,u,n);       //Copy displacements to device
     
-    printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
-    // printf ("node %d\n", n);
+    //printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
+    // //printf ("node %d\n", n);
     // vector_t_Ptr(dt * getV(n),x,n);
-    printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    //printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
 
     //test
     vector_t xc_  =Ptr_vector_t(x, n);
@@ -268,11 +268,11 @@ host_   void Domain_d::AllocateBCs() {
 dev_t void Domain_d::ImposeBCV(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
-    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
+    //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
     
-    if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
-    else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+    if (dim == 0)       {/*//printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {/*//printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {/*//printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
@@ -280,11 +280,11 @@ dev_t void Domain_d::ImposeBCV(const int dim){
 dev_t void Domain_d::ImposeBCA(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
-    printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
+    //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
     
-    if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ a[3*bcx_nod[n]+dim] = 0.0; }
-    else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);*/                   a[3*bcy_nod[n]+dim] = 0.0;}
-    else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */a[3*bcz_nod[n]+dim] = 0.0; }
+    if (dim == 0)       {/*//printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ a[3*bcx_nod[n]+dim] = 0.0; }
+    else if (dim == 1)  {/*//printf ("val %f \n",bcy_val[n]);*/                   a[3*bcy_nod[n]+dim] = 0.0;}
+    else if (dim == 2)  {/*//printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */a[3*bcz_nod[n]+dim] = 0.0; }
   }
   
 }
@@ -503,8 +503,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 }
 
 dev_t void Domain_d::calcElemJAndDerivatives () {
-	//printf("calculating\n");
-	//printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
+	////printf("calculating\n");
+	////printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
   
   
 	Matrix *jacob = new Matrix(m_dim, m_dim);    
@@ -514,27 +514,27 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
   
    
-	//printf ("e %d, elem_count %d\n",m_elem_count);
+	////printf ("e %d, elem_count %d\n",m_elem_count);
   par_loop (e, m_elem_count) {
   int offset = m_gp_count * e;
   // integer :: e
   // ! !rg=gauss[ig]
   // ! !sg=gauss[jg]
   // real(fp_kind), dimension(dim,m_nodxelem) :: dHrs !!! USED ONLY FOR SEVERAL GAUSS POINTS
-	printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
+	//printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
 
   
   //cudaMalloc((void**)&dHrs_p, sizeof(Matrix));
-	//printf("test %lf",dHrs.m_data[0]);
+	////printf("test %lf",dHrs.m_data[0]);
 	//double dHrs_fl[m_dim* m_nodxelem];
 	//dHrs->Print();
    Matrix *x2 = new Matrix(m_nodxelem, m_dim);
-  printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
+  //printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
    
-   // printf("Jacob\n");jacob->Print();
+   // //printf("Jacob\n");jacob->Print();
    double gpc[8][3];
 
-	printf ("Matrices created\n");
+	//printf ("Matrices created\n");
 
       // do i=1,nodxelem
           // !print *, "elnod " , elem%elnod(e,i)
@@ -543,14 +543,14 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   int nind = e * m_nodxelem;
   for (int i=0;i<m_nodxelem;i++){
       vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
-      printf("elnod %d\n",m_elnod[nind+i]);
-      printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
+      //printf("elnod %d\n",m_elnod[nind+i]);
+      //printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
-      //printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
+      ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
-  printf("x2\n");x2->Print();
-  printf("m_gp_count %d\n",m_gp_count);
-    printf("Calculating jacobian\n");
+  //printf("x2\n");x2->Print();
+  //printf("m_gp_count %d\n",m_gp_count);
+    //printf("Calculating jacobian\n");
     if (m_gp_count == 1 ) {      
       //invJ = adj(elem%jacob(e,gp,:,:)) !!! IN FACT IS invJ x detJ
 			if (m_dim == 2) {
@@ -580,18 +580,18 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
 
           }
-          printf("jacob\n");jacob->Print();
+          //printf("jacob\n");jacob->Print();
           
-          // printf ("Setting dhxy\n");
+          // //printf ("Setting dhxy\n");
           //*inv_j = jacob->Inv();
           //Matrix inv = jacob->Inv();
           //InvMat(*jacob, inv_j);
           AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
-          printf("ADJ J ptr\n");
-          inv_j->Print();          printf("jacob\n");jacob->Print();
+          //printf("ADJ J ptr\n");
+          inv_j->Print();          //printf("jacob\n");jacob->Print();
                   
           // jacob->Print();
-          //printf("INV J2 not ptr\n");
+          ////printf("INV J2 not ptr\n");
           //inv.Print();
           
           //inv.Print();
@@ -612,7 +612,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       } // end if  !!!!DIM
       
       m_detJ[offset] = jacob->calcDet();
-      printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
+      //printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
       // elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     } else { //!!!!! GP > 1
 			
@@ -653,26 +653,26 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
 					// //*jacob = 0.125 * MatMul(*dHrs,*x2);
           // MatMul(*dHrs,*x2,jacob);
-          // printf("x2\n");
+          // //printf("x2\n");
           // //m_jacob[e].Print();
 
           // x2->Print();
           // jacob->Mul(0.125);
-          printf("jacob\n");jacob->Print();
-          jacob->Print();
-          // //printf("Jacobian: \n");jacob->Print();
-          // printf("dHrs\n"); dHrs->Print();
+          //printf("jacob\n");jacob->Print();
+          //jacob->Print();
+          // ////printf("Jacobian: \n");jacob->Print();
+          // //printf("dHrs\n"); dHrs->Print();
            
           // InvMat(*jacob, inv_j);
-          // printf("inv j\n");inv_j->Print();
+          // //printf("inv j\n");inv_j->Print();
           // MatMul(*inv_j,*dHrs,dHxy_detJ_loc);
           
-          // printf("Derivative matrix\n");
+          // //printf("Derivative matrix\n");
           // dHxy_detJ_loc->Print();
          
           
           // m_detJ[offset + m_gp_count * gp] = jacob->calcDet();
-          // printf("det J %f\n",m_detJ[offset + m_gp_count * gp]);
+          // //printf("det J %f\n",m_detJ[offset + m_gp_count * gp]);
           // //TRY WITHOUT ALLOCATING
           
           // // invJ = adj(elem%jacob(e,gp,:,:))!!!!/elem%detJ(e,gp) !!!! ALREADY CALCULATED    
@@ -693,7 +693,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 					// }
 					// //*jacob = 0.125 * MatMul(*dHrs,*x2);
           // MatMul(*dHrs,*x2,jacob);
-          // printf("jacob\n");
+          // //printf("jacob\n");
           // //m_jacob[e].Print();
 
           // x2->Print();
@@ -724,7 +724,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       //setDerivative(e,gp,dHxy_detJ_loc
       for (int j=0;j<m_nodxelem;j++){
         int offset = e*(m_nodxelem * m_gp_count) + gp * m_nodxelem;
-        //printf ("Offset %d \n", offset);
+        ////printf ("Offset %d \n", offset);
         
           //m_dH_detJ_dx[offset + j                 ] = dHxy_detJ_loc->operator()(0,j);
           // m_dH_detJ_dx[offset + j] = dHxy_detJ_loc->getVal(0,j);
@@ -733,16 +733,16 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           setDerivative(e,gp,0,j,dHxy_detJ_loc->getVal(0,j));
           setDerivative(e,gp,1,j,dHxy_detJ_loc->getVal(1,j));
           setDerivative(e,gp,2,j,dHxy_detJ_loc->getVal(2,j));
-          //printf("set der: z n %d %f\n",j, dHxy_detJ_loc->getVal(2,j));
+          ////printf("set der: z n %d %f\n",j, dHxy_detJ_loc->getVal(2,j));
           
       }
     }
           
-    printf("jacob\n");
-    jacob->Print();
-    printf("dHdx x detJ\n");
-    dHxy_detJ_loc->Print();
-		printf("END.\n");
+    //printf("jacob\n");
+    //jacob->Print();
+    //printf("dHdx x detJ\n");
+    //dHxy_detJ_loc->Print();
+		//printf("END.\n");
     
   } // e < elem_colunt
   

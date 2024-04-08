@@ -34,7 +34,7 @@ namespace MetFEM {
         int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
         int offset  = eglob * m_nodxelem * m_dim;
-        //printf("glob %d, loc %d \n",n,ne);
+        ////printf("glob %d, loc %d \n",n,ne);
         for (int d=0;d<m_dim;d++){
           //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
@@ -45,7 +45,7 @@ namespace MetFEM {
           int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
           int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
           int offset  = eglob * m_nodxelem * m_dim;
-          //printf("glob %d, loc %d \n",n,ne);
+          ////printf("glob %d, loc %d \n",n,ne);
           for (int d=0;d<m_dim;d++){
             //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
             m_fi[n*m_dim + d] -= m_f_elem_hg [offset + ne*m_dim + d];
@@ -53,7 +53,7 @@ namespace MetFEM {
         }      
       
       }
-      printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+      //printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 
   }//assemblyForcesNonLock
@@ -144,15 +144,15 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     
     double *mdiag_h = new double[m_node_count];
 
-    printf("mdiag: %f\n");
+    //printf("mdiag: %f\n");
     for(int n =0; n<m_nodxelem;n++) {
       mdiag_h[n] = 0.0;
       for(int ig =0; ig<m_nodxelem;ig++){       
         mdiag_h[n] += m_glob.getVal(ig,n);
       }
-      printf("%f ",mdiag_h[n]); 
+      //printf("%f ",mdiag_h[n]); 
     }
-    printf("\n");
+    //printf("\n");
     
     memcpy_t(this->m_mdiag, mdiag_h, sizeof(double) * m_node_count);   
     
@@ -170,7 +170,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
         int eglob   = m_nodel     [m_nodel_offset[n]+e];
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
         int offset  = eglob * m_nodxelem * m_nodxelem;
-         printf("glob n1, loc ne\n",n,ne);
+         //printf("glob n1, loc ne\n",n,ne);
         
         for (int n2=0;n2<m_node_count;n2++){
           for (int e2=0; e2<m_nodel_count[n2];e2++) {
@@ -178,7 +178,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
             int eglob2   = m_nodel     [m_nodel_offset[n2]+e2];
             int ne2      = m_nodel_loc [m_nodel_offset[n2]+e2]; //LOCAL ELEMENT NODE INDEX m_nodel_local
             int offset2  = eglob2 * m_nodxelem * m_nodxelem;
-            //printf("glob ij: %d %d, loc ij %d, %d\n",n,n2,ne,ne2);
+            ////printf("glob ij: %d %d, loc ij %d, %d\n",n,n2,ne,ne2);
             double f = m_ematm[offset + ne * m_nodxelem + ne2];
             m_mglob[n*m_nodxelem + n2] += f;
             diag += f;
@@ -189,7 +189,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
         
         
       } // element
-      printf("m diag: %f\n",diag);
+      //printf("m diag: %f\n",diag);
       m_mdiag [n] = diag;
     }//NODE N (N1)
   }
@@ -265,11 +265,11 @@ dev_t void Domain_d::calcElemMassMat() {
       for (int i=0;i<m_nodxelem;i++)
         for (int j=0;j<m_nodxelem;j++)
           tempm.Set(i,j,f);
-      //printf("print hmat\n");
+      ////printf("print hmat\n");
       //temph.Print();
-      //printf("print transpose\n");
+      ////printf("print transpose\n");
       //temph.getTranspose().Print();
-      //printf("mmat \n");
+      ////printf("mmat \n");
       //temph->Transpose().Print();
       //tempm.Print();
 					// //*jacob = 0.125 * MatMul(*dHrs,*x2);
@@ -282,9 +282,9 @@ dev_t void Domain_d::calcElemMassMat() {
       // !!end if  !!!!dim
       for (int i=0;i<m_nodxelem;i++)
         for (int j=0;j<m_nodxelem;j++){
-          //printf("rho %f\n", rho[e]);
+          ////printf("rho %f\n", rho[e]);
           m_ematm[offset + i * m_nodxelem + j]=tempm.getVal(i,j); /*tempm.getVal(i,j) * m_detJ[e] * rho[e]*/
-          //printf("detJ %e ", tempm.getVal(i,j) * m_detJ[e]);
+          ////printf("detJ %e ", tempm.getVal(i,j) * m_detJ[e]);
         }
         // elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         

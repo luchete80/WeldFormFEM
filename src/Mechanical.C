@@ -126,9 +126,9 @@ dev_t void Domain_d::calcElemStrainRates(){
       // elem%strain(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%uele (e,:,:)) 
       // !print *, "standard stran rate calc (matricial) "
 		
-	printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
+	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset + gp];
-      printf("f factor: %f\n",f);
+      //printf("f factor: %f\n",f);
       double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
         // double vele[3];
@@ -139,9 +139,9 @@ dev_t void Domain_d::calcElemStrainRates(){
           // elem%rot_rate(e,gp, d,d) = 0.0d0
         // end do
         test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
-        printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
+        //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
-          //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+          ////printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
@@ -171,7 +171,7 @@ dev_t void Domain_d::calcElemStrainRates(){
 
         }// end if     
       }// end do !Nod x elem
-      printf ("test %fn", test);
+      //printf ("test %fn", test);
 
       str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
       rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
@@ -183,8 +183,8 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset);
       
-      printf("Strain Rate\n");
-      str_rate->Print();
+      //printf("Strain Rate\n");
+      //str_rate->Print();
       
       // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       // !print *, "simlpified strain rate "
@@ -192,12 +192,12 @@ dev_t void Domain_d::calcElemStrainRates(){
       //Inverse test
       // Matrix *test = new Matrix(3,3);
       // Matrix *invtest = new Matrix(3,3);
-      // printf("A\n");
+      // //printf("A\n");
       // test->Set(0,0,1);test->Set(0,1,1);test->Set(0,2,1);
       // test->Set(1,0,1);test->Set(1,1,2);test->Set(1,2,2);      
       // test->Set(2,0,1);test->Set(2,1,2);test->Set(2,2,3);
       // InvMat(*test,invtest);
-      // //printf("inv A\n");
+      // ////printf("inv A\n");
       // test->Print();
       // invtest->Print();
         // delete test, invtest;
@@ -261,9 +261,9 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] = /*m_fe*/-m_fi[i+d]/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
-    printf("mass %f\n",m_mdiag[n]);
-    printf("a %f %f %f \n",a[0],a[1],a[2]);
-    printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
+    //printf("mass %f\n",m_mdiag[n]);
+    //printf("a %f %f %f \n",a[0],a[1],a[2]);
+    //printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
   }    
   
 }
@@ -274,7 +274,7 @@ dev_t void Domain_d::CalcElemInitialVol(){
     int offset = m_gp_count * e;
     for (int gp=0;gp<m_gp_count;gp++){
       vol_0[e] = vol[e];
-      printf ("Elem %d vol %f\n", e, vol_0[e]);
+      //printf ("Elem %d vol %f\n", e, vol_0[e]);
     }      
   }  
 }
@@ -310,7 +310,7 @@ dev_t void Domain_d::calcElemForces(){
 
       // tensor3 sigma     = FromFlatSym(m_sigma, e*m_gp_count+gp);
   // // integer :: e, i,j,k, gp,n, d
-      // printf("SIGMA\n");print(sigma);
+      // //printf("SIGMA\n");print(sigma);
   // real(fp_kind), dimension(dim*nodxelem,1) ::f
   // real(fp_kind) :: w
   // !TESTING
@@ -347,7 +347,7 @@ dev_t void Domain_d::calcElemForces(){
       // !!!!! 
       for (int i=0;i<3;i++)
         for (int j=0;j<3;j++){
-          printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
+          //printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
         }
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){
@@ -358,8 +358,8 @@ dev_t void Domain_d::calcElemForces(){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
         } else {
-          printf("offset %d\n", offset + n*m_dim    );
-          printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
+          //printf("offset %d\n", offset + n*m_dim    );
+          //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) +
                                              getDerivative(e,gp,2,n) * getSigma(e,gp,0,2);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1) + 
@@ -373,8 +373,8 @@ dev_t void Domain_d::calcElemForces(){
           // m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * sigma.xy;
           // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * sigma.xy;
         // } else {
-          // printf("offset %d\n", offset + n*m_dim    );
-          // printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
+          // //printf("offset %d\n", offset + n*m_dim    );
+          // //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
           // m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * sigma.xy +
                                              // getDerivative(e,gp,2,n) * sigma.xz;
           // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * sigma.xy + 
@@ -391,9 +391,9 @@ dev_t void Domain_d::calcElemForces(){
       for (int d=0;d<m_dim;d++){
         m_f_elem[offset + n*m_dim + d] *= w;
       }
-       printf ("elem %d forces %f %f %f\n",e,m_f_elem[offset + n*m_dim + 0],
-                                           m_f_elem[offset + n*m_dim + 1],
-                                           m_f_elem[offset + n*m_dim + 2]);
+       //printf ("elem %d forces %f %f %f\n",e,m_f_elem[offset + n*m_dim + 0],
+       //                                    m_f_elem[offset + n*m_dim + 1],
+       //                                    m_f_elem[offset + n*m_dim + 2]);
     }  
   }//if e<elem_count
 }
@@ -410,19 +410,19 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
       tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-      printf("str inc, dt %f\n", dt);print(str_inc);
+      //printf("str inc, dt %f\n", dt);print(str_inc);
       press_inc += Trace(str_inc);
     }//gauss point
     press_inc = -press_inc/m_gp_count;
-    //  printf("trace %f\n",trace);
+    //  //printf("trace %f\n",trace);
     int offset = e * m_gp_count ;
     for (int gp=0;gp<m_gp_count;gp++){
-      //  printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
+      //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
       trace = 0.0;
       for (int d = 0; d<m_dim;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      printf("pressure %f\n",p[offset + gp]);
+      //printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
@@ -495,11 +495,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
       tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
-      printf("str rat ");print (StrRate);
+      //printf("str rat ");print (StrRate);
       
       //CHECK IF CALL AS POINTER IS SLOWER THAN VALUE
       ShearStress	= dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS) + ShearStress;
-      printf("Shear Stress\n");
+      //printf("Shear Stress\n");
       print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
@@ -507,7 +507,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      printf("Sigma\n");
+      //printf("Sigma\n");
       print(Sigma);
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
@@ -549,7 +549,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 		// ShearStress   = FromFlatSym (tempss);	
 		// StrainRate    = FromFlatSym(tempsr);
 		// RotationRate  = FromFlatAntiSym(temprr);
-   // // printf(" Strain rate xx %f \n",StrainRate.zz);
+   // // //printf(" Strain rate xx %f \n",StrainRate.zz);
 		// RotationRateT = Trans(RotationRate);
 		
 		// SRT = ShearStress * RotationRateT;
@@ -574,12 +574,12 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 
    // if       (mat[i]->Material_model == HOLLOMON )       {
      
-      // //printf("Hollomon!");
-      // //printf("pl strain %f\n",pl_strain[i]);
+      // ////printf("Hollomon!");
+      // ////printf("pl strain %f\n",pl_strain[i]);
       // //sigma_y[i] = mat [i]->CalcYieldStress(pl_strain[i]);
       // //ShowProps(mat[i]);
       // sigma_y[i] = CalcHollomonYieldStress(pl_strain[i],mat [i]);
-      // //printf ("sigma_y %f\n",sigma_y[i]);
+      // ////printf ("sigma_y %f\n",sigma_y[i]);
       // //sigma_y[i] = mat [i]->testret();
       // //(*materials_ptr)->testret();
       // //sigma_y[i] = mat [i]->CalcYieldStress(pl_strain[i]); 
@@ -607,7 +607,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       
 			// dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			// pl_strain[i] += dep;	
-      // //printf("Particle %d, dep %.1e, sigtrial %.1e\n",i,dep,sig_trial);
+      // ////printf("Particle %d, dep %.1e, sigtrial %.1e\n",i,dep,sig_trial);
 			// sigma_eq[i] = sigma_y[i];
 		// }
 
@@ -619,13 +619,13 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 		// Strain	= deltat * StrainRate + Strain;
     
     // // if (mat[i]->Material_model==JOHNSON_COOK){
-      // // printf("JOHNSON_COOK!\n"); //test
+      // // //printf("JOHNSON_COOK!\n"); //test
     // // } elsr     
     // // if (mat[i]->Material_model==HOLLOMON){
-      // // printf("HOLLOMON!\n"); //test
+      // // //printf("HOLLOMON!\n"); //test
     // // }    
     // // if (mat[i]->Material_model==BILINEAR){
-      // // printf("BILINEAR!\n"); //test
+      // // //printf("BILINEAR!\n"); //test
     // // }
 
 		// ///// OUTPUT TO Flatten arrays
@@ -785,7 +785,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
     // 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125,
     // -0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125);
                        
-    //printf("Sigma mat HG\n");
+    ////printf("Sigma mat HG\n");
     //Sig.Print();
     // double Sig[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
                                   // { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
@@ -825,12 +825,12 @@ dev_t void Domain_d:: calcElemHourglassForces()
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       double c_h = 0.06 * pow(vol[e], 0.6666) * rho[e] * 0.25 * mat[e]->cs0;
-      printf("c_h %.6e\n", c_h);
+      ////printf("c_h %.6e\n", c_h);
 
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++)
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
-        printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+        ////printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
       }
       
   } //gp ==1

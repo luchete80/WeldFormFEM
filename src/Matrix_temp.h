@@ -299,10 +299,10 @@ __spec Matrix Matrix::Inv(){
     cofactor->Set(2,2, (this->getVal(0,0)*this->getVal(1,1)-this->getVal(0,1)*this->getVal(1,0)) );    
     
     cofactor->Transpose();
-    printf ("COFACTOR: \n");
+    //printf ("COFACTOR: \n");
     cofactor->Print();
     invA = cofactor->Mul(1.0/this->calcDet());
-    printf("INVA\n");
+    //printf("INVA\n");
     invA.Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
     delete cofactor;
@@ -332,14 +332,14 @@ __spec Matrix InvMat(Matrix &A, Matrix *invA){
     cofactor->Set(2,2, (A(0,0)*A(1,1)-A(0,1)*A(1,0)) );    
     
     cofactor->Transpose();
-    printf ("COFACTOR: \n");
+    //printf ("COFACTOR: \n");
     cofactor->Print();
     Matrix *temp = new Matrix(3,3);
     //*temp=cofactor->Mul(1.0/A.calcDet());
     *invA = cofactor->Mul(1.0/A.calcDet());
     //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
     //for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=temp->m_data[i];}
-    printf("INVA\n");
+    //printf("INVA\n");
     invA->Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
     delete cofactor, temp;
@@ -369,13 +369,13 @@ __spec Matrix AdjMat(Matrix &A, Matrix *invA){
     cofactor->Set(2,2, (A(0,0)*A(1,1)-A(0,1)*A(1,0)) );    
     
     cofactor->Transpose();
-    printf ("COFACTOR: \n");
+    //printf ("COFACTOR: \n");
     cofactor->Print();
 
     //*invA = cofactor;
     //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
     for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=cofactor->m_data[i];}
-    printf("ADJA\n");
+    //printf("ADJA\n");
     invA->Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
     delete cofactor;
