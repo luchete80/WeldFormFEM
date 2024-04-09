@@ -65,3 +65,4 @@
          - Fixed Strain and Rot rate calc
          - Added CS0 to hourglass calc
          
+20240409 - Added device print funcions (vectors and tensors)
