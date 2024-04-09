@@ -796,6 +796,28 @@ int Domain_d::WriteToCSV(char *FileKey){
 	of.close();
 }
 
+dev_t void Domain_d::printVec(const double *v){
+  for (int n=0;n<m_node_count;n++){
+    for (int d=0;d<m_dim;d++)
+      printf("%.6e ",v[m_dim*n + d]);
+    printf("\n");
+  }
+}
+//ONLY FOR 3D
+dev_t void Domain_d::printSymmTens(const double *v){
+  // tensor3 ss;
+  // ss = FromFlatSym(m_sigma,          0);
+  // printf("TENST STRESSES\n");
+  // print(ss);
+  // for (int n=0;n<m_elem_count;n++){
+    // printf ("DIMENSION %d\n", n);
+      // printf("%.6e %.6e %.6e\n",v[6*n  ],v[6*n+3],v[6*n+5]);
+      // printf("%.6e %.6e %.6e\n",v[6*n+3],v[6*n+1],v[6*n+4]);
+      // printf("%.6e %.6e %.6e\n",v[6*n+5],v[6*n+4],v[6*n+2]);      
+    // printf("\n");
+  // }
+}
+
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
 		
@@ -824,6 +846,14 @@ __global__ void UpdateCorrectionPosKernel(Domain_d *dom_d){
 
 __global__ void AssignMatAddressKernel(Domain_d *dom){
   dom->AssignMatAddress();
+}
+
+__global__ void printVecKernel(Domain_d *dom_d, const double *v){
+  dom_d->printVec(v);
+}
+
+__global__ void printSymmTensKernel(Domain_d *dom_d, const double *v){
+  dom_d->printSymmTens(v);
 }
 
 

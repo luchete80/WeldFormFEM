@@ -60,7 +60,7 @@ namespace MetFEM{
   calcElemJAndDerivatives();
   CalcElemInitialVol(); //ALSO CALC VOL
   #endif
-	cout << "Done. "<<endl;
+	//cout << "Done. "<<endl;
   
   
   Time = 0.0;
@@ -70,8 +70,9 @@ namespace MetFEM{
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   while (Time < end_t) {
-
-  printf("Prediction ----------------\n");
+    
+  printf("Time %f\n",Time);  
+  //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
@@ -103,7 +104,7 @@ namespace MetFEM{
       ImposeBCV(d);
     #endif
   }
-  cout <<"Done."<<endl;
+  //cout <<"Done."<<endl;
 
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
@@ -178,7 +179,7 @@ namespace MetFEM{
   ImposeBCAAllDim();
   
   N = getNodeCount();
-  printf("Correction\n");	
+  //printf("Correction\n");	
   #ifdef CUDA_BUILD
   
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
@@ -237,6 +238,31 @@ namespace MetFEM{
   Time += dt;
   
   }// WHILE LOOP
+  
+  #ifdef CUDA_BUILD
+  printf("DISPLACEMENTS\n");
+  printVecKernel<<<1,1 >>>(this, this->u);
+	cudaDeviceSynchronize(); 
+
+  printf("VELOCITIES\n");
+  printVecKernel<<<1,1 >>>(this, this->v);
+	cudaDeviceSynchronize(); 
+  
+  printf("ACCEL\n");
+  printVecKernel<<<1,1 >>>(this, this->a);
+	cudaDeviceSynchronize();   
+
+  printf("STRESSES\n");
+  printVecKernel<<<1,1 >>>(this, this->m_sigma);
+	cudaDeviceSynchronize();   
+
+  printf("SHEAR STRESSES\n");
+  printVecKernel<<<1,1 >>>(this, this->m_tau);
+	cudaDeviceSynchronize();
+  #else
+  printVec(this->u);   
+  
+  #endif
   
   }//SOLVE
 	

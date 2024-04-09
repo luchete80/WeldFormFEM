@@ -486,8 +486,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       ShearStress = FromFlatSym(m_tau,          offset_t );
       StrRate     = FromFlatSym(m_str_rate,     offset_t );
       RotRate     = FromFlatAntiSym(m_rot_rate, offset_t );
-  // do e = 1, elem_count  
-    // do gp=1,elem%gausspc(e)
+
+      // printf("TEST PREV SS\n");
+      // print(ShearStress);
+      
+
       SRT = ShearStress * Trans(RotRate);
       RS  = RotRate * ShearStress;
       // SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
@@ -507,8 +510,8 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      //printf("Sigma\n");
-      //print(Sigma);
+      printf("SHEAR STRESS\n");
+      print(ShearStress);
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		

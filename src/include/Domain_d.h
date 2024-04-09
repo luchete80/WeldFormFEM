@@ -36,6 +36,8 @@ class Domain_d {
 public:
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
+  dev_t void printVec(const double*);
+  dev_t void printSymmTens(const double *);
   
   void WriteToVTK(char *);
   int WriteToCSV(char *);
@@ -224,6 +226,9 @@ __global__ void calcTotMassKernel(Domain_d *dom_d);
 __global__ void calcMassDiag(Domain_d *dom_d);
 
 __global__ void calcAccelKernel(Domain_d *dom_d);
+
+__global__ void printVecKernel(Domain_d *dom_d, const double *);
+__global__ void printSymmTensKernel(Domain_d *dom_d, const double *);
 
 #endif
 
