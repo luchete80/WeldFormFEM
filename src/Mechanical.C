@@ -140,8 +140,10 @@ dev_t void Domain_d::calcElemStrainRates(){
         // end do
         test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
         //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
+        printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
           ////printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+          
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
@@ -183,8 +185,8 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset);
       
-      //printf("Strain Rate\n");
-      //str_rate->Print();
+      printf("Strain Rate\n");
+      str_rate->Print();
       
       // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       // !print *, "simlpified strain rate "
@@ -422,7 +424,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<m_dim;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      //printf("pressure %f\n",p[offset + gp]);
+      printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
@@ -512,6 +514,10 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       Sigma = -p[offset_s] * Identity() + ShearStress;
       printf("SHEAR STRESS\n");
       print(ShearStress);
+
+      printf("STR RATE\n");
+      print(StrRate);
+
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		

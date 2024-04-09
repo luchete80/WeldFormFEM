@@ -252,6 +252,10 @@ namespace MetFEM{
   printVecKernel<<<1,1 >>>(this, this->a);
 	cudaDeviceSynchronize();   
 
+  printf("FORCES\n");
+  printVecKernel<<<1,1 >>>(this, this->m_fi);
+	cudaDeviceSynchronize(); 
+  
   printf("STRESSES\n");
   printVecKernel<<<1,1 >>>(this, this->m_sigma);
 	cudaDeviceSynchronize();   
@@ -260,8 +264,11 @@ namespace MetFEM{
   printVecKernel<<<1,1 >>>(this, this->m_tau);
 	cudaDeviceSynchronize();
   #else
+  printf("DISPLACEMENTS\n");
   printVec(this->u);   
-  
+
+  printf("VELOCITIES\n");
+	printVec(this->a); 
   #endif
   
   }//SOLVE

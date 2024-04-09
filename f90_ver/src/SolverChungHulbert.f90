@@ -178,11 +178,14 @@ subroutine SolveChungHulbert (domi, tf, dt)
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
+  
+  print *, "veloc", nod%v 
+  print *, "prev_a", nod%v 
   nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
   nod%a = 0.0d0
   
   call impose_bcv !!!REINFORCE VELOCITY BC
-  !print *, "veloc", nod%v 
+  print *, "veloc", nod%v 
   ! nod%u = nod%u +  nod%v * dt!/2.0  
   ! nod%x = nod%x + nod%u             !! EVALUATE dHdxy at same point as v (t+dt/2)
 
@@ -221,7 +224,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   call cal_elem_strain_inc_from_str_rate (dt)
   call calc_elem_pressure_from_strain(domi%mat_K)  
   
-  !print *, "Element pressure ", elem%pressure(:,:)
+  print *, "Element pressure ", elem%pressure(:,:)
 
 	!! TODO: MODIFY THIS
 	! if (dim .eq. 3) then 

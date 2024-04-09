@@ -129,7 +129,7 @@ int main(){
 	//double dt = 0.7 * dx/(mat_cs);
   double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (10.0e-3);
+  dom_d->SetEndTime (2*dt);
   
   dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
                                dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  

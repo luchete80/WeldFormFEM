@@ -144,15 +144,15 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     
     double *mdiag_h = new double[m_node_count];
 
-    //printf("mdiag: %f\n");
+    printf("mdiag: %f\n");
     for(int n =0; n<m_nodxelem;n++) {
       mdiag_h[n] = 0.0;
       for(int ig =0; ig<m_nodxelem;ig++){       
         mdiag_h[n] += m_glob.getVal(ig,n);
       }
-      //printf("%f ",mdiag_h[n]); 
+      printf("%f ",mdiag_h[n]); 
     }
-    //printf("\n");
+    printf("\n");
     
     memcpy_t(this->m_mdiag, mdiag_h, sizeof(double) * m_node_count);   
     

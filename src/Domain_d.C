@@ -150,6 +150,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
+    printf("Node %d CORR VEL %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     //printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
   }
 
