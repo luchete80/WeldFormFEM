@@ -97,9 +97,11 @@ subroutine SolveChungHulbert (domi, tf, dt)
     end do   
   calc_m = .False.
   
+  print *, "mass"
   !!!! ONLY FOR TESTING
   do n=1, node_count  !column
      mdiag(n) = tot_mass/node_count 
+     print *, mdiag(n)
   end do
   
   print *, "M Diag ", mdiag
@@ -218,7 +220,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   end do
   
   call calc_elem_density
-  !print *, "Element density ", elem%rho(:,:)
+  print *, "Element density ", elem%rho(:,:)
   !!!call calc_elem_pressure
   
   call cal_elem_strain_inc_from_str_rate (dt)
@@ -248,8 +250,10 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   print *, "global int forces ", rint_glob(3,:)
 
+  print *, "mass"
+  print *, mdiag(:)
 	!$omp parallel do num_threads(Nproc) private (n)  
-	do n=1,node_count
+	do n=1,node_count 
 		! do d=1,dim
 			! nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
 		! end do 

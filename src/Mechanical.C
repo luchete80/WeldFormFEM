@@ -245,7 +245,9 @@ dev_t void Domain_d::calcElemDensity(){
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count ;
       rho[offset + gp] = rho_0[offset + gp] * vol_0[e] / vol[e];
-    }    
+      printf("rho %.6e", rho[offset + gp]);    
+    }
+
   // do e = 1, elem_count
     // do gp=1, elem%gausspc(e)
     // !if (elem%gausspc(e) .eq. 1) then
@@ -263,7 +265,7 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] = /*m_fe*/-m_fi[i+d]/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
-    //printf("mass %f\n",m_mdiag[n]);
+    printf("mass %f\n",m_mdiag[n]);
     //printf("a %f %f %f \n",a[0],a[1],a[2]);
     //printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
   }    

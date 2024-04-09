@@ -268,7 +268,15 @@ namespace MetFEM{
   printVec(this->u);   
 
   printf("VELOCITIES\n");
+  printVec( this->v);
+
+  printf("ACCEL\n");
 	printVec(this->a); 
+  
+  printf("FORCES\n");
+  printVec(this->m_fi);
+
+
   #endif
   
   }//SOLVE
