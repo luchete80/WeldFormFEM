@@ -108,7 +108,7 @@ __spec Matrix::Matrix(const int row, const int col) {
 	if (m_row == m_col) m_dim = m_row;
   //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
   m_data = (double*)malloc(row * col * sizeof (double));
-  for (int i=0;i<row*col;i++) m_data[i] = 0.0d;
+  for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
 
 //// OPERATION WITH MATRIX CREATION COULD PRODUCE MEM LEAKING

@@ -129,7 +129,7 @@ namespace MetFEM{
 	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 
-  printf("CALCULATING MASS\n");
+  //printf("CALCULATING MASS\n");
   N = getNodeCount();
 
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
