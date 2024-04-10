@@ -1,5 +1,0 @@
-/home/weldform-pc/Numerico/WeldFormFEM/CMakeFiles/edit_cache.dir
-/home/weldform-pc/Numerico/WeldFormFEM/CMakeFiles/rebuild_cache.dir
-/home/weldform-pc/Numerico/WeldFormFEM/src/CMakeFiles/MetFEMGPU.dir
-/home/weldform-pc/Numerico/WeldFormFEM/src/CMakeFiles/edit_cache.dir
-/home/weldform-pc/Numerico/WeldFormFEM/src/CMakeFiles/rebuild_cache.dir

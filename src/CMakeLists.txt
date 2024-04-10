@@ -3,15 +3,18 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
 if (BUILD_GPU)
 project (MetFEMGPU LANGUAGES CXX CUDA)
+project (WeldFormFEM LANGUAGES CXX CUDA)
 project (testcuns LANGUAGES CXX CUDA)
 else ()
 project (MetFEMGPU LANGUAGES CXX)
+project (WeldFormFEM LANGUAGES CXX)
 endif (BUILD_GPU)
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/cuda)
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+include_directories(../lib/LSDynaReader/src/)
 
 
 link_directories(${CUNSEARCH_LIB_DIR})
@@ -28,7 +31,9 @@ set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (co
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C 
+                            WeldFormFEM.C
+                            PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
@@ -52,10 +57,22 @@ add_executable(MetFEMGPU
                         Solver.C
 
               )
+              
+add_executable(WeldFormFEM
+                        WeldFormFEM.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+                        ../lib/LSDynaReader/src/lsdynaReader.cpp
+
+              )
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 
+set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
 
 
 # add_executable(main_thermal 
@@ -105,7 +122,8 @@ set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 #add_subdirectory (cuda)
 
 if (BUILD_GPU)
-TARGET_LINK_LIBRARIES (MetFEMGPU cuda cudadevrt)
+TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
+TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 endif()
