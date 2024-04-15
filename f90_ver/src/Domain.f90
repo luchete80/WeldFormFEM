@@ -139,6 +139,11 @@ contains
     allocate (elem%jacob(el_count,gp,dim,dim))
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
+    allocate (elem%sigma_y(el_count,gp)) !But is constant??
+    
+    !IF NOT YIELDING THING
+    elem%sigma_y(:,:) = 1.0e20 !But is constant??
+        
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
     allocate (elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
     allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
@@ -166,6 +171,9 @@ contains
     allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
+    allocate (elem%radius(el_count,gp)) !!ONLY IN AXISYMM
+    
+    
     allocate (elem%cs(el_count))
     allocate (elem%shear_stress(el_count,gp, 3,3))
     allocate (elem%str_rate(el_count,gp, 3,3))

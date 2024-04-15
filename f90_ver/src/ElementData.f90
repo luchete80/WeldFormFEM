@@ -18,7 +18,7 @@ Type Element
   !QUESTION: IS IT NECESARY TO STORE CS ON EACH ERLEMENT???
   real(fp_kind), dimension(:), Allocatable :: h, t, cs, mass, vol, drhodt, vol_0, vol_inc !influence radius, temp
   
-  real(fp_kind), dimension(:,:), Allocatable :: rho_0,pressure,rho   !!!!elcount, gp
+  real(fp_kind), dimension(:,:), Allocatable :: rho_0,pressure,rho, radius   !!!!elcount, gp, RADIUS IS IN AN AXISYMM
   !THERMAL
   real(fp_kind), dimension(:), allocatable :: cp_t, k_t
   real(fp_kind), dimension(:,:,:,:), allocatable :: sigma, str_rate, rot_rate , str_tot, shear_stress,strain, str_inc,def_grad !tau is Cauchy Stress (do not confuse with shear)
@@ -27,7 +27,7 @@ Type Element
   
   real(fp_kind), dimension(:,:), allocatable :: c_s, p_visc !WAVE SPEED AND SHOCK VISCOSITY PRESSURE
   real(fp_kind), dimension(:), allocatable :: e_length
-  real(fp_kind), dimension(:,:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
+  real(fp_kind), dimension(:,:), allocatable :: sigma_eq, sigma_y !ONLY CALCULATED AT OUTPUT
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation

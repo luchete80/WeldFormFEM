@@ -328,6 +328,10 @@ subroutine calc_elem_density ()
     do gp=1, elem%gausspc(e)
     !if (elem%gausspc(e) .eq. 1) then
       elem%rho(e,gp) = elem%rho_0(e,gp)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
+      
+      if (bind_dom_type .eq. 3) then
+        !elem%rho(e,gp) / 
+      endif
     end do
   end do
 end subroutine
@@ -688,11 +692,11 @@ subroutine CalcStressStrain (dt)
 	
   implicit none
   !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
-  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  real(fp_kind) :: SRT(dim,dim), RS(dim,dim), ident(dim,dim)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
-  real(fp_kind) :: p00
+  real(fp_kind) :: p00, J2, sig_trial
   
   p00 = 0.
   
@@ -707,7 +711,7 @@ subroutine CalcStressStrain (dt)
   ! end if
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
-	!$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS) 
+	!$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS,J2,sig_trial) 
   do e = 1, elem_count  
     do gp=1,elem%gausspc(e)
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
@@ -735,17 +739,23 @@ subroutine CalcStressStrain (dt)
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      ! !print *, "RS", RS
-      !print *, "mat g", mat_G
-      ! if (dim ==3) then 
+      
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
-      ! else 
-            ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
-                                   ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
+                                   
+      J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
+                      elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
+                    + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
+                    + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
+                    + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
+                    + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
       
+      sig_trial = sqrt(3.0d0*J2)
+      !YIELD, SCALE BACK
+      if (elem%sigma_y(e,gp)<sig_trial) then
+        elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma(e,gp,:,:) / sig_trial
+      endif
       ! end if
       ! print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
