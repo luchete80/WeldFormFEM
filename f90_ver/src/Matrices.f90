@@ -134,6 +134,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  real(fp_kind) :: radius !! IF AXISYMM
   
   integer :: i,j,k, gp
   real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
@@ -232,6 +233,10 @@ subroutine calculate_element_Jacobian ()
         
       end if !dim
     end if !!gp ==1
+    if (bind_dom_type .eq. 3) then 
+      radius = DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+      elem%detJ(e,gp) = elem%detJ(e,gp) * radius
+    end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    

@@ -25,6 +25,8 @@ real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
 integer, dimension(:,:), Allocatable :: cont_nodes(:) !!! ELEMENT AND SEGMENT
 
+integer :: bind_dom_type  !1 plane stress, 2 plain strain,. 3 axisymm
+
 ! enum, bind(C) :: plane_mode_en
    ! enumerator :: pl_stress, pl_strain, axi_sym
 ! end type
@@ -191,6 +193,8 @@ contains
     end if 
     
     elem%gausspc(:) = gp
+    
+    bind_dom_type = 1
 
 
   end subroutine
