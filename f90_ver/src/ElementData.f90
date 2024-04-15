@@ -27,7 +27,7 @@ Type Element
   
   real(fp_kind), dimension(:,:), allocatable :: c_s, p_visc !WAVE SPEED AND SHOCK VISCOSITY PRESSURE
   real(fp_kind), dimension(:), allocatable :: e_length
-  real(fp_kind), dimension(:,:), allocatable :: sigma_eq, sigma_y !ONLY CALCULATED AT OUTPUT
+  real(fp_kind), dimension(:,:), allocatable :: sigma_eq, sigma_y, pl_strain !ONLY CALCULATED AT OUTPUT
   
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation

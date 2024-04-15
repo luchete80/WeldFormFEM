@@ -12,7 +12,7 @@ implicit none
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
 
-real(fp_kind):: mat_cs0, mat_K, mat_E, mat_nu
+real(fp_kind):: mat_cs0, mat_K, mat_E, mat_G, mat_nu, mat_Et !IF ET IS CONSTANT (BILINEAR)
 end Type Dom_type
 
 integer :: Dim, node_count, elem_count, Nproc, dof 
@@ -140,7 +140,8 @@ contains
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
     allocate (elem%sigma_y(el_count,gp)) !But is constant??
-    
+    allocate (elem%pl_strain(el_count,gp)) !But is constant??
+    elem%pl_strain(:,:) = 0.0d0 
     !IF NOT YIELDING THING
     elem%sigma_y(:,:) = 1.0e20 !But is constant??
         

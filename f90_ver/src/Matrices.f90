@@ -353,6 +353,10 @@ subroutine calculate_element_derivMat ()
           elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
           
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
+          
+          if (bind_dom_type .eq. 3) then !!!! AXISYMM
+            
+          end if 
       else !!!DIM 3
           !print *, "detJ", elem%detJ(e,gp)
           !print *, "adjJ", invJ
