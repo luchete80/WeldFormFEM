@@ -333,7 +333,7 @@ subroutine calculate_element_derivMat ()
   real(fp_kind), dimension(2) :: r, s
   
   real(fp_kind), dimension(nodxelem,dim) :: x2  !!!ONLY FOR AXISYMM
-  real(fp_kind):: z24,z31,r24,r31, f
+  real(fp_kind):: z24,z31,r24,r31, f, f2, r0 !!!! FOR AXISYMM
   
   !! Update x2 vector (this is useful for strain and stress things)
   
@@ -362,11 +362,14 @@ subroutine calculate_element_derivMat ()
               !print *, "elnod " , elem%elnod(e,i)
               x2(i,:)=nod%x(elem%elnod(e,i),:)
             end do
+            f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight: 4
+            f2 = 1.0d0/(4.0*r0)
             z24 = x2(2,2)-x2(4,2); z31 = x2(3,2)-x2(1,2)
             r24 = x2(2,1)-x2(4,1); r31 = x2(3,1)-x2(1,1)
-            elem%B_ax(e,gp,1,:) = [  z24, 0.0d0, z31,0.0d0, z24, 0.0d0, z31, 0.0d0]
-            elem%B_ax(e,gp,2,:) = [0.0d0,  -z24,0.0d0, -z31, 0.0d0, z24, 0.0d0, z31]
-            elem%B_ax(e,gp,4,:) = [-r24, z24, -r31, z31, r24, -z24, r31, -z31 ]
+            elem%B_ax(e,gp,1,:) = f * [  z24, 0.0d0, z31,0.0d0, z24, 0.0d0, z31, 0.0d0]
+            elem%B_ax(e,gp,2,:) = f * [0.0d0,  -z24,0.0d0, -z31, 0.0d0, z24, 0.0d0, z31]
+            elem%B_ax(e,gp,3,:) = f * [f2, 0.0d0,  f2,0.0d0, f2, 0.0d0, f2, 0.0d0 ]
+            elem%B_ax(e,gp,4,:) = f * [-r24, z24, -r31, z31, r24, -z24, r31, -z31 ]
           end if 
       else !!!DIM 3
           !print *, "detJ", elem%detJ(e,gp)

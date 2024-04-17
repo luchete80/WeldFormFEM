@@ -125,6 +125,11 @@ subroutine cal_elem_forces ()
     if (elem%gausspc(e) .eq. 1) then
       w = 2.0d0**dim
     end if
+    
+    ! if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
+      ! !elem%f_int(e,:,1) = elem%f_int(e,n,1) +  elem%B_ax(e,gp,1,:) !elem%f_int(e,n,1) = 
+    ! end if
+    
     do gp = 1, elem%gausspc(e)
       !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
       !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
