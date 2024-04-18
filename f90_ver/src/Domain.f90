@@ -26,7 +26,7 @@ real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 integer, dimension(:,:), Allocatable :: cont_nodes(:) !!! ELEMENT AND SEGMENT
 
 integer :: bind_dom_type  !1 plane stress, 2 plain strain,. 3 axisymm
-
+logical :: axisymm_vol_weight !! PREFERABLE AREA WEIGHT 
 ! enum, bind(C) :: plane_mode_en
    ! enumerator :: pl_stress, pl_strain, axi_sym
 ! end type
@@ -174,8 +174,12 @@ contains
     allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
+
+    !!---
     allocate (elem%radius(el_count,gp)) !!ONLY IN AXISYMM
-    
+    allocate (elem%sigma_tg(el_count,gp)) !!!TANGENTIAL (HOOP) VALUES
+    allocate (elem%str_tg(el_count,gp))
+    !! --AXISYMM
     
     allocate (elem%cs(el_count))
     allocate (elem%shear_stress(el_count,gp, 3,3))
@@ -206,7 +210,7 @@ contains
     elem%gausspc(:) = gp
     
     bind_dom_type = 1
-    
+    axisymm_vol_weight = .False.
 
   end subroutine
 

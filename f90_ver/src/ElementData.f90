@@ -29,6 +29,8 @@ Type Element
   real(fp_kind), dimension(:), allocatable :: e_length
   real(fp_kind), dimension(:,:), allocatable :: sigma_eq, sigma_y, pl_strain !ONLY CALCULATED AT OUTPUT
   
+  real(fp_kind), dimension(:,:), allocatable :: sigma_tg, str_tg !!!AXISYMM
+    
   !Matrices --assembles or by gauss point...
   !Updated lagrangian formulation
   real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy

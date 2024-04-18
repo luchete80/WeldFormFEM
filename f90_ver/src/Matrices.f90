@@ -236,7 +236,9 @@ subroutine calculate_element_Jacobian ()
     end if !!gp ==1
     if (bind_dom_type .eq. 3) then 
       elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
-      elem%detJ(e,gp) = elem%detJ(e,gp) * radius
+      if (axisymm_vol_weight) then|
+        elem%detJ(e,gp) = elem%detJ(e,gp) * radius
+      end if
     end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
@@ -358,20 +360,20 @@ subroutine calculate_element_derivMat ()
           
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
           
-          if (bind_dom_type .eq. 3) then !!!! AXISYMM
-            do i=1,nodxelem
-              !print *, "elnod " , elem%elnod(e,i)
-              x2(i,:)=nod%x(elem%elnod(e,i),:)
-            end do
-            f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight (4)
-            f2 = 1.0d0/(4.0*r0)
-            z24 = x2(2,2)-x2(4,2); z31 = x2(3,2)-x2(1,2)
-            r24 = x2(2,1)-x2(4,1); r31 = x2(3,1)-x2(1,1)
-            elem%B_ax(e,gp,1,:) = f * [  z24, 0.0d0, z31,0.0d0, z24, 0.0d0, z31, 0.0d0]
-            elem%B_ax(e,gp,2,:) = f * [0.0d0,  -z24,0.0d0, -z31, 0.0d0, z24, 0.0d0, z31]
-            elem%B_ax(e,gp,3,:) = f * [f2, 0.0d0,  f2,0.0d0, f2, 0.0d0, f2, 0.0d0 ]
-            elem%B_ax(e,gp,4,:) = f * [-r24, z24, -r31, z31, r24, -z24, r31, -z31 ]
-          end if 
+          ! if (bind_dom_type .eq. 3) then !!!! AXISYMM
+            ! do i=1,nodxelem
+              ! !print *, "elnod " , elem%elnod(e,i)
+              ! x2(i,:)=nod%x(elem%elnod(e,i),:)
+            ! end do
+            ! f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight (4)
+            ! f2 = 1.0d0/(4.0*r0)
+            ! z24 = x2(2,2)-x2(4,2); z31 = x2(3,2)-x2(1,2)
+            ! r24 = x2(2,1)-x2(4,1); r31 = x2(3,1)-x2(1,1)
+            ! elem%B_ax(e,gp,1,:) = f * [  z24, 0.0d0, z31,0.0d0, z24, 0.0d0, z31, 0.0d0]
+            ! elem%B_ax(e,gp,2,:) = f * [0.0d0,  -z24,0.0d0, -z31, 0.0d0, z24, 0.0d0, z31]
+            ! elem%B_ax(e,gp,3,:) = f * [f2, 0.0d0,  f2,0.0d0, f2, 0.0d0, f2, 0.0d0 ]
+            ! elem%B_ax(e,gp,4,:) = f * [-r24, z24, -r31, z31, r24, -z24, r31, -z31 ]
+          ! end if 
       else !!!DIM 3
           !print *, "detJ", elem%detJ(e,gp)
           !print *, "adjJ", invJ
