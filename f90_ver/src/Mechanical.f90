@@ -381,9 +381,10 @@ subroutine calc_elem_density ()
     !if (elem%gausspc(e) .eq. 1) then
       elem%rho(e,gp) = elem%rho_0(e,gp)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
       
-      if (bind_dom_type .eq. 3) then
-        !elem%rho(e,gp) / 
-      endif
+      ! THIS IS IF DETERMINANT ARE NOT AFFECTED BY RADIUS
+      ! if (bind_dom_type .eq. 3) then
+        ! elem%rho(e,gp) = elem%rho(e,gp)/elem%radius(e,gp) 
+      ! endif
     end do
   end do
 end subroutine
@@ -818,7 +819,10 @@ subroutine CalcStressStrain (dt)
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       
       if (bind_dom_type .eq. 3) then
-        
+        !IF NOT VOLUMETRICAL
+        !elem%str_tg(e,gp,:,:) = / elem%radius(e,gp,:,:)
+        !? ELASTIC PART??
+        !elem%sigma_tg(e,gp,:,:) = elem%str_tg * !*E/((1+nu)(1-nu))
       end if 
       ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
       ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)

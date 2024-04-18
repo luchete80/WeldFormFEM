@@ -7,7 +7,7 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
-
+REAL, PARAMETER :: PI = 3.14159265358979323846264338327950288419716939937510
 
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
@@ -183,11 +183,11 @@ contains
     
     allocate (elem%cs(el_count))
     !!!! ORIGINAL DIMENSIONS WAS DIM
-    allocate (elem%shear_stress(el_count,gp, dim,dim))
-    allocate (elem%str_rate(el_count,gp, dim,dim))
-    allocate (elem%str_inc(el_count,gp, dim,dim))
-    allocate (elem%str_tot(el_count,gp, dim,dim))
-    allocate (elem%rot_rate(el_count,gp, dim,dim))
+    allocate (elem%shear_stress(el_count,gp, 3,3))
+    allocate (elem%str_rate(el_count,gp, 3,3))
+    allocate (elem%str_inc(el_count,gp, 3,3))
+    allocate (elem%str_tot(el_count,gp, 3,3))
+    allocate (elem%rot_rate(el_count,gp, 3,3))
     
     allocate (elem%def_grad(el_count,gp, dim,dim))
     
@@ -211,7 +211,8 @@ contains
     elem%gausspc(:) = gp
     
     bind_dom_type = 1
-    axisymm_vol_weight = .False.
+    axisymm_vol_weight = .True.
+
 
   end subroutine
 

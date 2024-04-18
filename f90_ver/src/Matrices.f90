@@ -237,7 +237,7 @@ subroutine calculate_element_Jacobian ()
     if (bind_dom_type .eq. 3) then 
       elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
       if (axisymm_vol_weight) then
-        elem%detJ(e,gp) = elem%detJ(e,gp) * radius
+        elem%detJ(e,:) = elem%detJ(e,:) * radius
       end if
     end if 
 ! #if defined _PRINT_DEBUG_
@@ -503,8 +503,14 @@ end subroutine
 
 subroutine assemble_mass_matrix ()
   integer :: e,gp, i, j, iglob,jglob, n1,n2
+  real(fp_kind) :: f
   
   m_glob (:,:) = 0.0d0
+  f = 1.0d0
+  if (axisymm_vol_weight .eqv. .True.) then
+    f = 2.0d0 * PI
+  end if
+  
   do e = 1, elem_count
     !print *, "elem ", e
     do n1 =1, nodxelem
@@ -513,7 +519,7 @@ subroutine assemble_mass_matrix ()
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
+            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2) * f
       end do !dof1
     end do ! dof2 
   end do ! e
