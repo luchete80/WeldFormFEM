@@ -124,6 +124,7 @@ end function
 !!!!!!!! |      |
 !!!!!!!! 1 ---- 2
 !!!! CALCULATE JACOBIAN AND DETERMINANT
+!!!! IN AXISYMM CASES ALSO CALC RADIUS AR GAUSS POINTS
 subroutine calculate_element_Jacobian ()
 
 	use omp_lib
@@ -234,7 +235,7 @@ subroutine calculate_element_Jacobian ()
       end if !dim
     end if !!gp ==1
     if (bind_dom_type .eq. 3) then 
-      radius = DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+      elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
       elem%detJ(e,gp) = elem%detJ(e,gp) * radius
     end if 
 ! #if defined _PRINT_DEBUG_
@@ -362,7 +363,7 @@ subroutine calculate_element_derivMat ()
               !print *, "elnod " , elem%elnod(e,i)
               x2(i,:)=nod%x(elem%elnod(e,i),:)
             end do
-            f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight: 4
+            f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight (4)
             f2 = 1.0d0/(4.0*r0)
             z24 = x2(2,2)-x2(4,2); z31 = x2(3,2)-x2(1,2)
             r24 = x2(2,1)-x2(4,1); r31 = x2(3,1)-x2(1,1)

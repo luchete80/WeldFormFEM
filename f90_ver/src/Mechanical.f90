@@ -117,6 +117,8 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
+  real(fp_kind) :: area ! Axisymm
+  
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
 	
@@ -125,53 +127,77 @@ subroutine cal_elem_forces ()
     if (elem%gausspc(e) .eq. 1) then
       w = 2.0d0**dim
     end if
-    
-    ! if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
-      ! !elem%f_int(e,:,1) = elem%f_int(e,n,1) +  elem%B_ax(e,gp,1,:) !elem%f_int(e,n,1) = 
-    ! end if
-    
-    do gp = 1, elem%gausspc(e)
-      !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
-      !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
-      ! sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
-                        ! elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
-      ! test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
-      !print *, "test force", test
+    area = elem%detJ(e,gp) * w
+    if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
+    !!! SEE BENSON EQS 2.4.3.1 AND 2.4.3.2
+      elem%f_int(e,1,1) = elem%B_ax(e,gp,1,1) * elem%sigma (e,gp, 1,1)*area  &
+                        + elem%B_ax(e,gp,3,1) * elem%sigma (e,gp, 2,1)*area  &
+                        + elem%B_ax(e,gp,4,1) * elem%sigma (e,gp, 2,1)*area 
+                        
+      elem%f_int(e,1,2) = elem%B_ax(e,gp,2,2) * elem%sigma (e,gp, 2,2)*area  &
+                        + elem%B_ax(e,gp,4,2) * elem%sigma (e,gp, 1,2)*area  
+
+
+      elem%f_int(e,2,1) = elem%B_ax(e,gp,1,3) * elem%sigma (e,gp, 1,1)*area  &
+                        + elem%B_ax(e,gp,3,3) * elem%sigma (e,gp, 2,1)*area  &
+                        + elem%B_ax(e,gp,4,3) * elem%sigma (e,gp, 2,1)*area 
+
+      elem%f_int(e,2,2) = elem%B_ax(e,gp,2,4) * elem%sigma (e,gp, 2,2)*area  &
+                        + elem%B_ax(e,gp,4,4) * elem%sigma (e,gp, 1,2)*area  
+
+      !elem%f_int(e,1,1) =
+                        
+      elem%f_int(e,3,:) = - elem%f_int(e,1,:)
+      elem%f_int(e,4,:) = - elem%f_int(e,2,:)
       
-      !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
-      !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+      !elem%f_int(e,1,1) = elem%f_int(e,n,1) +  elem%B_ax(e,gp,1,:) !elem%f_int(e,n,1) = 
+    
+    else 
       
-      do n=1, nodxelem
-      !Is only linear matrix?    
-      !elem%f_int(e,n,d) =  
-      !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
-      !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
-      !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
-      !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
-      !!!!! 
-        do d=1, dim
-          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
-        end do
-        if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          !!elem%f_int(e,n,1) = 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
-        else 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-          elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                                  elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
-        end if
-        !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
-      end do! nod x elem
-      !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
-      !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
-      !print *, "s33 ", elem%sigma (e,gp, 3,3)
-    end do !gp
-    elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
+      do gp = 1, elem%gausspc(e)
+        !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+        !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+        ! sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
+                          ! elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
+        ! test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
+        !print *, "test force", test
+        
+        !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+        !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
+        !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+        
+        do n=1, nodxelem
+        !Is only linear matrix?    
+        !elem%f_int(e,n,d) =  
+        !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
+        !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
+        !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
+        !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
+        !!!!! 
+          do d=1, dim
+            elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          end do
+          if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
+            !!elem%f_int(e,n,1) = 
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+          else 
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                    elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                    elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+            elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                                    elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+          end if
+          !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
+        end do! nod x elem
+        !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
+        !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
+        !print *, "s33 ", elem%sigma (e,gp, 3,3)
+      end do !gp
+      elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
+    end if
+    
   end do!elem
 	! !$omp end parallel do    
 end subroutine
