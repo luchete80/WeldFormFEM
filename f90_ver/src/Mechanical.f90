@@ -141,6 +141,8 @@ subroutine cal_elem_forces ()
     area = elem%detJ(e,gp) * w
     if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
     !!! SEE BENSON EQS 2.4.3.1 AND 2.4.3.2
+    !!! GOUDREAU 19
+    !!! being eps = [er eth ez taurz]
       elem%f_int(e,1,1) = elem%B_ax(e,gp,1,1) * elem%sigma (e,gp, 1,1)*area  &
                         + elem%B_ax(e,gp,3,1) * elem%sigma (e,gp, 2,1)*area  &
                         + elem%B_ax(e,gp,4,1) * elem%sigma (e,gp, 2,1)*area 
