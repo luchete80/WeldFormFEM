@@ -199,7 +199,7 @@ subroutine cal_elem_forces ()
             ! !!! SEE BENSON EQS 2.4.3.1 AND 2.4.3.2
             ! !!! GOUDREAU 19
             ! !!! being eps = [er eth ez taurz]
-              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%sigma
+              !elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%sigma
             end if 
           else !DIM=3
             elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &

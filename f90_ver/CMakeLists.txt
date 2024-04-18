@@ -34,6 +34,7 @@ file(GLOB_RECURSE sources  src/*.f90 )
 
 add_executable(WeldForm ${sources} main.f90) #Single case 1 element
 add_executable(cube ${sources} main_cube_diag.f90) #Single case 1 element
+add_executable(quad ${sources} main_quad.f90) #Single case 1 element
 add_executable(1el_axisymm ${sources} ex_1el_axisymm.f90) #Single case 1 element
 add_executable(main_beam ${sources} main_beam.f90) #Single case 1 element
 #add_executable(main_hg ${sources} main_hg.f90) #Single case 1 element

@@ -182,11 +182,12 @@ contains
     !! --AXISYMM
     
     allocate (elem%cs(el_count))
-    allocate (elem%shear_stress(el_count,gp, 3,3))
-    allocate (elem%str_rate(el_count,gp, 3,3))
-    allocate (elem%str_inc(el_count,gp, 3,3))
-    allocate (elem%str_tot(el_count,gp, 3,3))
-    allocate (elem%rot_rate(el_count,gp, 3,3))
+    !!!! ORIGINAL DIMENSIONS WAS DIM
+    allocate (elem%shear_stress(el_count,gp, dim,dim))
+    allocate (elem%str_rate(el_count,gp, dim,dim))
+    allocate (elem%str_inc(el_count,gp, dim,dim))
+    allocate (elem%str_tot(el_count,gp, dim,dim))
+    allocate (elem%rot_rate(el_count,gp, dim,dim))
     
     allocate (elem%def_grad(el_count,gp, dim,dim))
     

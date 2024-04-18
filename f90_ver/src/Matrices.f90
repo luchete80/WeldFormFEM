@@ -236,7 +236,7 @@ subroutine calculate_element_Jacobian ()
     end if !!gp ==1
     if (bind_dom_type .eq. 3) then 
       elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
-      if (axisymm_vol_weight) then|
+      if (axisymm_vol_weight) then
         elem%detJ(e,gp) = elem%detJ(e,gp) * radius
       end if
     end if 
