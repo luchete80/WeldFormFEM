@@ -1,0 +1,98 @@
+
+! !! VELOCITY VERLET
+! !!Calculate v(t+1/2dt) = v(t) +1/2a(t) dt
+! !!Calc      x(t+dt ) = x(t) + v(t+1/2dt) dt
+! !!obtain    a(t+dt) using x(t+dt)
+! !!update    v(t+dt) = v(t+1/2dt)+1/2a(t+dt) dt
+
+! inline void Particle::Move_MVerlet (Mat3_t I, double dt)
+! {
+	! if (FirstStep)
+	! {
+		! ct = 30;
+		! FirstStep = false;
+	! }
+
+	! x += dt*(v+VXSPH) + 0.5*dt*dt*a;
+
+	! if (ct == 30)
+	! {
+		! if (Shepard && ShepardCounter == ShepardStep)
+		! {
+			! if (ZWab>0.6)
+			! {
+				! Densityb	= SumDen/ZWab;
+! //				Densityb	= Density;
+				! Density		= SumDen/ZWab;
+			! }
+			! else
+			! {
+				! Densityb	= Density;
+				! Density		+=dt*dDensity;
+			! }
+		! }
+		! else
+		! {
+			! Densityb		= Density;
+			! Density			+=dt*dDensity;
+		! }
+
+		! vb	= v;
+		! v	+=dt*a;
+	! }
+	! else
+	! {
+		! if (Shepard && ShepardCounter == ShepardStep)
+		! {
+			! if (ZWab>0.6)
+			! {
+				! Densityb	= SumDen/ZWab;
+! //				Densityb	= Density;
+				! Density		= SumDen/ZWab;
+			! }
+			! else
+			! {
+				! double dens	= Density;
+				! Density		= Densityb + 2.0*dt*dDensity;
+				! Densityb	= dens;
+			! }
+		! }
+		! else
+		! {
+			! double dens	= Density;
+			! Density		= Densityb + 2.0*dt*dDensity;
+			! Densityb	= dens;
+		! }
+
+		! Vec3_t temp;
+		! temp	= v;
+		! v		= vb + 2*dt*a;
+		! vb		= temp;
+	! }
+  
+!!!!!CONSTITUTIVE  
+  
+  	! Stress			= ShearStress;
+	! if (ct == 30)
+		! ShearStress	= dt*(2.0*G*(StrainRate-1.0/3.0*(StrainRate(0,0)+StrainRate(1,1)+StrainRate(2,2))*OrthoSys::I)+SRT+RS) + ShearStress;
+	! else
+		! ShearStress	= 2.0*dt*(2.0*G*(StrainRate-1.0/3.0*(StrainRate(0,0)+StrainRate(1,1)+StrainRate(2,2))*OrthoSys::I)+SRT+RS) + ShearStressb;
+	! ShearStressb	= Stress;
+
+	! if (Fail == 1)
+	! {
+		! double J2	= 0.5*(ShearStress(0,0)*ShearStress(0,0) + 2.0*ShearStress(0,1)*ShearStress(1,0) +
+						! 2.0*ShearStress(0,2)*ShearStress(2,0) + ShearStress(1,1)*ShearStress(1,1) +
+						! 2.0*ShearStress(1,2)*ShearStress(2,1) + ShearStress(2,2)*ShearStress(2,2));
+		! //Scale back
+		! ShearStress	= std::min((Sigmay/sqrt(3.0*J2)),1.0)*ShearStress;
+	! }
+
+	! Sigma			= -Pressure * OrthoSys::I + ShearStress;
+
+	! Stress	= Strain;
+	! if (ct == 30)
+		! Strain	= dt*StrainRate + Strain;
+	! else
+		! Strain	= 2.0*dt*StrainRate + Strainb;
+	! Strainb	= Stress;

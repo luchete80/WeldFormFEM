@@ -7,12 +7,12 @@ use ModPrecision, only : fp_kind
 
 implicit none 
 
-
+REAL, PARAMETER :: PI = 3.14159265358979323846264338327950288419716939937510
 
 type Dom_type
 integer, dimension (:), allocatable ::slavenod
 
-real(fp_kind):: mat_cs0, mat_K, mat_E, mat_nu
+real(fp_kind):: mat_cs0, mat_K, mat_E, mat_G, mat_nu, mat_Et !IF ET IS CONSTANT (BILINEAR)
 end Type Dom_type
 
 integer :: Dim, node_count, elem_count, Nproc, dof 
@@ -25,6 +25,8 @@ real(fp_kind), dimension(:,:), Allocatable :: kglob, uglob, m_glob
 
 integer, dimension(:,:), Allocatable :: cont_nodes(:) !!! ELEMENT AND SEGMENT
 
+integer :: bind_dom_type  !1 plane stress, 2 plain strain,. 3 axisymm
+logical :: axisymm_vol_weight !! PREFERABLE AREA WEIGHT 
 ! enum, bind(C) :: plane_mode_en
    ! enumerator :: pl_stress, pl_strain, axi_sym
 ! end type
@@ -137,11 +139,19 @@ contains
     allocate (elem%jacob(el_count,gp,dim,dim))
     allocate (elem%detj(el_count,gp))
     allocate (elem%sigma_eq(el_count,gp)) !But is constant??
+    allocate (elem%sigma_y(el_count,gp)) !But is constant??
+    allocate (elem%pl_strain(el_count,gp)) !But is constant??
+    elem%pl_strain(:,:) = 0.0d0 
+    !IF NOT YIELDING THING
+    elem%sigma_y(:,:) = 1.0e20 !But is constant??
+        
     allocate (elem%dHxy(el_count,gp,dim,nodxelem))
     allocate (elem%dHxy_detJ(el_count,gp,dim,nodxelem)) !!!! STORE LIKE THIS TO SAVE CALCULATION TIME (THIS IS USED  TO CALC FORCES INTEGRATING IT )
     allocate (elem%dHxy0(el_count,gp,dim,nodxelem)) !!!USED FOR DEFORMATION GRADIENT ONLY FOR FULL INTEGRATION ELEMENTS 
     allocate (elem%dHrs(el_count,gp,dim,nodxelem))
-    allocate (elem%sigma(el_count,gp,3,3))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
+
+    
+    allocate (elem%B_ax(el_count,gp,dim,nodxelem))
 
     allocate (elem%uele (el_count,dim*nodxelem,1)) 
 
@@ -164,12 +174,21 @@ contains
     allocate (elem%rho(el_count,gp)) !AT FIRST ONLY ONE POINT
     allocate (elem%rho_0(el_count,gp))
     allocate (elem%pressure(el_count,gp))
+
+    !!---
+    allocate (elem%radius(el_count,gp)) !!ONLY IN AXISYMM
+    allocate (elem%sigma_tg(el_count,gp)) !!!TANGENTIAL (HOOP) VALUES
+    allocate (elem%str_tg(el_count,gp))
+    !! --AXISYMM
+    
     allocate (elem%cs(el_count))
+    !!!! ORIGINAL DIMENSIONS WAS DIM
     allocate (elem%shear_stress(el_count,gp, 3,3))
     allocate (elem%str_rate(el_count,gp, 3,3))
     allocate (elem%str_inc(el_count,gp, 3,3))
     allocate (elem%str_tot(el_count,gp, 3,3))
     allocate (elem%rot_rate(el_count,gp, 3,3))
+    allocate (elem%sigma(el_count,gp,3,3))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
     
     allocate (elem%def_grad(el_count,gp, dim,dim))
     
@@ -191,6 +210,9 @@ contains
     end if 
     
     elem%gausspc(:) = gp
+    
+    bind_dom_type = 1
+    axisymm_vol_weight = .True.
 
 
   end subroutine

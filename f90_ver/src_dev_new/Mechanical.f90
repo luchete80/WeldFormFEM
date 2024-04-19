@@ -26,6 +26,16 @@ subroutine cal_elem_strains ()
   
   !$omp parallel do num_threads(Nproc) private (e,gp,d, temp,n) 
   do e=1, elem_count
+    ! if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
+      ! elem%str_rate(e,1, 1, 1) = elem%B_ax(e,gp,1,1) * elem%vele (e,dim*(n-1)+1,1) + 
+                                 ! elem%B_ax(e,gp,1,3) * elem%vele (e,dim*(n-1)+3,1)
+      ! do n=1, nodxelem
+        ! do d=1,2
+          ! elem%str_rate(e,1, 2, 2) = elem%B_ax(e,gp,1,dim*(n-1)+d) * elem%vele (e,dim*(n-1)+d,1)
+        ! end do
+      ! end do
+
+
     do gp = 1, elem%gausspc(e)
       !Is only linear matrix?    
       !!!TODO: CHANGE FROM MATRIX OPERATION TO SIMPLE OPERATION
@@ -50,7 +60,7 @@ subroutine cal_elem_strains ()
 
       do n=1, nodxelem  
         do d=1, dim
-          !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
+          !print *, "node dim vele", n,d,elem%vele (e,dim*(n-1)+d,1) 
           elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
@@ -85,13 +95,14 @@ subroutine cal_elem_strains ()
         elem%rot_rate(e,gp, 3,2) =     -elem%rot_rate(e,gp, 2,3)
         elem%rot_rate(e,gp, 3,1) =     -elem%rot_rate(e,gp, 1,3)
       end if
-			
-			!!! IF COMPLETE MULTIPLICATION (MORE CALC)
+      
+      !!! IF COMPLETE MULTIPLICATION (MORE CALC)
       !!!elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       !print *, "simlpified strain rate "
       !print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
+
   end do !element
   !$omp end parallel do    
 end subroutine
@@ -117,6 +128,8 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
+  real(fp_kind) :: area ! Axisymm
+  
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
 	
@@ -125,48 +138,87 @@ subroutine cal_elem_forces ()
     if (elem%gausspc(e) .eq. 1) then
       w = 2.0d0**dim
     end if
-    do gp = 1, elem%gausspc(e)
-      !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
-      !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
-      ! sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
-                        ! elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
-      ! test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
-      !print *, "test force", test
+    ! area = elem%detJ(e,gp) * w
+    ! if ((bind_dom_type .eq. 3) .and. (elem%gausspc(e) .eq. 1) ) then 
+    ! !!! SEE BENSON EQS 2.4.3.1 AND 2.4.3.2
+    ! !!! GOUDREAU 19
+    ! !!! being eps = [er eth ez taurz]
+      ! elem%f_int(e,1,1) = elem%B_ax(e,gp,1,1) * elem%sigma (e,gp, 1,1)*area  &
+                        ! + elem%B_ax(e,gp,3,1) * elem%sigma (e,gp, 2,1)*area  &
+                        ! + elem%B_ax(e,gp,4,1) * elem%sigma (e,gp, 2,1)*area 
+                        
+      ! elem%f_int(e,1,2) = elem%B_ax(e,gp,2,2) * elem%sigma (e,gp, 2,2)*area  &
+                        ! + elem%B_ax(e,gp,4,2) * elem%sigma (e,gp, 1,2)*area  
+
+
+      ! elem%f_int(e,2,1) = elem%B_ax(e,gp,1,3) * elem%sigma (e,gp, 1,1)*area  &
+                        ! + elem%B_ax(e,gp,3,3) * elem%sigma (e,gp, 2,1)*area  &
+                        ! + elem%B_ax(e,gp,4,3) * elem%sigma (e,gp, 2,1)*area 
+
+      ! elem%f_int(e,2,2) = elem%B_ax(e,gp,2,4) * elem%sigma (e,gp, 2,2)*area  &
+                        ! + elem%B_ax(e,gp,4,4) * elem%sigma (e,gp, 1,2)*area  
+
+      ! !elem%f_int(e,1,1) = elem%f_int(e,1,1) + 0.25 * area
+                         
+      ! elem%f_int(e,3,:) = - elem%f_int(e,1,:)
+      ! elem%f_int(e,4,:) = - elem%f_int(e,2,:)
       
-      !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
-      !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+      ! !elem%f_int(e,1,1) = elem%f_int(e,n,1) +  elem%B_ax(e,gp,1,:) !elem%f_int(e,n,1) = 
+    
+      ! end if 
       
-      do n=1, nodxelem
-      !Is only linear matrix?    
-      !elem%f_int(e,n,d) =  
-      !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
-      !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
-      !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
-      !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
-      !!!!! 
-        do d=1, dim
-          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
-        end do
-        if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          !!elem%f_int(e,n,1) = 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
-        else 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
-                                                  elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
-          elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
-                                                  elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
-        end if
-        !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
-      end do! nod x elem
-      !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
-      !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
-      !print *, "s33 ", elem%sigma (e,gp, 3,3)
-    end do !gp
-    elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
+      do gp = 1, elem%gausspc(e)
+        !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
+        !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
+        ! sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
+                          ! elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
+        ! test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
+        !print *, "test force", test
+        
+        !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
+        !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
+        !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
+        
+        do n=1, nodxelem
+        !Is only linear matrix?    
+        !elem%f_int(e,n,d) =  
+        !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
+        !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
+        !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
+        !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
+        !!!!! 
+          do d=1, dim
+            elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          end do
+          if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
+            !!elem%f_int(e,n,1) = 
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+
+            if (bind_dom_type .eq. 3) then 
+            ! !!! SEE BENSON EQS 2.4.3.1 AND 2.4.3.2
+            ! !!! GOUDREAU 19
+            ! !!! being eps = [er eth ez taurz]
+              !elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%sigma
+            end if 
+          else !DIM=3
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                    elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                    elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 2,3)
+            elem%f_int(e,n,3) = elem%f_int(e,n,3) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 2,3) + &
+                                                    elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,3)
+          end if
+          !print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) * w 
+        end do! nod x elem
+        !print *, "test ", w * elem%dHxy_detJ(e,gp,3,8)  * elem%sigma (e,gp, 3,3)
+        !print *, "dHxy ", elem%dHxy_detJ(e,gp,3,8), "w ", w
+        !print *, "s33 ", elem%sigma (e,gp, 3,3)
+      end do !gp
+      
+      
+      elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
+    
   end do!elem
 	! !$omp end parallel do    
 end subroutine
@@ -229,7 +281,10 @@ subroutine calc_hourglass_forces
         end do
       end do
       
-      
+      !print *, "HMOD"
+        ! do j =1,dim !MODE
+          ! print *, hmod(j,:)
+        ! end do
       
       !!!!!!!!! GOUDREAU 1982
       do n=1,nodxelem
@@ -325,6 +380,11 @@ subroutine calc_elem_density ()
     do gp=1, elem%gausspc(e)
     !if (elem%gausspc(e) .eq. 1) then
       elem%rho(e,gp) = elem%rho_0(e,gp)*elem%vol_0(e)/elem%vol(e) !IS THE SAME
+      
+      ! THIS IS IF DETERMINANT ARE NOT AFFECTED BY RADIUS
+      ! if (bind_dom_type .eq. 3) then
+        ! elem%rho(e,gp) = elem%rho(e,gp)/elem%radius(e,gp) 
+      ! endif
     end do
   end do
 end subroutine
@@ -496,7 +556,7 @@ subroutine calc_elem_wave_speed (modK)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%c_s(e,gp) = sqrt(modK/elem%rho(e,gp))
-       print *, " elem cs  ", elem%c_s(e,gp)
+       !print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do  
 end subroutine
@@ -519,8 +579,8 @@ subroutine calc_elem_shock_visc (dt)
     do gp = 1, elem%gausspc(e)
       vdot = elem%vol_inc(e) / dt
       elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * vdot + 1.5 * elem%rho(e,gp) * vdot ** 2.0
-      print *, "elem%p_visc(e,gp) tot", elem%p_visc(e,gp), "linear ", 1.5 * elem%rho(e,gp) * vdot ** 2.0
-      print *, " elem cs  ", elem%c_s(e,gp)
+      !print *, "elem%p_visc(e,gp) tot", elem%p_visc(e,gp), "linear ", 1.5 * elem%rho(e,gp) * vdot ** 2.0
+      !print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do
 end subroutine
@@ -689,7 +749,7 @@ subroutine CalcStressStrain (dt)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
-  real(fp_kind) :: p00
+  real(fp_kind) :: p00, J2, sig_trial, trace, i
   
   p00 = 0.
   
@@ -704,7 +764,7 @@ subroutine CalcStressStrain (dt)
   ! end if
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
-	!$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS) 
+	!$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS,J2,sig_trial) 
   do e = 1, elem_count  
     do gp=1,elem%gausspc(e)
     !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
@@ -732,23 +792,41 @@ subroutine CalcStressStrain (dt)
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      ! !print *, "RS", RS
-      !print *, "mat g", mat_G
-      ! if (dim ==3) then 
+      trace = 0.0d0
+      do i=1, 3
+        trace = trace + elem%str_rate(e,gp,i,i)
+      end do 
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   (trace)*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
-      ! else 
-            ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   ! (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
-                                   ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
+                                   
+      ! J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
+                      ! elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
+                    ! + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
+                    ! + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
+                    ! + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
+                    ! + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
+      
+      ! sig_trial = sqrt(3.0d0*J2)
+      ! !YIELD, SCALE BACK
+      ! if (elem%sigma_y(e,gp)<sig_trial) then
+        ! elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma(e,gp,:,:) / sig_trial
+        ! !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+        ! !pl_strain[i] += dep;	
+        ! elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
+      ! endif
       
       ! end if
       ! print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
-     
       
+      if (bind_dom_type .eq. 3) then
+        !IF NOT VOLUMETRICAL
+        !elem%str_tg(e,gp,:,:) = / elem%radius(e,gp,:,:)
+        !? ELASTIC PART??
+        !elem%sigma_tg(e,gp,:,:) = elem%str_tg * !*E/((1+nu)(1-nu))
+      end if 
       ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
       ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
       ! print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
@@ -805,11 +883,11 @@ subroutine CalcStress (dt)
       sig = dev - elem%pressure(e,gp) * ident 
       !print *, "sigma prev rot", sig
       elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
-      if (gp == 1) then
-        print *, "sigma ", elem%sigma(e,gp,:,:)
-        print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
-        print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
-      end if 
+      ! if (gp == 1) then
+        ! print *, "sigma ", elem%sigma(e,gp,:,:)
+        ! print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
+        ! print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
+      ! end if 
       !!! PERFORM ROTATION
       
       !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)

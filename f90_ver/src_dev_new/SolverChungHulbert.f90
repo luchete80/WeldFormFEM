@@ -67,10 +67,17 @@ subroutine SolveChungHulbert (domi, tf, dt)
   call set_edof_from_elnod()
   
   call calculate_element_Jacobian
-  print *, "shape mat"
+  !print *, "shape mat"
   !call calculate_element_shapeMat() !AND MASS
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
+  
+  ! print *, "INITIAL DERIVATIVE MATRIX dHdxy*devJ"
+  ! print *, elem%dHxy_detJ(1,1,1,:)
+  ! print *, elem%dHxy_detJ(1,1,2,:)
+  if (dim .eq. 3) then
+  print *, elem%dHxy_detJ(1,1,3,:)
+  end if
   elem%vol_0(:) = elem%vol(:)
   !print *,"Element Initial Vol"
   ! do n = 1, elem_count
@@ -81,7 +88,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   print *, "Assemblying mass matrix" 
   call assemble_mass_matrix()
   !print * , "done"
-  !print *, "mass matrix",m_glob
+  print *, "mass matrix",m_glob
     mdiag(:)=0.0d0
     do iglob =1, node_count
       do n=1, node_count  !column
@@ -90,9 +97,11 @@ subroutine SolveChungHulbert (domi, tf, dt)
     end do   
   calc_m = .False.
   
+  print *, "mass"
   !!!! ONLY FOR TESTING
   do n=1, node_count  !column
      mdiag(n) = tot_mass/node_count 
+     print *, mdiag(n)
   end do
   
   print *, "M Diag ", mdiag
@@ -171,6 +180,9 @@ subroutine SolveChungHulbert (domi, tf, dt)
   !!! PREDICTION PHASE
   u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
+  
+  !print *, "veloc", nod%v 
+  !print *, "prev_a", nod%v 
   nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
   nod%a = 0.0d0
   
@@ -236,10 +248,12 @@ subroutine SolveChungHulbert (domi, tf, dt)
 
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
-  !print *, "global int forces ", rint_glob(3,:)
+  ! print *, "global int forces ", rint_glob(3,:)
 
+  ! print *, "mass"
+  ! print *, mdiag(:)
 	!$omp parallel do num_threads(Nproc) private (n)  
-	do n=1,node_count
+	do n=1,node_count 
 		! do d=1,dim
 			! nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
 		! end do 

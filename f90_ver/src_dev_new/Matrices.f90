@@ -124,6 +124,7 @@ end function
 !!!!!!!! |      |
 !!!!!!!! 1 ---- 2
 !!!! CALCULATE JACOBIAN AND DETERMINANT
+!!!! IN AXISYMM CASES ALSO CALC RADIUS AR GAUSS POINTS
 subroutine calculate_element_Jacobian ()
 
 	use omp_lib
@@ -134,6 +135,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  real(fp_kind) :: radius !! IF AXISYMM
   
   integer :: i,j,k, gp
   real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
@@ -176,6 +178,7 @@ subroutine calculate_element_Jacobian ()
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
           elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       end if  !!!!DIM
+      !print *, "jacob ", elem%jacob(e,gp,:,:)
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
@@ -231,6 +234,12 @@ subroutine calculate_element_Jacobian ()
         
       end if !dim
     end if !!gp ==1
+    ! if (bind_dom_type .eq. 3) then 
+      ! elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+      ! if (axisymm_vol_weight) then
+        ! elem%detJ(e,:) = elem%detJ(e,:) * radius
+      ! end if
+    ! end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
@@ -325,7 +334,10 @@ subroutine calculate_element_derivMat ()
   
   integer :: i,j,k, gp
   real(fp_kind), dimension(2) :: r, s
-
+  
+  real(fp_kind), dimension(nodxelem,dim) :: x2  !!!ONLY FOR AXISYMM
+  real(fp_kind):: z24,z31,r24,r31, f, f2, r0 !!!! FOR AXISYMM
+  
   !! Update x2 vector (this is useful for strain and stress things)
   
 	!$omp parallel do num_threads(Nproc) private (e,gp,invJ) 
@@ -347,6 +359,21 @@ subroutine calculate_element_derivMat ()
           elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
           
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
+          
+          ! if (bind_dom_type .eq. 3) then !!!! AXISYMM
+            ! do i=1,nodxelem
+              ! !print *, "elnod " , elem%elnod(e,i)
+              ! x2(i,:)=nod%x(elem%elnod(e,i),:)
+            ! end do
+            ! f = 1./(2. * elem%detJ(e,gp) * 4.0) !AREA IS DEtJ x gauss weight (4)
+            ! f2 = 1.0d0/(4.0*r0)
+            ! z24 = x2(2,2)-x2(4,2); z31 = x2(3,2)-x2(1,2)
+            ! r24 = x2(2,1)-x2(4,1); r31 = x2(3,1)-x2(1,1)
+            ! elem%B_ax(e,gp,1,:) = f * [  z24, 0.0d0, z31,0.0d0, z24, 0.0d0, z31, 0.0d0]
+            ! elem%B_ax(e,gp,2,:) = f * [0.0d0,  -z24,0.0d0, -z31, 0.0d0, z24, 0.0d0, z31]
+            ! elem%B_ax(e,gp,3,:) = f * [f2, 0.0d0,  f2,0.0d0, f2, 0.0d0, f2, 0.0d0 ]
+            ! elem%B_ax(e,gp,4,:) = f * [-r24, z24, -r31, z31, r24, -z24, r31, -z31 ]
+          ! end if 
       else !!!DIM 3
           !print *, "detJ", elem%detJ(e,gp)
           !print *, "adjJ", invJ
@@ -371,6 +398,8 @@ subroutine calculate_element_derivMat ()
           elem%dHxy_detJ(e,gp,:,6) =  invJ(:,1)-invJ(:,2)+invJ(:,3)
           elem%dHxy_detJ(e,gp,:,7) =  invJ(:,1)+invJ(:,2)+invJ(:,3)
           elem%dHxy_detJ(e,gp,:,8) = -invJ(:,1)+invJ(:,2)+invJ(:,3)
+          
+          !print *, "INVJ", invJ(:,:)
 
           elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0          
           ! print *, "1,1", elem%dHxy(e,gp,1,1), "inv 1,1 1,2 1,3", invJ(1,1), invJ(1,2), invJ(1,3)
@@ -474,8 +503,15 @@ end subroutine
 
 subroutine assemble_mass_matrix ()
   integer :: e,gp, i, j, iglob,jglob, n1,n2
+  real(fp_kind) :: f
   
   m_glob (:,:) = 0.0d0
+  f = 1.0d0
+  ! if (axisymm_vol_weight .eqv. .True.) then
+    ! !print *, "ax vol weight TRUE"
+    ! f = 2.0d0 * PI
+  ! end if
+  
   do e = 1, elem_count
     !print *, "elem ", e
     do n1 =1, nodxelem
@@ -484,7 +520,7 @@ subroutine assemble_mass_matrix ()
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
+            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2) * f
       end do !dof1
     end do ! dof2 
   end do ! e
