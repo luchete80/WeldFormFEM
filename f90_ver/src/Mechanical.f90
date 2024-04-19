@@ -60,7 +60,7 @@ subroutine cal_elem_strains ()
 
       do n=1, nodxelem  
         do d=1, dim
-          print *, "node dim vele", n,d,elem%vele (e,dim*(n-1)+d,1) 
+          !print *, "node dim vele", n,d,elem%vele (e,dim*(n-1)+d,1) 
           elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           elem%rot_rate(e,gp, d,d) = 0.0d0
         end do
@@ -99,7 +99,7 @@ subroutine cal_elem_strains ()
       !!! IF COMPLETE MULTIPLICATION (MORE CALC)
       !!!elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       !print *, "simlpified strain rate "
-      print *, "strain rate ", elem%str_rate(e,gp,:,:)
+      !print *, "strain rate ", elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
 
@@ -281,10 +281,10 @@ subroutine calc_hourglass_forces
         end do
       end do
       
-      print *, "HMOD"
-        do j =1,dim !MODE
-          print *, hmod(j,:)
-        end do
+      !print *, "HMOD"
+        ! do j =1,dim !MODE
+          ! print *, hmod(j,:)
+        ! end do
       
       !!!!!!!!! GOUDREAU 1982
       do n=1,nodxelem
@@ -556,7 +556,7 @@ subroutine calc_elem_wave_speed (modK)
   do e = 1, elem_count
     do gp = 1, elem%gausspc(e)
       elem%c_s(e,gp) = sqrt(modK/elem%rho(e,gp))
-       print *, " elem cs  ", elem%c_s(e,gp)
+       !print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do  
 end subroutine
@@ -579,8 +579,8 @@ subroutine calc_elem_shock_visc (dt)
     do gp = 1, elem%gausspc(e)
       vdot = elem%vol_inc(e) / dt
       elem%p_visc(e,gp) = 0.06 * elem%rho(e,gp) * elem%c_s(e,gp) * vdot + 1.5 * elem%rho(e,gp) * vdot ** 2.0
-      print *, "elem%p_visc(e,gp) tot", elem%p_visc(e,gp), "linear ", 1.5 * elem%rho(e,gp) * vdot ** 2.0
-      print *, " elem cs  ", elem%c_s(e,gp)
+      !print *, "elem%p_visc(e,gp) tot", elem%p_visc(e,gp), "linear ", 1.5 * elem%rho(e,gp) * vdot ** 2.0
+      !print *, " elem cs  ", elem%c_s(e,gp)
     end do
   end do
 end subroutine
@@ -883,11 +883,11 @@ subroutine CalcStress (dt)
       sig = dev - elem%pressure(e,gp) * ident 
       !print *, "sigma prev rot", sig
       elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
-      if (gp == 1) then
-        print *, "sigma ", elem%sigma(e,gp,:,:)
-        print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
-        print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
-      end if 
+      ! if (gp == 1) then
+        ! print *, "sigma ", elem%sigma(e,gp,:,:)
+        ! print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
+        ! print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
+      ! end if 
       !!! PERFORM ROTATION
       
       !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)

@@ -178,7 +178,7 @@ subroutine calculate_element_Jacobian ()
           ! elem%jacob(e,gp,1,:) = matmul(dHrs,x2)
           elem%jacob(e,gp,:,:) = 0.125*elem%jacob(e,gp,:,:)
       end if  !!!!DIM
-      print *, "jacob ", elem%jacob(e,gp,:,:)
+      !print *, "jacob ", elem%jacob(e,gp,:,:)
       elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     else !!!!! GP > 1
       r = 1.0/sqrt(3.0);
@@ -508,6 +508,7 @@ subroutine assemble_mass_matrix ()
   m_glob (:,:) = 0.0d0
   f = 1.0d0
   if (axisymm_vol_weight .eqv. .True.) then
+    !print *, "ax vol weight TRUE"
     f = 2.0d0 * PI
   end if
   

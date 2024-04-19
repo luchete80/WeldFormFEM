@@ -46,8 +46,8 @@ implicit none
   integer:: i, tnr, maxt ,nn, el, d, d2
   real(fp_kind),allocatable, dimension(:):: dTdt
   real(fp_kind) :: t_, deltat
-  real(fp_kind) :: start, finish
-  real(fp_kind) :: L, rho, dt, tf, mat_modK, mat_modG, mat_cs
+  real(fp_kind) :: start, finish, sy
+  real(fp_kind) :: L, Rtot, rho, dt, tf, mat_modK, mat_modG, mat_cs
   logical :: reduced_int, dim_2D
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
   integer, pointer :: ncount_int
@@ -76,24 +76,26 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 2
-  L = 0.1	
-  dx    = 0.1d0
+  L = 0.616
+  Rtot = 0.15
+  
+  dx    = 0.05d0
   r = dx /2.0
-  h = dx * 1.2
 
-   V(1) = 0.;V(2) = 0.;V(3) = 0.	
+  V(1) = 0.;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
   
-  rho = 7850.0
+  rho = 2700.0
   
   poisson = 0.3
   young = 206.0e9
+  sy = 300.0e6
   
   print *, "mat_C", mat_C
   
-  bind_dom_type = 3 !!!AXISYMM
+  !bind_dom_type = 3 !!!AXISYMM
 
 	! //Plain Strain
 	! ck = E*(1. - nu) / ((1. + nu)*(1. - 2.0 * nu));
@@ -102,22 +104,29 @@ implicit none
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
   reduced_int = .true.
-  call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
+  call AddBoxLength(0, V, Rtot, L, 0.0d0, r, rho, h,reduced_int)
   
   print *, "NODE ELEMENTS "
-  do i=1,node_count
-    print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
+    do i=1,node_count
+    ! print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
+    
+    if (nod%x(i,2) < r) then     
+      nod%is_fix(i,1) = .true. !AXI SYMMETRIC
+    end if
+        
+    if (nod%x(i,2) < 2.0 * dx) then 
+      nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL    
+    end if
+
+    if (nod%x(i,2) > 2.0 * dx) then 
+      nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL    
+      nod%bcv(i,:) = [0.0d0,-1.0d0]
+      nod%is_bcv(i,2) = .true.
+    end if
+    
   end do
-  !!!call AddBoxLength(0, V, L, L, L, r, rho, h)
+
     
-    nod%is_bcv(3,2) = .true.
-    nod%is_bcv(4,2) = .true.
-    nod%bcv(3,:) = [0.0d0,-1.0d0]
-    nod%bcv(4,:) = [0.0d0,-1.0d0]
-    
-    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL
-    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
-    nod%is_fix(3,1) = .true. !AXI SYMMETRIC
 
   
  ! print *, "BCV 6 ", nod%bcv(6,3)
@@ -141,13 +150,13 @@ implicit none
   
   elem%cs(:) = mat_cs
   
-  dt = 0.7 * dx/(mat_cs)
+  dt = 0.3 * dx/(mat_cs)
   print *, "time step size with CFL 0.7", dt
   
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 1.0e-5
+  !dt = 1.0e-5
   tf = 1.0e-3 
   !tf = dt 
   
