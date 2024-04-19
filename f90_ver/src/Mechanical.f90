@@ -745,11 +745,11 @@ subroutine CalcStressStrain (dt)
 	
   implicit none
   !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
-  real(fp_kind) :: SRT(dim,dim), RS(dim,dim), ident(dim,dim)
+  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
-  real(fp_kind) :: p00, J2, sig_trial
+  real(fp_kind) :: p00, J2, sig_trial, trace, i
   
   p00 = 0.
   
@@ -792,26 +792,29 @@ subroutine CalcStressStrain (dt)
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      
+      trace = 0.0d0
+      do i=1, 3
+        trace = trace + elem%str_rate(e,gp,i,i)
+      end do 
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   (trace)*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
-      J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
-                      elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
-                    + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
-                    + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
-                    + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
-                    + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
+      ! J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
+                      ! elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
+                    ! + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
+                    ! + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
+                    ! + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
+                    ! + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
       
-      sig_trial = sqrt(3.0d0*J2)
-      !YIELD, SCALE BACK
-      if (elem%sigma_y(e,gp)<sig_trial) then
-        elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma(e,gp,:,:) / sig_trial
-        !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
-        !pl_strain[i] += dep;	
-        elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
-      endif
+      ! sig_trial = sqrt(3.0d0*J2)
+      ! !YIELD, SCALE BACK
+      ! if (elem%sigma_y(e,gp)<sig_trial) then
+        ! elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma(e,gp,:,:) / sig_trial
+        ! !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+        ! !pl_strain[i] += dep;	
+        ! elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
+      ! endif
       
       ! end if
       ! print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
