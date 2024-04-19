@@ -234,12 +234,12 @@ subroutine calculate_element_Jacobian ()
         
       end if !dim
     end if !!gp ==1
-    if (bind_dom_type .eq. 3) then 
-      elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
-      if (axisymm_vol_weight) then
-        elem%detJ(e,:) = elem%detJ(e,:) * radius
-      end if
-    end if 
+    ! if (bind_dom_type .eq. 3) then 
+      ! elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+      ! if (axisymm_vol_weight) then
+        ! elem%detJ(e,:) = elem%detJ(e,:) * radius
+      ! end if
+    ! end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
@@ -507,10 +507,10 @@ subroutine assemble_mass_matrix ()
   
   m_glob (:,:) = 0.0d0
   f = 1.0d0
-  if (axisymm_vol_weight .eqv. .True.) then
-    !print *, "ax vol weight TRUE"
-    f = 2.0d0 * PI
-  end if
+  ! if (axisymm_vol_weight .eqv. .True.) then
+    ! !print *, "ax vol weight TRUE"
+    ! f = 2.0d0 * PI
+  ! end if
   
   do e = 1, elem_count
     !print *, "elem ", e
