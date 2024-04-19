@@ -117,6 +117,8 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
+  real(fp_kind) :: area ! Axisymm
+  
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
 	
@@ -765,6 +767,110 @@ subroutine CalcStressStrain (dt)
   ! !!!!$omp end parallel do    
 end subroutine CalcStressStrain
 
+!!! NEW PLASTICICTY
+
+! subroutine CalcStressStrain (dt) 
+	! use omp_lib
+	
+  ! implicit none
+  ! !real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3
+  ! real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  ! integer :: e,gp
+  ! real(fp_kind) ,intent(in):: dt
+  
+  ! real(fp_kind) :: p00, J2, sig_trial, trace, i
+  
+  ! p00 = 0.
+  
+  ! ident = 0.0d0
+  ! ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
+  
+  
+  ! ! if (dim == 2) then 
+    ! ! if (plane_mode == pl_strain) then
+      
+    ! ! end if
+  ! ! end if
+  
+  ! ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
+	! !$omp parallel do num_threads(Nproc) private (e,gp,SRT,RS,J2,sig_trial) 
+  ! do e = 1, elem_count  
+    ! do gp=1,elem%gausspc(e)
+    ! !!!!! ALLOCATE REDUCED VECTOR TO TENSOR 
+    ! ! do d=1,dim
+! ! !      stress(i,i) = elem%sigma (e,gp,i
+      ! ! str_rate(d,d) = elem%str_rate(e,gp,d,1)
+      ! ! rot_rate(d,d) = elem%rot_rate(e,gp,d,1)
+    ! ! end do
+    ! ! str_rate(1,2) = elem%str_rate(e,gp,dim+1,1)/2.0 ; str_rate(2,1) = str_rate(1,2)
+    ! ! rot_rate(1,2) = elem%rot_rate(e,gp,dim+1,1)/2.0 ; rot_rate(2,1) = rot_rate(1,2)
+    ! ! if (dim .eq. 3) then
+      ! ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1)/2.0 ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      ! ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1)/2.0 ; str_rate(1,3) = str_rate(3,1)
+
+      ! ! ! str_rate(2,3) = elem%str_rate(e,gp,dim+2,1) ; str_rate(3,2) = str_rate(2,3)   !!!BATHE table 6.6 p. 556
+      ! ! ! str_rate(3,1) = elem%str_rate(e,gp,dim+3,1) ; str_rate(1,3) = str_rate(3,1)
+    ! ! end if
+    ! ! pt%pressure(i) = EOS(0, pt%cs(i), p00,pt%rho(i), pt%rho_0(i))
+    ! ! if (i==52) then
+    ! ! !print *, "pt%pressure(i)", pt%pressure(i),", cs ", pt%cs(i), "p00", p00, ", rho", p00,pt%rho(i), ", rho 0", p00,pt%rho_0(i)
+    ! ! end if
+    ! ! RotationRateT = transpose (elem%rot_rate(e,:,:))
+    
+
+      ! SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
+      ! RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
+      
+      ! trace = 0.0d0
+      ! do i=1, 3
+        ! trace = trace + elem%str_rate(e,gp,i,i)
+      ! end do 
+      ! elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   ! (trace)*ident) &
+                                   ! +SRT+RS) + elem%shear_stress(e,gp,:,:)
+                                   
+      ! ! J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
+                      ! ! elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
+                    ! ! + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
+                    ! ! + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
+                    ! ! + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
+                    ! ! + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
+      
+      ! ! sig_trial = sqrt(3.0d0*J2)
+      ! ! !YIELD, SCALE BACK
+      ! ! if (elem%sigma_y(e,gp)<sig_trial) then
+        ! ! elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma(e,gp,:,:) / sig_trial
+        ! ! !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+        ! ! !pl_strain[i] += dep;	
+        ! ! elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
+      ! ! endif
+      
+      ! ! end if
+      ! ! print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
+    
+      ! elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
+      
+      ! if (bind_dom_type .eq. 3) then
+        ! !IF NOT VOLUMETRICAL
+        ! !elem%str_tg(e,gp,:,:) = / elem%radius(e,gp,:,:)
+        ! !? ELASTIC PART??
+        ! !elem%sigma_tg(e,gp,:,:) = elem%str_tg * !*E/((1+nu)(1-nu))
+      ! end if 
+      ! ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      ! ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
+      ! ! print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
+    ! ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
+    ! end do !gauss point
+  ! end do
+	! !$omp end parallel do
+
+  ! ! !!! IF PLANE STRESS
+  ! ! if (dim == 2) then 
+    ! ! elem%sigma(e,gp,3,3) = 0.0
+    ! ! elem%sigma(e,gp,3,3) = 0.0    
+  ! ! end if 
+  ! ! !!!!$omp end parallel do    
+! end subroutine CalcStressStrain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!! CALC STRESS FROM ALREADY INTEGRATED STRAIN INCREMENT !!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!! INSTEAD OF STRAIN RATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
