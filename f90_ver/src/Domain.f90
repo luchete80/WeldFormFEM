@@ -125,6 +125,7 @@ contains
   
   subroutine AllocateElements(el_count, gp) !gauss point count
     integer, intent(in):: el_count, gp
+    integer:: dd
     
     print *, "Creating ", el_count, " elements"
     elem_count = el_count
@@ -183,14 +184,15 @@ contains
     
     allocate (elem%cs(el_count))
     !!!! ORIGINAL DIMENSIONS WAS DIM
-    allocate (elem%shear_stress(el_count,gp, 3,3))
-    allocate (elem%str_rate(el_count,gp, 3,3))
-    allocate (elem%str_inc(el_count,gp, 3,3))
-    allocate (elem%str_tot(el_count,gp, 3,3))
-    allocate (elem%rot_rate(el_count,gp, 3,3))
-    allocate (elem%sigma(el_count,gp,3,3))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
+    dd = dim
+    allocate (elem%shear_stress(el_count,gp, dd,dd))
+    allocate (elem%str_rate(el_count,gp, dd,dd))
+    allocate (elem%str_inc(el_count,gp, dd,dd))
+    allocate (elem%str_tot(el_count,gp, dd,dd))
+    allocate (elem%rot_rate(el_count,gp, dd,dd))
+    allocate (elem%sigma(el_count,gp,dd,dd))  !!!THIS IS A DIMxDIM SYMMETRIC TENSOR
     
-    allocate (elem%def_grad(el_count,gp, dim,dim))
+    allocate (elem%def_grad(el_count,gp, 3,3))
     
     !!! ONLY IF POLAR DECOMP
     allocate (elem%umat(el_count,gp, dim,dim)) !TODO; CHANGE TO SYMM

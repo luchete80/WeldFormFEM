@@ -3,29 +3,28 @@ use ModPrecision, only : fp_kind
 
 contains
 
-function trace(a) result(j)
+function trace(a,dd) result(j)
+  integer, intent(in) :: dd
   real(fp_kind), intent (in) :: a(3,3) ! input
   real(fp_kind)              :: j ! output
-  j = a(1,1)+a(2,2)+a(3,3)
+  j = 0.0d0
+  do i=1, dd
+  j = j + a(i,i)
+  end do 
 end function
 
-! function trace(a) result(j)
-  ! real(fp_kind), intent (in) :: a(dim,dim) ! input
-  ! real(fp_kind)              :: j ! output
-  ! do i =1, dim
-    ! j = j + a(dim,dim)
-  ! end do 
-! end function
+function deviator(a, dd) result(j)
+  integer, intent(in) :: dd
+  real(fp_kind), intent (in) :: a(dd,dd) ! input
+  real(fp_kind)              :: j(dd,dd)! output
 
-function deviator(a) result(j)
-  real(fp_kind), intent (in) :: a(3,3) ! input
-  real(fp_kind)              :: j(3,3)! output
-
-  real(fp_kind) :: ident(3,3)
+  real(fp_kind) :: ident(dd,dd)
   ident = 0.0d0
-  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  do i=1, dd
+    ident (i,i) = 1.0d0;
+  end do 
   
-  j = a - 1.0d0/3.0d0 * trace(a) * ident
+  j = a - 1.0d0/dd * trace(a,dd) * ident
 end function
 
 FUNCTION cross(a, b)

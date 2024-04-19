@@ -533,12 +533,12 @@ subroutine calc_elem_pressure_from_strain (modK)
   do e = 1, elem_count
     press_inc = 0.0d0
     do gp = 1, elem%gausspc(e)
-      press_inc = press_inc + trace (elem%str_inc(e,gp,:,:))
+      press_inc = press_inc + trace (elem%str_inc(e,gp,:,:), 3)
     end do
     press_inc = -press_inc/elem%gausspc(e)
     ! print *, "press inc ", press_inc
     do gp = 1, elem%gausspc(e)    
-          elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:)) + press_inc * modK
+          elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:),3) + press_inc * modK
     end do
     ! print *, "mod K", modK
     ! print *, "strain inc", elem%str_inc(e,gp,:,:)
@@ -749,7 +749,7 @@ subroutine CalcStressStrain (dt)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
-  real(fp_kind) :: p00, J2, sig_trial, trace, i
+  real(fp_kind) :: p00, J2, sig_trial, i
   
   p00 = 0.
   
@@ -792,12 +792,8 @@ subroutine CalcStressStrain (dt)
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      trace = 0.0d0
-      do i=1, 3
-        trace = trace + elem%str_rate(e,gp,i,i)
-      end do 
       elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   (trace)*ident) &
+                                   (trace(elem%str_rate(e,gp,i,i),3))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
       ! J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
@@ -868,9 +864,9 @@ subroutine CalcStress (dt)
   do e = 1, elem_count   
     do gp=1,elem%gausspc(e)
       
-      dev = deviator(elem%sigma(e,gp,:,:)) !! OBTAIN FROM DEV
+      dev = deviator(elem%sigma(e,gp,:,:),dim) !! OBTAIN FROM DEV
 
-      dev = dev + 2.0 * mat_G * deviator(elem%str_inc (e,gp, :,:))
+      dev = dev + 2.0 * mat_G * deviator(elem%str_inc (e,gp, :,:),dim)
       
       elem%shear_stress(e,gp,:,:) = dev
 
@@ -885,7 +881,7 @@ subroutine CalcStress (dt)
       elem%sigma(e,gp,:,:) = matmul(matmul(elem%rmat(e,gp,:,:),sig),transpose(elem%rmat(e,gp,:,:)))
       if (gp == 1) then
         print *, "sigma ", elem%sigma(e,gp,:,:)
-        print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:))
+        print *, "dev str inc ", deviator(elem%str_inc (e,gp, :,:),dim)
         print *, "dev stress 11 22 33 12 23 31", dev(1,1),  dev(2,2),  dev(3,3), dev(1,2),  dev(2,3),  dev(3,1)
       end if 
       !!! PERFORM ROTATION
