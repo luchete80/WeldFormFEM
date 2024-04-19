@@ -29,7 +29,7 @@ use mymath !!CROSS
 implicit none
 public :: Mesh, circle_area, circle_print
 
-  real :: pi = 3.1415926535897931d0 ! Class-wide private constant
+!  real :: pi = 3.1415926535897931d0 ! Class-wide private constant
 
 !!!!!!!! CONTACT MESH
 !!!!!! THIS TYPE SHOULD BE THE SAME FOR ALL, RIGID AND SOLID
