@@ -533,12 +533,12 @@ subroutine calc_elem_pressure_from_strain (modK)
   do e = 1, elem_count
     press_inc = 0.0d0
     do gp = 1, elem%gausspc(e)
-      press_inc = press_inc + trace (elem%str_inc(e,gp,:,:), 3)
+      press_inc = press_inc + trace (elem%str_inc(e,gp,:,:), dim)
     end do
     press_inc = -press_inc/elem%gausspc(e)
     ! print *, "press inc ", press_inc
     do gp = 1, elem%gausspc(e)    
-          elem%pressure(e,gp) = -1.0/3.0 * trace (elem%sigma(e,gp,:,:),3) + press_inc * modK
+          elem%pressure(e,gp) = -1.0/dim * trace (elem%sigma(e,gp,:,:),dim) + press_inc * modK
     end do
     ! print *, "mod K", modK
     ! print *, "strain inc", elem%str_inc(e,gp,:,:)
@@ -792,8 +792,8 @@ subroutine CalcStressStrain (dt)
       SRT = MatMul(elem%shear_stress(e,gp,:,:),transpose(elem%rot_rate(e,gp,:,:)))
       RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
-      elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
-                                   (trace(elem%str_rate(e,gp,i,i),3))*ident) &
+      elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/dim * &
+                                   (trace(elem%str_rate(e,gp,i,i),dim))*ident) &
                                    +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
       ! J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
@@ -845,20 +845,23 @@ end subroutine CalcStressStrain
 subroutine CalcStress (dt) 
 
   implicit none
-  real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
+  real(fp_kind) :: SRT(dim,dim), RS(dim,dim), ident(dim,dim)
   integer :: e,gp
   real(fp_kind) ,intent(in):: dt
   
-  real(fp_kind) :: dev(3,3)
+  real(fp_kind) :: dev(dim,dim)
   
-  real(fp_kind) :: sig(3,3)
+  real(fp_kind) :: sig(dim,dim)
   
   real(fp_kind) :: p00
   
   p00 = 0.
   
   ident = 0.0d0
-  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; ident (3,3) = 1.0d0
+  ident (1,1) = 1.0d0; ident (2,2) = 1.0d0; 
+  if (dim .eq. 3) then
+    ident (3,3) = 1.0d0
+  end if
   
   ! !!!$omp parallel do num_threads(Nproc) private (RotationRateT, Stress, SRT, RS)
   do e = 1, elem_count   

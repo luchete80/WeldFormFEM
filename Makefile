@@ -129,6 +129,19 @@ MetFEMGPU/fast:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/MetFEMGPU.dir/build.make src/CMakeFiles/MetFEMGPU.dir/build
 .PHONY : MetFEMGPU/fast
 
+#=============================================================================
+# Target rules for targets named WeldFormFEM
+
+# Build rule for target.
+WeldFormFEM: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 WeldFormFEM
+.PHONY : WeldFormFEM
+
+# fast build rule for target.
+WeldFormFEM/fast:
+	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/WeldFormFEM.dir/build.make src/CMakeFiles/WeldFormFEM.dir/build
+.PHONY : WeldFormFEM/fast
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -138,6 +151,7 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... MetFEMGPU"
+	@echo "... WeldFormFEM"
 .PHONY : help
 
 
