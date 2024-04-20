@@ -95,7 +95,7 @@ implicit none
   
   print *, "mat_C", mat_C
   
-  !bind_dom_type = 3 !!!AXISYMM
+  bind_dom_type = 3 !!!AXISYMM
 
 	! //Plain Strain
 	! ck = E*(1. - nu) / ((1. + nu)*(1. - 2.0 * nu));
