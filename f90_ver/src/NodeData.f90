@@ -23,7 +23,7 @@ Type Node
   logical, dimension(:,:), Allocatable :: is_bcv, is_fix !0, none, else, dimension
   real(fp_kind), dimension(:,:), Allocatable :: bcv !Node and dim
   
-  real(fp_kind), dimension(:), allocatable :: sigma_eq !ONLY CALCULATED AT OUTPUT
+  real(fp_kind), dimension(:), allocatable :: sigma_eq, pl_strain !ONLY CALCULATED AT OUTPUT
   
   Integer solver_type
  

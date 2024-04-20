@@ -104,6 +104,7 @@ contains
     allocate (nod%f_hour(node_count,dim))
     allocate (nod%disp(node_count,dim))
     allocate (nod%sigma_eq(node_count))
+    !allocate (nod%pl_strain(node_count))
     
     allocate (nod%sigma(node_count,3,3))
     ! allocate (nod%str_rate(node_count,3,3))
