@@ -100,10 +100,10 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .False.
+  reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
-  !elem%sigma_y(:,:) = 300.0e6
+  elem%sigma_y(:,:) = 300.0e6
   
   do i=1,node_count
   print *, "NODE ELEMENTS "

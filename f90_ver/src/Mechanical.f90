@@ -753,7 +753,7 @@ subroutine CalcStressStrain (dt)
       J2 = 0.5d0 * ( elem%shear_stress(e,gp,1,1) * elem%shear_stress(e,gp,1,1) + 2.0d0 * &
                       elem%shear_stress(e,gp,1,2) * elem%shear_stress(e,gp,2,1) &
                     + 2.0d0 * elem%shear_stress(e,gp,1,3) * elem%shear_stress(e,gp,3,1) &
-                    + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,1,1) &
+                    + elem%shear_stress(e,gp,2,2) * elem%shear_stress(e,gp,2,2) &
                     + 2.0d0 * elem%shear_stress(e,gp,2,3) * elem%shear_stress(e,gp,3,2) &
                     + elem%shear_stress(e,gp,3,3) * elem%shear_stress(e,gp,3,3))
       
