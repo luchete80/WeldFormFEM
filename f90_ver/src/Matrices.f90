@@ -134,6 +134,7 @@ subroutine calculate_element_Jacobian ()
   real(fp_kind), dimension(nodxelem,dim) :: x2
   real(fp_kind), dimension(dim,dim) :: test
   real(fp_kind), dimension(dim, dim*nodxelem) :: temph
+  real(fp_kind) :: radius !! IF AXISYMM
   
   integer :: i,j,k, gp
   real(fp_kind):: r   !!! USED ONLY FOR SEVERAL GAUSS POINTS
@@ -231,6 +232,12 @@ subroutine calculate_element_Jacobian ()
         
       end if !dim
     end if !!gp ==1
+    if (bind_dom_type .eq. 3) then 
+      elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+      if (axisymm_vol_weight) then
+        elem%detJ(e,:) = elem%detJ(e,:) * radius
+      end if
+    end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
@@ -474,8 +481,15 @@ end subroutine
 
 subroutine assemble_mass_matrix ()
   integer :: e,gp, i, j, iglob,jglob, n1,n2
+  real(fp_kind) :: f
   
   m_glob (:,:) = 0.0d0
+  f = 1.0d0
+  if (dim .eq. 2 .and. bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .True.) then
+    !print *, "ax vol weight TRUE"
+    f = 2.0d0 * PI
+  end if
+  
   do e = 1, elem_count
     !print *, "elem ", e
     do n1 =1, nodxelem
@@ -484,7 +498,7 @@ subroutine assemble_mass_matrix ()
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob
-            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2)
+            m_glob(iglob,jglob) = m_glob(iglob,jglob) + elem%matm (e,n1,n2) * f
       end do !dof1
     end do ! dof2 
   end do ! e
