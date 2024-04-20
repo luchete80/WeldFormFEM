@@ -103,7 +103,7 @@ implicit none
   reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
-  elem%sigma_y(:,:) = 300.0e6
+  !elem%sigma_y(:,:) = 300.0e6
   
   do i=1,node_count
   print *, "NODE ELEMENTS "

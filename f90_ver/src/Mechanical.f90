@@ -759,12 +759,12 @@ subroutine CalcStressStrain (dt)
       
       sig_trial = sqrt(3.0d0*J2)
       !YIELD, SCALE BACK
-      ! if (elem%sigma_y(e,gp)<sig_trial) then
-        ! elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma_y(e,gp) / sig_trial
-        ! !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
-        ! !pl_strain[i] += dep;	
-        ! elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
-      ! endif
+      if (elem%sigma_y(e,gp)<sig_trial) then
+        elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma_y(e,gp) / sig_trial
+        !dep=( sig_trial - sigma_y[i])/ (3.*G[i] /*+ Ep*/);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+        !pl_strain[i] += dep;	
+        elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
+      endif
     
     
       ! end if
