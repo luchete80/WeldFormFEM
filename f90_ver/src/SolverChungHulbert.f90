@@ -99,10 +99,12 @@ subroutine SolveChungHulbert (domi, tf, dt)
   print *, "M Diag with mass mat", mdiag
   
   !!!! ONLY FOR TESTING
-  do n=1, node_count  !column
-     mdiag(n) = tot_mass/node_count 
-  end do
-  
+  !if (bind_dom_type .neq. 3) then
+    do n=1, node_count  !column
+       mdiag(n) = tot_mass/node_count 
+    end do
+  !end if
+
   print *, "M Diag with node avg", mdiag
   
   !print *, "m glob", m_glob
