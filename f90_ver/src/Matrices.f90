@@ -303,7 +303,7 @@ subroutine calculate_element_shapeMat ()
         !!print *, "elem rho " ,elem%rho(e,gp)
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
-        !print *, "MAT M", elem%matm(e,:,:)
+        print *, "MAT M", elem%matm(e,:,:)
       
     else !!!!! GP > 1
       if (dim .eq. 2) then 
@@ -333,6 +333,29 @@ subroutine calculate_element_shapeMat ()
   end do !element
 end subroutine
 
+subroutine calculate_element_MassMat ()
+  integer :: e,d
+  integer :: gp
+  real(fp_kind):: r, w, f
+  real(fp_kind), dimension(8,3):: gpc !!! gauss point coordinates, r,s,t
+  !! Update x2 vector (this is useful for strain and stress things)
+  
+  r = 1.0/sqrt(3.0)
+  elem%matm(e,:,:) = 0.0d0
+
+  do e=1, elem_count
+    gp = 1
+    if (elem%gausspc(e) .eq. 1) then
+      w = 2.0d0*dim * elem%radius(e,gp)
+      f = 1.0d0/(2.0d0*dim)
+
+        elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
+        
+        print *, "MAT M", elem%matm(e,:,:)
+    end if 
+  end do
+
+end subroutine
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
 
@@ -511,7 +534,7 @@ subroutine assemble_mass_matrix ()
     print *, "elem ", e, " matm ",elem%matm (e,:,:) * f
     do n1 =1, nodxelem
       do n2=1, nodxelem
-            !print *, "matval", elem%matm (e,n1,n2) * f
+            print *, "mat mass", elem%matm (e,n1,n2) * f
         
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 

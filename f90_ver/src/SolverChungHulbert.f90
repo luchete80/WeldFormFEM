@@ -73,6 +73,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
     call calculate_element_shapeMat() !ONLY FOR VOLUMETRIC CALCS
     print *, "calc radis"
     call calculate_element_radius()
+    call calculate_element_MassMat ()
   end if
   
   call calc_elem_vol !!!! In order to define initial volume
@@ -95,13 +96,14 @@ subroutine SolveChungHulbert (domi, tf, dt)
       end do !col
     end do   
   calc_m = .False.
+  print *, "M Diag with mass mat", mdiag
   
   !!!! ONLY FOR TESTING
   do n=1, node_count  !column
      mdiag(n) = tot_mass/node_count 
   end do
   
-  print *, "M Diag ", mdiag
+  print *, "M Diag with node avg", mdiag
   
   !print *, "m glob", m_glob
   ! print *, "done"
