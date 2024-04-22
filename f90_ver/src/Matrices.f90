@@ -232,12 +232,6 @@ subroutine calculate_element_Jacobian ()
         
       end if !dim
     end if !!gp ==1
-    if (bind_dom_type .eq. 3) then 
-      elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
-      if (axisymm_vol_weight) then
-        elem%detJ(e,:) = elem%detJ(e,:) * radius
-      end if
-    end if 
 ! #if defined _PRINT_DEBUG_
     !print *, "jacob ", elem%jacob(e,gp,:,:)
 ! #endif    
@@ -245,6 +239,28 @@ subroutine calculate_element_Jacobian ()
 	!$omp end parallel do    
 end subroutine
 
+!!! NEEDS SHAPE MATRIX
+subroutine calculate_element_radius ()
+  integer :: e, gp, i
+  real(fp_kind), dimension(nodxelem,dim) :: x2 
+  
+  do e=1, elem_count
+
+    do i=1,nodxelem
+        !print *, "elnod " , elem%elnod(e,i)
+        x2(i,:)=nod%x(elem%elnod(e,i),:)
+    end do
+    do gp=1, elem%gausspc(e)
+      !if (bind_dom_type .eq. 3) then 
+        elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+        !print *, "radius", elem%radius(e,gp)
+        ! if (axisymm_vol_weight) then
+          ! elem%detJ(e,:) = elem%detJ(e,:) * radius
+        ! end if
+      !end if 
+    end do 
+  end do
+end subroutine calculate_element_radius
 !!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
 subroutine calculate_element_shapeMat ()
   integer :: e,d
@@ -266,7 +282,7 @@ subroutine calculate_element_shapeMat ()
   do e=1, elem_count
     gp = 1
     if (elem%gausspc(e) .eq. 1) then
-      w = 2.0d0*dim
+      w = 2.0d0*dim * elem%radius(e,gp)
       f = 1.0d0/(2.0d0*dim)
       elem%math(e,gp,:,:) = 0.0d0
       !!if (dim .eq. 2) then 
@@ -276,7 +292,7 @@ subroutine calculate_element_shapeMat ()
           do k =1, nodxelem
               !temph(d,dim*(k-1)+d) = 0.125 !TODO: CHANGE IN 3D
               elem%math(e,gp,:,k)=f
-              !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": "
+              !print *, "temp h i ", d, "j ", dim*(k-1)+d, ": ", f
           end do
           ! print *, "temp h", temph(:,:)
           ! temph(1,:) = [1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0]
@@ -284,7 +300,7 @@ subroutine calculate_element_shapeMat ()
           ! temph(3,:) = [0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0,0.0,0.0,1.0]
 
       !!end if  !!!!dim
-        
+        !!print *, "elem rho " ,elem%rho(e,gp)
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
         !print *, "MAT M", elem%matm(e,:,:)
@@ -486,16 +502,17 @@ subroutine assemble_mass_matrix ()
   m_glob (:,:) = 0.0d0
   f = 1.0d0
   if (dim .eq. 2 .and. bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .True.) then
-    !print *, "ax vol weight TRUE"
+    print *, "ax vol weight TRUE"
     f = 2.0d0 * PI
   end if
   
   do e = 1, elem_count
     !print *, "elem ", e
+    print *, "elem ", e, " matm ",elem%matm (e,:,:) * f
     do n1 =1, nodxelem
       do n2=1, nodxelem
-            print *, "matval", elem%matm (e,n1,n2) * f
-            !qprint *, "elem ", e, "node ", n, " i j matm ",i, j, elem%matm (e,dim*(n-1)+i,dim*(n2-1)+j)            
+            !print *, "matval", elem%matm (e,n1,n2) * f
+        
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 
             ! print *, "iloc, jloc ",dim*(n-1)+i, dim*(n2-1)+j, "iglob, jglob", iglob,jglob

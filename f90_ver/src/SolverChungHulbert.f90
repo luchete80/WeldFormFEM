@@ -66,9 +66,15 @@ subroutine SolveChungHulbert (domi, tf, dt)
 
   call set_edof_from_elnod()
   
-  call calculate_element_Jacobian
+  !! IN AXISYMM CASE: calc matm which depends on Jacobian, jacobian BUT JACOBIAN NEEDS RADIUS
+  call calculate_element_Jacobian  
   print *, "shape mat"
-  !call calculate_element_shapeMat() !AND MASS
+  if (bind_dom_type .eq. 3) then
+    call calculate_element_shapeMat() !ONLY FOR VOLUMETRIC CALCS
+    print *, "calc radis"
+    call calculate_element_radius()
+  end if
+  
   call calc_elem_vol !!!! In order to define initial volume
   call calculate_element_derivMat()
   elem%vol_0(:) = elem%vol(:)

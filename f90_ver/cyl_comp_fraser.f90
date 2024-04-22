@@ -50,7 +50,8 @@ implicit none
   real(fp_kind) :: L, Rtot, rho, dt, tf, mat_modK, mat_modG, mat_cs
   logical :: reduced_int, dim_2D
   type(c_ptr) :: nodptr,elnodptr,ncount ! ****
-  integer, pointer :: ncount_int
+  integer, pointer :: ncount_int  
+  integer :: nc_1, nc_2, nc_3
   !type(Domain)	::dom
 
    ! Variables for clock
@@ -94,8 +95,7 @@ implicit none
   sy = 300.0e6
   
   print *, "mat_C", mat_C
-  
-  bind_dom_type = 3 !!!AXISYMM
+
 
 	! //Plain Strain
 	! ck = E*(1. - nu) / ((1. + nu)*(1. - 2.0 * nu));
@@ -104,8 +104,10 @@ implicit none
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
   reduced_int = .true.
-  call AddBoxLength(0, V, Rtot, L, 0.0d0, r, rho, h,reduced_int)
-  
+  !!!! DO NOT PUT z = 0.0d0, it crashes
+  call AddBoxLength(0, V, Rtot, L, 1.0d0, r, rho, h,reduced_int)
+  bind_dom_type = 3 !!!AXISYMM, AFTER DOMAIN CREATION!!!
+    
   print *, "NODE ELEMENTS "
     do i=1,node_count
     ! print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
