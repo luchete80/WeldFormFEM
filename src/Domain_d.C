@@ -16,6 +16,14 @@
 // #include "Matrix.h"
 #endif 
 
+#if CUDA_BUILD
+#include "tensor.cuh"
+#else
+//#include "Matrix.h"
+#endif
+
+#include "tensor3.C"
+
 using namespace std;
 
 namespace MetFEM {
@@ -805,9 +813,14 @@ dev_t void Domain_d::printVec(const double *v){
   }
 }
 //ONLY FOR 3D
-dev_t void Domain_d::printSymmTens(const double *v){
-  // tensor3 ss;
-  // ss = FromFlatSym(m_sigma,          0);
+dev_t void Domain_d::printSymmTens(double *v){
+  for (int e=0;e<m_elem_count;e++){
+  tensor3 ss;
+  for (int gp=0;gp<m_gp_count;gp++){
+      int offset_s = e * m_gp_count + gp;   //SCALAR
+      int offset_t = offset_s * 6 ; //SYM TENSOR
+      ss = FromFlatSym(v,          offset_t );
+      print(ss);
   // printf("TENST STRESSES\n");
   // print(ss);
   // for (int n=0;n<m_elem_count;n++){
@@ -816,7 +829,8 @@ dev_t void Domain_d::printSymmTens(const double *v){
       // printf("%.6e %.6e %.6e\n",v[6*n+3],v[6*n+1],v[6*n+4]);
       // printf("%.6e %.6e %.6e\n",v[6*n+5],v[6*n+4],v[6*n+2]);      
     // printf("\n");
-  // }
+    }
+  }
 }
 
 
@@ -853,7 +867,7 @@ __global__ void printVecKernel(Domain_d *dom_d, const double *v){
   dom_d->printVec(v);
 }
 
-__global__ void printSymmTensKernel(Domain_d *dom_d, const double *v){
+__global__ void printSymmTensKernel(Domain_d *dom_d, double *v){
   dom_d->printSymmTens(v);
 }
 

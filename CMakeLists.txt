@@ -1,5 +1,26 @@
 cmake_minimum_required(VERSION 3.2)
 
+
+# --fmad=true and --fmad=false enables and disables the contraction respectively. 
+ # This switch is supported only when the --gpu-architecture option is set with     
+ # compute_20, sm_20, or higher. For other architecture classes, the contraction is     
+  # always enabled. 
+ # The --use_fast_math option implies --fmad=true, and enables the contraction.
+if (BUILD_GPU)
+set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (conflicts with CXX17)!!!
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
+include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+ELSE ()
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-fast-math -std=c++17 -O3")
+ENDIF() 
+# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
+
+# FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
+# https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
+
 if (NOT DEFINED BUILD_GPU)
 SET(BUILD_GPU OFF)
 endif (NOT DEFINED BUILD_GPU)
@@ -33,8 +54,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
 link_directories(${CUNSEARCH_LIB_DIR})
 link_directories(${cuNSearch_BINARY_DIR})
-
-
 # --fmad=true and --fmad=false enables and disables the contraction respectively. 
  # This switch is supported only when the --gpu-architecture option is set with     
  # compute_20, sm_20, or higher. For other architecture classes, the contraction is     
@@ -48,7 +67,7 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=fa
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --fmad=false -std=c++17 -O3 -fno-finite-math-only")
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 

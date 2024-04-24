@@ -196,9 +196,9 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 0.8e-5
-  tf = 1.0e-3
-  !tf = 2*dt 
+  dt = 0.1e-5
+  !tf = 1.0e-3
+  tf = 10.0*dt 
   
   elem%rho(:,:) = rho
   
@@ -271,11 +271,16 @@ implicit none
       print *, elem%str_rate(i,gp,:,:)
     end do
   end do
-  print *, "Accels"
+  print *, "Veloc"
   do i=1,node_count
     print *, "a ", nod%v(i,:)  
   end do  
-  
+
+
+  print *, "Accels"
+  do i=1,node_count
+    print *, "a ", nod%a(i,:)  
+  end do    
   ! print *, "Element rot rates" 
   ! do i=1,elem_count
     ! do gp=1, elem%gausspc(i)

@@ -59,6 +59,12 @@ namespace MetFEM{
   #else
   calcElemJAndDerivatives();
   CalcElemInitialVol(); //ALSO CALC VOL
+
+  CalcElemVol();
+  calcElemDensity();
+  calcElemMassMat(); 
+  assemblyMassMatrix();  
+  
   #endif
 	//cout << "Done. "<<endl;
   
@@ -170,8 +176,8 @@ namespace MetFEM{
   CalcStressStrain(dt);
   calcElemForces();
   calcElemHourglassForces();
-  calcElemMassMat(); 
-  assemblyMassMatrix();  
+  //calcElemMassMat(); 
+  //assemblyMassMatrix();  
   assemblyForces(); //CRASHING
   calcAccel();
   #endif
@@ -238,6 +244,8 @@ namespace MetFEM{
   Time += dt;
   
   }// WHILE LOOP
+
+
   
   #ifdef CUDA_BUILD
   printf("DISPLACEMENTS\n");
@@ -276,7 +284,15 @@ namespace MetFEM{
   printf("FORCES\n");
   printVec(this->m_fi);
 
+  printf("STRESSES\n");
+  printSymmTens(this->m_sigma);
 
+  printf("SHEAR STRESS\n");
+  printSymmTens(this->m_tau);
+
+  printf("STRAIN RATES\n");
+  printSymmTens(this->m_str_rate);
+  
   #endif
   
   }//SOLVE
