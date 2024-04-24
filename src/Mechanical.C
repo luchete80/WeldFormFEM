@@ -140,7 +140,7 @@ dev_t void Domain_d::calcElemStrainRates(){
         // end do
         test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
         //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
-        printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
+        // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
           ////printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           
@@ -183,9 +183,12 @@ dev_t void Domain_d::calcElemStrainRates(){
       rot_rate->Set(2,1, -rot_rate->getVal(1,2));  rot_rate->Set(2,0, -rot_rate->getVal(0,2)); 
 
       str_rate->ToFlatSymPtr(m_str_rate, offset);
-      rot_rate->ToFlatSymPtr(m_rot_rate, offset);
+      rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
       
       printf("Strain Rate\n");
+      str_rate->Print();
+
+      printf("Rot Rate\n");
       str_rate->Print();
       
       // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
