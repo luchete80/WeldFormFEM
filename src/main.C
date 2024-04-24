@@ -29,7 +29,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(){
 
-
+  int dim = 2;
+  
 	Domain_d *dom_d;
 
   #ifdef CUDA_BUILD
@@ -42,17 +43,21 @@ int main(){
 	
   double3 V = make_double3(0.0,0.0,0.0);
   double dx = 0.1;
-	double3 L = make_double3(dx,dx,dx);  
+	double3 L = make_double3(dx,dx,dx);
+
+  if (dim ==2) L.z = 0.0;
 	double r = 0.05;
 	
 	dom_d->AddBoxLength(V,L,r,true);
-  
+ 
 
   ////// MATERIAL  
   double E, nu, rho;
   E   = 206.0e9;
   nu  = 0.3;
   rho = 7850.0;
+  
+
   
   dom_d->setDensity(rho);
   
@@ -127,18 +132,26 @@ int main(){
   // } else                              printf("ERROR: Invalid material type.
 
 	//double dt = 0.7 * dx/(mat_cs);
-  double dt = 0.100e-5;
+  double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (1.0*dt);
+  dom_d->SetEndTime (1.0e-3);
+  //dom_d->SetEndTime (1.0*dt);
   
+  if (dim == 3){
   dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
                                dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
   dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
                                                             dom_d->AddBCVelNode(3,2,0);
   
   for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
+  } else {
+  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  
+                               dom_d->AddBCVelNode(1,1,0);                                  
+                                                            
   
+  dom_d->AddBCVelNode(2,1,-1.0);      dom_d->AddBCVelNode(2,1,-1.0);    
+    
+  }
   //AFTER THIS CALL
   dom_d->AllocateBCs();
     

@@ -32,7 +32,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
-
+  int dim = 3;
 	if (argc > 1){
 		string inputFileName=argv[1];	
 		//std::ifstream i(argv[1]);    

@@ -35,16 +35,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   // NODAL VARIABLES
   
-  malloc_t (x,      double,node_count*3);
-  malloc_t (v,      double,node_count*3);
-  malloc_t (a,      double,node_count*3);
-  malloc_t (u,      double,node_count*3);
-  malloc_t (u_dt,   double,node_count*3);
+  malloc_t (x,      double,node_count*m_dim);
+  malloc_t (v,      double,node_count*m_dim);
+  malloc_t (a,      double,node_count*m_dim);
+  malloc_t (u,      double,node_count*m_dim);
+  malloc_t (u_dt,   double,node_count*m_dim);
   
-  malloc_t (prev_a, double,node_count*3);  
+  malloc_t (prev_a, double,node_count*m_dim);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
-  malloc_t (m_fi,double,node_count*3); //Internal forces
-  malloc_t (m_fe,double,node_count*3);
+  malloc_t (m_fi,double,node_count*m_dim); //Internal forces
+  malloc_t (m_fe,double,node_count*m_dim);
   
   malloc_t (m_mdiag, double,node_count);
   malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
@@ -158,7 +158,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
     vector_t_Ptr(a_,prev_a,n);
     vector_t v_ = getV(n) + m_gamma * dt * a_;
     vector_t_Ptr(v_,v,n);
-    printf("Node %d CORR VEL %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
+    //printf("Node %d CORR VEL %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
     //printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
   }
 
@@ -187,7 +187,7 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
     vector_t_Ptr(u_+x_,x,n);
     vector_t_Ptr(u_,u,n);       //Copy displacements to device
     
-    printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
+    //printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
     // //printf ("node %d\n", n);
     // vector_t_Ptr(dt * getV(n),x,n);
     //printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
@@ -312,7 +312,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     int p, nnodz;
 
     int nel[3];
-    m_dim = 3;
+  
     if (L.z > 0.0) m_dim = 3;
     
     

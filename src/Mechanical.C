@@ -185,11 +185,11 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
       
-      printf("Strain Rate\n");
-      str_rate->Print();
+      // printf("Strain Rate\n");
+      // str_rate->Print();
 
-      printf("Rot Rate\n");
-      str_rate->Print();
+      // printf("Rot Rate\n");
+      // str_rate->Print();
       
       // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       // !print *, "simlpified strain rate "
@@ -248,7 +248,7 @@ dev_t void Domain_d::calcElemDensity(){
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count ;
       rho[offset + gp] = rho_0[offset + gp] * vol_0[e] / vol[e];
-      printf("rho %.6e", rho[offset + gp]);    
+      //printf("rho %.6e", rho[offset + gp]);    
     }
 
   // do e = 1, elem_count
@@ -268,7 +268,7 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] = /*m_fe*/-m_fi[i+d]/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
-    printf("mass %f\n",m_mdiag[n]);
+    //printf("mass %f\n",m_mdiag[n]);
     //printf("a %f %f %f \n",a[0],a[1],a[2]);
     //printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
   }    
@@ -429,7 +429,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<m_dim;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      printf("pressure %f\n",p[offset + gp]);
+      //printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
@@ -517,11 +517,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      printf("SHEAR STRESS\n");
-      print(ShearStress);
+      // printf("SHEAR STRESS\n");
+      // print(ShearStress);
 
-      printf("STR RATE\n");
-      print(StrRate);
+      // printf("STR RATE\n");
+      // print(StrRate);
 
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
