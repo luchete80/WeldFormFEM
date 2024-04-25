@@ -344,15 +344,17 @@ subroutine calculate_element_MassMat ()
   elem%matm(e,:,:) = 0.0d0
 
   do e=1, elem_count
-    gp = 1
-    if (elem%gausspc(e) .eq. 1) then
+    do gp=1, elem%gausspc(e)
+    ! if (elem%gausspc(e) .eq. 1) then
+      print *, "radius", elem%radius(e,gp)
       w = 2.0d0*dim * elem%radius(e,gp)
       f = 1.0d0/(2.0d0*dim)
 
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
         print *, "MAT M", elem%matm(e,:,:)
-    end if 
+    ! end if 
+    end do
   end do
 
 end subroutine

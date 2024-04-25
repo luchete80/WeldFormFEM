@@ -96,7 +96,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
       end do !col
     end do   
   calc_m = .False.
-  ! print *, "M Diag with mass mat", mdiag
+  print *, "M Diag with mass mat", mdiag
   !print *, "Tot mass from mdiag", 
   !!!! ONLY FOR TESTING
   if (bind_dom_type .ne. 3) then
