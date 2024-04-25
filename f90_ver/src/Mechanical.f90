@@ -154,7 +154,7 @@ subroutine cal_elem_forces ()
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           if (axisymm_vol_weight .eqv. .true.) then
-            print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
+            !print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
             f2 = elem%radius(e,gp)
           end if
           !!elem%f_int(e,n,1) = 
