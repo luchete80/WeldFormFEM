@@ -71,6 +71,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   print *, "shape mat"
   if (bind_dom_type .eq. 3) then
     call calculate_element_shapeMat() !ONLY FOR VOLUMETRIC CALCS
+    print *, "shape mat", elem%math(1,1,:,:)
     print *, "calc radis"
     call calculate_element_radius()
     call calculate_element_MassMat ()

@@ -303,7 +303,7 @@ subroutine calculate_element_shapeMat ()
         !!print *, "elem rho " ,elem%rho(e,gp)
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
-        print *, "MAT M", elem%matm(e,:,:)
+        print *, "MAT H", elem%math(e,gp,:,:)
       
     else !!!!! GP > 1
       if (dim .eq. 2) then 
@@ -533,10 +533,10 @@ subroutine assemble_mass_matrix ()
   
   do e = 1, elem_count
     !print *, "elem ", e
-    print *, "elem ", e, " matm ",elem%matm (e,:,:) * f
+    !print *, "elem ", e, " matm ",elem%matm (e,:,:) * f
     do n1 =1, nodxelem
       do n2=1, nodxelem
-            print *, "mat mass", elem%matm (e,n1,n2) * f
+            !print *, "mat mass", elem%matm (e,n1,n2) * f
         
             iglob  = elem%elnod(e,n1) 
             jglob  = elem%elnod(e,n2) 

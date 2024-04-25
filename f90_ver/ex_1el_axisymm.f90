@@ -92,8 +92,7 @@ implicit none
   young = 206.0e9
   
   print *, "mat_C", mat_C
-  
-  bind_dom_type = 3 !!!AXISYMM
+ 
 
 	! //Plain Strain
 	! ck = E*(1. - nu) / ((1. + nu)*(1. - 2.0 * nu));
@@ -101,9 +100,11 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .False.
+  reduced_int = .True.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   
+  bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
+    
   print *, "NODE ELEMENTS "
   do i=1,node_count
     print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
@@ -148,8 +149,8 @@ implicit none
   !tf = 1.5e-4
 
   dt = 1.0e-5
-  tf = 1.0e-3 
-  !tf = dt 
+  !tf = 1.0e-3 
+  tf = dt 
   
   elem%rho(:,:) = rho
   
