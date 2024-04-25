@@ -117,7 +117,9 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
-  real(fp_kind) :: area ! Axisymm
+  real(fp_kind) :: area, f2 ! Axisymm
+  
+  f2 = 1.0d0 !!!! AXISYMM FACTOR IN CASE OF INTGRAL CASE
   
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
@@ -151,9 +153,13 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
+          if (axisymm_vol_weight .eqv. .true.) then
+            print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
+            f2 = elem%radius(e,gp)
+          end if
           !!elem%f_int(e,n,1) = 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) * f2
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) * f2
         else 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                                   elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
