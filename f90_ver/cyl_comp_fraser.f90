@@ -112,7 +112,7 @@ implicit none
     do i=1,node_count
     ! print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
     
-    if (nod%x(i,2) < r) then     
+    if (nod%x(i,1) < r) then     
       nod%is_fix(i,1) = .true. !AXI SYMMETRIC
     end if
         
@@ -120,8 +120,7 @@ implicit none
       nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL    
     end if
 
-    if (nod%x(i,2) > 2.0 * dx) then 
-      nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL    
+    if (nod%x(i,2) > L - 2.0 * dx) then 
       nod%bcv(i,:) = [0.0d0,-1.0d0]
       nod%is_bcv(i,2) = .true.
     end if

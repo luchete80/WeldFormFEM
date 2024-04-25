@@ -96,16 +96,16 @@ subroutine SolveChungHulbert (domi, tf, dt)
       end do !col
     end do   
   calc_m = .False.
-  print *, "M Diag with mass mat", mdiag
-  
+  ! print *, "M Diag with mass mat", mdiag
+  !print *, "Tot mass from mdiag", 
   !!!! ONLY FOR TESTING
-  !if (bind_dom_type .neq. 3) then
+  if (bind_dom_type .ne. 3) then
     do n=1, node_count  !column
        mdiag(n) = tot_mass/node_count 
     end do
-  !end if
+  end if
 
-  print *, "M Diag with node avg", mdiag
+  ! print *, "M Diag with node avg", mdiag
   
   !print *, "m glob", m_glob
   ! print *, "done"
