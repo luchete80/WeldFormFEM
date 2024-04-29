@@ -303,7 +303,7 @@ subroutine calculate_element_shapeMat ()
         !!print *, "elem rho " ,elem%rho(e,gp)
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
-        print *, "MAT H", elem%math(e,gp,:,:)
+        !print *, "MAT H", elem%math(e,gp,:,:)
       
     else !!!!! GP > 1
       if (dim .eq. 2) then 
@@ -342,22 +342,40 @@ subroutine calculate_element_MassMat ()
   
   r = 1.0/sqrt(3.0)
   elem%matm(e,:,:) = 0.0d0
-
+  
+  w = 1.0d0
   do e=1, elem_count
     do gp=1, elem%gausspc(e)
+
     ! if (elem%gausspc(e) .eq. 1) then
       print *, "radius", elem%radius(e,gp)
-      w = 2.0d0*dim * elem%radius(e,gp)
+      if (dim .eq. 2 .and. bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .True.) then
+        w = 2.0d0*dim * elem%radius(e,gp)
+      end if
       f = 1.0d0/(2.0d0*dim)
 
         elem%matm(e,:,:) = matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
         
-        print *, "MAT M", elem%matm(e,:,:)
+        !print *, "MAT M", elem%matm(e,:,:)
     ! end if 
     end do
   end do
-
 end subroutine
+
+!!!!!!! THIS IS FOR 1 pt reduced integration 
+!!!!!!! ASSUMES 4 node element
+subroutine calc_mdiag_axisymm_area ()
+  integer :: iglob, n , ne, e
+  !mdiag(:)=0.0d0
+  do iglob =1, node_count
+    do n=1, node_count  !column
+      do ne = 1, nod%elxnod(n) 
+        !mdiag(iglob) = mdiag(iglob) + 0.25* nod%nodel(n,ne) * elem%detJ(e,gp) * 4.0d0 !!WEIGHT
+      end do 
+    end do !col
+  end do  
+end subroutine calc_mdiag_axisymm_area
+
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
 
@@ -526,10 +544,12 @@ subroutine assemble_mass_matrix ()
   
   m_glob (:,:) = 0.0d0
   f = 1.0d0
-  if (dim .eq. 2 .and. bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .True.) then
-    print *, "ax vol weight TRUE"
-    f = 2.0d0 * PI
-  end if
+
+  !!! IS PER RADIAN!! ON BOTH CASES (AREA AND WEIGHT)
+  ! if (dim .eq. 2 .and. bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .True.) then
+    ! print *, "ax vol weight TRUE"
+    ! f = 2.0d0 * PI
+  ! end if
   
   do e = 1, elem_count
     !print *, "elem ", e

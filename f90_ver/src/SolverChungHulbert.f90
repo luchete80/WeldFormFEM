@@ -87,15 +87,18 @@ subroutine SolveChungHulbert (domi, tf, dt)
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "Assemblying mass matrix" 
-  call assemble_mass_matrix()
+  if (bind_dom_type .eq. 3) then
+    call assemble_mass_matrix()
+  end if 
   !print * , "done"
   !print *, "mass matrix",m_glob
-    mdiag(:)=0.0d0
-    do iglob =1, node_count
-      do n=1, node_count  !column
-         mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-      end do !col
-    end do   
+  mdiag(:)=0.0d0
+  do iglob =1, node_count
+    do n=1, node_count  !column
+       mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+    end do !col
+  end do  
+  
   calc_m = .False.
   print *, "M Diag with mass mat", mdiag
   !print *, "Tot mass from mdiag", 

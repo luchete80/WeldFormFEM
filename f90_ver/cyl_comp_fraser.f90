@@ -57,6 +57,7 @@ implicit none
    ! Variables for clock
    integer count_0, count_1, gp
    integer count_rate, count_max
+   integer nc1, nc2, nc3
    double precision time_init, time_final, elapsed_time
 
   type(Dom_type) :: dom
@@ -80,7 +81,8 @@ implicit none
   L = 0.616
   Rtot = 0.15
   
-  dx    = 0.05d0
+  !dx    = 0.05d0
+  dx    = 0.075d0
   r = dx /2.0
 
   V(1) = 0.;V(2) = 0.;V(3) = 0.	
@@ -108,25 +110,31 @@ implicit none
   call AddBoxLength(0, V, Rtot, L, 1.0d0, r, rho, h,reduced_int)
   bind_dom_type = 3 !!!AXISYMM, AFTER DOMAIN CREATION!!!
     
+  nc1 = 0;nc2 = 0;nc3 = 0;
   print *, "NODE ELEMENTS "
     do i=1,node_count
     ! print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
     
     if (nod%x(i,1) < r) then     
       nod%is_fix(i,1) = .true. !AXI SYMMETRIC
+      nc1 = nc1 + 1
     end if
         
-    if (nod%x(i,2) < 2.0 * dx) then 
-      nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL    
+    if (nod%x(i,2) < r) then 
+      nod%is_fix(i,:) = .true. !Node 1 restricted in 2 dimensions, AXIS AND VERTICAL  
+      nc2 = nc2 +1      
     end if
 
-    if (nod%x(i,2) > L - 2.0 * dx) then 
+    if (nod%x(i,2) > L - r) then 
       nod%bcv(i,:) = [0.0d0,-1.0d0]
       nod%is_bcv(i,2) = .true.
+      nod%is_fix(i,1) = .true. 
+      nc3 = nc3 + 1 
     end if
     
   end do
-
+  
+  print *, "Boundary nodes ", nc1, ", ", nc2, ", ", nc3
     
 
   
@@ -159,7 +167,7 @@ implicit none
 
   !dt = 1.0e-5
   !tf = 1.0e-3 
-  tf = dt 
+  tf = 2.0*dt 
   
   elem%rho(:,:) = rho
   

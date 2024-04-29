@@ -160,6 +160,13 @@ subroutine cal_elem_forces ()
           !!elem%f_int(e,n,1) = 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) * f2
           elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) * f2
+          
+          !!!These are dividing per r so in the vol weight is like this
+          if (axisymm_vol_weight .eqv. .true.) then
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
+                                                     elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
+          end if
         else 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                                   elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)
