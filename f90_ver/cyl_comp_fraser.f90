@@ -167,7 +167,7 @@ implicit none
 
   !dt = 1.0e-5
   !tf = 1.0e-3 
-  tf = 2.0*dt 
+  tf = dt 
   
   elem%rho(:,:) = rho
   

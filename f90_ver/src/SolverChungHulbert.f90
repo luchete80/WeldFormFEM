@@ -60,7 +60,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   real(fp_kind), dimension(dim) :: prev_acc
   real(fp_kind), dimension(node_count,dim) :: u, prev_a, x_temp
   
-  real(fp_kind) :: alpha, beta, gamma, rho_b , omega!!! CHUNG HULBERT PARAMETERS
+  real(fp_kind) :: alpha, beta, gamma, rho_b , omega, totmass!!! CHUNG HULBERT PARAMETERS
  
   real(fp_kind), dimension(nodxelem,dim) :: xtest
 
@@ -87,20 +87,26 @@ subroutine SolveChungHulbert (domi, tf, dt)
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "Assemblying mass matrix" 
-  if (bind_dom_type .eq. 3) then
-    call assemble_mass_matrix()
+  if (bind_dom_type .eq. 3) then !!! AXISYMM
+    call assemble_mass_matrix() !!! mglob
   end if 
   !print * , "done"
   !print *, "mass matrix",m_glob
   mdiag(:)=0.0d0
+  
+  totmass = 0.0
+  print *, "Nodal masses"
   do iglob =1, node_count
     do n=1, node_count  !column
        mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
     end do !col
+    print *,  mdiag(iglob)
+    totmass = totmass + mdiag(iglob)
   end do  
   
   calc_m = .False.
-  print *, "M Diag with mass mat", mdiag
+  ! print *, "M Diag with mass mat", mdiag
+  PRINT *, "Tot Mass: ", totmass
   !print *, "Tot mass from mdiag", 
   !!!! ONLY FOR TESTING
   if (bind_dom_type .ne. 3) then
