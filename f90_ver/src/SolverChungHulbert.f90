@@ -84,6 +84,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   ! do n = 1, elem_count
     ! print *, elem%vol(n)
   ! end do    
+  call calc_nodal_masses()
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
   print *, "Assemblying mass matrix" 

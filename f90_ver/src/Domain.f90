@@ -79,7 +79,7 @@ contains
     ! allocate (nod%rho(node_count))
     ! allocate (nod%drhodt(node_count))
     ! allocate (nod%h(node_count))
-    ! allocate (nod%m(node_count))
+    allocate (nod%m(node_count))
     allocate (nod%id(node_count))
     
     allocate (nod%elxnod(node_count))

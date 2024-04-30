@@ -859,7 +859,7 @@ end subroutine CalcStress
 subroutine calc_elem_vol ()
   implicit none
   integer :: e, gp
-  real(fp_kind):: w, prev_vol
+  real(fp_kind):: w, prev_vol, f
   
   ! P00+(Cs0*Cs0)*(Density-Density0);
   do e = 1, elem_count
@@ -872,11 +872,15 @@ subroutine calc_elem_vol ()
       w = 1.0
     end if
     do gp=1,elem%gausspc(e)
+      f = 1.0
+      if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then 
+        f = elem%radius(e,gp)
+      endif
       !elem%vol(e) = 
       !print *, "elem e j, w", elem%detJ(e,gp), w
-      elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w
+      elem%vol(e) = elem%vol(e) + elem%detJ(e,gp)*w*f
     end do !gp  
-    ! print *, "Elem ", e, "vol ",elem%vol(e)
+     !print *, "Elem ", e, "vol ",elem%vol(e)
     elem%vol_inc(e) = elem%vol(e) - prev_vol
   end do !elem
 

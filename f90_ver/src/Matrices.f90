@@ -364,17 +364,25 @@ end subroutine
 
 !!!!!!! THIS IS FOR 1 pt reduced integration 
 !!!!!!! ASSUMES 4 node element
-subroutine calc_mdiag_axisymm_area ()
-  integer :: iglob, n , ne, e
+subroutine calc_nodal_masses ()
+  integer :: n , ne, gp, w, f, totmass
   !mdiag(:)=0.0d0
-  do iglob =1, node_count
-    do n=1, node_count  !column
-      do ne = 1, nod%elxnod(n) 
-        !mdiag(iglob) = mdiag(iglob) + 0.25* nod%nodel(n,ne) * elem%detJ(e,gp) * 4.0d0 !!WEIGHT
-      end do 
-    end do !col
-  end do  
-end subroutine calc_mdiag_axisymm_area
+  totmass = 0.0d0
+  nod%m(:) = 0.0d0
+  do n=1, node_count  !column
+    do ne = 1, nod%elxnod(n) 
+      print *, "nn", n, "ne ", nod%nodel(n,ne)
+      do gp = 1, elem%gausspc(nod%nodel(n,ne))
+        print *, "Elem vol ", elem%vol(nod%nodel(n,ne))
+        nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)!!WEIGHT
+      end do !gp
+    end do  ! ne
+    print *, "nod before things", nod%m(n)
+    nod%m(n) = nod%m(n) / nod%elxnod(n)
+    totmass = totmass + nod%m(n)
+  end do !n
+  print *, "TOTMASS ", totmass
+end subroutine calc_nodal_masses
 
 !!!!!dxdxy and B matrices
 !!!!! WITHOUT CALCULATING DETERMINANT, ONLY ADJOINT
