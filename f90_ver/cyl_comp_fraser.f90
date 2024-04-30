@@ -78,11 +78,11 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 2
-  L = 0.616
-  Rtot = 0.15
+  L = 0.1
+  Rtot = 0.1
   
   !dx    = 0.05d0
-  dx    = 0.075d0
+  dx    = 0.01d0
   r = dx /2.0
 
   V(1) = 0.;V(2) = 0.;V(3) = 0.	

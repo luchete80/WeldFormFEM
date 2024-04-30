@@ -365,7 +365,8 @@ end subroutine
 !!!!!!! THIS IS FOR 1 pt reduced integration 
 !!!!!!! ASSUMES 4 node element
 subroutine calc_nodal_masses ()
-  integer :: n , ne, gp, w, f, totmass
+  integer :: n , ne, gp, w, f
+  real(fp_kind):: totmass
   !mdiag(:)=0.0d0
   totmass = 0.0d0
   nod%m(:) = 0.0d0
@@ -374,11 +375,10 @@ subroutine calc_nodal_masses ()
       print *, "nn", n, "ne ", nod%nodel(n,ne)
       do gp = 1, elem%gausspc(nod%nodel(n,ne))
         print *, "Elem vol ", elem%vol(nod%nodel(n,ne))
-        nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)!!WEIGHT
+        nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/nodxelem!!WEIGHT
       end do !gp
     end do  ! ne
     print *, "nod before things", nod%m(n)
-    nod%m(n) = nod%m(n) / nod%elxnod(n)
     totmass = totmass + nod%m(n)
   end do !n
   print *, "TOTMASS ", totmass
