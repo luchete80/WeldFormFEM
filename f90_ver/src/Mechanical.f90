@@ -47,7 +47,9 @@ subroutine cal_elem_strains ()
       
       ! ! test33 = 0.5*(test33-transpose(test33));
       ! ! print *, "rot rate test", test33
-
+      !!!!! er = B x U = [dh1/dx  0      dh1/dy  0 ] x [ U1 v1 u2 ]T
+      !!!!!              [0       dh1/dy 0      dh2/dy ]   
+      !!!!!              [dh1/dy  dh1/dx dh2/dy  dh2/dx ]                     
       do n=1, nodxelem  
         do d=1, dim
           !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
@@ -57,8 +59,15 @@ subroutine cal_elem_strains ()
         !!!! TO AVOID ALL MATMULT
         elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) &!!!!dvx/dy
                                    + temp(1,n) * elem%vele (e,dim*(n-1)+2,1)
-        elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
+        elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dy
                                    - temp(1,n) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
+        
+        !!! er hoop = vr/r
+        if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
+          elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp)
+          elem%rot_rate(e,gp, 3,3) = 0.0d0
+        end if 
+        
         if (dim == 3) then
           elem%str_rate(e,gp, 2,3) = elem%str_rate(e,gp, 2,3) + temp(3,n)* elem%vele (e,dim*(n-1)+2,1) &!!!d/dz*vy     
                                      + temp(2,n) * elem%vele (e,dim*(n-1)+3,1)    !!!d/dy*vz
@@ -153,7 +162,7 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          if (axisymm_vol_weight .eqv. .true.) then
+          if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
             !print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
             f2 = elem%radius(e,gp)
           end if
@@ -162,7 +171,9 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) * f2
           
           !!!These are dividing per r so in the vol weight is like this
-          if (axisymm_vol_weight .eqv. .true.) then
+          !!! Goudreau 1982 eq. 19
+           
+          if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
             elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
                                                      elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
             elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)

@@ -308,23 +308,29 @@ subroutine calculate_element_shapeMat ()
     else !!!!! GP > 1
       if (dim .eq. 2) then 
         w = 1.
-        else !!!DIM 3
-          gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
-          gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
-          do gp = 1,8
-            elem%math(e,gp, 1,:) = 0.125*[(1-gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)),(1+gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)), &
-                                (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
-                                (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
-                                (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
-            !print *, "gp ",gp,  "detJ(e,gp)", elem%detJ(e,gp)
-            elem%matm(e,:,:) = elem%matm(e,:,:) + &
-                               matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
-          end do
-            ! k = 1
-            ! do while (k <= nodxelem)
-              ! temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
-              ! k = k + 1
-            ! end do
+        gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+        do gp = 1,4
+          elem%math(e,gp, 1,:) = 0.25*[(1-gpc(gp,1))*(1-gpc(gp,2)),(1+gpc(gp,1))*(1-gpc(gp,2)), &
+                                       (1-gpc(gp,1))*(1+gpc(gp,2)),(1+gpc(gp,1))*(1+gpc(gp,2))]
+
+        end do
+      else !!!DIM 3
+        gpc(1,:)=[-r,-r,-r];   gpc(2,:)=[ r,-r,-r];      gpc(3,:)=[-r, r,-r];      gpc(4,:)=[ r, r,-r];
+        gpc(5,:)=[-r,-r, r];   gpc(6,:)=[ r,-r, r];      gpc(7,:)=[-r, r, r];      gpc(8,:)=[ r, r, r];
+        do gp = 1,8
+          elem%math(e,gp, 1,:) = 0.125*[(1-gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)),(1+gpc(gp,1))*(1-gpc(gp,2))*(1-gpc(gp,3)), &
+                              (1+gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1-gpc(gp,3)), &
+                              (1-gpc(gp,1))*(1-gpc(gp,2))*(1+gpc(gp,3)),(1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)), &
+                              (1+gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3)),(1-gpc(gp,1))*(1+gpc(gp,2))*(1+gpc(gp,3))]
+          !print *, "gp ",gp,  "detJ(e,gp)", elem%detJ(e,gp)
+          elem%matm(e,:,:) = elem%matm(e,:,:) + &
+                             matmul(transpose(elem%math(e,gp,:,:)),elem%math(e,gp,:,:))*elem%rho(e,gp)*elem%detJ(e,gp)*w !!!2.0 ^3 WEIGHT
+        end do
+          ! k = 1
+          ! do while (k <= nodxelem)
+            ! temph(2,2*k) = temph(1,2*k-1) !TODO: CHANGE IN 3D
+            ! k = k + 1
+          ! end do
  
           ! elem%math(e,gp,:,:) = temph(:,:)*elem%detJ(e,gp)
           !print *, "mat h ", elem%math(e,gp,:,:)        
