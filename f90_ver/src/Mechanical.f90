@@ -64,8 +64,11 @@ subroutine cal_elem_strains ()
         
         !!! er hoop = vr/r
         if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
-          elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp)
+          if (elem%gausspc(e) .eq. 1) then
+            elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
+          print *, "hoop er", elem%str_rate(e,gp, 3,3) 
           elem%rot_rate(e,gp, 3,3) = 0.0d0
+          end if
         end if 
         
         if (dim == 3) then
