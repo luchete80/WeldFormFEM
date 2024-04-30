@@ -1,1 +1,0 @@
-/usr/bin/c++  -std=c++17 -O3 -rdynamic CMakeFiles/MetFEMGPU.dir/main.C.o CMakeFiles/MetFEMGPU.dir/Domain_d.C.o CMakeFiles/MetFEMGPU.dir/Matrices.C.o CMakeFiles/MetFEMGPU.dir/Mechanical.C.o CMakeFiles/MetFEMGPU.dir/Solver.C.o -o MetFEMGPU 
