@@ -166,7 +166,7 @@ subroutine cal_elem_forces ()
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
-            !print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
+            print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
             f2 = elem%radius(e,gp)
           end if
           !!elem%f_int(e,n,1) = 
@@ -177,9 +177,9 @@ subroutine cal_elem_forces ()
           !!! Goudreau 1982 eq. 19
            
           if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
-            elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) - (elem%sigma (e,gp, 1,1) - &
                                                      elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
-            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) - elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
           end if
         else 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
