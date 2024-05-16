@@ -58,21 +58,21 @@ add_executable(MetFEMGPU
 
               )
               
-# add_executable(WeldFormFEM
-                        # WeldFormFEM.C
-                        # Domain_d.C
-                        # Matrices.C
-                        # Mechanical.C
-                        # Matrices.C
-                        # Solver.C
-                        # ../lib/LSDynaReader/src/lsdynaReader.cpp
+add_executable(WeldFormFEM
+                        WeldFormFEM.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+                        ../lib/LSDynaReader/src/lsdynaReader.cpp
 
-              # )
+              )
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 
-# set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
+set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
 
 
 # add_executable(main_thermal 
@@ -123,7 +123,7 @@ set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 
 if (BUILD_GPU)
 TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
-# TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
+TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 endif()

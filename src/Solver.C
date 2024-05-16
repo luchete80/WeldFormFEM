@@ -49,11 +49,11 @@ namespace MetFEM{
   printf ("beta %f\n",  m_beta);
   printf ("gamma %f\n", m_gamma);
   
-  cout << "Calculating derivatives..."<<endl;
+  //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-  cout << "Calculating Volume..."<<endl;
+  //cout << "Calculating Volume..."<<endl;
   calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
   #else
@@ -110,7 +110,7 @@ namespace MetFEM{
       ImposeBCV(d);
     #endif
   }
-  cout <<"Done."<<endl;
+  //cout <<"Done."<<endl;
  
   //ELEMENT PARALLEL
 
@@ -224,8 +224,8 @@ namespace MetFEM{
 
   ImposeBCVAllDim();
   
-  N = getNodeCount();
   #ifdef CUDA_BUILD  
+  N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   

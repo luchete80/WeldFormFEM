@@ -412,8 +412,12 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       for (int ey = 0; ey < nel[1];ey++){
         for (int ex = 0; ex < nel[0];ex++){
         int iv[4];
-        elnod_h[ei  ] = (nel[0]+1)*ey + ex;        elnod_h[ei+1] = (nel[0]+1)*ey + ex+1;
-        elnod_h[ei+2] = (nel[0]+1)*(ey+1) + ex+1;  elnod_h[ei+3] = (nel[0]+1)*(ey+1) + ex;
+        int nb1 = (nel[0]+1)* ey    + ex;    
+        int nb2 = (nel[0]+1)*(ey+1) + ex;
+        elnod_h[ei  ] = nb1;                        nodel_count_h[nb1  ] ++;             
+        elnod_h[ei+1] = nb1 + 1;                    nodel_count_h[nb1+1] ++;             
+        elnod_h[ei+2] = nb2 + 1;                    nodel_count_h[nb2+1] ++;      
+        elnod_h[ei+3] = (nel[0]+1)*(ey+1) + ex;     nodel_count_h[nb2 ] ++;      
 			
 				 for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
 					cout << "Nel x : "<<nel[0]<<endl;
