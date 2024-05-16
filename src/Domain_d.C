@@ -534,16 +534,16 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   
 	Matrix *jacob = new Matrix(m_dim, m_dim);    
 	Matrix *inv_j = new Matrix(m_dim, m_dim);    
-  Matrix *dHrs = new Matrix(m_dim, m_nodxelem);   /////////////////////////////// IF CREATION IS DYNAMIC ! (TEST IF )
+  //Matrix *dHrs = new Matrix(m_dim, m_nodxelem);   /////////////////////////////// IF CREATION IS DYNAMIC ! (TEST IF )
   
   Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
-  Matrix *x2 = new Matrix(m_nodxelem, m_dim);
    
   printf("done\n");
    
 	////printf ("e %d, elem_count %d\n",m_elem_count);
   par_loop (e, m_elem_count) {
   int offset = m_gp_count * e;
+  Matrix *x2 = new Matrix(m_nodxelem, m_dim);
   // integer :: e
   // ! !rg=gauss[ig]
   // ! !sg=gauss[jg]
@@ -593,8 +593,21 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         // ! print *, "nodes X ", x2(:,1)
         // ! print *, "nodes Y ", x2(:,2)
         for (int d=0;d<2;d++){
+          // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
+          // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
+          // elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
+          jacob->Set(0,d,0.25*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d))); 
+          jacob->Set(1,d,0.25*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)));
+        }
+        
+        AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+        printf("ADJ J ptr\n");
+        inv_j->Print();          //printf("jacob\n");jacob->Print();
+        for (int d=0;d<2;d++){        
           dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1));     
-          dHxy_detJ_loc->Set(d,1,-inv_j->getVal(d,0)-inv_j->getVal(d,1));     
+          dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1));     
+          dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1));     
+          dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1));     
           // #ifdef CUDA_BUILD
           // jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
           // jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
@@ -608,7 +621,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
           
           // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
-
+          dHxy_detJ_loc->Mul(0.25);
         }
           
 			} else { //!!!DIM 3
@@ -784,10 +797,10 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
     //printf("dHdx x detJ\n");
     //dHxy_detJ_loc->Print();
 		//printf("END.\n");
-    
+    delete x2; //DEFINED ON EACH BLOCK!
   } // e < elem_colunt
   
-      delete inv_j, dHrs, x2, jacob,dHxy_detJ_loc;
+      delete inv_j, jacob,dHxy_detJ_loc;
 }
 
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){
