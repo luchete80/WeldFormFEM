@@ -58,6 +58,7 @@
           (CHUNG HULBERT SOLVER)
          - Added ACCEL BOUNDARY CONDITIONS
 20240327 - Added HOURGLASS FORCES! Attention: GPU Force Elem calc is wrong
+-----------------------------------------------
 20240403 - Fixed symm indices
 20240405 - Added hourglass forces sum (GPU)
          - Found error in displacement correction.
@@ -66,3 +67,8 @@
          - Added CS0 to hourglass calc
          
 20240409 - Added device print funcions (vectors and tensors)
+-----------------------------------------------
+20240516 - Fixed for 3D some crashing thing.  
+         - Seems not to be working still on CUDA
+         - 2D Mesh generation is done
+         
