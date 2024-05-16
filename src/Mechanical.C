@@ -129,7 +129,7 @@ dev_t void Domain_d::calcElemStrainRates(){
 	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset + gp];
       //printf("f factor: %f\n",f);
-      double test = 0.0;
+      //double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
         // double vele[3];
         // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
@@ -138,7 +138,7 @@ dev_t void Domain_d::calcElemStrainRates(){
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
         // end do
-        test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
+        //test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
         //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
         // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
@@ -409,7 +409,7 @@ dev_t void Domain_d::calcElemPressure(){
 
   par_loop(e,m_elem_count){
     int offset_t = e * m_gp_count *6;
-    Matrix *sigma   = new Matrix(m_dim,m_dim);
+    Matrix *sigma   = new Matrix(3,3);
     //Matrix str_inc(m_dim,m_dim);
     //sigma.FromFlatSymPtr();
     double trace;
@@ -426,7 +426,7 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
       trace = 0.0;
-      for (int d = 0; d<m_dim;d++)
+      for (int d = 0; d<3;d++)
         trace += getSigma(e,gp,d,d);
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
       //printf("pressure %f\n",p[offset + gp]);

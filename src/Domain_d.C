@@ -404,6 +404,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
      int *nodel_count_h  = new int [m_node_count];
      int *nodel_offset_h = new int [m_node_count];
     
+    cout << "Allocating element nodes.."<<endl;
 		int ex, ey, ez;
 		std::vector <int> n;
     if (m_dim == 2) {
@@ -529,14 +530,16 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 dev_t void Domain_d::calcElemJAndDerivatives () {
 	////printf("calculating\n");
 	////printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
-  
+  printf("allocating m_dim %d, n_nodxelem %d\n", m_dim, m_nodxelem);
   
 	Matrix *jacob = new Matrix(m_dim, m_dim);    
 	Matrix *inv_j = new Matrix(m_dim, m_dim);    
   Matrix *dHrs = new Matrix(m_dim, m_nodxelem);   /////////////////////////////// IF CREATION IS DYNAMIC ! (TEST IF )
   
   Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
-  
+  Matrix *x2 = new Matrix(m_nodxelem, m_dim);
+   
+  printf("done\n");
    
 	////printf ("e %d, elem_count %d\n",m_elem_count);
   par_loop (e, m_elem_count) {
@@ -545,15 +548,15 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   // ! !rg=gauss[ig]
   // ! !sg=gauss[jg]
   // real(fp_kind), dimension(dim,m_nodxelem) :: dHrs !!! USED ONLY FOR SEVERAL GAUSS POINTS
-	//printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
+	printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
 
   
   //cudaMalloc((void**)&dHrs_p, sizeof(Matrix));
 	////printf("test %lf",dHrs.m_data[0]);
 	//double dHrs_fl[m_dim* m_nodxelem];
 	//dHrs->Print();
-   Matrix *x2 = new Matrix(m_nodxelem, m_dim);
-  //printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
+
+  printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
    
    // //printf("Jacob\n");jacob->Print();
    double gpc[8][3];
@@ -569,7 +572,10 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
       //printf("elnod %d\n",m_elnod[nind+i]);
       //printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
-      x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); x2->Set(i,2,x_.z);
+      x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); 
+      if (m_dim == 3)
+        x2->Set(i,2,x_.z);
+      
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
   //printf("x2\n");x2->Print();
@@ -770,7 +776,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
     
   } // e < elem_colunt
   
-      delete dHrs,x2, jacob,dHxy_detJ_loc;
+      delete x2, inv_j, dHrs,x2, jacob,dHxy_detJ_loc;
 }
 
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){

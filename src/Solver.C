@@ -168,20 +168,22 @@ namespace MetFEM{
   #else
   //SECOND TIME
     //STRESSES CALC
-  printf("CALCULATING deriv\n");
+    cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
-
+  cout << "done "<<endl;
   CalcElemVol();
+  cout << "done "<<endl;
   calcElemStrainRates();
   calcElemDensity();
   calcElemPressure();
   CalcStressStrain(dt);
-  printf("CALCULATING forcess\n");
   calcElemForces();
   calcElemHourglassForces();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
-  assemblyForces(); //CRASHING
+  cout << "Assemblying"<<endl;
+  assemblyForces(); 
+  cout << "Done "<<endl;
   calcAccel();
   #endif
   
