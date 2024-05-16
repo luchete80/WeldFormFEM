@@ -593,12 +593,22 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         // ! print *, "nodes X ", x2(:,1)
         // ! print *, "nodes Y ", x2(:,2)
         for (int d=0;d<2;d++){
-          #ifdef CUDA_BUILD
-          jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
-          jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
-          #else 
-          jacob->operator()(0,d) = -x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d);
-          #endif
+          dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1));     
+          dHxy_detJ_loc->Set(d,1,-inv_j->getVal(d,0)-inv_j->getVal(d,1));     
+          // #ifdef CUDA_BUILD
+          // jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
+          // jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
+          // #else 
+          // jacob->operator()(0,d) = -x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d);
+          // #endif
+
+          // elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2) !For each 3 rows of inv J and dHdxy
+          // elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)
+          // elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)
+          // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
+          
+          // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
+
         }
           
 			} else { //!!!DIM 3
@@ -762,7 +772,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // m_dH_detJ_dz[offset + j] = dHxy_detJ_loc->getVal(2,j);      
           setDerivative(e,gp,0,j,dHxy_detJ_loc->getVal(0,j));
           setDerivative(e,gp,1,j,dHxy_detJ_loc->getVal(1,j));
-          setDerivative(e,gp,2,j,dHxy_detJ_loc->getVal(2,j));
+          if (m_dim ==3)
+            setDerivative(e,gp,2,j,dHxy_detJ_loc->getVal(2,j));
           ////printf("set der: z n %d %f\n",j, dHxy_detJ_loc->getVal(2,j));
           
       }
@@ -776,7 +787,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
     
   } // e < elem_colunt
   
-      delete x2, inv_j, dHrs,x2, jacob,dHxy_detJ_loc;
+      delete inv_j, dHrs, x2, jacob,dHxy_detJ_loc;
 }
 
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){
