@@ -84,6 +84,7 @@ public:
   void AssignMaterial (Material_ *material_h); //Create and copy material
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
   dev_t void CalcStressStrain(const double dt);
+  dev_t void Calc_Elastic_Stress (const double dt);
 
   //TODO: CHANGE THIS
   inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}

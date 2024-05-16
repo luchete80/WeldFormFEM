@@ -459,6 +459,55 @@ dev_t void Domain_d::calcElemPressure(){
   // end do
 // end subroutine 
 
+///////////////////// ONLY FOR TESTING, ELASTIC STRAIN
+
+// subroutine Calc_Elastic_Stress(dom, dt)
+dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
+  // integer :: e,gp
+  // real(fp_kind), intent (in) :: dt
+  // real(fp_kind) :: c
+  // type (dom_type), intent (in) :: dom
+  
+  // !!!! PLAIN STRESS
+  // !c = dom%mat_E / (1.0-dom%mat_nu*dom%mat_nu)
+  
+  // !!!! PLAIN STRAIN
+  // c = dom%mat_E / ((1.0+dom%mat_nu)*(1.0-2.0*dom%mat_nu))
+  // ! print *, "MAT C", c
+  // ! print *, "MAT G", mat_G
+  // do e = 1, elem_count 
+    // do gp=1,elem%gausspc(e)
+      // ! elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
+      // ! elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      // ! elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      // ! elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + 2.0* mat_G * elem%str_inc(e,gp,1,2)
+      // ! elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
+      
+      // !!!! PLAIN STRAIN  
+      // elem%str_inc(e,gp,:,:) = elem%str_inc(e,gp,:,:) + elem%str_inc(e,gp,:,:) * dt
+      // elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * ((1.0-dom%mat_nu)*elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      // elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * ((1.0-dom%mat_nu)*elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      // elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + (1.0-2.0*dom%mat_nu) * elem%str_inc(e,gp,1,2)
+      // elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)      
+    // end do
+  // end do 
+  //double c = mat[e]->Elastic().E() / ((1.0+mat[e]->Elastic().nu())*(1.0-2.0*dom%mat_nu))
+  tensor3 Sigma;
+  par_loop(e,m_elem_count){ 
+    for (int gp=0;gp<m_gp_count;gp++){
+      int offset_s = e * m_gp_count + gp;   //SCALAR
+      int offset_t = offset_s * 6 ; //SYM TENSOR
+      // Sigma = -p[offset_s] * Identity() + ShearStress;
+
+      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      
+    }//gp
+  }//el < elcount
+    // end do !gauss point
+  // end do      
+      
+}
+
 // 
 // !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)

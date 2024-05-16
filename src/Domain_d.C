@@ -303,40 +303,45 @@ dev_t void Domain_d::ImposeBCA(const int dim){
 }
 
 void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int){
-	    // integer, intent(in):: tag
-    // logical, intent(in) :: redint
-    // !real(fp_kind), intent(in), allocatable :: V
-    // real(fp_kind), dimension(1:3), intent(in)  :: V ! input
-    // real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
-    vector_t Xp;
-    int p, nnodz;
+    // integer, intent(in):: tag
+  // logical, intent(in) :: redint
+  // !real(fp_kind), intent(in), allocatable :: V
+  // real(fp_kind), dimension(1:3), intent(in)  :: V ! input
+  // real(fp_kind), intent(in):: r, Lx, Ly, Lz, Density, h  
+  vector_t Xp;
+  int p, nnodz;
 
-    int nel[3];
+  int nel[3];
+
+  m_dim = 2;
+  if (L.z > 0.0) m_dim = 3;
   
-    if (L.z > 0.0) m_dim = 3;
-    
-    
-    nel[0] = (int)(L.x/(2.0*r));
-    nel[1] = (int)(L.y/(2.0*r));
-    cout << "Nel x: "<<nel[0]<<", y "<<nel[1]<<endl;
-    
-    m_gp_count = 1;
-    if (m_dim == 2){
-      nel[2] = 1;
-      m_nodxelem = 4;
-      if (!red_int) m_gp_count = 4;
-    } else {
-      nel[2] = (int)(L.z/(2.0*r));
-      m_nodxelem = 8;
-      if (!red_int) m_gp_count = 8; 
-    }
-    
+  
+  nel[0] = (int)(L.x/(2.0*r));
+  nel[1] = (int)(L.y/(2.0*r));
+  cout << "Nel x: "<<nel[0]<<", y "<<nel[1]<<endl;
+  
+  m_gp_count = 1;
+  cout << "Mesh dimension is: "<<m_dim<<endl;
+  if (m_dim == 2){
+    nel[2] = 1;
+    m_nodxelem = 4;
+    cout << "ne "<<m_nodxelem<<endl;
+    if (!red_int) m_gp_count = 4;
+  } else {
+    nel[2] = (int)(L.z/(2.0*r));
+    m_nodxelem = 8;
+    if (!red_int) m_gp_count = 8; 
+  }
+  
 
-    Xp.z = V.z ;
+  Xp.z = V.z ;
     
 
     // write (*,*) "Creating Mesh ...", "Elements ", neL.y, ", ",neL.z
-  int nc = (nel[0] +1) * (nel[1]+1) * (nel[2]+1);
+    int nc;
+  if (m_dim == 2) nc = (nel[0] +1) * (nel[1]+1);
+  else            nc = (nel[0] +1) * (nel[1]+1) * (nel[2]+1);
   int ne = nel[0]*nel[1]*nel[2];
   cout << "Mesh created. Element count: "<< nel[0]<<", "<<nel[1]<<", "<<nel[2]<<endl;
   
@@ -355,26 +360,28 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 	//int size = dom.Particles.size() * sizeof(vector_t);
 	cout << "Copying to device..."<<endl;
     
-    cout << "Box Particle Count is " << m_node_count <<endl;
-    p = 0;
-    for (int k = 0; k < (nel[2] +1);k++) {
-      Xp.y = V.y;
-      for (int j = 0; j < (nel[1] +1);j++){
-        Xp.x = V.x;
-        for (int i = 0; i < (nel[0] +1);i++){
-					//m_node.push_back(new Node(Xp));
-					x_H[p] = Xp;
-          //nod%x(p,:) = Xp(:);
-          cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
-          p++;
-          Xp.x = Xp.x + 2.0 * r;
-        }
-        Xp.y = Xp.y + 2.0 * r;
-      }// 
-      Xp.z = Xp.z + 2 * r;
+  cout << "Box Particle Count is " << m_node_count <<endl;
+  p = 0;
+  int kmax = nel[2] +1;
+  if (m_dim == 2) kmax = 1;
+  for (int k = 0; k < kmax;k++) {
+    Xp.y = V.y;
+    for (int j = 0; j < (nel[1] +1);j++){
+      Xp.x = V.x;
+      for (int i = 0; i < (nel[0] +1);i++){
+        //m_node.push_back(new Node(Xp));
+        x_H[p] = Xp;
+        //nod%x(p,:) = Xp(:);
+        cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
+        p++;
+        Xp.x = Xp.x + 2.0 * r;
+      }
+      Xp.y = Xp.y + 2.0 * r;
+    }// 
+    Xp.z = Xp.z + 2 * r;
 
-    //cout <<"m_node size"<<m_node.size()<<endl;
-    } 
+  //cout <<"m_node size"<<m_node.size()<<endl;
+  } 
 		memcpy_t(this->x, x_H, sizeof(vector_t) * m_node_count);    
 
     // !! ALLOCATE ELEMENTS

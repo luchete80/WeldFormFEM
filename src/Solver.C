@@ -110,14 +110,14 @@ namespace MetFEM{
       ImposeBCV(d);
     #endif
   }
-  //cout <<"Done."<<endl;
-
-  N = getElemCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  
+  cout <<"Done."<<endl;
+ 
   //ELEMENT PARALLEL
 
   #ifdef CUDA_BUILD
+  N = getElemCount();
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
 
@@ -168,12 +168,15 @@ namespace MetFEM{
   #else
   //SECOND TIME
     //STRESSES CALC
+  printf("CALCULATING deriv\n");
   calcElemJAndDerivatives();
+
   CalcElemVol();
   calcElemStrainRates();
   calcElemDensity();
   calcElemPressure();
   CalcStressStrain(dt);
+  printf("CALCULATING forcess\n");
   calcElemForces();
   calcElemHourglassForces();
   //calcElemMassMat(); 
