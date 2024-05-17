@@ -109,8 +109,6 @@ void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxel
             for (int j = 0; j < m_dim; j++) {
                 str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
                 rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
-                 printf ("str rat %.6e ",str_rate[gp][i][j]);
-
             }
         }
         str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
@@ -119,12 +117,12 @@ void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxel
 }
 
 void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_gp_count][3][3]) {
-    printf ("strain\n");
+
     for (int gp = 0; gp < m_gp_count; gp++) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 strain[gp][i][j] = dt * str_rate[gp][i][j];
-                printf ("strain %.6e ",strain[gp][i][j]);
+
             }
         }
     }
@@ -140,7 +138,7 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
     pi_ = -pi_ / m_gp_count;
     for (int gp = 0; gp < m_gp_count; gp++) {
         pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
-        printf("pres %e ",pres[gp]);
+        //printf("pres %e ",pres[gp]);
     }
     
 }
@@ -192,7 +190,6 @@ void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim]
               
               //printf ("forces %e",forces[i][j]);
             }
-            printf("\n");
         }
         
     }
@@ -294,6 +291,12 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         
         cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         calc_hg_forces(rho, vol_0, mat_cs, f_hg);
+
+        for (int i = 0; i < m_nodxelem; i++) 
+          for (int j = 0; j < m_dim; j++) 
+            m_f_elem[i*m_dim + j] = -a[i][j] / nod_mass + f_hg[i][j];
+          
+        assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {

@@ -69,7 +69,8 @@ add_executable(MetFEMGPU
 
               # )
 add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
-                                  Domain_d.C)
+                                  Domain_d.C
+                                  Matrices.C)
 
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
