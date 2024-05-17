@@ -37,7 +37,7 @@ int axi_symm = 0;            //FALSE: PLAIN STRAIN
 
 
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
-double v[m_nodxelem][m_dim];
+double v_[m_nodxelem][m_dim];
 double a[m_nodxelem][m_dim];
 double u[m_nodxelem][m_dim];
 double u_tot[m_nodxelem][m_dim] ={{0.,0.},{0.,0.},{0.,0.},{0.,0.}};
@@ -204,7 +204,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
-        hmod[d][j] +=v[i][d]*Sig[j][i];
+        hmod[d][j] +=v_[i][d]*Sig[j][i];
         //printf("hmod: %6e", hmod[d][j]);
       }
 
@@ -240,7 +240,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
     double mat_cs = sqrt(K_mod/rho);
     
     printf("Imposing bc..\n");
-    impose_bc(v, a);
+    impose_bc(v_, a);
     printf("Done");
 
     calcElemJAndDerivatives();
@@ -265,21 +265,21 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         // PREDICTION PHASE
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                u[i][j] = dt * (v[i][j] + (0.5 - m_beta) * dt * prev_a[i][j]);
+                u[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a[i][j]);
             }
         }
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                v[i][j] += (1.0 - m_gamma) * dt * prev_a[i][j];
+                v_[i][j] += (1.0 - m_gamma) * dt * prev_a[i][j];
             }
         }
 
-        impose_bc(v, a);
+        impose_bc(v_, a);
         calcElemJAndDerivatives();
         //calc_jacobian(x, J);
 
-        calc_str_rate(dNdX, v, str_rate, rot_rate);
+        calc_str_rate(dNdX, v_, str_rate, rot_rate);
         double str_inc[m_nodxelem][3][3];
         calc_strain(str_rate, dt, str_inc);
 
@@ -302,11 +302,11 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
             for (int j = 0; j < m_dim; j++) {
                 a[i][j] = -a[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a[i][j];
                 a[i][j] /= (1.0 - m_alpha);
-                v[i][j] += m_gamma * dt * a[i][j];
+                v_[i][j] += m_gamma * dt * a[i][j];
             }
         }
 
-        impose_bc(v, a);
+        impose_bc(v_, a);
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
