@@ -2,18 +2,11 @@
 #include <math.h>
 #include <iostream>
 
-#include <string.h> // memcpy
-#include "defs.h"
-
-#include "Matrix_temp.h"
-#include  "Domain_d.h"
-
 using namespace std;
 
 #define m_dim 2
 #define m_nodxelem 4
 #define m_gp_count 1
-
 
 double E = 206e9;  // Young's modulus in Pa
 double nu = 0.3;   // Poisson's ratio
@@ -27,20 +20,12 @@ int axi_symm = 0;            //FALSE: PLAIN STRAIN
 double dt = 0.8e-5;
 //double tf = 0.8e-5;
 double tf = 1.0e-3;
-//double x[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
-
-using namespace MetFEM;
-class domain_test:
-public Domain_d {
-  
-
-
-
+double x[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
 double v[m_nodxelem][m_dim];
 double a[m_nodxelem][m_dim];
 double u[m_nodxelem][m_dim];
 double u_tot[m_nodxelem][m_dim] ={{0.,0.},{0.,0.},{0.,0.},{0.,0.}};
-    double prev_a[m_nodxelem][m_dim];
+
 double f_hg[m_nodxelem][m_dim];
 
 // double gauss_points[m_nodxelem][2]={{-0.577350269, -0.577350269},
@@ -59,12 +44,10 @@ double dNdX[m_gp_count][m_dim][m_nodxelem];
 double str_rate[m_gp_count][3][3];
 double rot_rate[m_gp_count][3][3];
 double strain[m_gp_count][3][3];
-Matrix tau_;
 double tau[m_gp_count][3][3];
 double pres[m_gp_count];
 double stress[m_gp_count][3][3];
 double radius[m_gp_count];
-    double J[m_gp_count][2][2];
 
 void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
     vel[2][1] = vel[3][1] = -1.0;
@@ -92,8 +75,7 @@ void shape_functions(double xi, double eta, double N[m_nodxelem], double dNdX_[m
     
 }
 
-//void calc_jacobian(double *pos[m_nodxelem][m_dim], double J[m_gp_count][2][2]) {
-void calc_jacobian(double *pos, double J[m_gp_count][2][2]) {
+void calc_jacobian(double pos[m_nodxelem][m_dim], double J[m_gp_count][2][2]) {
     double N[m_nodxelem];
     double dNdX_[m_dim][m_nodxelem];
     double xi, eta;
@@ -105,7 +87,7 @@ void calc_jacobian(double *pos, double J[m_gp_count][2][2]) {
             for (int j = 0; j < m_dim; j++) {
                 J[gp][i][j] = 0.0;
                 for (int k = 0; k < m_nodxelem; k++) {
-                    J[gp][i][j] += dNdX_[i][k] * pos[k*m_dim+j];
+                    J[gp][i][j] += dNdX_[i][k] * pos[k][j];
                       
         // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
         // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)                
@@ -297,9 +279,32 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   // f_ *= ch
 }
 
-  void Solve() {
-    double t = 0.0;
+int main() {
+    printf("Begin..\n");
+    mat_G = E / (2.0 * (1 + nu));
+    K_mod = E / (3.0 * (1.0 - 2.0 * nu));
+    
+    printf("Imposing bc..\n");
+    impose_bc(v, a);
+    printf("Done");
 
+    double prev_a[m_nodxelem][m_dim];
+
+    double J[m_gp_count][2][2];
+    calc_jacobian(x, J);
+
+    double vol_0 = calc_vol(detJ);
+    cout << "vol 0 "<<vol_0<<endl;
+    double nod_mass = vol_0 * rho / m_nodxelem;
+
+    double rho_b = 0.8182;
+    double alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
+    double beta = (5.0 - 3.0 * rho_b) / ((1.0 + rho_b) * (1.0 + rho_b) * (2.0 - rho_b));
+    double gamma = 1.5 - alpha;
+    
+    double mat_cs = sqrt(K_mod/rho);
+
+    double t = 0.0;
     while (t < tf) {
       printf ("Time: %.6e\n", t);
 
@@ -379,59 +384,4 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
       printf("\n");
     }
     return 0;
-}
-
-}; //CLASS
-
-  
-int main() {
-    printf("Begin..\n");
-    mat_G = E / (2.0 * (1 + nu));
-    K_mod = E / (3.0 * (1.0 - 2.0 * nu));
-    
-    printf("Imposing bc..\n");
-    impose_bc(v, a);
-    printf("Done");
-
-
-    calc_jacobian(x, J);
-
-    double vol_0 = calc_vol(detJ);
-    cout << "vol 0 "<<vol_0<<endl;
-    double nod_mass = vol_0 * rho / m_nodxelem;
-
-    double rho_b = 0.8182;
-    double alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
-    double beta = (5.0 - 3.0 * rho_b) / ((1.0 + rho_b) * (1.0 + rho_b) * (2.0 - rho_b));
-    double gamma = 1.5 - alpha;
-    
-    double mat_cs = sqrt(K_mod/rho);
-
-    double t = 0.0;
-    
-    x = new double[m_nodxelem*m_dim];
-    
-    
-
-	Domain_d *dom_d;
-
-  #ifdef CUDA_BUILD
-	report_gpu_mem();
-	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
-	report_gpu_mem();
-  #else
-    dom_d = new Domain_d;
-  #endif
-  
-  double3 V = make_double3(0.0,0.0,0.0);
-  double dx = 0.1;
-	double3 L = make_double3(dx,dx,dx);
-
-  if (m_dim ==2) L.z = 0.0;
-	double r = 0.05;
-	
-	dom_d->AddBoxLength(V,L,r,true);
-  for (int i = 0; i < m_nodxelem; i++) {
-      for (int j = 0; j < m_dim; j++) {  
-        dom_d->x[ = 
 }
