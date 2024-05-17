@@ -71,4 +71,5 @@
 20240516 - Fixed for 3D some crashing thing.  
          - Seems not to be working still on CUDA
          - 2D Mesh generation is done
-         
+20240517 - Added Example 2D plain strain, FIRST Working with deriv calc.
+         - Fixed 2D derivatives

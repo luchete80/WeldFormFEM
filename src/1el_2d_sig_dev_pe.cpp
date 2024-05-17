@@ -34,7 +34,7 @@ int red_int = 0;
 double element_length = 1.0; // Length of the element
 int axi_symm = 0;            //FALSE: PLAIN STRAIN
   
-    double mat_cs = sqrt(K_mod/rho);
+
 
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
 double v[m_nodxelem][m_dim];
@@ -92,12 +92,13 @@ void velocity_gradient_tensor(double dNdX[m_gp_count][m_dim][m_nodxelem], double
                 for (int k = 0; k < m_nodxelem; k++) {
                     //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
                     grad_v[gp][I][J] += getDerivative(0,gp,J,k) * vel[k][I]/m_detJ[gp];
-                printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
                 }
 
             }
         }
     }
+    
 }
 
 void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxelem][m_dim], double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count][3][3]) {
@@ -166,7 +167,7 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
                 dev(str_rate[gp],d);
                 tau[gp][i][j] += dt * ((2.0 * mat_G *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
                 stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
-                printf ("stress %e",stress[gp][i][j]);
+                //printf ("stress %e",stress[gp][i][j]);
             }
             printf("\n");
         }
@@ -189,7 +190,7 @@ void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim]
                 //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
                 forces[i][j] += getDerivative(0,gp,k,i) * s2[k][j]/**m_detJ[gp]*/ * gauss_weights[gp];
               
-              printf ("forces %e",forces[i][j]);
+              //printf ("forces %e",forces[i][j]);
             }
             printf("\n");
         }
@@ -207,7 +208,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
         hmod[d][j] +=v[i][d]*Sig[j][i];
-        printf("hmod: %6e", hmod[d][j]);
+        //printf("hmod: %6e", hmod[d][j]);
       }
 
   double ch = 0.06 * pow (vol,0.6666666) * rho * 0.25 * cs;
@@ -234,9 +235,12 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    double tf = 0.8e-5;
+    //double tf = 0.8e-5;
+    double tf = 1.0e-3;
     mat_G = E / (2.0 * (1 + nu));
     K_mod = E / (3.0 * (1.0 - 2.0 * nu));
+
+    double mat_cs = sqrt(K_mod/rho);
     
     printf("Imposing bc..\n");
     impose_bc(v, a);
@@ -288,6 +292,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
         calc_forces(stress, dNdX, a);
         
+        cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         calc_hg_forces(rho, vol_0, mat_cs, f_hg);
 
         for (int i = 0; i < m_nodxelem; i++) {

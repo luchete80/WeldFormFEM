@@ -606,10 +606,10 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         printf("ADJ J ptr\n");
         inv_j->Print();          //printf("jacob\n");jacob->Print();
         for (int d=0;d<2;d++){        
-          dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1));     
-          dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1));     
-          dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1));     
-          dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1));     
+          dHxy_detJ_loc->Set(d,0,0.25*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
+          dHxy_detJ_loc->Set(d,1, 0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
+          dHxy_detJ_loc->Set(d,2,0.25*( inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
+          dHxy_detJ_loc->Set(d,3,0.25*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
           // #ifdef CUDA_BUILD
           // jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
           // jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
@@ -623,7 +623,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
           
           // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
-          dHxy_detJ_loc->Mul(0.25);
+          //dHxy_detJ_loc->Mul(0.25);
         }
           
 			} else { //!!!DIM 3
@@ -651,16 +651,16 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           
           //inv.Print();
           for (int d=0;d<m_dim;d++){            
-            dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));         
-            dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));  
-            dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2));             
-            dHxy_detJ_loc->Set(d,4,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)); 
-            dHxy_detJ_loc->Set(d,5, inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            dHxy_detJ_loc->Set(d,6, inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
-            dHxy_detJ_loc->Set(d,7,-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2));
+            dHxy_detJ_loc->Set(d,0,0.125*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2)));         
+            dHxy_detJ_loc->Set(d,1,0.125*( inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2)));  
+            dHxy_detJ_loc->Set(d,2,0.125*( inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2)));  
+            dHxy_detJ_loc->Set(d,3,0.125*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)-inv_j->getVal(d,2)));             
+            dHxy_detJ_loc->Set(d,4,0.125*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2))); 
+            dHxy_detJ_loc->Set(d,5,0.125*( inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2)));
+            dHxy_detJ_loc->Set(d,6,0.125*( inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2)));
+            dHxy_detJ_loc->Set(d,7,0.125*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)+inv_j->getVal(d,2)));
           }
-          dHxy_detJ_loc->Mul(0.125);
+          //dHxy_detJ_loc->Mul(0.125); /////->DO NOT USE THIS!! --- ERRORS ---
 
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           
