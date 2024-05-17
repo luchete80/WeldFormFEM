@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(){
 
-  int dim = 2;
+  int dim = 3;
   
 	Domain_d *dom_d;
 
@@ -138,12 +138,21 @@ int main(){
   //dom_d->SetEndTime (10.0*dt);
   
   if (dim == 3){
+  //// ORIGINAL
   dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
                                dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
   dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
                                                             dom_d->AddBCVelNode(3,2,0);
   
   for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
+
+
+ //for (int i=0;i<8;i++) dom_d->AddBCVelNode(i,1,0.0); //PLAIN STRAIN
+  
+  
+  
+  
+  
   } else {
   dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  
                                dom_d->AddBCVelNode(1,1,0);                                  

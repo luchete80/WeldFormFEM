@@ -23,6 +23,7 @@ class Elastic_{
                          K_m= e / ( 3.0*(1.0 -2.0*nu) );
                          G_m= e / (2.0* (1.0 + nu));
                         }
+	 spec_ const double& Poisson()const{return nu_m;}
 	 spec_ const double& E()const{return E_m;}
 	 spec_ const double& G()const{return G_m;}
    spec_ const double& BulkMod()const{return K_m;}

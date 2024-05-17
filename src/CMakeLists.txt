@@ -36,7 +36,7 @@ set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -O3")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
@@ -58,21 +58,21 @@ add_executable(MetFEMGPU
 
               )
               
-add_executable(WeldFormFEM
-                        WeldFormFEM.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
-                        ../lib/LSDynaReader/src/lsdynaReader.cpp
+# add_executable(WeldFormFEM
+                        # WeldFormFEM.C
+                        # Domain_d.C
+                        # Matrices.C
+                        # Mechanical.C
+                        # Matrices.C
+                        # Solver.C
+                        # ../lib/LSDynaReader/src/lsdynaReader.cpp
 
-              )
+              # )
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 
-set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
+# set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
 
 
 # add_executable(main_thermal 
@@ -123,7 +123,7 @@ set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
 
 if (BUILD_GPU)
 TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
-TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
+# TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 endif()

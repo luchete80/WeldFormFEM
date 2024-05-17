@@ -171,10 +171,10 @@ namespace MetFEM{
     cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
   cout << "done "<<endl;
-  CalcElemVol();
+  //CalcElemVol();
   cout << "done "<<endl;
   calcElemStrainRates();
-  calcElemDensity();
+  //calcElemDensity();
   calcElemPressure();
   CalcStressStrain(dt);
   calcElemForces();

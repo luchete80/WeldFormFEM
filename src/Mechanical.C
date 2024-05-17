@@ -308,11 +308,13 @@ dev_t void Domain_d::calcElemForces(){
     int offset = e*m_nodxelem*m_dim;
     double w = 1.;
     if (m_gp_count == 1) w = pow(2.0,m_dim);
+
     
     for (int n=0; n<m_nodxelem;n++) 
       for (int d=0;d<m_dim;d++)
         m_f_elem[offset + n*m_dim + d] = 0.0;
-        
+
+
     for (int gp=0;gp<m_gp_count;gp++){
 
       // tensor3 sigma     = FromFlatSym(m_sigma, e*m_gp_count+gp);
@@ -426,8 +428,8 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
       trace = 0.0;
-      for (int d = 0; d<3;d++)
-        trace += getSigma(e,gp,d,d);
+      for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
+      
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
       //printf("pressure %f\n",p[offset + gp]);
     }
@@ -491,13 +493,25 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
       // elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)      
     // end do
   // end do 
-  //double c = mat[e]->Elastic().E() / ((1.0+mat[e]->Elastic().nu())*(1.0-2.0*dom%mat_nu))
+
   tensor3 Sigma;
   par_loop(e,m_elem_count){ 
     for (int gp=0;gp<m_gp_count;gp++){
       int offset_s = e * m_gp_count + gp;   //SCALAR
       int offset_t = offset_s * 6 ; //SYM TENSOR
-      // Sigma = -p[offset_s] * Identity() + ShearStress;
+
+       Sigma = FromFlatSym(m_sigma, offset_t );
+    
+      double c = mat[e]->Elastic().E() / ((1.0+mat[e]->Elastic().Poisson())*(1.0-2.0*mat[e]->Elastic().Poisson())) ;  
+      tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
+      Sigma.xx +=  c * str_inc.xx + mat[e]->Elastic().Poisson()*str_inc.yy;
+      Sigma.yy +=  c * str_inc.yy + mat[e]->Elastic().Poisson()*str_inc.xx;
+      Sigma.xy +=  2.0 * mat[e]->Elastic().G() * str_inc.xy;
+      //Sigma.zz += c * ((1.0 - mat[e]->Elastic().Poisson()*(str_inc.xx+str_inc.yy) *str_inc.zz);
+      // ! elem%sigma(e,gp,1,1) = elem%sigma(e,gp,1,1) + c * (elem%str_inc(e,gp,1,1)+dom%mat_nu*elem%str_inc(e,gp,2,2))
+      // ! elem%sigma(e,gp,2,2) = elem%sigma(e,gp,2,2) + c * (elem%str_inc(e,gp,2,2)+dom%mat_nu*elem%str_inc(e,gp,1,1))
+      // ! elem%sigma(e,gp,1,2) = elem%sigma(e,gp,1,2) + 2.0* mat_G * elem%str_inc(e,gp,1,2)
+      // ! elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)
 
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       
@@ -887,7 +901,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.06 * pow(vol[e], 0.6666) * rho[e] * 0.25 * mat[e]->cs0;
+      double c_h = 0.06 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       ////printf("c_h %.6e\n", c_h);
 
       for (int n=0;n<m_nodxelem;n++){      
