@@ -571,7 +571,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   for (int i=0;i<m_nodxelem;i++){
       vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
       //printf("elnod %d\n",m_elnod[nind+i]);
-      //printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
+      printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
       x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); 
       if (m_dim == 3)
         x2->Set(i,2,x_.z);
@@ -601,6 +601,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         }
         
         AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+        printf(" J ptr\n");
+        jacob->Print();
         printf("ADJ J ptr\n");
         inv_j->Print();          //printf("jacob\n");jacob->Print();
         for (int d=0;d<2;d++){        

@@ -352,7 +352,8 @@ __spec Matrix InvMat(Matrix &A, Matrix *invA){
 __spec Matrix AdjMat(Matrix &A, Matrix *invA){
   //Matrix invA(A.m_row,A.m_col);
   if (A.m_dim ==2){
-    
+    invA->Set(0,0,A.getVal(1,1)); invA->Set(0,1,A.getVal(1,0));
+    invA->Set(1,0,A.getVal(0,1)); invA->Set(1,1,A.getVal(1,1));
     
   } else if (A.m_dim == 3) {
     
