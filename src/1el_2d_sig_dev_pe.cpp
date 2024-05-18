@@ -38,7 +38,7 @@ int axi_symm = 0;            //FALSE: PLAIN STRAIN
 
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
 double v_[m_nodxelem][m_dim];
-double a[m_nodxelem][m_dim];
+double a_[m_nodxelem][m_dim];
 double u[m_nodxelem][m_dim];
 double u_tot[m_nodxelem][m_dim] ={{0.,0.},{0.,0.},{0.,0.},{0.,0.}};
     double prev_a[m_nodxelem][m_dim];
@@ -240,7 +240,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
     double mat_cs = sqrt(K_mod/rho);
     
     printf("Imposing bc..\n");
-    impose_bc(v_, a);
+    impose_bc(v_, a_);
     printf("Done");
 
     calcElemJAndDerivatives();
@@ -275,7 +275,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
             }
         }
 
-        impose_bc(v_, a);
+        impose_bc(v_, a_);
         calcElemJAndDerivatives();
         //calc_jacobian(x, J);
 
@@ -287,37 +287,37 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         
         calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
 
-        calc_forces(stress, dNdX, a);
+        calc_forces(stress, dNdX, a_);
         
         cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         calc_hg_forces(rho, vol_0, mat_cs, f_hg);
 
         for (int i = 0; i < m_nodxelem; i++) 
           for (int j = 0; j < m_dim; j++) 
-            m_f_elem[i*m_dim + j] = -a[i][j] / nod_mass + f_hg[i][j];
+            m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j];
           
         assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                a[i][j] = -a[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a[i][j];
-                a[i][j] /= (1.0 - m_alpha);
-                v_[i][j] += m_gamma * dt * a[i][j];
+                a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a[i][j];
+                a_[i][j] /= (1.0 - m_alpha);
+                v_[i][j] += m_gamma * dt * a_[i][j];
             }
         }
 
-        impose_bc(v_, a);
+        impose_bc(v_, a_);
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                u[i][j] += m_beta * dt * dt * a[i][j];
+                u[i][j] += m_beta * dt * dt * a_[i][j];
                 x_[i][j] += u[i][j];
             }
         }
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                prev_a[i][j] = a[i][j];
+                prev_a[i][j] = a_[i][j];
             }
         }
 
@@ -341,7 +341,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
     for (int i = 0; i < m_nodxelem; i++) {
         for (int j = 0; j < m_dim; j++) {
-            printf("%.6e ", a[i][j]);
+            printf("%.6e ", a_[i][j]);
         }
       printf("\n");
     }
