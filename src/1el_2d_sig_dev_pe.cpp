@@ -96,16 +96,20 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
 #else
 void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
 
-    vel[0][0] = vel[0][1] = vel[0][2] = 0.0;
+    vel  [0][0] = vel  [0][1] = vel  [0][2] = 0.0;
+    accel[0][0] = accel[0][1] = accel[0][2] = 0.0;
     
-    vel[1][1] = 0.0;
-    vel[1][2] = 0.0;
+    vel[1][1] = 0.0;     accel[1][2] = 0.0;
+    vel[1][2] = 0.0;     accel[1][2] = 0.0;
 
     vel[2][0] = accel[2][0] =0.0;
-    vel[2][2] = 0.0;
+    vel[2][2] = 0.0; accel[2][2] = 0.0;
     
-    accel[3][2] = accel[3][2] = 0.0;
-    for (int i=0;i<4;i++) {vel[4+i][2] = -1.0;}
+    vel[3][2] = accel[3][2] = 0.0;
+
+    for (int i=0;i<4;i++) {
+      vel[4+i][2] = -1.0;
+      accel[4+i][2] = 0.0;}
 }
 
 #endif
