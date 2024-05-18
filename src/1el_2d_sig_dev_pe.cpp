@@ -11,7 +11,7 @@
 using namespace std;
 
 //// IF YOU WANYT 2D
-//#define BIDIM 
+#define BIDIM 
 
 
 #ifdef BIDIM
@@ -137,7 +137,7 @@ void shape_functions(double gauss_points[1][3], double N[m_nodxelem], double dNd
     dNdX_[1][2] = (1 + xi) / 4;
     dNdX_[1][3] = (1 - xi) / 4;
 #else
-    t = gauss_points[0][0];
+    t = gauss_points[0][2];
     dNdX_[0][0] = -(1 - eta) / 8;
     dNdX_[0][1] = (1 - eta) / 8;
     dNdX_[0][2] = (1 + eta) / 8;
@@ -195,7 +195,9 @@ void calc_jacobian(double pos[m_nodxelem][m_dim], double J[m_gp_count][2][2]) {
               dNdX[gp][i][j] = 0.0;
               for (int k = 0; k < m_dim; k++) 
                 dNdX[gp][i][j] += invJ[gp][i][k]*dNdX_[k][j];
+              printf("deriv %6e",dNdX[gp][i][j]);
             }
+
         }                
         
         
@@ -219,7 +221,7 @@ void velocity_gradient_tensor(double dNdX[m_gp_count][m_dim][m_nodxelem], double
                 for (int k = 0; k < m_nodxelem; k++) {
                     //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
                     grad_v[gp][I][J] += getDerivative(0,gp,J,k) * vel[k][I]/m_detJ[gp];
-                printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                    //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
                 }
 
             }
@@ -383,9 +385,9 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
     printf("Done");
 
     calcElemJAndDerivatives();
-    printf("m_m_detJ %6e\n",m_detJ[0]);
     //calc_jacobian(x_, J);
-
+    printf("m_m_detJ %6e\n",m_detJ[0]);
+    
     double vol_0 = calc_vol();
     cout << "vol 0 "<<vol_0<<endl;
     double nod_mass = vol_0 * rho / m_nodxelem;

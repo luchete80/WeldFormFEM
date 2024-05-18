@@ -375,9 +375,9 @@ __spec Matrix AdjMat(Matrix &A, Matrix *invA){
     //printf ("COFACTOR: \n");
     //cofactor->Print();
 
-    //*invA = cofactor;
+    *invA = *cofactor;
     //THE ONE WHICH WORKS, OPERATOR= DOES NOT WORK
-    for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=cofactor->m_data[i];}
+    //for (int i=0;i<A.m_row*A.m_col;i++){invA->m_data[i]=cofactor->m_data[i];}
     //printf("ADJA\n");
     //invA->Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
