@@ -607,7 +607,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         //inv_j->Print();          //printf("jacob\n");jacob->Print();
         for (int d=0;d<2;d++){        
           dHxy_detJ_loc->Set(d,0,0.25*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
-          dHxy_detJ_loc->Set(d,1, 0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
+          dHxy_detJ_loc->Set(d,1,0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
           dHxy_detJ_loc->Set(d,2,0.25*( inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
           dHxy_detJ_loc->Set(d,3,0.25*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
           // #ifdef CUDA_BUILD
@@ -623,9 +623,9 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
           
           // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
-          //dHxy_detJ_loc->Mul(0.25);
         }
-          
+        //dHxy_detJ_loc->Mul(0.25);
+        
 			} else { //!!!DIM 3
 
           for (int d=0;d<m_dim;d++){

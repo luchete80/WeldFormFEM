@@ -24,6 +24,7 @@ using namespace std;
 #define m_dim 3
 #define m_nodxelem 8
 #define m_gp_count 1
+
 #endif
 
 double gauss_points[1][3] = {{0,0}};
@@ -52,7 +53,7 @@ int axi_symm = 0;            //FALSE: PLAIN STRAIN
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
 #else
 double x_[m_nodxelem][m_dim] = {{0.0,0.0,0.0},{0.1,0.0,0.0},{0.1,0.1,0.0},{0.0,0.1,0.0},
-                                {0.0,0.0,0.1},{0.1,0.0,0.1},{0.1,0.1,0.1},{0.0,0.1,0.1},};
+                                {0.0,0.0,0.1},{0.1,0.0,0.1},{0.1,0.1,0.1},{0.0,0.1,0.1}};
 #endif
 
 double v_[m_nodxelem][m_dim];
@@ -111,13 +112,15 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
     for (int i=0;i<4;i++) {
       vel[4+i][2] = -1.0;
       accel[4+i][2] = 0.0;}
-}
 
 #endif
+}
+
 
 void shape_functions(double gauss_points[1][3], double N[m_nodxelem], double dNdX_[m_dim][m_nodxelem]) {
     double xi, eta, t;
     xi = gauss_points[0][0];    eta = gauss_points[0][1];
+
 #ifdef BIDIM
     N[0] = (1 - xi) * (1 - eta) / 4;
     N[1] = (1 + xi) * (1 - eta) / 4;

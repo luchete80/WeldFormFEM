@@ -187,7 +187,8 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
 }
 
 	__spec Matrix & Matrix::Mul(const double &f) {
-  for (int i=0;i<m_row*m_col;i++) m_data[i] *= f;
+    for (int i=0;i<m_row*m_col;i++) m_data[i] *= f;
+      
   return *this;
 }
 
@@ -301,7 +302,8 @@ __spec Matrix Matrix::Inv(){
     cofactor->Transpose();
     //printf ("COFACTOR: \n");
     cofactor->Print();
-    invA = cofactor->Mul(1.0/this->calcDet());
+    double f = 1.0/this->calcDet();
+    invA = cofactor->Mul(f);
     //printf("INVA\n");
     invA.Print();
     //for (int i=0;i<cofactor->m_row*cofactor->m_col;i++) invA->m_data[i] = cofactor->Mul(1.0/A.calcDet()).m_data[i];
