@@ -9,6 +9,8 @@
 #include  "Domain_d.h"
 
 using namespace std;
+
+//// IF YOU WANYT 2D
 //#define BIDIM 
 
 #ifdef BIDIM
@@ -41,8 +43,8 @@ double element_length = 1.0; // Length of the element
 int axi_symm = 0;            //FALSE: PLAIN STRAIN
   
 
-//if dim == 2
-#if BIDIM
+
+#ifdef BIDIM
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
 #else
 double x_[m_nodxelem][m_dim] = {{0.0,0.0,0.0},{0.1,0.0,0.0},{0.1,0.1,0.0},{0.0,0.1,0.0},
@@ -228,10 +230,18 @@ void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim]
 
 void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_dim]){
 
-  double Sig [4][4] = {{1.,-1.,1.,-1.}, {1.,-1.,1.,-1.},{1.,-1.,1.,-1.},{1.,-1.,1.,-1.}};
+#ifdef BIDIM
+  double Sig [4][4] = {{1.,-1.,1.,-1.}};
   double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
-  int jmax = 4;
-
+  int jmax = 1;
+#else
+  double Sig [4][8] = {{ 1., 1.,-1.,-1.,-1.,-1., 1., 1.}, 
+                       { 1.,-1.,-1., 1.,-1., 1., 1.,-1.},
+                       { 1.,-1., 1.,-1., 1.,-1., 1.,-1.}, 
+                       {-1., 1.,-1., 1., 1.,-1., 1.,-1.}};
+  double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
+  int jmax = 1;
+#endif
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
