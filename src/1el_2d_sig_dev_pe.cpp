@@ -8,6 +8,8 @@
 #include "Matrix_temp.h"
 #include  "Domain_d.h"
 
+#include "tensor.cuh"
+
 using namespace std;
 
 //// IF YOU WANYT 2D
@@ -211,6 +213,13 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
             printf("\n");
         }
     }
+    // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+
+    // stress[0][0][0]=Sigma.xx;    stress[0][1][1]=Sigma.yy;    stress[0][2][2]=Sigma.zz;              
+    // stress[0][0][1]=stress[0][1][0]=Sigma.xy;    
+    // stress[0][1][2]=stress[0][2][1]=Sigma.yz;    
+    // stress[0][0][2]=stress[0][2][0]=Sigma.xz; 
+    // print(Sigma);    
 }
 
 void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim][m_nodxelem], double forces[m_nodxelem][m_dim]) {
@@ -325,11 +334,20 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
                 v_[i][j] += (1.0 - m_gamma) * dt * prev_a[i][j];
+                
+                //v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[i][j];
             }
         }
 
         impose_bc(v_, a_);
         calcElemJAndDerivatives();
+
+        calcElemStrainRates();
+        //calcElemDensity();
+        calcElemPressure();
+        CalcStressStrain(dt);
+
+
         //calc_jacobian(x_, J);
 
         calc_str_rate(dNdX, v_, str_rate, rot_rate);
