@@ -9,13 +9,19 @@
 #include  "Domain_d.h"
 
 using namespace std;
+//#define BIDIM 
 
+#ifdef BIDIM
 #define m_dim 2
 #define m_nodxelem 4
 #define m_gp_count 1
+#else
 
+#define m_dim 3
+#define m_nodxelem 8
+#define m_gp_count 1
 
-
+#endif
 
 //double tf = 1.0e-3;
 
@@ -35,8 +41,14 @@ double element_length = 1.0; // Length of the element
 int axi_symm = 0;            //FALSE: PLAIN STRAIN
   
 
-
+//if dim == 2
+#if BIDIM
 double x_[m_nodxelem][m_dim] = {{0.0,0.0},{0.1,0.0},{0.1,0.1},{0.0,0.1}};
+#else
+double x_[m_nodxelem][m_dim] = {{0.0,0.0,0.0},{0.1,0.0,0.0},{0.1,0.1,0.0},{0.0,0.1,0.0},
+                                {0.0,0.0,0.1},{0.1,0.0,0.1},{0.1,0.1,0.1},{0.0,0.1,0.1},};
+#endif
+
 double v_[m_nodxelem][m_dim];
 double a_[m_nodxelem][m_dim];
 double u[m_nodxelem][m_dim];
@@ -67,6 +79,9 @@ double stress[m_gp_count][3][3];
 double radius[m_gp_count];
     double J[m_gp_count][2][2];
 
+#ifdef BIDIM
+//if dim == 2
+
 void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
     vel[2][1] = vel[3][1] = -1.0;
     vel[0][0] = vel[0][1] = vel[1][1] = 0.0;
@@ -76,6 +91,22 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
 }
 
 
+#else
+void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
+
+    vel[0][0] = vel[0][1] = vel[0][2] = 0.0;
+    
+    vel[1][1] = 0.0;
+    vel[1][2] = 0.0;
+
+    vel[2][0] = accel[2][0] =0.0;
+    vel[2][2] = 0.0;
+    
+    accel[3][2] = accel[3][2] = 0.0;
+    for (int i=0;i<4;i++) {vel[4+i][2] = -1.0;}
+}
+
+#endif
 double calc_vol() {
     double vol = 0.0;
     for (int gp = 0; gp < m_gp_count; gp++) {
@@ -92,7 +123,7 @@ void velocity_gradient_tensor(double dNdX[m_gp_count][m_dim][m_nodxelem], double
                 for (int k = 0; k < m_nodxelem; k++) {
                     //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
                     grad_v[gp][I][J] += getDerivative(0,gp,J,k) * vel[k][I]/m_detJ[gp];
-                //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
                 }
 
             }
@@ -111,8 +142,8 @@ void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxel
                 rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
             }
         }
-        str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
-        str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
+        // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
+        // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
     }
 }
 
@@ -374,9 +405,12 @@ int main() {
   double3 V = make_double3(0.0,0.0,0.0);
   double dx = 0.1;
 	double3 L = make_double3(dx,dx,0.0);
-
-
-  if (m_dim ==2) L.z = 0.0;
+  
+  #ifdef BIDIM
+  L.z = 0.0;
+  #else
+  L.z = dx;    
+  #endif
 	double r = 0.05;
 	
 	dom_d->AddBoxLength(V,L,r,true);
