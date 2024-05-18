@@ -11,7 +11,7 @@
 using namespace std;
 
 //// IF YOU WANYT 2D
-#define BIDIM 
+//#define BIDIM 
 
 
 #ifdef BIDIM
@@ -116,94 +116,6 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
 #endif
 }
 
-
-void shape_functions(double gauss_points[1][3], double N[m_nodxelem], double dNdX_[m_dim][m_nodxelem]) {
-    double xi, eta, t;
-    xi = gauss_points[0][0];    eta = gauss_points[0][1];
-
-#ifdef BIDIM
-    N[0] = (1 - xi) * (1 - eta) / 4;
-    N[1] = (1 + xi) * (1 - eta) / 4;
-    N[2] = (1 + xi) * (1 + eta) / 4;
-    N[3] = (1 - xi) * (1 + eta) / 4;
-
-    dNdX_[0][0] = -(1 - eta) / 4;
-    dNdX_[0][1] = (1 - eta) / 4;
-    dNdX_[0][2] = (1 + eta) / 4;
-    dNdX_[0][3] = -(1 + eta) / 4;
-
-    dNdX_[1][0] = -(1 - xi) / 4;
-    dNdX_[1][1] = -(1 + xi) / 4;
-    dNdX_[1][2] = (1 + xi) / 4;
-    dNdX_[1][3] = (1 - xi) / 4;
-#else
-    t = gauss_points[0][2];
-    dNdX_[0][0] = -(1 - eta) / 8;
-    dNdX_[0][1] = (1 - eta) / 8;
-    dNdX_[0][2] = (1 + eta) / 8;
-    dNdX_[0][3] = -(1 + eta) / 8;
-
-    dNdX_[1][0] = -(1 - xi) / 8;
-    dNdX_[1][1] = -(1 + xi) / 8;
-    dNdX_[1][2] = (1 + xi) / 8;
-    dNdX_[1][3] = (1 - xi) / 8;  
-
-
-#endif
-}
-
-void calc_jacobian(double pos[m_nodxelem][m_dim], double J[m_gp_count][2][2]) {
-    double N[m_nodxelem];
-    double dNdX_[m_dim][m_nodxelem];
-    double xi, eta;
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        shape_functions(gauss_points, N, dNdX_);        
-        for (int i = 0; i < m_dim; i++) {
-            for (int j = 0; j < m_dim; j++) {
-                J[gp][i][j] = 0.0;
-                for (int k = 0; k < m_nodxelem; k++) {
-                    J[gp][i][j] += dNdX_[i][k] * pos[k][j];
-                      
-        // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
-        // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)                
-                
-  
-                    // printf("pos %.6e", pos[k][j]);
-                    // printf ("J %.6e", J[gp][i][j]);
-                }
-            }
-        }
-        //1gp
-        // for (int i = 0; i < m_dim; i++){
-          // J[gp][0][i] = 0.25*(-pos[0][i]+pos[1][i]+pos[2][i]-pos[3][i]);
-          // J[gp][1][i] = 0.25*(-pos[0][i]-pos[1][i]+pos[2][i]+pos[3][i]);                     
-        // }
-        // printf ("J %.6e %.6e \n %.6e %.6e\n", J[gp][0][0], J[gp][0][1], J[gp][1][0], J[gp][1][1] );
-        double adJ[2][2]; 
-        adJ[0][0]= J[gp][1][1];adJ[1][1]= J[gp][0][0];
-        adJ[0][1]=-J[gp][0][1];adJ[1][0]=-J[gp][1][0];
-        
-        m_detJ[gp] = J[gp][0][0] * J[gp][1][1] - J[gp][0][1] * J[gp][1][0];
-        for (int i = 0; i < m_dim; i++) {
-            for (int j = 0; j < m_dim; j++) {
-                  invJ[gp][i][j] = 1.0/m_detJ[gp]*adJ[i][j];
-            }
-        }
-
-        for (int i = 0; i < m_dim; i++) {
-            for (int j = 0; j < m_nodxelem; j++) {
-              dNdX[gp][i][j] = 0.0;
-              for (int k = 0; k < m_dim; k++) 
-                dNdX[gp][i][j] += invJ[gp][i][k]*dNdX_[k][j];
-              printf("deriv %6e",dNdX[gp][i][j]);
-            }
-
-        }                
-        
-        
-        //printf ("detJ %.6e\n", detJ[gp]);
-    }
-}
 
 double calc_vol() {
     double vol = 0.0;
@@ -340,7 +252,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
                        { 1.,-1., 1.,-1., 1.,-1., 1.,-1.}, 
                        {-1., 1.,-1., 1., 1.,-1., 1.,-1.}};
   double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
-  int jmax = 1;
+  int jmax = 8;
 #endif
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
