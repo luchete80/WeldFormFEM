@@ -161,6 +161,7 @@ void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxel
             for (int j = 0; j < m_dim; j++) {
                 str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
                 rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
+                printf("str rate %e", str_rate[gp][i][j]);
             }
         }
         // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
@@ -303,8 +304,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    //double tf = 0.8e-5;
-    double tf = 1.0e-3;
+    double tf = 0.8e-5;
+    //double tf = 1.0e-3;
     mat_G = E / (2.0 * (1 + nu));
     K_mod = E / (3.0 * (1.0 - 2.0 * nu));
 

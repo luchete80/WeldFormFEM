@@ -76,9 +76,9 @@ void impose_bc() {
     v[m_dim*3+2] = 0.0; a[m_dim*3+2] = 0.0;
     
     
-    for (int i=0;i<4;i++) {
-      v[4+i+2] = -1.0;
-      a[4+i+2] = 0.0;}
+    for (int i=4;i<8;i++) {
+      v[m_dim*i+2] = -1.0;
+      a[m_dim*i+2] = 0.0;}
 
 #endif
 }
@@ -125,6 +125,32 @@ double calc_vol() {
     return vol;
 }
 
+// void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_gp_count][3][3]) {
+
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int i = 0; i < 3; i++) {
+            // for (int j = 0; j < 3; j++) {
+                // strain[gp][i][j] = dt * str_rate[gp][i][j];
+
+            // }
+        // }
+    // }
+// }
+
+// void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_count][3][3], double pres[m_gp_count]) {
+    // double pi_ = 0.0;
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int i = 0; i < 3; i++) {
+            // pi_ += dstr[gp][i][i];
+        // }
+    // }
+    // pi_ = -pi_ / m_gp_count;
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
+        // //printf("pres %e ",pres[gp]);
+    // }
+    
+// }
 
   void Solve() {
     double t = 0.0;
@@ -153,7 +179,9 @@ double calc_vol() {
     double nod_mass = vol_0 * rho[0] / m_nodxelem;
     cout << "nodal mass "<< nod_mass <<endl;
     
-
+        for (int i = 0; i < m_nodxelem; i++) 
+            for (int j = 0; j < m_dim; j++)   
+               prev_a[m_dim*i+j] = 0.0;
 
     double rho_b = 0.8182;
     m_alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
@@ -178,7 +206,7 @@ double calc_vol() {
                 //v_[i][j] += (1.0 - m_gamma) * dt * prev_a_[i][j];
                 
                 v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                
-
+                printf("v %e",v[m_dim*i+j] );
             }
         }
 
