@@ -55,6 +55,7 @@ double element_length = 1.0; // Length of the element
 int axi_symm = 0;            //FALSE: PLAIN STRAIN
   
 
+tensor3 Sigma_tst;
 
 void impose_bc() {
 #ifdef BIDIM
@@ -183,6 +184,7 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
                 dev(str_rate[gp],d);
                 tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
                 stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
+                //Sigma_tst->Set
                 printf ("stress %e",stress[gp][i][j]);
             }
             printf("\n");
