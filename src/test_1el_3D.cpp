@@ -34,6 +34,9 @@ double gauss_weights[m_gp_count] = {8.};
 
 //double tf = 1.0e-3;
 
+double str_rate[m_gp_count][3][3];
+double rot_rate[m_gp_count][3][3];
+
 
 using namespace MetFEM;
 class domain_test:
@@ -78,6 +81,39 @@ void impose_bc() {
       a[4+i+2] = 0.0;}
 
 #endif
+}
+
+void velocity_gradient_tensor(double grad_v[m_nodxelem][m_dim][m_dim]) {
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int I = 0; I < m_dim; I++) {
+            for (int J = 0; J < m_dim; J++){ 
+                grad_v[gp][I][J] = 0.0;
+                for (int k = 0; k < m_nodxelem; k++) {
+                    //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
+                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * v[k*m_dim+I]/m_detJ[gp];
+                    //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                }
+
+            }
+        }
+    }
+    
+}
+
+void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count][3][3]) {
+    double grad_v[m_nodxelem][m_dim][m_dim];
+    velocity_gradient_tensor( grad_v);
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < m_dim; i++) {
+            for (int j = 0; j < m_dim; j++) {
+                str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
+                rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
+                printf("str rate %e", str_rate[gp][i][j]);
+            }
+        }
+        // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
+        // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
+    }
 }
 
 
@@ -157,13 +193,13 @@ double calc_vol() {
         calcElemForces();
         calcElemHourglassForces();
 
-        tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+        tensor3 Sigma = FromFlatSym(m_str_rate,          0 );    
 
         print(Sigma); 
     
         //calc_jacobian(x_, J);
         
-        // calc_str_rate(dNdX, v, str_rate, rot_rate);
+        calc_str_rate(str_rate,rot_rate);
         // double str_inc[m_nodxelem][3][3];
         // calc_strain(str_rate, dt, str_inc);
 
