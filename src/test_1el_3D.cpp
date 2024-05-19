@@ -136,9 +136,11 @@ void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_g
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 strain[gp][i][j] = dt * str_rate[gp][i][j];
-
+                printf("strain %e",strain[gp][i][j]);
             }
+          printf("\n");
         }
+        
     }
 }
 
@@ -149,6 +151,7 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
             pi_ += dstr[gp][i][i];
         }
     }
+    printf ("K %e",K_);
     pi_ = -pi_ / m_gp_count;
     for (int gp = 0; gp < m_gp_count; gp++) {
         pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
@@ -156,6 +159,113 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
     }
     
 }
+
+
+void dev(double t[3][3], double dev[3][3]) {
+    for (int i = 0; i < 3; i++) 
+        for (int j = 0; j < 3; j++) 
+          dev[i][j]= t[i][j]- 1.0 / 3.0 * (t[0][0] + t[1][1] + t[2][2])*(i==j);
+    
+}
+
+void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count][3][3], double tau[m_gp_count][3][3], double p[m_gp_count], double dt, double stress[m_gp_count][3][3]) {
+    double srt[m_gp_count][3][3];
+    double rs[m_gp_count][3][3];
+    double d[3][3];
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                srt[gp][i][j] = rs[gp][i][j] = 0.0;
+                for (int k=0;k<m_dim;k++){
+                  srt[gp][i][j] += tau[gp][i][k] * rot_rate[gp][j][k];
+                  rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
+                }
+                dev(str_rate[gp],d);
+                tau[gp][i][j] += dt * ((2.0 * mat_G *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
+                stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
+                //printf ("stress %e",stress[gp][i][j]);
+            }
+            printf("\n");
+        }
+    }
+    // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+
+    // stress[0][0][0]=Sigma.xx;    stress[0][1][1]=Sigma.yy;    stress[0][2][2]=Sigma.zz;              
+    // stress[0][0][1]=stress[0][1][0]=Sigma.xy;    
+    // stress[0][1][2]=stress[0][2][1]=Sigma.yz;    
+    // stress[0][0][2]=stress[0][2][0]=Sigma.xz; 
+    // print(Sigma);    
+}
+
+void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim][m_nodxelem], double forces[m_nodxelem][m_dim]) {
+    double B[m_dim][m_nodxelem];
+    #ifdef BIDIMM
+    double s2[2][2];
+    #else
+    double s2[3][3];      
+    #endif
+    
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < m_dim; i++) 
+            for (int j = 0; j < m_dim; j++) 
+              s2[i][j]=stress[gp][i][j];
+
+        for (int i = 0; i < m_nodxelem; i++) {
+            for (int j = 0; j < m_dim; j++) {
+              forces[i][j] = 0.0;
+              for (int k = 0; k < m_dim; k++) 
+                //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
+                forces[i][j] += getDerivative(0,gp,k,i) * s2[k][j]/**m_detJ[gp]*/ * gauss_weights[gp];
+              
+              //printf ("forces %e",forces[i][j]);
+            }
+        }
+        
+    }
+}
+
+void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_dim]){
+
+#ifdef BIDIM
+  double Sig [4][4] = {{1.,-1.,1.,-1.}};
+  double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
+  int jmax = 1;
+#else
+  double Sig [4][8] = {{ 1., 1.,-1.,-1.,-1.,-1., 1., 1.}, 
+                       { 1.,-1.,-1., 1.,-1., 1., 1.,-1.},
+                       { 1.,-1., 1.,-1., 1.,-1., 1.,-1.}, 
+                       {-1., 1.,-1., 1., 1.,-1., 1.,-1.}};
+  double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
+  int jmax = 8;
+#endif
+  for (int j = 0; j < jmax; j++) 
+    for (int i = 0; i < m_nodxelem; i++) 
+      for (int d = 0; d < m_dim; d++) {
+        hmod[d][j] +=v[i*m_dim+d]*Sig[j][i];
+        //printf("hmod: %6e", hmod[d][j]);
+      }
+
+  double ch = 0.06 * pow (vol,0.6666666) * rho * 0.25 * cs;
+  
+      for (int j = 0; j < jmax; j++) 
+        for (int i = 0; i < m_nodxelem; i++) 
+          for (int d = 0; d < m_dim; d++) 
+            fhg[i][d] -=ch*hmod[d][j]*Sig[j][i];
+  
+
+  
+  // for gp in range(len(gauss_points)):
+    // for j in range(jmax):
+      // for n in range(m_nodxelem):
+        // hmod[:,j] +=v[n,:]*Sig[j,n]
+  // for j in range(jmax):
+    // for n in range(m_nodxelem):
+      // f_[n,:] -=hmod[:,j]*Sig[j,n] 
+  // ch = 0.06 * pow (vol,0.66666) * rho * 0.25 * cs
+
+  // f_ *= ch
+}
+
 
   void Solve() {
     double t = 0.0;
@@ -168,7 +278,8 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
     printf("Imposing bc..\n");
     impose_bc();
     printf("Done");
-
+  AssignMatAddress();
+  
     calcElemJAndDerivatives();
   CalcElemInitialVol(); //ALSO CALC VOL
 
