@@ -436,8 +436,6 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         calcElemPressure(); //CRASHES IN 2D
         printf("pressure %e\n",p[0]);
         CalcStressStrain(dt);
-        // calcElemForces();
-        // calcElemHourglassForces();
 
         // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
         // cout << "Sigma Tensor\n"<<endl;
@@ -452,7 +450,11 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         calc_pressure(K_mod, str_inc, stress, pres);
         
         calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
-        
+ 
+        //NOT WORKING
+        calcElemForces();
+        calcElemHourglassForces();
+ 
         
          //calc_forces(stress, a);
          calc_forces2(stress, a);
@@ -471,13 +473,13 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
                 int ig = i*m_dim + j;
-                a[ig] = (-a[ig] + m_f_elem_hg[ig])/ nod_mass  - m_alpha * prev_a[ig];
+                //a[ig] = (-a[ig] + m_f_elem_hg[ig])/ nod_mass  - m_alpha * prev_a[ig];
                 // a_[i][j] /= (1.0 - m_alpha);
                 // v_[i][j] += m_gamma * dt * a_[i][j];
   
 
                 printf ("force ELEMENT %6e ",m_f_elem[ig]);
-                //a[ig] = (-m_f_elem[ig] /*+ m_f_elem_hg[ig]*/)/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
+                a[ig] = (-m_f_elem[ig] + m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
                 
                 printf ("hg f: %e ", m_f_elem_hg[ig]);
                 a[ig] /= (1.0-m_alpha);
