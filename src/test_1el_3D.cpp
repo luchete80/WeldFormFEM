@@ -120,6 +120,12 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
         // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
         // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
     }
+
+    // m_str_rate[0]=stress[0][0][0];     m_str_rate[1]=stress[0][1][1];    m_str_rate[2]=stress[0][2][2];  
+    // m_str_rate[3]=stress[0][0][1];     m_str_rate[4]=stress[0][1][2];    m_str_rate[5]=stress[0][0][2];  
+    // m_rot_rate[0]=stress[0][0][0];     m_rot_rate[1]=stress[0][1][1];    m_rot_rate[2]=stress[0][2][2];  
+    // m_rot_rate[3]=stress[0][0][1];     m_rot_rate[4]=stress[0][1][2];    m_rot_rate[5]=stress[0][0][2];  
+
 }
 
 
@@ -190,6 +196,11 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
             printf("\n");
         }
     }
+    
+    m_sigma[0]=stress[0][0][0];     m_sigma[1]=stress[0][1][1];    m_sigma[2]=stress[0][2][2];  
+    m_sigma[3]=stress[0][0][1];     m_sigma[4]=stress[0][1][2];    m_sigma[5]=stress[0][0][2];  
+    
+    
     // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
 
     // stress[0][0][0]=Sigma.xx;    stress[0][1][1]=Sigma.yy;    stress[0][2][2]=Sigma.zz;              

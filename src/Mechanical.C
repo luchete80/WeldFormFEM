@@ -154,10 +154,6 @@ dev_t void Domain_d::calcElemStrainRates(){
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
         rot_rate->Set(0,1, rot_rate->getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
-        // elem%str_rate(e,gp, 1,2) = elem%str_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) &!!!!dvx/dy
-                                   // + temp(1,n) * elem%vele (e,dim*(n-1)+2,1)
-        // elem%rot_rate(e,gp, 1,2) = elem%rot_rate(e,gp, 1,2) + temp(2,n)* elem%vele (e,dim*(n-1)+1,1) & !!!!dvx/dx
-                                   // - temp(1,n) * elem%vele (e,dim*(n-1)+2,1)                           !!!!
         if (m_dim == 3) {
           str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
@@ -174,9 +170,13 @@ dev_t void Domain_d::calcElemStrainRates(){
         }// end if     
       }// end do !Nod x elem
       //printf ("test %fn", test);
-
-      str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
-      rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
+      str_rate->Set(0,1, str_rate->getVal(0,1) *0.5);
+      str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  
+      str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
+      
+      rot_rate->Set(0,1, rot_rate->getVal(0,1) *0.5);
+      rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  
+      rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
       
 
       str_rate->Set(2,1,  str_rate->getVal(1,2));  str_rate->Set(2,0,  str_rate->getVal(0,2)); 
