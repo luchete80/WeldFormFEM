@@ -270,8 +270,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    double tf = 0.8e-5;
-    //double tf = 1.0e-3;
+    //double tf = 0.8e-5;
+    double tf = 1.0e-3;
 
 
     
@@ -371,7 +371,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   
                 int ig = i*m_dim + j;
                 printf ("force ELEMENT %6e ",m_f_elem[ig]);
-                a[ig] = m_f_elem[ig] / nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
+                a[ig] = (-m_f_elem[ig] +m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
                 a[ig] /= (1.0-m_alpha);
                 v[ig] += m_gamma * dt * a[ig];
                 
