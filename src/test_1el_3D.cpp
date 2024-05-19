@@ -210,6 +210,37 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
     // print(Sigma);    
 }
 
+
+dev_t void CalcStressStrain3(const double dt){
+
+    // double srt[m_gp_count][3][3];
+    // double rs[m_gp_count][3][3];
+    // double d[3][3];
+    // double tau[3][3];
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int i = 0; i < 3; i++) {
+            // for (int j = 0; j < 3; j++) {
+                // srt[gp][i][j] = rs[gp][i][j] = 0.0;
+                // for (int k=0;k<m_dim;k++){
+                  // srt[gp][i][j] += tau[gp][i][k] * rot_rate[gp][j][k];
+                  // rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
+                // }
+                // dev(str_rate[gp],d);
+                // tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
+                // stress[i][j] = tau[i][j] - p[gp] * (i == j);
+                // //Sigma_tst->Set
+                // printf ("stress %e",stress[gp][i][j]);
+            // }
+            // printf("\n");
+        // }
+    // }
+    
+    // m_sigma[0]=stress[0][0];     m_sigma[1]=stress[1][1];    m_sigma[2]=stress[2][2];  
+    // m_sigma[3]=stress[0][1];     m_sigma[4]=stress[1][2];    m_sigma[5]=stress[0][2];  
+    
+    
+}
+
 void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
 #ifdef BIDIM

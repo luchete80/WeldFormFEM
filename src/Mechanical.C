@@ -582,6 +582,11 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
 
       ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS);
+      //printf("Shear Stress\n");
+      //print(ShearStress);
+      // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+                                   // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
+                                   // +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
@@ -603,29 +608,35 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
  
 }
 
+
 // dev_t void Domain_d::CalcStressStrain(const double dt){
 
-    // double srt[3][3];
-    // double rs[3][3];
+    // double srt[m_gp_count][3][3];
+    // double rs[m_gp_count][3][3];
     // double d[3][3];
+    // double tau[3][3];
     // for (int gp = 0; gp < m_gp_count; gp++) {
         // for (int i = 0; i < 3; i++) {
             // for (int j = 0; j < 3; j++) {
-                // srt[i][j] = rs[i][j] = 0.0;
+                // srt[gp][i][j] = rs[gp][i][j] = 0.0;
                 // for (int k=0;k<m_dim;k++){
-                  // srt[i][j] += tau[i][k] * rot_rate[j][k];
-                  // rs[i][j] += rot_rate[gp][i][k] * tau[k][j];
+                  // srt[gp][i][j] += tau[gp][i][k] * rot_rate[gp][j][k];
+                  // rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
                 // }
                 // dev(str_rate[gp],d);
                 // tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
-                // stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
+                // stress[i][j] = tau[i][j] - p[gp] * (i == j);
                 // //Sigma_tst->Set
                 // printf ("stress %e",stress[gp][i][j]);
             // }
             // printf("\n");
         // }
     // }
-
+    
+    // m_sigma[0]=stress[0][0];     m_sigma[1]=stress[1][1];    m_sigma[2]=stress[2][2];  
+    // m_sigma[3]=stress[0][1];     m_sigma[4]=stress[1][2];    m_sigma[5]=stress[0][2];  
+    
+    
 // }
 
 // //////////////////////////////////////////////////////////////////////
