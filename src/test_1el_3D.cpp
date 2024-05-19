@@ -227,6 +227,8 @@ void calc_forces(double stress[m_nodxelem][3][3], double *forces) {
     }
 }
 
+
+///////////////// THIS IS NOT WORKING
 void calc_forces2(double stress[m_nodxelem][3][3], double *m_f_elem) {
     double B[m_dim][m_nodxelem];
     #ifdef BIDIMM
@@ -274,6 +276,8 @@ void calc_forces2(double stress[m_nodxelem][3][3], double *m_f_elem) {
         
 }
 
+
+//THIS WORKS
 void calc_forces3(double stress[m_nodxelem][3][3], double *forces) {
     double B[m_dim][m_nodxelem];
     #ifdef BIDIMM
@@ -440,7 +444,7 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         
         
          //calc_forces(stress, a);
-         calc_forces3(stress, a);
+         calc_forces2(stress, a);
          calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
         
         // cout << "rho "<<rho<<"cs "<<mat_cs<<endl;

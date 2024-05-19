@@ -394,6 +394,18 @@ dev_t void Domain_d::calcElemForces(){
 
         
       }// nod x elem
+      
+      /// TO REPLACE EASIER!!!!!!
+        // for (int i = 0; i < m_nodxelem; i++) {
+            // for (int j = 0; j < m_dim; j++) {
+              // m_f_elem[m_dim*i+j] = 0.0;
+              // for (int k = 0; k < m_dim; k++) 
+                // //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
+                // m_f_elem[m_dim*i+j] += getDerivative(e,gp,k,i) * getSigma(e,gp,k,j)/**m_detJ[gp]*/ ;
+              
+              // //printf ("forces %e",forces[i][j]);
+            // }
+        // }
 
     } // Gauss Point
     for (int n=0; n<m_nodxelem;n++) {
