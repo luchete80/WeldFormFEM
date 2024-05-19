@@ -209,7 +209,87 @@ void calc_forces(double stress[m_nodxelem][3][3], double *forces) {
         for (int i = 0; i < m_dim; i++) 
             for (int j = 0; j < m_dim; j++) 
               s2[i][j]=stress[gp][i][j];
+              //s2[i][j] = getSigma(0,0,i,j);
 
+        for (int i = 0; i < m_nodxelem; i++) {
+            for (int j = 0; j < m_dim; j++) {
+              forces[m_dim*i+j] = 0.0;
+              for (int k = 0; k < m_dim; k++) 
+                //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
+                forces[m_dim*i+j] += getDerivative(0,gp,k,i) * s2[k][j]/**m_detJ[gp]*/ * gauss_weights[gp];
+              
+              //printf ("forces %e",forces[i][j]);
+            }
+        }
+        
+    }
+}
+
+void calc_forces2(double stress[m_nodxelem][3][3], double *m_f_elem) {
+    double B[m_dim][m_nodxelem];
+    #ifdef BIDIMM
+    double s2[2][2];
+    #else
+    double s2[3][3];      
+    #endif
+    int offset = 0;
+    for (int n=0; n<m_nodxelem;n++) 
+      for (int d=0;d<m_dim;d++)
+        m_f_elem[offset + n*m_dim + d] = 0.0;
+      
+    tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+
+
+    for (int i = 0; i < m_nodxelem; i++) {
+        for (int j = 0; j < m_dim; j++) {
+          m_f_elem[m_dim*i+j] = 0.0;
+          for (int k = 0; k < m_dim; k++) 
+            //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
+            m_f_elem[m_dim*i+j] += getDerivative(0,0,k,i) * getSigma(0,0,k,j)/**m_detJ[gp]*/ * gauss_weights[0];
+        }
+    }
+      // for (int n=0; n<m_nodxelem;n++) {
+        // for (int d=0;d<m_dim;d++){
+          // m_f_elem[offset + n*m_dim + d] += getDerivative(0,0,d,n) * getSigma(0,0,d,d);
+        // }
+      // }
+    
+    // for (int n=0; n<m_nodxelem;n++) {
+        // if (m_dim == 2){
+          // m_f_elem[offset + n*m_dim    ] +=  getDerivative(0,0,1,n) * getSigma(0,0,0,1);
+          // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(0,0,0,n) * getSigma(0,0,0,1);
+        // } else {
+          // //printf("offset %d\n", offset + n*m_dim    );
+          // //printf ("sigma 0 1 %f\n", getSigma(0,0,0,1));
+          // m_f_elem[offset + n*m_dim    ] +=  getDerivative(0,0,1,n) * getSigma(0,0,0,1) +
+                                             // getDerivative(0,0,2,n) * getSigma(0,0,0,2);
+          // m_f_elem[offset + n*m_dim + 1] +=  getDerivative(0,0,0,n) * getSigma(0,0,0,1) + 
+                                             // getDerivative(0,0,2,n) * getSigma(0,0,1,2);        
+          // m_f_elem[offset + n*m_dim + 2] +=  getDerivative(0,0,1,n) * getSigma(0,0,1,2) + 
+                                             // getDerivative(0,0,0,n) * getSigma(0,0,0,2);     
+        // }
+    // }
+        
+}
+
+void calc_forces3(double stress[m_nodxelem][3][3], double *forces) {
+    double B[m_dim][m_nodxelem];
+    #ifdef BIDIMM
+    double s2[2][2];
+    #else
+    double s2[3][3];      
+    #endif
+    
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int i = 0; i < m_dim; i++) 
+            // for (int j = 0; j < m_dim; j++) 
+              // s2[i][j]=getSigma(0,0,i,j);
+    
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < m_dim; i++) 
+            for (int j = 0; j < m_dim; j++) 
+              s2[i][j]=stress[gp][i][j];
+            
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
               forces[m_dim*i+j] = 0.0;
@@ -339,8 +419,8 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         calcElemPressure(); //CRASHES IN 2D
         printf("pressure %e\n",p[0]);
         CalcStressStrain(dt);
-        calcElemForces();
-        calcElemHourglassForces();
+        // calcElemForces();
+        // calcElemHourglassForces();
 
         // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
         // cout << "Sigma Tensor\n"<<endl;
@@ -357,8 +437,9 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
         
         
-        calc_forces(stress, a);
-        calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
+         //calc_forces(stress, a);
+         calc_forces3(stress, a);
+         calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
         
         // cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         // calc_hg_forces(rho, vol_0, mat_cs, f_hg);
@@ -379,7 +460,7 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
   
 
                 printf ("force ELEMENT %6e ",m_f_elem[ig]);
-                //a[ig] = (-m_f_elem[ig] + m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
+                //a[ig] = (-m_f_elem[ig] /*+ m_f_elem_hg[ig]*/)/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
                 
                 printf ("hg f: %e ", m_f_elem_hg[ig]);
                 a[ig] /= (1.0-m_alpha);
