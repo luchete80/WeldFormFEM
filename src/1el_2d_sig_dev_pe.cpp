@@ -58,11 +58,12 @@ double x_[m_nodxelem][m_dim] = {{0.0,0.0,0.0},{0.1,0.0,0.0},{0.1,0.1,0.0},{0.0,0
                                 {0.0,0.0,0.1},{0.1,0.0,0.1},{0.1,0.1,0.1},{0.0,0.1,0.1}};
 #endif
 
+// VARS ENDING WITH _ are element local (for test w/o assembly)
 double v_[m_nodxelem][m_dim];
 double a_[m_nodxelem][m_dim];
-double u[m_nodxelem][m_dim];
-double u_tot[m_nodxelem][m_dim] ={{0.,0.},{0.,0.},{0.,0.},{0.,0.}};
-    double prev_a[m_nodxelem][m_dim];
+double u_[m_nodxelem][m_dim];
+double u_tot_[m_nodxelem][m_dim] ={{0.,0.},{0.,0.},{0.,0.},{0.,0.}};
+double prev_a_[m_nodxelem][m_dim];
 double f_hg[m_nodxelem][m_dim];
 
 // double gauss_points[m_nodxelem][2]={{-0.577350269, -0.577350269},
@@ -97,6 +98,7 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
     accel[0][0] = accel[0][1] = accel[1][1] = 0.0;
 
 #else
+    //LOCAL CASE 
     //ELEMENT NODES; NOT GLOBAL
     vel  [0][0] = vel  [0][1] = vel  [0][2] = 0.0;
     accel[0][0] = accel[0][1] = accel[0][2] = 0.0;
@@ -109,7 +111,14 @@ void impose_bc(double vel[m_nodxelem][m_dim], double accel[m_nodxelem][m_dim]) {
     vel[3][0] = accel[3][0] =0.0;
     vel[3][2] = 0.0; accel[3][2] = 0.0;
     
-
+    
+    //// GLOBAL CASE (nodes 1 and 2 inverted)
+    // vel[2][1] = 0.0;     accel[2][2] = 0.0;
+    // vel[2][2] = 0.0;     accel[2][2] = 0.0;
+    
+    // vel[1][2] = accel[1][2] = 0.0;
+    
+    
 
     for (int i=0;i<4;i++) {
       vel[4+i][2] = -1.0;
@@ -327,26 +336,32 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         // PREDICTION PHASE
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                u[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a[i][j]);
+                u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
+                //NEW; global
+                int ig = i*m_dim + j;
+                u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
             }
         }
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                v_[i][j] += (1.0 - m_gamma) * dt * prev_a[i][j];
+                v_[i][j] += (1.0 - m_gamma) * dt * prev_a_[i][j];
                 
-                //v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[i][j];
+                v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
+                //v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                
+
             }
         }
 
         impose_bc(v_, a_);
+        for (int i = 0; i < m_nodxelem; i++) 
+            for (int j = 0; j < m_dim; j++) 
+                v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
         calcElemJAndDerivatives();
 
         calcElemStrainRates();
-        //calcElemDensity();
-        calcElemPressure();
+        calcElemPressure(); //CRASHES IN 2D
         CalcStressStrain(dt);
-
 
         //calc_jacobian(x_, J);
 
@@ -365,15 +380,23 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
         for (int i = 0; i < m_nodxelem; i++) 
           for (int j = 0; j < m_dim; j++) 
-            m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j];
+            m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j]; //LOCAL
           
         assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a[i][j];
+                a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a_[i][j];
                 a_[i][j] /= (1.0 - m_alpha);
                 v_[i][j] += m_gamma * dt * a_[i][j];
+                v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
+                
+                //GLOBAL: gives wrong results in 2D
+                ////----
+                // int ig = i*m_dim + j;
+                // a[ig] = m_fi[ig] -m_alpha * prev_a[ig]; //GLOBAL
+                // a[ig] /= (1.0-m_alpha);
+                // v[ig] += m_gamma * dt * a[ig];
             }
         }
 
@@ -381,20 +404,28 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                u[i][j] += m_beta * dt * dt * a_[i][j];
-                x_[i][j] += u[i][j];
+                u_[i][j] += m_beta * dt * dt * a_[i][j];
+                x_[i][j] += u_[i][j];
+                //x[3*i+j] += u_[i][j];
+                
+                int ig = i*m_dim + j;
+                u_dt[ig] += m_beta * dt * dt * a[ig];
+                //x[ig] += u_dt[ig];
             }
         }
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                prev_a[i][j] = a_[i][j];
+                prev_a_[i][j] = a_[i][j];
+                
+                prev_a[m_dim*i+j] = a[m_dim*i+j];
             }
         }
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                u_tot[i][j] += u[i][j];
+                u_tot_[i][j] += u_[i][j];
+                u[m_dim*i+j] += u[m_dim*i+j];
             }
         }
 
@@ -405,11 +436,19 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
      printf("\n -- DISP --\n");
     for (int i = 0; i < m_nodxelem; i++) {
         for (int j = 0; j < m_dim; j++) {
-            printf("%.6e ", u_tot[i][j]);
+            printf("%.6e ", u_tot_[i][j]);
         }
       printf("\n");
     }
 
+    printf("\n -- GLOB DISP --\n");
+    for (int i = 0; i < m_nodxelem; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            printf("%.6e ", u[m_dim*i+j]);
+        }
+      printf("\n");
+    }
+    
     for (int i = 0; i < m_nodxelem; i++) {
         for (int j = 0; j < m_dim; j++) {
             printf("%.6e ", a_[i][j]);
