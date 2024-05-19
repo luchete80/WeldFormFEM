@@ -181,7 +181,7 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
                   rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
                 }
                 dev(str_rate[gp],d);
-                tau[gp][i][j] += dt * ((2.0 * mat_G *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
+                tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
                 stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
                 printf ("stress %e",stress[gp][i][j]);
             }
@@ -224,7 +224,7 @@ void calc_forces(double stress[m_nodxelem][3][3], double *forces) {
     }
 }
 
-void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_dim]){
+void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
 #ifdef BIDIM
   double Sig [4][4] = {{1.,-1.,1.,-1.}};
@@ -238,6 +238,11 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
   int jmax = 8;
 #endif
+
+  for (int i = 0; i < m_nodxelem; i++) 
+    for (int d = 0; d < m_dim; d++) 
+      fhg[i*m_dim+d] = 0.0;
+      
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
@@ -245,12 +250,12 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         //printf("hmod: %6e", hmod[d][j]);
       }
 
-  double ch = 0.06 * pow (vol,0.6666666) * rho * 0.25 * cs;
+  double ch = 0.1 * pow (vol,0.6666666) * rho * 0.25 * cs;
   
       for (int j = 0; j < jmax; j++) 
         for (int i = 0; i < m_nodxelem; i++) 
           for (int d = 0; d < m_dim; d++) 
-            fhg[i][d] -=ch*hmod[d][j]*Sig[j][i];
+            fhg[i*m_dim+d] -=ch*hmod[d][j]*Sig[j][i];
   
 
   
@@ -337,9 +342,9 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         calcElemForces();
         calcElemHourglassForces();
 
-        tensor3 Sigma = FromFlatSym(m_str_rate,          0 );    
-
-        print(Sigma); 
+        // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+        // cout << "Sigma Tensor\n"<<endl;
+        // print(Sigma); 
     
         //calc_jacobian(x_, J);
         
@@ -350,8 +355,10 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         calc_pressure(K_mod, str_inc, stress, pres);
         
         calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
-
-        //calc_forces(stress, a);
+        
+        
+        calc_forces(stress, a);
+        calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
         
         // cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         // calc_hg_forces(rho, vol_0, mat_cs, f_hg);
@@ -365,13 +372,16 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                // a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a_[i][j];
+                int ig = i*m_dim + j;
+                a[ig] = (-a[ig] + m_f_elem_hg[ig])/ nod_mass  - m_alpha * prev_a[ig];
                 // a_[i][j] /= (1.0 - m_alpha);
                 // v_[i][j] += m_gamma * dt * a_[i][j];
   
-                int ig = i*m_dim + j;
+
                 printf ("force ELEMENT %6e ",m_f_elem[ig]);
-                a[ig] = (-m_f_elem[ig] +m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
+                //a[ig] = (-m_f_elem[ig] + m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
+                
+                printf ("hg f: %e ", m_f_elem_hg[ig]);
                 a[ig] /= (1.0-m_alpha);
                 v[ig] += m_gamma * dt * a[ig];
                 

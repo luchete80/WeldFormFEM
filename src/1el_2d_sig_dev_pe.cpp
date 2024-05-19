@@ -273,6 +273,10 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
   int jmax = 8;
 #endif
+    for (int i = 0; i < m_nodxelem; i++) 
+      for (int d = 0; d < m_dim; d++) 
+        fhg[i][d] = 0.0;
+
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
@@ -304,8 +308,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    double tf = 0.8e-5;
-    //double tf = 1.0e-3;
+    //double tf = 0.8e-5;
+    double tf = 1.0e-3;
     mat_G = E / (2.0 * (1 + nu));
     K_mod = E / (3.0 * (1.0 - 2.0 * nu));
 
@@ -377,6 +381,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         calc_forces(stress, dNdX, a_);
         
         cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
+        cout << "mat cs " <<mat_cs<<endl;
         calc_hg_forces(rho, vol_0, mat_cs, f_hg);
 
         for (int i = 0; i < m_nodxelem; i++) 
@@ -387,7 +392,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-                a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a_[i][j];
+                a_[i][j] = (-a_[i][j]+ f_hg[i][j]) / nod_mass - m_alpha * prev_a_[i][j];
+                cout << "hg force "<<f_hg[i][j]<<endl;
                 a_[i][j] /= (1.0 - m_alpha);
                 v_[i][j] += m_gamma * dt * a_[i][j];
                 v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
