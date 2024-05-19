@@ -36,6 +36,11 @@ double gauss_weights[m_gp_count] = {8.};
 
 double str_rate[m_gp_count][3][3];
 double rot_rate[m_gp_count][3][3];
+double strain[m_gp_count][3][3];
+Matrix tau_;
+double tau[m_gp_count][3][3];
+double pres[m_gp_count];
+double stress[m_gp_count][3][3];
 
 
 using namespace MetFEM;
@@ -125,32 +130,32 @@ double calc_vol() {
     return vol;
 }
 
-// void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_gp_count][3][3]) {
+void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_gp_count][3][3]) {
 
-    // for (int gp = 0; gp < m_gp_count; gp++) {
-        // for (int i = 0; i < 3; i++) {
-            // for (int j = 0; j < 3; j++) {
-                // strain[gp][i][j] = dt * str_rate[gp][i][j];
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                strain[gp][i][j] = dt * str_rate[gp][i][j];
 
-            // }
-        // }
-    // }
-// }
+            }
+        }
+    }
+}
 
-// void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_count][3][3], double pres[m_gp_count]) {
-    // double pi_ = 0.0;
-    // for (int gp = 0; gp < m_gp_count; gp++) {
-        // for (int i = 0; i < 3; i++) {
-            // pi_ += dstr[gp][i][i];
-        // }
-    // }
-    // pi_ = -pi_ / m_gp_count;
-    // for (int gp = 0; gp < m_gp_count; gp++) {
-        // pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
-        // //printf("pres %e ",pres[gp]);
-    // }
+void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_count][3][3], double pres[m_gp_count]) {
+    double pi_ = 0.0;
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < 3; i++) {
+            pi_ += dstr[gp][i][i];
+        }
+    }
+    pi_ = -pi_ / m_gp_count;
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
+        printf("pres %e ",pres[gp]);
+    }
     
-// }
+}
 
   void Solve() {
     double t = 0.0;
@@ -228,10 +233,10 @@ double calc_vol() {
         //calc_jacobian(x_, J);
         
         calc_str_rate(str_rate,rot_rate);
-        // double str_inc[m_nodxelem][3][3];
-        // calc_strain(str_rate, dt, str_inc);
-
-        // calc_pressure(K_mod, str_inc, stress, pres);
+        double str_inc[m_nodxelem][3][3];
+        calc_strain(str_rate, dt, str_inc);
+        K_mod = mat[0]->Elastic().BulkMod();
+        calc_pressure(K_mod, str_inc, stress, pres);
         
         // calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
 
@@ -244,7 +249,7 @@ double calc_vol() {
           // for (int j = 0; j < m_dim; j++) 
             // m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j]; //LOCAL
           
-        //ASSUMING LOCAL
+        //ASSUMING LOCAL;
         //assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
@@ -252,7 +257,7 @@ double calc_vol() {
                 // a_[i][j] = -a_[i][j] / nod_mass + f_hg[i][j] - m_alpha * prev_a_[i][j];
                 // a_[i][j] /= (1.0 - m_alpha);
                 // v_[i][j] += m_gamma * dt * a_[i][j];
-
+  
                 int ig = i*m_dim + j;
                 printf ("force %6e ",m_f_elem[ig]);
                 a[ig] = m_f_elem[ig] -m_alpha * prev_a[ig]; //GLOBAL
