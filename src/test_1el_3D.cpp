@@ -183,7 +183,7 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
                 dev(str_rate[gp],d);
                 tau[gp][i][j] += dt * ((2.0 * mat_G *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
                 stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
-                //printf ("stress %e",stress[gp][i][j]);
+                printf ("stress %e",stress[gp][i][j]);
             }
             printf("\n");
         }
@@ -197,7 +197,7 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
     // print(Sigma);    
 }
 
-void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim][m_nodxelem], double forces[m_nodxelem][m_dim]) {
+void calc_forces(double stress[m_nodxelem][3][3], double *forces) {
     double B[m_dim][m_nodxelem];
     #ifdef BIDIMM
     double s2[2][2];
@@ -212,10 +212,10 @@ void calc_forces(double stress[m_nodxelem][3][3], double dNdX[m_nodxelem][m_dim]
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
-              forces[i][j] = 0.0;
+              forces[m_dim*i+j] = 0.0;
               for (int k = 0; k < m_dim; k++) 
                 //forces[i][j] += dNdX[gp][k][i] * s2[k][j]*m_detJ[gp] * gauss_weights[gp];
-                forces[i][j] += getDerivative(0,gp,k,i) * s2[k][j]/**m_detJ[gp]*/ * gauss_weights[gp];
+                forces[m_dim*i+j] += getDerivative(0,gp,k,i) * s2[k][j]/**m_detJ[gp]*/ * gauss_weights[gp];
               
               //printf ("forces %e",forces[i][j]);
             }
@@ -349,9 +349,9 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         K_mod = mat[0]->Elastic().BulkMod();
         calc_pressure(K_mod, str_inc, stress, pres);
         
-        // calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
+        calc_stress2(str_rate, rot_rate, tau, pres, dt, stress);
 
-        // calc_forces(stress, dNdX, a_);
+        //calc_forces(stress, a);
         
         // cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
         // calc_hg_forces(rho, vol_0, mat_cs, f_hg);
@@ -370,8 +370,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
                 // v_[i][j] += m_gamma * dt * a_[i][j];
   
                 int ig = i*m_dim + j;
-                printf ("force %6e ",m_f_elem[ig]);
-                a[ig] = m_f_elem[ig] -m_alpha * prev_a[ig]; //GLOBAL
+                printf ("force ELEMENT %6e ",m_f_elem[ig]);
+                a[ig] = m_f_elem[ig] / nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
                 a[ig] /= (1.0-m_alpha);
                 v[ig] += m_gamma * dt * a[ig];
                 
@@ -402,7 +402,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
                 //u_tot_[i][j] += u_[i][j];
-                u[m_dim*i+j] += u[m_dim*i+j];
+                u[m_dim*i+j] += u_dt[m_dim*i+j];
             }
         }
 
