@@ -13,7 +13,7 @@
 using namespace std;
 
 //// IF YOU WANYT 2D
-//#define BIDIM 
+#define BIDIM 
 
 
 #ifdef BIDIM
