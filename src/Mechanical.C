@@ -19,152 +19,152 @@ namespace MetFEM {
   
  
 
-// dev_t void Domain_d::calcElemStrainRates(){
-  // Matrix *str_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
-  // Matrix *rot_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
-  // par_loop(e,m_elem_count){
+dev_t void Domain_d::calcElemStrainRates(){
+  Matrix *str_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
+  Matrix *rot_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
+  par_loop(e,m_elem_count){
 
-  // //Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
+  //Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
 
-// //  if (e < m_elem_count) {
-    // for (int gp=0;gp<m_gp_count;gp++){
-      // int offset = e * m_gp_count * 6 + gp;
-	  // int offset_det = e * m_gp_count;
+//  if (e < m_elem_count) {
+    for (int gp=0;gp<m_gp_count;gp++){
+      int offset = e * m_gp_count * 6 + gp;
+	  int offset_det = e * m_gp_count;
 		
-	// //printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
-      // double f = 1.0 / m_detJ[offset + gp];
-      // //printf("f factor: %f\n",f);
-      // //double test = 0.0;
-      // for (int n=0; n<m_nodxelem;n++) {
-        // // double vele[3];
-        // // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
-        // // do d=1, dim
-          // // !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
-          // // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
-          // // elem%rot_rate(e,gp, d,d) = 0.0d0
-        // // end do
-        // //test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
-        // //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
-        // // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
-        // for (int d=0;d<m_dim;d++){
-          // ////printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
+      double f = 1.0 / m_detJ[offset + gp];
+      //printf("f factor: %f\n",f);
+      //double test = 0.0;
+      for (int n=0; n<m_nodxelem;n++) {
+        // double vele[3];
+        // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
+        // do d=1, dim
+          // !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
+          // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
+          // elem%rot_rate(e,gp, d,d) = 0.0d0
+        // end do
+        //test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
+        //printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
+        // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
+        for (int d=0;d<m_dim;d++){
+          ////printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           
-          // str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
-          // // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
-          // // elem%rot_rate(e,gp, d,d) = 0.0d0
+          str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
+          // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
+          // elem%rot_rate(e,gp, d,d) = 0.0d0
           
-        // }//dim
-        // // !!!! TO AVOID ALL MATMULT
-        // str_rate->Set(0,1, str_rate->getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
-                                                       // getDerivative(e,gp,0,n) * getVElem(e,n,1)));
-        // rot_rate->Set(0,1, rot_rate->getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
-                                                       // getDerivative(e,gp,0,n) * getVElem(e,n,1)));
-        // if (m_dim == 3) {
-          // str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
-                                                         // getDerivative(e,gp,1,n) * getVElem(e,n,2)));
-          // str_rate->Set(0,2, str_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
-                                                         // getDerivative(e,gp,0,n) * getVElem(e,n,2)));
+        }//dim
+        // !!!! TO AVOID ALL MATMULT
+        str_rate->Set(0,1, str_rate->getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
+                                                       getDerivative(e,gp,0,n) * getVElem(e,n,1)));
+        rot_rate->Set(0,1, rot_rate->getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
+                                                       getDerivative(e,gp,0,n) * getVElem(e,n,1)));
+        if (m_dim == 3) {
+          str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
+                                                         getDerivative(e,gp,1,n) * getVElem(e,n,2)));
+          str_rate->Set(0,2, str_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
+                                                         getDerivative(e,gp,0,n) * getVElem(e,n,2)));
 
-          // rot_rate->Set(1,2, rot_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) -
-                                                         // getDerivative(e,gp,1,n) * getVElem(e,n,2)));
-          // rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
-                                                         // getDerivative(e,gp,0,n) * getVElem(e,n,2)));
+          rot_rate->Set(1,2, rot_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) -
+                                                         getDerivative(e,gp,1,n) * getVElem(e,n,2)));
+          rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
+                                                         getDerivative(e,gp,0,n) * getVElem(e,n,2)));
         
      
 
-        // }// end if     
-      // }// end do !Nod x elem
-      // //printf ("test %fn", test);
-      // str_rate->Set(0,1, str_rate->getVal(0,1) *0.5);
-      // str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  
-      // str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
+        }// end if     
+      }// end do !Nod x elem
+      //printf ("test %fn", test);
+      str_rate->Set(0,1, str_rate->getVal(0,1) *0.5);
+      str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  
+      str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
       
-      // rot_rate->Set(0,1, rot_rate->getVal(0,1) *0.5);
-      // rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  
-      // rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
+      rot_rate->Set(0,1, rot_rate->getVal(0,1) *0.5);
+      rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  
+      rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
       
-      // str_rate->Set(1,0,  str_rate->getVal(0,1));   
-      // str_rate->Set(2,1,  str_rate->getVal(1,2));  
-      // str_rate->Set(2,0,  str_rate->getVal(0,2));
+      str_rate->Set(1,0,  str_rate->getVal(0,1));   
+      str_rate->Set(2,1,  str_rate->getVal(1,2));  
+      str_rate->Set(2,0,  str_rate->getVal(0,2));
 
-      // rot_rate->Set(1,0, -rot_rate->getVal(0,1));      
-      // rot_rate->Set(2,1, -rot_rate->getVal(1,2));  
-      // rot_rate->Set(2,0, -rot_rate->getVal(0,2)); 
+      rot_rate->Set(1,0, -rot_rate->getVal(0,1));      
+      rot_rate->Set(2,1, -rot_rate->getVal(1,2));  
+      rot_rate->Set(2,0, -rot_rate->getVal(0,2)); 
 
-      // str_rate->ToFlatSymPtr(m_str_rate, offset);
-      // rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
+      str_rate->ToFlatSymPtr(m_str_rate, offset);
+      rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
       
-      // // printf("Strain Rate\n");
-      // // str_rate->Print();
+      // printf("Strain Rate\n");
+      // str_rate->Print();
 
-      // // printf("Rot Rate\n");
-      // // str_rate->Print();
+      // printf("Rot Rate\n");
+      // str_rate->Print();
       
-      // // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-      // // !print *, "simlpified strain rate "
+      // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
+      // !print *, "simlpified strain rate "
 
-      // //Inverse test
-      // // Matrix *test = new Matrix(3,3);
-      // // Matrix *invtest = new Matrix(3,3);
-      // // //printf("A\n");
-      // // test->Set(0,0,1);test->Set(0,1,1);test->Set(0,2,1);
-      // // test->Set(1,0,1);test->Set(1,1,2);test->Set(1,2,2);      
-      // // test->Set(2,0,1);test->Set(2,1,2);test->Set(2,2,3);
-      // // InvMat(*test,invtest);
-      // // ////printf("inv A\n");
-      // // test->Print();
-      // // invtest->Print();
-        // // delete test, invtest;
-      // } // Gauss Point
-    // }//if e<elem_count
+      //Inverse test
+      // Matrix *test = new Matrix(3,3);
+      // Matrix *invtest = new Matrix(3,3);
+      // //printf("A\n");
+      // test->Set(0,0,1);test->Set(0,1,1);test->Set(0,2,1);
+      // test->Set(1,0,1);test->Set(1,1,2);test->Set(1,2,2);      
+      // test->Set(2,0,1);test->Set(2,1,2);test->Set(2,2,3);
+      // InvMat(*test,invtest);
+      // ////printf("inv A\n");
+      // test->Print();
+      // invtest->Print();
+        // delete test, invtest;
+      } // Gauss Point
+    }//if e<elem_count
     
-    // delete str_rate,rot_rate;
-// } //calcElemStrains
+    delete str_rate,rot_rate;
+} //calcElemStrains
   
 
 
 
-dev_t void Domain_d::calcElemStrainRates(){
-    double rot_rate[1][3][3];
-    double str_rate[1][3][3];
-    double tau[1][3][3];
-    double grad_v[m_nodxelem][m_dim][m_dim];
+// dev_t void Domain_d::calcElemStrainRates(){
+    // double rot_rate[1][3][3];
+    // double str_rate[1][3][3];
+    // double tau[1][3][3];
+    // double grad_v[m_nodxelem][m_dim][m_dim];
 
-    par_loop(e,m_elem_count){
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int I = 0; I < m_dim; I++) {
-            for (int J = 0; J < m_dim; J++){ 
-                grad_v[gp][I][J] = 0.0;
-                for (int k = 0; k < m_nodxelem; k++) {
-                    //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
-                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * getVElem(e,k,I)/m_detJ[gp];
-                    //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
-                }
+    // par_loop(e,m_elem_count){
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int I = 0; I < m_dim; I++) {
+            // for (int J = 0; J < m_dim; J++){ 
+                // grad_v[gp][I][J] = 0.0;
+                // for (int k = 0; k < m_nodxelem; k++) {
+                    // //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
+                    // grad_v[gp][I][J] += getDerivative(0,gp,J,k) * getVElem(e,k,I)/m_detJ[gp];
+                    // //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                // }
 
-            }
-        }
-    }
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int i = 0; i < m_dim; i++) {
-            for (int j = 0; j < m_dim; j++) {
-                str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
-                rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
-                printf("str rate %e", str_rate[gp][i][j]);
-            }
-        }
-        // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
-        // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
-    }
-    int o = 6*e;
-    m_str_rate[o+0]=str_rate[0][0][0];     m_str_rate[o+1]=str_rate[0][1][1];    m_str_rate[o+2]=str_rate[0][2][2];  
-    m_str_rate[o+3]=str_rate[0][0][1];     m_str_rate[o+4]=str_rate[0][1][2];    m_str_rate[o+5]=str_rate[0][0][2];  
+            // }
+        // }
+    // }
+    // for (int gp = 0; gp < m_gp_count; gp++) {
+        // for (int i = 0; i < m_dim; i++) {
+            // for (int j = 0; j < m_dim; j++) {
+                // str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
+                // rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
+                // //printf("str rate %e", str_rate[gp][i][j]);
+            // }
+        // }
+        // // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
+        // // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
+    // }
+    // int o = 6*e;
+    // m_str_rate[o+0]=str_rate[0][0][0];     m_str_rate[o+1]=str_rate[0][1][1];    m_str_rate[o+2]=str_rate[0][2][2];  
+    // m_str_rate[o+3]=str_rate[0][0][1];     m_str_rate[o+4]=str_rate[0][1][2];    m_str_rate[o+5]=str_rate[0][0][2];  
 
-    m_rot_rate[o+0]=rot_rate[0][0][0];     m_rot_rate[o+1]=rot_rate[0][1][1];    m_rot_rate[o+2]=rot_rate[0][2][2];  
-    m_rot_rate[o+3]=rot_rate[0][0][1];     m_rot_rate[o+4]=rot_rate[0][1][2];    m_rot_rate[o+5]=rot_rate[0][0][2];  
+    // m_rot_rate[o+0]=rot_rate[0][0][0];     m_rot_rate[o+1]=rot_rate[0][1][1];    m_rot_rate[o+2]=rot_rate[0][2][2];  
+    // m_rot_rate[o+3]=rot_rate[0][0][1];     m_rot_rate[o+4]=rot_rate[0][1][2];    m_rot_rate[o+5]=rot_rate[0][0][2];  
     
-    } //Elem e
+    // } //Elem e
 
-}
+// }
 
 __global__ void calcElemStrainRatesKernel(Domain_d *dom_d){
 		
@@ -385,7 +385,7 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
       tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-      printf("str inc, dt %f\n", dt);print(str_inc);
+      //printf("str inc, dt %f\n", dt);print(str_inc);
       press_inc += Trace(str_inc);
     }//gauss point
     press_inc = -press_inc/m_gp_count;
@@ -886,8 +886,6 @@ dev_t void Domain_d:: calcElemHourglassForces()
         for (int j=0;j<jmax;j++)
           for (int n=0;n<m_nodxelem;n++){
             hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
-            cout << "elem "<< e<< ", node "<<n<<"vel "<<getVElem(e,n,d)<<", "<<v[m_dim*m_elnod[n]+d]<<endl;
-            cout << "elnod "<<m_elnod[e*m_nodxelem+n]<<", dim "<<d<<endl;
           }
 
       // !!!!!!!!! GOUDREAU 1982

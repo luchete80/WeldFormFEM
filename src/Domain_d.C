@@ -152,7 +152,7 @@ dev_t void Domain_d::UpdatePrediction(){
             //v_[i][j] += (1.0 - m_gamma) * dt * prev_a_[i][j];
             
             v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                
-            printf("v %e",v[m_dim*i+j] );
+            //printf("v %e",v[m_dim*i+j] );
         }
     }
 
