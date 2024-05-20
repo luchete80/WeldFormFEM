@@ -15,7 +15,6 @@ using namespace std;
 //// IF YOU WANYT 2D
 //#define BIDIM 
 
-//#define LOCAL
 
 #ifdef BIDIM
 #define m_dim 2
@@ -73,21 +72,14 @@ void impose_bc() {
     
     v  [m_dim*0+0] = v  [m_dim*0+1] = v  [m_dim*0+2] = 0.0;
     a[m_dim*0+0] = a[m_dim*0+1] = a[m_dim*0+2] = 0.0;
-
+    
+    v[m_dim*1+1] = 0.0;     a[m_dim*1+1] = 0.0;
     v[m_dim*1+2] = 0.0;     a[m_dim*1+2] = 0.0;
-    v[m_dim*1+1] = 0.0;     a[m_dim*1+1] = 0.0;    
     
-    #ifdef LOCAL
-    int nod[2]={2,3};
-    #else
-    int nod[2]={3,2};      
-    #endif 
-
-   
-    v[m_dim*nod[0]+2] = a[m_dim*nod[0]+2] = 0.0;
+    v[m_dim*2+2] = a[m_dim*2+2] = 0.0;
     
-    v[m_dim*nod[1]+0] = a[m_dim*nod[1]+0] =0.0;
-    v[m_dim*nod[1]+2] = 0.0; a[m_dim*nod[1]+2] = 0.0;
+    v[m_dim*3+0] = a[m_dim*3+0] =0.0;
+    v[m_dim*3+2] = 0.0; a[m_dim*3+2] = 0.0;
     
     
     for (int i=4;i<8;i++) {
@@ -228,7 +220,7 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
     double t = 0.0;
     dt = 0.8e-5;
     //double tf = 10*0.8e-5;
-    double tf = 1.0e-3;
+     double tf = 1.0e-3;
 
 
     
@@ -286,39 +278,46 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
         impose_bc();
 
         calcElemJAndDerivatives();
+
+
+        // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
+        // cout << "Sigma Tensor\n"<<endl;
+        // print(Sigma); 
+    
+        //calc_jacobian(x_, J);
         
         // IFNOT ASSEMBLY
-        #ifdef LOCAL
         calc_str_rate(str_rate,rot_rate);
-        #else
-        calcElemStrainRates();
-        #endif
+        //calcElemStrainRates();
         
         double str_inc[m_nodxelem][3][3];
         calc_strain(str_rate, dt, str_inc);
         K_mod = mat[0]->Elastic().BulkMod();
-
+        //calc_pressure(K_mod, str_inc, stress);
         calcElemPressure(); //CRASHES IN 2D
                 
 
+        //printf("pressure %e\n",p[0]);
         CalcStressStrain(dt);
         
         //NOT WORKING
         calcElemForces();
+        //calcElemHourglassForces();
+        //assemblyForces();
         
-        #ifdef LOCAL
-        calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
-        #else
-        calcElemHourglassForces();
-        assemblyForces();
-        #endif
+         //calc_forces(stress, a);
+         //calc_forces2(stress, a);
+         calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
         
-
-        
-
          cout << "rho "<<rho[0]<<"cs "<<mat[0]->cs0<< ", vol0' "<<vol_0<<endl;
+        // calc_hg_forces(rho, vol_0, mat_cs, f_hg);
 
-
+        // for (int i = 0; i < m_nodxelem; i++) 
+          // for (int j = 0; j < m_dim; j++) 
+            // m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j]; //LOCAL
+          
+        //ASSUMING LOCAL;
+        //assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
@@ -329,11 +328,8 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
   
 
                 //printf ("force ELEMENT %6e ",m_f_elem[ig]);
-                #ifdef LOCAL
                 a[ig] = (-m_f_elem[ig] + m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
-                #else
-                a[ig] = -m_fi[ig]/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL  
-                #endif
+                
                 printf ("hg f: %e ", m_f_elem_hg[ig]);
                 a[ig] /= (1.0-m_alpha);
                 v[ig] += m_gamma * dt * a[ig];

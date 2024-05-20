@@ -124,19 +124,39 @@ void Domain_d::setDensity(const double &r){
 
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
-    vector_t p_a = Ptr_vector_t(prev_a, n);
-    //printf ("node %d\n", n);
-    vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *p_a) ;// = dt * (getV(n) + 0.5 - m_beta);
-    ////printf("Pred: %f %f %f\n",getV(n).x,getV(n).y,getV(n).z);
-    vector_t x_ = Ptr_vector_t(x, n);
-    //vector_t_Ptr(u_+x_,x,n); //NOT UPDATE YET
-    vector_t_Ptr(u_,u_dt,n);
-    vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * p_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
-    vector_t_Ptr(v_,v,n);
-    //printf("Pred vel Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
-    //TEST ONLY----
-    //printf("Pred pos: %f %f %f\n",x_.x,x_.y,x_.z);
+    // vector_t p_a = Ptr_vector_t(prev_a, n);
+
+    // vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *p_a) ;// = dt * (getV(n) + 0.5 - m_beta);
+
+    // vector_t x_ = Ptr_vector_t(x, n);
+
+    // vector_t_Ptr(u_,u_dt,n);
+    // vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * p_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
+    // vector_t_Ptr(v_,v,n);
+
+    // PREDICTION PHASE
+
   }
+
+    for (int i = 0; i < m_node_count; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
+            //NEW; global
+            int ig = i*m_dim + j;
+            u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
+        }
+    }
+
+    for (int i = 0; i < m_node_count; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            //v_[i][j] += (1.0 - m_gamma) * dt * prev_a_[i][j];
+            
+            v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                
+            printf("v %e",v[m_dim*i+j] );
+        }
+    }
+
+
 }
 
 //////////////////////////////////////
@@ -146,29 +166,32 @@ dev_t void Domain_d::UpdatePrediction(){
 
 dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
-  par_loop (n,m_node_count){
-    //printf ("node %d\n", n);
-    //vector_t_Ptr(dt * getV(n),x,n);
-    vector_t p_a = Ptr_vector_t(prev_a, n);    
-    //printf("Node %d Prev a  %f %f %f\n",n,p_a.x,p_a.y,p_a.z);
-    //printf("Node %d Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
-    vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
+  // par_loop (n,m_node_count){
 
-    vector_t_Ptr(a_,a,n);
-    vector_t_Ptr(a_,prev_a,n);
-    vector_t v_ = getV(n) + m_gamma * dt * a_;
-    vector_t_Ptr(v_,v,n);
-    //printf("Node %d CORR VEL %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
-    //printf("Node %d Corr Acc %f %f %f\n",n,a_.x,a_.y,a_.z);
-  }
+    // vector_t p_a = Ptr_vector_t(prev_a, n);    
 
-	// !$omp parallel do num_threads(Nproc) private (n)
-  // do n=1,node_count
-		// nod%a(n,:) = nod%a(n,:) - alpha * prev_a(n,:)
-		// nod%a(n,:) = nod%a(n,:) / (1.0d0 - alpha)
-		// nod%v(n,:) = nod%v(n,:) + gamma * dt * nod%a (n,:)  
-	// end do
-	// !$omp end parallel do
+    // vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
+
+    // vector_t_Ptr(a_,a,n);
+    // vector_t_Ptr(a_,prev_a,n);
+    // vector_t v_ = getV(n) + m_gamma * dt * a_;
+    // vector_t_Ptr(v_,v,n);
+
+  // }
+
+
+    for (int i = 0; i < m_node_count; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            int ig = i*m_dim + j;
+
+
+            a[ig] = f * a[ig]  -m_alpha * prev_a[ig]; //GLOBAL  
+
+            v[ig] += m_gamma * dt * a[ig];
+            
+        }
+    }
+        
 
 }
 
@@ -180,22 +203,43 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
 
 dev_t void Domain_d   ::UpdateCorrectionPos(){
   double f = 1.0/(1.0-m_alpha);
-  par_loop (n,m_node_count){
-    vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(prev_a, n); // = dt * (getV(n) + 0.5 - m_beta);
-    vector_t u_     = Ptr_vector_t(u, n) + uinc_;
-    vector_t x_     = Ptr_vector_t(x, n);
-    vector_t_Ptr(u_+x_,x,n);
-    vector_t_Ptr(u_,u,n);       //Copy displacements to device
+  // par_loop (n,m_node_count){
+    // vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(prev_a, n); // = dt * (getV(n) + 0.5 - m_beta);
+    // vector_t u_     = Ptr_vector_t(u, n) + uinc_;
+    // vector_t x_     = Ptr_vector_t(x, n);
+    // vector_t_Ptr(u_+x_,x,n);
+    // vector_t_Ptr(u_,u,n);       //Copy displacements to device
     
-    //printf ("node %d Corr disp %.6e %.6e %.6e \n", n, u_.x, u_.y,u_.z);
-    // //printf ("node %d\n", n);
-    // vector_t_Ptr(dt * getV(n),x,n);
-    //printf("Node %d Corr Vel %f %f %f\n",n, getV(n).x, getV(n).y, getV(n).z);
 
-    //test
-    vector_t xc_  =Ptr_vector_t(x, n);
-  }
+    // vector_t xc_  =Ptr_vector_t(x, n);
+  // }
 
+      for (int i = 0; i < m_node_count; i++) {
+          for (int j = 0; j < m_dim; j++) {
+              // u_[i][j] += m_beta * dt * dt * a_[i][j];
+              // x_[i][j] += u_[i][j];
+              
+              int ig = i*m_dim + j;
+              u_dt[ig] += m_beta * dt * dt * a[ig];
+              x[ig] += u_dt[ig];
+          }
+      }
+
+      for (int i = 0; i < m_node_count; i++) {
+          for (int j = 0; j < m_dim; j++) {
+              //prev_a_[i][j] = a_[i][j];
+              
+              prev_a[m_dim*i+j] = a[m_dim*i+j];
+          }
+      }
+
+      for (int i = 0; i < m_node_count; i++) {
+          for (int j = 0; j < m_dim; j++) {
+              //u_tot_[i][j] += u_[i][j];
+              u[m_dim*i+j] += u_dt[m_dim*i+j];
+          }
+      }
+        
 }
 
 host_ void Domain_d::ImposeBCAAllDim()//ALL DIM

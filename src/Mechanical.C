@@ -137,7 +137,7 @@ dev_t void Domain_d::calcElemStrainRates(){
                 grad_v[gp][I][J] = 0.0;
                 for (int k = 0; k < m_nodxelem; k++) {
                     //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
-                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * v[k*m_dim+I]/m_detJ[gp];
+                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * getVElem(e,k,I)/m_detJ[gp];
                     //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
                 }
 
@@ -884,8 +884,11 @@ dev_t void Domain_d:: calcElemHourglassForces()
 
       for (int d=0;d<m_dim;d++)
         for (int j=0;j<jmax;j++)
-          for (int n=0;n<m_nodxelem;n++)
+          for (int n=0;n<m_nodxelem;n++){
             hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
+            cout << "elem "<< e<< ", node "<<n<<"vel "<<getVElem(e,n,d)<<", "<<v[m_dim*m_elnod[n]+d]<<endl;
+            cout << "elnod "<<m_elnod[e*m_nodxelem+n]<<", dim "<<d<<endl;
+          }
 
       // !!!!!!!!! GOUDREAU 1982
       for (int d=0;d<m_dim;d++)
@@ -900,9 +903,10 @@ dev_t void Domain_d:: calcElemHourglassForces()
       ////printf("c_h %.6e\n", c_h);
 
       for (int n=0;n<m_nodxelem;n++){      
-        for (int d=0;d<m_dim;d++)
+        for (int d=0;d<m_dim;d++){
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
         ////printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+        }
       }
       
   } //gp ==1
