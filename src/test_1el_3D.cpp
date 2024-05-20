@@ -39,7 +39,7 @@ double rot_rate[m_gp_count][3][3];
 double strain[m_gp_count][3][3];
 Matrix tau_;
 double tau[m_gp_count][3][3];
-double pres[m_gp_count];
+
 double stress[m_gp_count][3][3];
 
 
@@ -89,45 +89,6 @@ void impose_bc() {
 #endif
 }
 
-void velocity_gradient_tensor(double grad_v[m_nodxelem][m_dim][m_dim]) {
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int I = 0; I < m_dim; I++) {
-            for (int J = 0; J < m_dim; J++){ 
-                grad_v[gp][I][J] = 0.0;
-                for (int k = 0; k < m_nodxelem; k++) {
-                    //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
-                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * v[k*m_dim+I]/m_detJ[gp];
-                    //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
-                }
-
-            }
-        }
-    }
-    
-}
-
-void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count][3][3]) {
-    double grad_v[m_nodxelem][m_dim][m_dim];
-    velocity_gradient_tensor( grad_v);
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int i = 0; i < m_dim; i++) {
-            for (int j = 0; j < m_dim; j++) {
-                str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
-                rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
-                printf("str rate %e", str_rate[gp][i][j]);
-            }
-        }
-        // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
-        // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
-    }
-
-    m_str_rate[0]=str_rate[0][0][0];     m_str_rate[1]=str_rate[0][1][1];    m_str_rate[2]=str_rate[0][2][2];  
-    m_str_rate[3]=str_rate[0][0][1];     m_str_rate[4]=str_rate[0][1][2];    m_str_rate[5]=str_rate[0][0][2];  
-
-    m_rot_rate[0]=rot_rate[0][0][0];     m_rot_rate[1]=rot_rate[0][1][1];    m_rot_rate[2]=rot_rate[0][2][2];  
-    m_rot_rate[3]=rot_rate[0][0][1];     m_rot_rate[4]=rot_rate[0][1][2];    m_rot_rate[5]=rot_rate[0][0][2];  
-
-}
 
 
 double calc_vol() {
@@ -152,7 +113,7 @@ void calc_strain(double str_rate[m_gp_count][3][3], double dt, double strain[m_g
     }
 }
 
-void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_count][3][3], double pres[m_gp_count]) {
+void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_count][3][3]) {
     double pi_ = 0.0;
     for (int gp = 0; gp < m_gp_count; gp++) {
         for (int i = 0; i < 3; i++) {
@@ -162,113 +123,12 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
     printf ("K %e",K_);
     pi_ = -pi_ / m_gp_count;
     for (int gp = 0; gp < m_gp_count; gp++) {
-        pres[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
-        printf("pres %e ",pres[gp]);
+        p[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
+        //printf("pres %e ",pres[gp]);
     }
     
 }
 
-
-void dev(double t[3][3], double dev[3][3]) {
-    for (int i = 0; i < 3; i++) 
-        for (int j = 0; j < 3; j++) 
-          dev[i][j]= t[i][j]- 1.0 / 3.0 * (t[0][0] + t[1][1] + t[2][2])*(i==j);
-    
-}
-
-void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count][3][3], double tau[m_gp_count][3][3], double p[m_gp_count], double dt, double stress[m_gp_count][3][3]) {
-    double srt[m_gp_count][3][3];
-    double rs[m_gp_count][3][3];
-    double d[3][3];
-
-    
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                srt[gp][i][j] = rs[gp][i][j] = 0.0;
-                for (int k=0;k<m_dim;k++){
-                  srt[gp][i][j] += tau[gp][i][k] * rot_rate[gp][j][k];
-                  rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
-                }
-                dev(str_rate[gp],d);
-                tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
-                stress[gp][i][j] = tau[gp][i][j] - p[gp] * (i == j);
-                //Sigma_tst->Set
-                printf ("stress %e",stress[gp][i][j]);
-            }
-            printf("\n");
-        }
-    }
-    
-    m_sigma[0]=stress[0][0][0];     m_sigma[1]=stress[0][1][1];    m_sigma[2]=stress[0][2][2];  
-    m_sigma[3]=stress[0][0][1];     m_sigma[4]=stress[0][1][2];    m_sigma[5]=stress[0][0][2];  
-
-    m_tau[0]=tau[0][0][0];     m_tau[1]=tau[0][1][1];    m_tau[2]=tau[0][2][2];  
-    m_tau[3]=tau[0][0][1];     m_tau[4]=tau[0][1][2];    m_tau[5]=tau[0][0][2];      
-    
-    tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
-
-    // stress[0][0][0]=Sigma.xx;    stress[0][1][1]=Sigma.yy;    stress[0][2][2]=Sigma.zz;              
-    // stress[0][0][1]=stress[0][1][0]=Sigma.xy;    
-    // stress[0][1][2]=stress[0][2][1]=Sigma.yz;    
-    // stress[0][0][2]=stress[0][2][0]=Sigma.xz; 
-    print(Sigma);    
-}
-
-void calc_stress3(double dt, double stress[m_gp_count][3][3]) {
-    double srt[m_gp_count][3][3];
-    double rs[m_gp_count][3][3];
-    double d[3][3];
-    rot_rate[0][0][0]=m_rot_rate[0];    rot_rate[0][1][1]=m_rot_rate[1];    rot_rate[0][2][2]=m_rot_rate[2];
-    rot_rate[0][0][1]=m_rot_rate[3];    rot_rate[0][1][2]=m_rot_rate[4];    rot_rate[0][0][2]=m_rot_rate[5];
-    rot_rate[0][1][0]=-rot_rate[0][0][1];
-    rot_rate[0][2][1]=-rot_rate[0][1][2];
-    rot_rate[0][2][0]=-rot_rate[0][0][2];
-
-    
-    tau[0][0][0]=m_tau[0];    tau[0][1][1]=m_tau[1];    tau[0][2][2]=m_tau[2];
-    tau[0][0][1]=tau[0][1][0]=m_tau[3];    
-    tau[0][1][2]=tau[0][2][1]=m_tau[4];    
-    tau[0][0][2]=tau[0][2][0]=m_tau[5];
-    
-    str_rate[0][0][0]=m_str_rate[0];    str_rate[0][1][1]=m_str_rate[1];    str_rate[0][2][2]=m_str_rate[2];
-    str_rate[0][0][1]=str_rate[0][1][0]=m_str_rate[3];    
-    str_rate[0][1][2]=str_rate[0][2][1]=m_str_rate[4];    
-    str_rate[0][0][2]=str_rate[0][2][0]=m_str_rate[5];
-    
-    for (int gp = 0; gp < m_gp_count; gp++) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                srt[gp][i][j] = rs[gp][i][j] = 0.0;
-                for (int k=0;k<m_dim;k++){
-                  srt[gp][i][j] += tau[gp][i][k] * rot_rate[gp][j][k];
-                  rs[gp][i][j] += rot_rate[gp][i][k] * tau[gp][k][j];
-                }
-                dev(str_rate[gp],d);
-                tau[gp][i][j] += dt * ((2.0 * mat[0]->Elastic().G() *d[i][j]) + rs[gp][i][j] + srt[gp][i][j]);
-                stress[gp][i][j] = tau[gp][i][j] - pres[gp] * (i == j);
-                //Sigma_tst->Set
-                printf ("stress %e",stress[gp][i][j]);
-            }
-            printf("\n");
-        }
-    }
-    
-    m_sigma[0]=stress[0][0][0];     m_sigma[1]=stress[0][1][1];    m_sigma[2]=stress[0][2][2];  
-    m_sigma[3]=stress[0][0][1];     m_sigma[4]=stress[0][1][2];    m_sigma[5]=stress[0][0][2];  
-
-    m_tau[0]=tau[0][0][0];     m_tau[1]=tau[0][1][1];    m_tau[2]=tau[0][2][2];  
-    m_tau[3]=tau[0][0][1];     m_tau[4]=tau[0][1][2];    m_tau[5]=tau[0][0][2];      
-    
-    cout <<"SGIMA"<<endl;
-    tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
-
-    // stress[0][0][0]=Sigma.xx;    stress[0][1][1]=Sigma.yy;    stress[0][2][2]=Sigma.zz;              
-    // stress[0][0][1]=stress[0][1][0]=Sigma.xy;    
-    // stress[0][1][2]=stress[0][2][1]=Sigma.yz;    
-    // stress[0][0][2]=stress[0][2][0]=Sigma.xz; 
-    print(Sigma);    
-}
 
 void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
@@ -381,10 +241,6 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
         calcElemJAndDerivatives();
 
-        //calcElemStrainRates();
-        //calcElemPressure(); //CRASHES IN 2D
-        //printf("pressure %e\n",p[0]);
-        //CalcStressStrain(dt);
 
         // tensor3 Sigma = FromFlatSym(m_sigma,          0 );    
         // cout << "Sigma Tensor\n"<<endl;
@@ -392,14 +248,19 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
     
         //calc_jacobian(x_, J);
         
-        calc_str_rate(str_rate,rot_rate);
+        //calc_str_rate(str_rate,rot_rate);
+        calcElemStrainRates();
+        
         double str_inc[m_nodxelem][3][3];
         calc_strain(str_rate, dt, str_inc);
         K_mod = mat[0]->Elastic().BulkMod();
-        calc_pressure(K_mod, str_inc, stress, pres);
+        calc_pressure(K_mod, str_inc, stress);
+        calcElemPressure(); //CRASHES IN 2D
+                
+
+        //printf("pressure %e\n",p[0]);
+        CalcStressStrain(dt);
         
-        calc_stress3(dt, stress);
- 
         //NOT WORKING
         calcElemForces();
         calcElemHourglassForces();
