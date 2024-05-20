@@ -364,9 +364,9 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
                 v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
         calcElemJAndDerivatives();
 
-        calcElemStrainRates();
-        calcElemPressure(); //CRASHES IN 2D
-        CalcStressStrain(dt);
+        // calcElemStrainRates();
+        // calcElemPressure(); //CRASHES IN 2D
+        // CalcStressStrain(dt);
 
         //calc_jacobian(x_, J);
 
