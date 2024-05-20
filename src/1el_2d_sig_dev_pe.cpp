@@ -13,7 +13,7 @@
 using namespace std;
 
 //// IF YOU WANYT 2D
-//#define BIDIM 
+#define BIDIM 
 
 
 #ifdef BIDIM
@@ -364,9 +364,9 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
                 v[m_dim*i+j] = v_[i][j]; // ASSUMING LOCAL     
         calcElemJAndDerivatives();
 
-        calcElemStrainRates();
-        calcElemPressure(); //CRASHES IN 2D
-        CalcStressStrain(dt);
+        // calcElemStrainRates();
+        // calcElemPressure(); //CRASHES IN 2D
+        // CalcStressStrain(dt);
 
         //calc_jacobian(x_, J);
 
@@ -388,7 +388,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
           for (int j = 0; j < m_dim; j++) 
             m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j]; //LOCAL
           
-        assemblyForces(); 
+        //assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
