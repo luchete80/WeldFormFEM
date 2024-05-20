@@ -179,6 +179,17 @@ void calc_stress2(double str_rate[m_gp_count][3][3], double rot_rate[m_gp_count]
     double srt[m_gp_count][3][3];
     double rs[m_gp_count][3][3];
     double d[3][3];
+    // rot_rate[0][0][0]=m_rot_rate[0];    rot_rate[0][1][1]=m_rot_rate[1];    rot_rate[0][2][2]=m_rot_rate[2];
+    // rot_rate[0][0][1]=m_rot_rate[3];    rot_rate[0][1][2]=m_rot_rate[4];    rot_rate[0][0][2]=m_rot_rate[5];
+    // rot_rate[0][1][0]=-rot_rate[0][0][1];
+    // rot_rate[0][2][1]=-rot_rate[0][2][1];
+    // rot_rate[0][2][0]=-rot_rate[0][2][0];
+    
+    // str_rate[0][0][0]=m_str_rate[0];    str_rate[0][1][1]=m_str_rate[1];    str_rate[0][2][2]=m_str_rate[2];
+    // str_rate[0][0][1]=str_rate[0][1][0]=m_str_rate[3];    
+    // str_rate[0][1][2]=str_rate[0][2][1]=m_str_rate[4];    
+    // str_rate[0][0][2]=str_rate[0][2][0]=m_str_rate[5];
+    
     for (int gp = 0; gp < m_gp_count; gp++) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
