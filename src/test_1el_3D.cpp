@@ -176,11 +176,50 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
   // f_ *= ch
 }
+void velocity_gradient_tensor(double grad_v[1][m_dim][m_dim]) {
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int I = 0; I < m_dim; I++) {
+            for (int J = 0; J < m_dim; J++){ 
+                grad_v[gp][I][J] = 0.0;
+                for (int k = 0; k < m_nodxelem; k++) {
+                    //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
+                    grad_v[gp][I][J] += getDerivative(0,gp,J,k) * v[k*m_dim+I]/m_detJ[gp];
+                    //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                }
+
+            }
+        }
+    }
+
+}
+
+void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count][3][3]) {
+    double grad_v[1][m_dim][m_dim];
+    velocity_gradient_tensor( grad_v);
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        for (int i = 0; i < m_dim; i++) {
+            for (int j = 0; j < m_dim; j++) {
+                str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
+                rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
+                printf("str rate %e", str_rate[gp][i][j]);
+            }
+        }
+        // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
+        // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
+    }
+
+    m_str_rate[0]=str_rate[0][0][0];     m_str_rate[1]=str_rate[0][1][1];    m_str_rate[2]=str_rate[0][2][2];  
+    m_str_rate[3]=str_rate[0][0][1];     m_str_rate[4]=str_rate[0][1][2];    m_str_rate[5]=str_rate[0][0][2];  
+
+    m_rot_rate[0]=rot_rate[0][0][0];     m_rot_rate[1]=rot_rate[0][1][1];    m_rot_rate[2]=rot_rate[0][2][2];  
+    m_rot_rate[3]=rot_rate[0][0][1];     m_rot_rate[4]=rot_rate[0][1][2];    m_rot_rate[5]=rot_rate[0][0][2];  
+
+}
 
 
   void Solve() {
     double t = 0.0;
-      dt = 0.8e-5;
+    dt = 0.8e-5;
     //double tf = 0.8e-5;
     double tf = 1.0e-3;
 
@@ -248,7 +287,7 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
     
         //calc_jacobian(x_, J);
         
-        //calc_str_rate(str_rate,rot_rate);
+        calc_str_rate(str_rate,rot_rate);
         calcElemStrainRates();
         
         double str_inc[m_nodxelem][3][3];
@@ -263,8 +302,8 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
         
         //NOT WORKING
         calcElemForces();
-        calcElemHourglassForces();
- 
+        //calcElemHourglassForces();
+        //assemblyForces();
         
          //calc_forces(stress, a);
          //calc_forces2(stress, a);
