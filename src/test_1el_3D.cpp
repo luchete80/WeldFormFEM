@@ -124,11 +124,10 @@ void calc_pressure(double K_, double dstr[m_gp_count][3][3], double stress[m_gp_
     pi_ = -pi_ / m_gp_count;
     for (int gp = 0; gp < m_gp_count; gp++) {
         p[gp] = -1.0 / 3.0 * (stress[gp][0][0] + stress[gp][1][1] + stress[gp][2][2]) + K_ * pi_;
-        //printf("pres %e ",pres[gp]);
+        //printf("pres %e ",p[gp]);
     }
     
 }
-
 
 void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
@@ -142,17 +141,16 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
                        { 1.,-1., 1.,-1., 1.,-1., 1.,-1.}, 
                        {-1., 1.,-1., 1., 1.,-1., 1.,-1.}};
   double hmod[m_dim][4]={{0.0,0.0,0.0,0.0},{0.0,0.0,0.0,0.0}};
-  int jmax = 8;
+  int jmax = 4;
 #endif
+    for (int i = 0; i < m_nodxelem; i++) 
+      for (int d = 0; d < m_dim; d++) 
+        fhg[m_dim*i+d] = 0.0;
 
-  for (int i = 0; i < m_nodxelem; i++) 
-    for (int d = 0; d < m_dim; d++) 
-      fhg[i*m_dim+d] = 0.0;
-      
   for (int j = 0; j < jmax; j++) 
     for (int i = 0; i < m_nodxelem; i++) 
       for (int d = 0; d < m_dim; d++) {
-        hmod[d][j] +=v[i*m_dim+d]*Sig[j][i];
+        hmod[d ][j] +=v[i*m_dim+d]*Sig[j][i];
         //printf("hmod: %6e", hmod[d][j]);
       }
 
@@ -161,7 +159,7 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
       for (int j = 0; j < jmax; j++) 
         for (int i = 0; i < m_nodxelem; i++) 
           for (int d = 0; d < m_dim; d++) 
-            fhg[i*m_dim+d] -=ch*hmod[d][j]*Sig[j][i];
+            fhg[m_dim *i + d] -=ch*hmod[d][j]*Sig[j][i];
   
 
   
@@ -176,6 +174,7 @@ void calc_hg_forces(double rho, double vol, double cs,double *fhg){
 
   // f_ *= ch
 }
+
 void velocity_gradient_tensor(double grad_v[1][m_dim][m_dim]) {
     for (int gp = 0; gp < m_gp_count; gp++) {
         for (int I = 0; I < m_dim; I++) {
@@ -220,8 +219,8 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
   void Solve() {
     double t = 0.0;
     dt = 0.8e-5;
-    //double tf = 0.8e-5;
-    double tf = 1.0e-3;
+    //double tf = 10*0.8e-5;
+     double tf = 1.0e-3;
 
 
     
@@ -288,12 +287,12 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
         //calc_jacobian(x_, J);
         
         calc_str_rate(str_rate,rot_rate);
-        calcElemStrainRates();
+        //calcElemStrainRates();
         
         double str_inc[m_nodxelem][3][3];
         calc_strain(str_rate, dt, str_inc);
         K_mod = mat[0]->Elastic().BulkMod();
-        calc_pressure(K_mod, str_inc, stress);
+        //calc_pressure(K_mod, str_inc, stress);
         calcElemPressure(); //CRASHES IN 2D
                 
 
@@ -309,7 +308,7 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
          //calc_forces2(stress, a);
          calc_hg_forces(rho[0], vol_0, mat[0]->cs0, m_f_elem_hg);
         
-        // cout << "rho "<<rho<<"cs "<<mat_cs<<endl;
+         cout << "rho "<<rho[0]<<"cs "<<mat[0]->cs0<< ", vol0' "<<vol_0<<endl;
         // calc_hg_forces(rho, vol_0, mat_cs, f_hg);
 
         // for (int i = 0; i < m_nodxelem; i++) 
@@ -327,7 +326,7 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
                 // v_[i][j] += m_gamma * dt * a_[i][j];
   
 
-                printf ("force ELEMENT %6e ",m_f_elem[ig]);
+                //printf ("force ELEMENT %6e ",m_f_elem[ig]);
                 a[ig] = (-m_f_elem[ig] + m_f_elem_hg[ig])/ nod_mass  -m_alpha * prev_a[ig]; //GLOBAL
                 
                 printf ("hg f: %e ", m_f_elem_hg[ig]);
@@ -377,6 +376,13 @@ void calc_str_rate(double str_rate[m_gp_count][3][3],double rot_rate[m_gp_count]
       printf("\n");
     }
 
+     printf("\n -- VEL --\n");
+    for (int i = 0; i < m_nodxelem; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            printf("%.6e ", v[i*m_dim+j]);
+        }
+      printf("\n");
+    }
     printf("\n -- GLOB DISP --\n");
     for (int i = 0; i < m_nodxelem; i++) {
         for (int j = 0; j < m_dim; j++) {
