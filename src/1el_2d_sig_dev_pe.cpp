@@ -308,8 +308,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    //double tf = 0.8e-5;
-    double tf = 1.0e-3;
+    double tf = 0.8e-5;
+    //double tf = 1.0e-3;
     mat_G = E / (2.0 * (1 + nu));
     K_mod = E / (3.0 * (1.0 - 2.0 * nu));
 
@@ -388,7 +388,7 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
           for (int j = 0; j < m_dim; j++) 
             m_f_elem[i*m_dim + j] = -a_[i][j] / nod_mass + f_hg[i][j]; //LOCAL
           
-        assemblyForces(); 
+        //assemblyForces(); 
 
         for (int i = 0; i < m_nodxelem; i++) {
             for (int j = 0; j < m_dim; j++) {
