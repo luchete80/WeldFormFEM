@@ -308,8 +308,8 @@ void calc_hg_forces(double rho, double vol, double cs,double fhg[m_nodxelem][m_d
   void Solve() {
     double t = 0.0;
       dt = 0.8e-5;
-    double tf = 0.8e-5;
-    //double tf = 1.0e-3;
+    //double tf = 0.8e-5;
+    double tf = 1.0e-3;
     mat_G = E / (2.0 * (1 + nu));
     K_mod = E / (3.0 * (1.0 - 2.0 * nu));
 
