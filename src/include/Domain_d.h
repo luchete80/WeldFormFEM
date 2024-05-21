@@ -36,6 +36,14 @@ class Domain_d {
 public:
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
+  
+  ///// (CUDA HOST) FUNCTIONS 
+  #ifdef CUDA_BUILD
+  inline vector_t getPosVec(const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);};
+  #else
+  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  #endif
+  
   dev_t void printVec(const double*);
   dev_t void printSymmTens( double *);
   
@@ -107,6 +115,7 @@ public:
   inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[m_dim*m_elnod[n]+d];}  
   
   inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
+  
   
 	void SolveChungHulbert();
   

@@ -57,6 +57,16 @@ add_executable(MetFEMGPU
                         Solver.C
 
               )
+
+add_executable(beam
+                        main_beam.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+              )
               
 # add_executable(WeldFormFEM
                         # WeldFormFEM.C
