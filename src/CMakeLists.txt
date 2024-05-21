@@ -58,6 +58,26 @@ add_executable(MetFEMGPU
 
               )
 
+add_executable(1elem
+                        main_1_elem_3d.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+              )
+
+add_executable(4elem
+                        main_4_elem_3d.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+              )             
+
 add_executable(beam
                         main_beam.C
                         Domain_d.C
