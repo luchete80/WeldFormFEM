@@ -16,7 +16,8 @@
 #include "Material.cuh"
 
 #include <vector>
-
+#include <string>
+#include "../lib/LSDynaReader/src/lsdynaReader.h"
 
 class Matrix;
 
@@ -34,6 +35,8 @@ class BC_Node {
 namespace MetFEM{
 class Domain_d {
 public:
+  Domain_d (std::string);
+  Domain_d (){}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
   
@@ -151,6 +154,9 @@ protected:
   int             *bcx_nod, *bcy_nod, *bcz_nod;
   double          *bcx_val, *bcy_val, *bcz_val;
   int             bc_count[3];
+  
+  ////// PARALLELIZATION
+  int             Nproc;
   
   std::vector<int>    bcx_val_h,bcy_val_h,bcz_val_h;
   std::vector<double> bcx_nod_h,bcy_nod_h,bcz_nod_h;

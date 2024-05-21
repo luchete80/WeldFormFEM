@@ -68,16 +68,17 @@ add_executable(beam
 
               )
               
-# add_executable(WeldFormFEM
-                        # WeldFormFEM.C
-                        # Domain_d.C
-                        # Matrices.C
-                        # Mechanical.C
-                        # Matrices.C
-                        # Solver.C
-                        # ../lib/LSDynaReader/src/lsdynaReader.cpp
+add_executable(WeldFormFEM
+                        WeldFormFEM.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+                        input.C
+                        ../lib/LSDynaReader/src/lsdynaReader.cpp
 
-              # )
+              )
 add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
                                   Domain_d.C
                                   Matrices.C
