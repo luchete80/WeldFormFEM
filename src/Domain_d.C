@@ -491,13 +491,13 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
           elnod_h[ei+6] = nb2 + nnodz*(ez+1) + 1;   nodel_count_h[nb2 + nnodz*(ez+1) + 1]++;  
           elnod_h[ei+7] = nb2 + nnodz*(ez+1);       nodel_count_h[nb2 + nnodz*(ez+1)    ]++;  
           
-          for (int i=0;i<8;i++)
-            cout << elnod_h[ei + i]<<", ";
-          cout <<endl;
+          // for (int i=0;i<8;i++)
+            // cout << elnod_h[ei + i]<<", ";
+          // cout <<endl;
 
             cout << "Nel x : "<<nel[0]<<endl;
            cout << "nodes "<<endl;
-           
+           cout << "nodxelem " <<m_nodxelem<<endl;
            for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
            ei += m_nodxelem;
 
