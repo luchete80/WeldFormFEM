@@ -447,6 +447,9 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
      int *nodel_count_h  = new int [m_node_count];
      int *nodel_offset_h = new int [m_node_count];
+    for (int n=0;n<m_node_count;n++){
+      nodel_count_h[n] = 0;
+    }
     
     cout << "Allocating element nodes.."<<endl;
 		int ex, ey, ez;
@@ -518,6 +521,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     for (int n=0;n<m_node_count;n++){
       nodel_offset_h[n] = nodel_tot;
       nodel_tot        += nodel_count_h[n];
+      cout << "NodEL tot " << nodel_tot<<endl;
       cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
 
     }
