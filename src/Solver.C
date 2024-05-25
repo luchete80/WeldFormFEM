@@ -170,9 +170,9 @@ namespace MetFEM{
     //STRESSES CALC
     cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
-  cout << "done "<<endl;
+  //cout << "done "<<endl;
   //CalcElemVol();
-  cout << "done "<<endl;
+  //cout << "done "<<endl;
   calcElemStrainRates();
   //calcElemDensity();
   calcElemPressure();
@@ -181,9 +181,9 @@ namespace MetFEM{
   calcElemHourglassForces();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
-  cout << "Assemblying"<<endl;
+  //cout << "Assemblying"<<endl;
   assemblyForces(); 
-  cout << "Done "<<endl;
+  //cout << "Done "<<endl;
   calcAccel();
   #endif
   

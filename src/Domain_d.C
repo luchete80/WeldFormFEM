@@ -587,7 +587,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   
   Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
    
-  printf("done\n");
+  //printf("done\n");
    
 	////printf ("e %d, elem_count %d\n",m_elem_count);
   par_loop (e, m_elem_count) {
@@ -597,7 +597,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
   // ! !rg=gauss[ig]
   // ! !sg=gauss[jg]
   // real(fp_kind), dimension(dim,m_nodxelem) :: dHrs !!! USED ONLY FOR SEVERAL GAUSS POINTS
-	printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
+	//printf ("m_dim %d, nod x elem %d", m_dim, m_nodxelem);
 
   
   //cudaMalloc((void**)&dHrs_p, sizeof(Matrix));
@@ -605,7 +605,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 	//double dHrs_fl[m_dim* m_nodxelem];
 	//dHrs->Print();
 
-  printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
+  //printf("x2 dimensions %d X %d\n", m_nodxelem, m_dim);
    
    // //printf("Jacob\n");jacob->Print();
    double gpc[8][3];
