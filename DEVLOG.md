@@ -74,4 +74,6 @@
 20240517 - Added Example 2D plain strain, FIRST Working with deriv calc.
          - Fixed 2D derivatives
 20240520 - FInally fixed C++ version! Problem was in time integration
-20240525 - Fixed Shared Elements by each node.
+20240525 - Fixed initialization of Shared Elements by each node.
+         - Also fixed shared element nodes in box mesh (zincrement was wrong)
+         

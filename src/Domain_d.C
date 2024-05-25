@@ -489,18 +489,19 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
           elnod_h[ei+2] = nb2+1;                    nodel_count_h[nb2+1] ++;
           elnod_h[ei+3] = nb2;                      nodel_count_h[nb2  ] ++;
           
-          elnod_h[ei+4] = nb1 + nnodz*(ez+1);       nodel_count_h[nb1 + nnodz*(ez+1)    ]++;   
-          elnod_h[ei+5] = nb1 + nnodz*(ez+1) + 1;   nodel_count_h[nb1 + nnodz*(ez+1) + 1]++;  
-          elnod_h[ei+6] = nb2 + nnodz*(ez+1) + 1;   nodel_count_h[nb2 + nnodz*(ez+1) + 1]++;  
-          elnod_h[ei+7] = nb2 + nnodz*(ez+1);       nodel_count_h[nb2 + nnodz*(ez+1)    ]++;  
+          elnod_h[ei+4] = nb1 + nnodz;              nodel_count_h[nb1 + nnodz*(ez+1)    ]++;   
+          elnod_h[ei+5] = nb1 + nnodz + 1;          nodel_count_h[nb1 + nnodz*(ez+1) + 1]++;  
+          elnod_h[ei+6] = nb2 + nnodz + 1;          nodel_count_h[nb2 + nnodz*(ez+1) + 1]++;  
+          elnod_h[ei+7] = nb2 + nnodz;              nodel_count_h[nb2 + nnodz*(ez+1)    ]++;  
           
           // for (int i=0;i<8;i++)
             // cout << elnod_h[ei + i]<<", ";
           // cout <<endl;
 
-            cout << "Nel x : "<<nel[0]<<endl;
+            cout << "Nel x : "<<nel[0]<<", Element: " << ei/m_nodxelem<<endl;
            cout << "nodes "<<endl;
            cout << "nodxelem " <<m_nodxelem<<endl;
+           cout << "nb1, nb2 "<< nb1 << ", "<<nb2<<" nnodz"<< nnodz*(ez+1)<<"ez "<<ez<<endl;
            for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
            ei += m_nodxelem;
 
@@ -569,7 +570,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       cout << endl;
     }
     
-  
+    cout << "Mesh generation done. "<<endl;
 
 		
 		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
