@@ -489,10 +489,10 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
           elnod_h[ei+2] = nb2+1;                    nodel_count_h[nb2+1] ++;
           elnod_h[ei+3] = nb2;                      nodel_count_h[nb2  ] ++;
           
-          elnod_h[ei+4] = nb1 + nnodz;              nodel_count_h[nb1 + nnodz*(ez+1)    ]++;   
-          elnod_h[ei+5] = nb1 + nnodz + 1;          nodel_count_h[nb1 + nnodz*(ez+1) + 1]++;  
-          elnod_h[ei+6] = nb2 + nnodz + 1;          nodel_count_h[nb2 + nnodz*(ez+1) + 1]++;  
-          elnod_h[ei+7] = nb2 + nnodz;              nodel_count_h[nb2 + nnodz*(ez+1)    ]++;  
+          elnod_h[ei+4] = nb1 + nnodz;              nodel_count_h[nb1 + nnodz    ]++;   
+          elnod_h[ei+5] = nb1 + nnodz + 1;          nodel_count_h[nb1 + nnodz + 1]++;  
+          elnod_h[ei+6] = nb2 + nnodz + 1;          nodel_count_h[nb2 + nnodz + 1]++;  
+          elnod_h[ei+7] = nb2 + nnodz;              nodel_count_h[nb2 + nnodz    ]++;  
           
           // for (int i=0;i<8;i++)
             // cout << elnod_h[ei + i]<<", ";
