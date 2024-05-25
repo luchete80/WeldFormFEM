@@ -579,7 +579,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 dev_t void Domain_d::calcElemJAndDerivatives () {
 	////printf("calculating\n");
 	////printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
-  printf("allocating m_dim %d, n_nodxelem %d\n", m_dim, m_nodxelem);
+  //printf("allocating m_dim %d, n_nodxelem %d\n", m_dim, m_nodxelem);
   
 	Matrix *jacob = new Matrix(m_dim, m_dim);    
 	Matrix *inv_j = new Matrix(m_dim, m_dim);    

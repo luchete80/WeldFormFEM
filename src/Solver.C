@@ -168,7 +168,7 @@ namespace MetFEM{
   #else
   //SECOND TIME
     //STRESSES CALC
-    cout << "calc deriv"<<endl;
+  //cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
   //cout << "done "<<endl;
   //CalcElemVol();
