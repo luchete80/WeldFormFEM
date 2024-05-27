@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -22,5 +23,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //write (1, '(A,2x,I5)') '<Piece NumberOfPoints="'
   oss << "      <Points>"<<endl;
   oss << "        <DataArray type=""Float32"" Name=""Position"" NumberOfComponents=""3"" Format=""ascii"">"<<endl;
+
+  
+  for (int i=0;i<dom->m_elem_count;i++){
+    vector_t x = dom->getPosVec(i);
+    oss << x.x <<" "<<x.y <<" " <<x.z<<endl;
+  }
 }
 };

@@ -78,4 +78,5 @@
          - Also fixed shared element nodes in box mesh (zincrement was wrong)
 20240527 - Added getNodePos() to domain.
          - Fixed BCs of 4 element example.
-         - Found a bug on 
+         - Found a bug on strain rate calc
+         - Begining to add vtk output
