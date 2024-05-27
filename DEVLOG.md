@@ -76,4 +76,6 @@
 20240520 - FInally fixed C++ version! Problem was in time integration
 20240525 - Fixed initialization of Shared Elements by each node.
          - Also fixed shared element nodes in box mesh (zincrement was wrong)
-         
+20240527 - Added getNodePos() to domain.
+         - Fixed BCs of 4 element example.
+         - Found a bug on 

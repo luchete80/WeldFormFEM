@@ -66,6 +66,7 @@ add_executable(1elem
                         Matrices.C
                         Solver.C
 
+
               )
 
 add_executable(4elem
@@ -75,7 +76,7 @@ add_executable(4elem
                         Mechanical.C
                         Matrices.C
                         Solver.C
-
+                        VTKWriter.C
               )             
 
 add_executable(beam

@@ -32,8 +32,10 @@ class BC_Node {
   double  m_val;
 };
 
+class VTKWriter;
 namespace MetFEM{
 class Domain_d {
+  friend class VTKWriter;
 public:
   Domain_d (std::string);
   Domain_d (){}
@@ -91,6 +93,13 @@ public:
 	
 	const int & getElemCount()const{return m_elem_count;}
 	const int & getNodeCount()const{return m_node_count;}
+  vector_t getNodePos(const int &n){
+    #ifdef CUDA_BUILD
+    return make_vector_t (x_h[3*n],x_h[3*n+1],x_h[3*n+2]);
+    #else
+    return make_vector_t (x  [3*n],x  [3*n+1],x  [3*n+2]);      
+    #endif
+  }
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array

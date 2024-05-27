@@ -98,6 +98,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
   #endif
+
+  malloc_t (x_h,      double,node_count*m_dim);
 }
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
@@ -426,7 +428,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
   //cout <<"m_node size"<<m_node.size()<<endl;
   } 
-		memcpy_t(this->x, x_H, sizeof(vector_t) * m_node_count);    
+		memcpy_t(this->x,   x_H, sizeof(vector_t) * m_node_count);    
 
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
@@ -838,7 +840,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           setDerivative(e,gp,1,j,dHxy_detJ_loc->getVal(1,j));
           if (m_dim ==3)
             setDerivative(e,gp,2,j,dHxy_detJ_loc->getVal(2,j));
-          ////printf("set der: z n %d %f\n",j, dHxy_detJ_loc->getVal(2,j));
+          //printf("set der: z n %d %f\n",j, dHxy_detJ_loc->getVal(2,j));
           
       }
     }
