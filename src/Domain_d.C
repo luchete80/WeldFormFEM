@@ -328,7 +328,7 @@ dev_t void Domain_d::ImposeBCV(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
-    printf("BCV dim %d\n", dim);
+    //printf("BCV dim %d\n", dim);
     if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]); */v[3*bcx_nod[n]+dim] = bcx_val[n]; }
     else if (dim == 1)  {/*printf ("val %f \n",bcy_val[n]);                   */v[3*bcy_nod[n]+dim] = bcy_val[n];}
     else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }

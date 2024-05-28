@@ -570,6 +570,9 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
 
       // printf("STR RATE\n");
       // print(StrRate);
+      
+      printf("ELEMENT %d SIGMA\n");
+      print(Sigma);
 
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
