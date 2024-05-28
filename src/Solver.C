@@ -25,6 +25,10 @@ namespace MetFEM{
 
 
 
+    for (int e=0;e<m_elem_count;e++)
+      for (int n=0;n<m_nodxelem;n++)
+        for (int d=0;d<3;d++)
+          v[3*m_elnod[n]+d]=0.0;
   
   for (int d=0;d<m_dim;d++){
     
@@ -68,12 +72,8 @@ namespace MetFEM{
   #endif
 	//cout << "Done. "<<endl;
 
-    // printf("V ELNOD \n");
-    // for (int e=0;e<m_elem_count;e++){
-      // for (int n=0;n<m_nodxelem;n++)
-        // printf("%f %f  %f,  ",v[3*m_elnod[n]+0],v[3*m_elnod[n]+1],,v[3*m_elnod[n]+2]);
-      // printf("\n");
-    // }  
+
+      
   
   Time = 0.0;
   

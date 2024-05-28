@@ -150,7 +150,7 @@ dev_t void Domain_d::calcElemStrainRates(){
                     //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
                     grad_v[gp][I][J] += getDerivative(0,gp,J,k) * getVElem(e,k,I)/m_detJ[e*m_gp_count+gp];
                     //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
-                    printf ("elem %d node %d, velem %f\n", e, k, getVElem(e,k,I));
+                    //printf ("elem %d node %d, velem %f\n", e, k, getVElem(e,k,I));
                 }
 
             }
@@ -171,8 +171,8 @@ dev_t void Domain_d::calcElemStrainRates(){
         // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
         str_rate_.ToFlatSymPtr(m_str_rate, offset);
         rot_rate_.ToFlatSymPtr(m_rot_rate, offset);
-      printf("Strain Rate\n");
-      str_rate_.Print();
+      // printf("Strain Rate\n");
+      // str_rate_.Print();
       
     }
 

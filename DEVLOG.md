@@ -76,9 +76,11 @@
 20240520 - FInally fixed C++ version! Problem was in time integration
 20240525 - Fixed initialization of Shared Elements by each node.
          - Also fixed shared element nodes in box mesh (zincrement was wrong)
-20240527 - Added getNodePos() to domain.
+20240527 - Fixing some bug related to several element domain.
+         - Added getNodePos() to domain.
          - Fixed BCs of 4 element example.
          - Found a bug on strain rate calc
          - Begining to add vtk output
 20240528 - Found errors in fast strain rate calac (determinant offset)
           - str rate were not equal to zero on each gp iter 
+          - Fixed getVelem() function. 
