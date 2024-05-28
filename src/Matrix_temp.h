@@ -83,6 +83,7 @@ public:
 
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int r, const int c, const double d);
+  __spec void SetZero();
 	__spec void Print();
   __spec Matrix & Transpose();
   __spec Matrix getTranspose();
@@ -152,6 +153,12 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
   __spec void Matrix::Set(const int r, const int c, const double d){
     if (r>m_row) printf("ERROR, trying to set row %d, max row %d",r, m_row);
     m_data[m_col*r+c] = d;
+  }
+
+  __spec void Matrix::SetZero(){
+      for (int i=0;i<m_row;i++)
+        for (int j=i;j<m_col;j++)
+          m_data[m_col*j+i] = 0.0;
   }
   
   __spec Matrix & Matrix::Transpose(){

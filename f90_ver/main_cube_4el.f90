@@ -146,27 +146,21 @@ implicit none
     nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
     nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions
   else 
-    nod%is_bcv(5:8,3) = .true.
-    nod%bcv(5:8,3) = -1.0d0
+    do i=1,node_count
+      if (nod%x(i,3)<r) then
+        if (nod%x(i,1)<r) then
+          nod%is_fix(i,1) = .true.
+        end if
+        if (nod%x(i,2)<r) then
+          nod%is_bcv(i,2) = .true.
+        end if 
+      end if
+        if (nod%x(i,3)>L - r) then
+          nod%is_bcv(i,3) = .true.
+          nod%bcv(i,3) = -1.0d0          
+      end if 
+    end do
 
-    ! nod%is_bcv(6,1) = .true.
-    ! nod%bcv(6,2) = 0.0d0
-    ! nod%is_bcv(8,1) = .true.
-    ! nod%bcv(8,2) = 0.0d0    
-    ! !ONLY INTIIAL
-    ! do i=5,8
-      ! elem%f_ext(1,i,:) = [0.0d0,0.0d0,-10000.0d0] !!!ELEMENT 1, node 3,
-    ! end do
-  
-    nod%is_fix(1,:) = .true. !Node 1 restricted in 2 dimensions
-    
-    nod%is_fix(2,2) = .true. !Node 1 restricted in 2 dimensions  
-    nod%is_fix(2,3) = .true. !Node 1 restricted in 2 dimensions  
-    
-    nod%is_fix(3,1) = .true. !Node 1 restricted in 2 dimensions  
-    nod%is_fix(3,3) = .true. !Node 1 restricted in 2 dimensions  
-    
-    nod%is_fix(4,3) = .true. !Node 1 restricted in 2 dimensions  
   end if
   
  ! print *, "BCV 6 ", nod%bcv(6,3)
@@ -196,10 +190,10 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 0.8e-5/2.0
+  dt = 0.8e-5/4.0
   !tf = 10.0*dt
   tf = 1.0e-3
-  !tf = 10.0*dt 
+  tf = 1.0*dt 
   
   elem%rho(:,:) = rho
   

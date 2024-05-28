@@ -132,10 +132,10 @@ int main(){
   // } else                              printf("ERROR: Invalid material type.
 
 	//double dt = 0.7 * dx/(mat_cs);
-  double dt = 0.800e-5/2.0;
+  double dt = 0.800e-5/4.0;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (1.0e-4);
-  //dom_d->SetEndTime (1.0*dt);
+  //dom_d->SetEndTime (1.0e-3);
+  dom_d->SetEndTime (1.0*dt);
   
   if (dim == 3){
   //// ORIGINAL
@@ -143,7 +143,7 @@ int main(){
   for (int i=0;i<dom_d->getNodeCount();i++){
     cout <<" z "<<dom_d->getNodePos(i).z<< "dx/2 " <<dx/2.0<<endl;
     if (dom_d->getNodePos(i).z<dx/4.0){
-      dom_d->AddBCVelNode(i,2,-1.0);
+      dom_d->AddBCVelNode(i,2,0.0);
       cout << "Node "<<i<<" fixed on z"<<endl;
 
       if (dom_d->getNodePos(i).y<dx/4.0){
@@ -155,6 +155,11 @@ int main(){
         cout << "Node "<<i<<" fixed on x"<<endl;
       }        
     }
+    if (dom_d->getNodePos(i).z> L.z-dx/4.0){
+      dom_d->AddBCVelNode(i,2,-1.0);
+      cout << "Node "<<i<<" fixed on z"<<endl; 
+    }
+
 
   }
   // dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  

@@ -108,7 +108,7 @@ public:
 
   //TODO: CHANGE THIS
   inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
-  inline dev_t double & getStrRate(const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}}; if (j<m_dim) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
+  inline dev_t double & getStrRate(const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}}; if (j<3) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
   
   dev_t void CalcElemInitialVol();
   
@@ -124,9 +124,9 @@ public:
   dev_t void calcTotMass();
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
-  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[m_dim*m_elnod[n]+d];}  
+  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[3*m_elnod[n]+d];}  
   
-  inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
+  inline dev_t vector_t getV(const int &n){return make_vector_t(v[3*n], v[3*n+1], v[3*n+2]);}  
   
   
 	void SolveChungHulbert();

@@ -80,3 +80,5 @@
          - Fixed BCs of 4 element example.
          - Found a bug on strain rate calc
          - Begining to add vtk output
+20240528 - Found errors in fast strain rate calac (determinant offset)
+          - str rate were not equal to zero on each gp iter 
