@@ -124,7 +124,7 @@ public:
   dev_t void calcTotMass();
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
-  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[3*m_elnod[n]+d];}  
+  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[3*m_elnod[m_nodxelem*e+n]+d];}  
   
   inline dev_t vector_t getV(const int &n){return make_vector_t(v[3*n], v[3*n+1], v[3*n+2]);}  
   

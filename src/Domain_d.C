@@ -35,16 +35,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   // NODAL VARIABLES
   
-  malloc_t (x,      double,node_count*m_dim);
-  malloc_t (v,      double,node_count*m_dim);
-  malloc_t (a,      double,node_count*m_dim);
-  malloc_t (u,      double,node_count*m_dim);
-  malloc_t (u_dt,   double,node_count*m_dim);
+  malloc_t (x,      double,node_count*3);
+  malloc_t (v,      double,node_count*3);
+  malloc_t (a,      double,node_count*3);
+  malloc_t (u,      double,node_count*3);
+  malloc_t (u_dt,   double,node_count*3);
   
-  malloc_t (prev_a, double,node_count*m_dim);  
+  malloc_t (prev_a, double,node_count*3);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
-  malloc_t (m_fi,double,node_count*m_dim); //Internal forces
-  malloc_t (m_fe,double,node_count*m_dim);
+  malloc_t (m_fi,double,node_count*3); //Internal forces
+  malloc_t (m_fe,double,node_count*3);
   
   malloc_t (m_mdiag, double,node_count);
   malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
@@ -99,7 +99,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	report_gpu_mem_();
   #endif
 
-  malloc_t (x_h,      double,node_count*m_dim);
+  malloc_t (x_h,      double,node_count*3);
 }
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
@@ -328,10 +328,10 @@ dev_t void Domain_d::ImposeBCV(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
-    
-    if (dim == 0)       {/*//printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {/*//printf ("val %f \n",bcy_val[n]);*/                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
-    else if (dim == 2)  {/*//printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+    printf("BCV dim %d\n", dim);
+    if (dim == 0)       {printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]); v[3*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {printf ("val %f \n",bcy_val[n]);                   v[3*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); v[3*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
@@ -514,8 +514,14 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
     //cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));	
     malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
-		memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem);    
+		memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem); 
     
+    // printf("ELNOD \n");
+    // for (int e=0;e<m_elem_count;e++){
+      // for (int n=0;n<m_nodxelem;n++)
+        // printf("%d ",m_elnod[e*m_nodxelem+n]);
+      // printf("\n");
+    // }
     //cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
     malloc_t(m_jacob, Matrix, m_elem_count );
     
