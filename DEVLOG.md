@@ -86,3 +86,4 @@
          - Fixed getVelem() function. 
 20240529 - Fixed fast strain rate calc
          - Corrected 4 elem example .
+         - Adding vtk writer
