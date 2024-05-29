@@ -82,5 +82,7 @@
          - Found a bug on strain rate calc
          - Begining to add vtk output
 20240528 - Found errors in fast strain rate calac (determinant offset)
-          - str rate were not equal to zero on each gp iter 
-          - Fixed getVelem() function. 
+         - str rate were not equal to zero on each gp iter 
+         - Fixed getVelem() function. 
+20240529 - Fixed fast strain rate calc
+         - Corrected 4 elem example .

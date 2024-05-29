@@ -46,7 +46,7 @@ int main(){
 	double3 L = make_double3(dx,dx,dx);
 
   if (dim ==2) L.z = 0.0;
-	double r = 0.02;
+	double r = 0.025;
 	
 	dom_d->AddBoxLength(V,L,r,true);
  

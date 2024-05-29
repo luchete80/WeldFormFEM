@@ -24,7 +24,7 @@ namespace MetFEM{
   #endif
 
 
-
+ 
     for (int e=0;e<m_elem_count;e++)
       for (int n=0;n<m_nodxelem;n++)
         for (int d=0;d<3;d++)
