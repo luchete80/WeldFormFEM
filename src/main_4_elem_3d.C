@@ -1,5 +1,5 @@
 #include "Domain_d.h"
-
+#include "VTKWriter.h"
 #include <iostream>
 #include "defs.h"
 
@@ -190,6 +190,10 @@ int main(){
 	cout << "Program ended."<<endl;
   
   //dom_d->WriteToCSV("test.csv");
+  
+  VTKWriter writer(dom_d, "test.vtu");
+  
+  writer.writeFile();
 	
 	
 }
