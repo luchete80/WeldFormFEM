@@ -100,7 +100,10 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   #endif
 
   malloc_t (x_h,      double,node_count*3);
+  //malloc_t (u_h,      double,node_count*3);
+  u_h = new double [3*m_node_count];
 }
+
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
 //    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
@@ -905,7 +908,7 @@ int Domain_d::WriteToCSV(char *FileKey){
 	of.close();
 }
 
-dev_t void Domain_d::printVec(const double *v){
+dev_t void Domain_d::printVec(double *v){
   for (int n=0;n<m_node_count;n++){
     for (int d=0;d<m_dim;d++)
       printf("%.6e ",v[m_dim*n + d]);
@@ -963,7 +966,7 @@ __global__ void AssignMatAddressKernel(Domain_d *dom){
   dom->AssignMatAddress();
 }
 
-__global__ void printVecKernel(Domain_d *dom_d, const double *v){
+__global__ void printVecKernel(Domain_d *dom_d, double *v){
   dom_d->printVec(v);
 }
 

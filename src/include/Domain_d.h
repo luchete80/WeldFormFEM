@@ -50,7 +50,7 @@ public:
   inline vector_t getPosVec(const int &n){return make_vector_t(x[3*n], x[3*n+1], x[3*n+2]);};
   #endif
   
-  dev_t void printVec(const double*);
+  dev_t void printVec(double*);
   dev_t void printSymmTens( double *);
   
   void WriteToVTK(char *);
@@ -253,7 +253,7 @@ __global__ void calcMassDiag(Domain_d *dom_d);
 
 __global__ void calcAccelKernel(Domain_d *dom_d);
 
-__global__ void printVecKernel(Domain_d *dom_d, const double *);
+__global__ void printVecKernel(Domain_d *dom_d, double *);
 __global__ void printSymmTensKernel(Domain_d *dom_d,  double *);
 
 #endif

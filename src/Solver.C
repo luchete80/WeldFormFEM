@@ -17,18 +17,19 @@ namespace MetFEM{
 	cout << "Blocks per grid"<<blocksPerGrid<<", Threads per block"<< threadsPerBlock<<endl;
 
   ////// MATERIAL
+  cout << "Assignin material.."<<endl;
   AssignMatAddressKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize();
   #else 
   AssignMatAddress();
   #endif
+  cout << "done"<<endl;
 
-
- 
+/*  cout << "Initializing bcs" << endl;
     for (int e=0;e<m_elem_count;e++)
       for (int n=0;n<m_nodxelem;n++)
         for (int d=0;d<3;d++)
-          v[3*m_elnod[n]+d]=0.0;
+          v[3*m_elnod[n]+d]=0.0;*/
   
   for (int d=0;d<m_dim;d++){
     
@@ -41,7 +42,7 @@ namespace MetFEM{
        ImposeBCV(d);
     #endif
   }
-  
+  cout << "done"<<endl;
   
   double rho_b = 0.8182;  // DEFAULT SPECTRAL RADIUS
   
@@ -80,7 +81,7 @@ namespace MetFEM{
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  
+  cout << "Main Loop----"<<endl;
   while (Time < end_t) {
     
   printf("Time %f\n",Time);  
@@ -260,6 +261,8 @@ namespace MetFEM{
   
   #ifdef CUDA_BUILD
   printf("DISPLACEMENTS\n");
+  memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*3);
+  printf("%6e \n", this->u_h[3]);
   printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
 

@@ -19,6 +19,7 @@
 
 #define malloc_t(x,t,y)           cudaMalloc((void **)&x, y * sizeof (t))
 #define memcpy_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyHostToDevice)
+#define memcpy__tohost_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyDeviceToHost)
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
