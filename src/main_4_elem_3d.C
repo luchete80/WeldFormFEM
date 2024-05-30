@@ -1,5 +1,5 @@
 #include "Domain_d.h"
-
+#include "VTKWriter.h"
 #include <iostream>
 #include "defs.h"
 
@@ -46,7 +46,7 @@ int main(){
 	double3 L = make_double3(dx,dx,dx);
 
   if (dim ==2) L.z = 0.0;
-	double r = 0.02;
+	double r = 0.025;
 	
 	dom_d->AddBoxLength(V,L,r,true);
  
@@ -190,6 +190,10 @@ int main(){
 	cout << "Program ended."<<endl;
   
   //dom_d->WriteToCSV("test.csv");
+  
+  VTKWriter writer(dom_d, "test.vtu");
+  
+  writer.writeFile();
 	
 	
 }

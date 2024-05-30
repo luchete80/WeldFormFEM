@@ -189,8 +189,8 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
         
         
       } // element
-      //printf("m diag: %f\n",diag);
       m_mdiag [n] = diag;
+      //printf("m diag %d: %f\n",n, m_mdiag [n]);
     }//NODE N (N1)
   }
   ///// INITIALIZE Displacements, velocities and Acceleration

@@ -38,6 +38,7 @@ dev_t void Domain_d::calcElemStrainRates(){
       //printf("f factor: %f\n",f);
       //double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
+
         // double vele[3];
         // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
         // do d=1, dim
@@ -52,7 +53,8 @@ dev_t void Domain_d::calcElemStrainRates(){
           printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
-          str_rate->Set(d,d, 0.0);
+          rot_rate->Set(d,d, 0.0);
+
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
           
@@ -73,11 +75,6 @@ dev_t void Domain_d::calcElemStrainRates(){
           rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
                                                          getDerivative(e,gp,0,n) * getVElem(e,n,2)));
         
-      rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
-
-      printf("Strain Rate\n");
-      str_rate->Print();
-     
 
         }// end if     
       }// end do !Nod x elem
@@ -130,7 +127,8 @@ dev_t void Domain_d::calcElemStrainRates(){
 } //calcElemStrains
   
 
-// ////// STRAIN RATE CALC: SLOWER VARIANT 
+
+////// STRAIN RATE CALC: SLOWER VARIANT 
 
 // dev_t void Domain_d::calcElemStrainRates(){
     // double rot_rate[1][3][3];
@@ -146,10 +144,10 @@ dev_t void Domain_d::calcElemStrainRates(){
             // for (int J = 0; J < m_dim; J++){ 
                 // grad_v[gp][I][J] = 0.0;
                 // for (int k = 0; k < m_nodxelem; k++) {
-                    // grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
+                    // //grad_v[gp][I][J] += dNdX[gp][J][k] * vel[k][I];
                     // grad_v[gp][I][J] += getDerivative(0,gp,J,k) * getVElem(e,k,I)/m_detJ[e*m_gp_count+gp];
-                    // printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
-                    // printf ("elem %d node %d, velem %f\n", e, k, getVElem(e,k,I));
+                    // //printf ("deriv %e " , getDerivative(0,gp,J,k)/m_detJ[gp]);
+                    // //printf ("elem %d node %d, velem %f\n", e, k, getVElem(e,k,I));
                 // }
 
             // }
@@ -163,26 +161,26 @@ dev_t void Domain_d::calcElemStrainRates(){
                 // str_rate_.Set(i,j, 0.5*(grad_v[gp][i][j] + grad_v[gp][j][i]));
                 // str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
                 // rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
-                // printf("str rate %e", str_rate[gp][i][j]);
+                // //printf("str rate %e", str_rate[gp][i][j]);
             // }
         // }
-         // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
-         // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
+        // // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        
+        // // str_rate[gp][2][2]=rot_rate[gp][2][2]=0.0;
         // str_rate_.ToFlatSymPtr(m_str_rate, offset);
         // rot_rate_.ToFlatSymPtr(m_rot_rate, offset);
-       // printf("Strain Rate\n");
-       // str_rate_.Print();
+      // printf("Element %e Strain Rate\n", e);
+      // str_rate_.Print();
       
     // }
 
-     // int o = 6*e;
-     // m_str_rate[o+0]=str_rate[0][0][0];     m_str_rate[o+1]=str_rate[0][1][1];    m_str_rate[o+2]=str_rate[0][2][2];  
-     // m_str_rate[o+3]=str_rate[0][0][1];     m_str_rate[o+4]=str_rate[0][1][2];    m_str_rate[o+5]=str_rate[0][0][2];  
+    // // int o = 6*e;
+    // // m_str_rate[o+0]=str_rate[0][0][0];     m_str_rate[o+1]=str_rate[0][1][1];    m_str_rate[o+2]=str_rate[0][2][2];  
+    // // m_str_rate[o+3]=str_rate[0][0][1];     m_str_rate[o+4]=str_rate[0][1][2];    m_str_rate[o+5]=str_rate[0][0][2];  
 
-     // m_rot_rate[o+0]=rot_rate[0][0][0];     m_rot_rate[o+1]=rot_rate[0][1][1];    m_rot_rate[o+2]=rot_rate[0][2][2];  
-     // m_rot_rate[o+3]=rot_rate[0][0][1];     m_rot_rate[o+4]=rot_rate[0][1][2];    m_rot_rate[o+5]=rot_rate[0][0][2];  
+    // // m_rot_rate[o+0]=rot_rate[0][0][0];     m_rot_rate[o+1]=rot_rate[0][1][1];    m_rot_rate[o+2]=rot_rate[0][2][2];  
+    // // m_rot_rate[o+3]=rot_rate[0][0][1];     m_rot_rate[o+4]=rot_rate[0][1][2];    m_rot_rate[o+5]=rot_rate[0][0][2];  
     
-    // } Elem e
+    // } //Elem e
 
 // }
 

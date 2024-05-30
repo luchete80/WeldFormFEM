@@ -32,8 +32,9 @@ class BC_Node {
   double  m_val;
 };
 
-class VTKWriter;
 namespace MetFEM{
+
+class VTKWriter;
 class Domain_d {
   friend class VTKWriter;
 public:
@@ -44,9 +45,9 @@ public:
   
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
-  inline vector_t getPosVec(const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);};
+  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[3*n], x_h[3*n+1], x_h[3*n+2]);};
   #else
-  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  inline vector_t getPosVec(const int &n){return make_vector_t(x[3*n], x[3*n+1], x[3*n+2]);};
   #endif
   
   dev_t void printVec(const double*);
