@@ -262,7 +262,8 @@ namespace MetFEM{
   #ifdef CUDA_BUILD
   printf("DISPLACEMENTS\n");
   memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*3);
-  printf("%6e \n", this->u_h[3]);
+  for (int i=0;i<m_node_count;i++)
+    printf("%.6e %.6e %.6e\n", this->u_h[i*3+0],this->u_h[i*3+1],this->u_h[i*3+2]);
   printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
 
