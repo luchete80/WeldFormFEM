@@ -58,36 +58,36 @@ add_executable(MetFEMGPU
 
               )
 
-add_executable(1elem
-                        main_1_elem_3d.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
+#add_executable(1elem
+#                        main_1_elem_3d.C
+#                        Domain_d.C
+#                        Matrices.C
+#                        Mechanical.C
+#                        Matrices.C
+#                        Solver.C
 
 
-              )
+#              )
 
-add_executable(4elem
-                        main_4_elem_3d.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
-                        VTKWriter.C
-              )             
+#add_executable(4elem
+#                        main_4_elem_3d.C
+#                        Domain_d.C
+#                        Matrices.C
+#                        Mechanical.C
+#                        Matrices.C
+#                        Solver.C
+#                        VTKWriter.C
+#              )             
 
-add_executable(beam
-                        main_beam.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
+#add_executable(beam
+#                        main_beam.C
+#                        Domain_d.C
+#                        Matrices.C
+#                        Mechanical.C
+#                        Matrices.C
+#                        Solver.C
 
-              )
+#              )
               
 add_executable(WeldFormFEM
                         WeldFormFEM.C
@@ -100,15 +100,15 @@ add_executable(WeldFormFEM
                         ../lib/LSDynaReader/src/lsdynaReader.cpp
 
               )
-add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
-                                  Domain_d.C
-                                  Matrices.C
-                                  Mechanical.C)
+#add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
+#                                  Domain_d.C
+#                                  Matrices.C
+#                                  Mechanical.C)
 
-add_executable(1el_3d  test_1el_3D.cpp
-                       Domain_d.C
-                       Matrices.C
-                       Mechanical.C)
+#add_executable(1el_3d  test_1el_3D.cpp
+#                       Domain_d.C
+#                       Matrices.C
+#                       Mechanical.C)
 
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
