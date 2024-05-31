@@ -32,7 +32,7 @@ set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (co
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C 
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
                             WeldFormFEM.C include/*.h 
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -90,17 +90,17 @@ add_executable(1elem
 
 #              )
               
-add_executable(WeldFormFEM
-                        WeldFormFEM.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
-                        input.C
-                        ../lib/LSDynaReader/src/lsdynaReader.cpp
+# add_executable(WeldFormFEM
+                        # WeldFormFEM.C
+                        # Domain_d.C
+                        # Matrices.C
+                        # Mechanical.C
+                        # Matrices.C
+                        # Solver.C
+                        # input.C
+                        # ../lib/LSDynaReader/src/lsdynaReader.cpp
 
-              )
+              # )
 #add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
 #                                  Domain_d.C
 #                                  Matrices.C
@@ -111,8 +111,7 @@ add_executable(WeldFormFEM
 #                       Matrices.C
 #                       Mechanical.C)
 
-#THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
-set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
+
 
 # set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
 
@@ -164,6 +163,10 @@ set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
 #add_subdirectory (cuda)
 
 if (BUILD_GPU)
+#THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
+set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
+set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 60)
+
 TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
 TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
 # TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)

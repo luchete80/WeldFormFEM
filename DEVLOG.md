@@ -87,3 +87,4 @@
 20240529 - Fixed fast strain rate calc
          - Corrected 4 elem example .
          - Adding vtk writer
+20240531 - Added a missing Syncronize after element mass matrix calc

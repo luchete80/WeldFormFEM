@@ -125,9 +125,11 @@ namespace MetFEM{
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   
+  cout << "calc deriv"<<endl;
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-
+  
+  
 	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
 
@@ -142,7 +144,8 @@ namespace MetFEM{
 
 	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-
+  cudaDeviceSynchronize();   
+  
   //printf("CALCULATING MASS\n");
   N = getNodeCount();
 

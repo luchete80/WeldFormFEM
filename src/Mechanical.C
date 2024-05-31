@@ -50,7 +50,7 @@ dev_t void Domain_d::calcElemStrainRates(){
         // printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
         // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
-          printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+          //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
           
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           rot_rate->Set(d,d, 0.0);
@@ -580,6 +580,7 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
   }//el < elcount
     // end do !gauss point
   // end do
+  printf("ELEMENT %d SIGMA\n");
  
 }
 
