@@ -525,7 +525,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   
   // ident = 0.0d0
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
-  //printf("calculating sigma \n");
+  printf("calculating sigma \n");
   par_loop(e,m_elem_count){
 
         // Jaumann rate terms

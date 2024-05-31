@@ -160,6 +160,8 @@ namespace MetFEM{
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize(); 
 
+  N = getElemCount();
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   cout << "dt "<<dt<<endl;
   calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
   cudaDeviceSynchronize();
