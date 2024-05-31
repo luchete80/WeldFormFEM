@@ -104,7 +104,7 @@ public:
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
-  dev_t void CalcStressStrain(const double dt);
+  dev_t void CalcStressStrain(double dt);
   dev_t void Calc_Elastic_Stress (const double dt);
 
   //TODO: CHANGE THIS
@@ -240,7 +240,7 @@ __global__ void UpdatePredictionKernel(Domain_d *dom_d);
 __global__ void UpdateCorrectionAccVelKernel(Domain_d *dom_d);
 __global__ void UpdateCorrectionPosKernel   (Domain_d *dom_d);
 
-__global__ void calcStressStrainKernel(Domain_d *dom_d, const double dt);
+__global__ void calcStressStrainKernel(Domain_d *dom_d, double dt);
 
 __global__ void calcElemVolKernel(Domain_d *dom_d);
 __global__ void calcElemInitialVolKernel(Domain_d *dom_d);

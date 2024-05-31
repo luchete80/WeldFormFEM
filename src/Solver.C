@@ -142,27 +142,28 @@ namespace MetFEM{
   //AFTER DERIVATIVES AND RHO CALC (NEEDS JACOBIAN)
   N = getElemCount();
 
-	blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  cudaDeviceSynchronize();   
+	// blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
+  // calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+  // cudaDeviceSynchronize();   
   
-  //printf("CALCULATING MASS\n");
-  N = getNodeCount();
-
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
+  // //printf("CALCULATING MASS\n");
+  // N = getNodeCount();
+  // blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+  // assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	// cudaDeviceSynchronize();   
  
 
   
     //STRESSES CALC
-
+  N = getElemCount();
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
   cudaDeviceSynchronize(); 
 
+  cout << "dt "<<dt<<endl;
   calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
   cudaDeviceSynchronize();
-  
+
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
@@ -197,7 +198,7 @@ namespace MetFEM{
   calcAccel();
   #endif
   
-  ImposeBCAAllDim();
+  ImposeBCAAllDim(); //FOR BOTH GPU AND CPU
   
   N = getNodeCount();
   //printf("Correction\n");	

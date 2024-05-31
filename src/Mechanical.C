@@ -394,6 +394,7 @@ dev_t void Domain_d::calcElemForces(){
 dev_t void Domain_d::calcElemPressure(){
 
   par_loop(e,m_elem_count){
+    printf("calc pressure \n");
     int offset_t = e * m_gp_count *6;
     Matrix *sigma   = new Matrix(3,3);
     //Matrix str_inc(m_dim,m_dim);
@@ -415,7 +416,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
       
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      //printf("pressure %f\n",p[offset + gp]);
+      printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
@@ -509,16 +510,9 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
 // 
 // !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
-dev_t void Domain_d::CalcStressStrain(const double dt){
+dev_t void Domain_d::CalcStressStrain(double dt){
 
-    // Jaumann rate terms
-  tensor3 RotationRateT,SRT,RS;
-  tensor3 RotRate;
-  tensor3 StrRate;
-  tensor3 ShearStress;
-  tensor3 Sigma;
-  tensor3 Strain,Straina,Strainb;
- 
+
 	
   // implicit none
   // real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
@@ -531,9 +525,17 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
   
   // ident = 0.0d0
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
-
+  //printf("calculating sigma \n");
   par_loop(e,m_elem_count){
-    
+
+        // Jaumann rate terms
+      tensor3 RotationRateT,SRT,RS;
+      tensor3 RotRate;
+      tensor3 StrRate;
+      tensor3 ShearStress;
+      tensor3 Sigma;
+
+    //printf("calculating sigma %d\n", e);
     for (int gp=0;gp<m_gp_count;gp++){
       int offset_s = e * m_gp_count + gp;   //SCALAR
       int offset_t = offset_s * 6 ; //SYM TENSOR
@@ -568,8 +570,8 @@ dev_t void Domain_d::CalcStressStrain(const double dt){
       // printf("STR RATE\n");
       // print(StrRate);
       
-      printf("ELEMENT %d SIGMA\n");
-      print(Sigma);
+      // printf("ELEMENT %d SIGMA\n");
+      // print(Sigma);
 
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
@@ -951,7 +953,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
 		dom_d->CalcElemInitialVol();
   }
   
-  __global__ void calcStressStrainKernel(Domain_d *dom_d, const double dt){
+  __global__ void calcStressStrainKernel(Domain_d *dom_d, double dt){
     dom_d->CalcStressStrain(dt);
   }
 
