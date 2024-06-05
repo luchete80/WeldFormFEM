@@ -161,11 +161,13 @@ add_executable(1elem
 #set_property(TARGET gpuweldform PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 #add_subdirectory (cuda)
+#ATTENTION 
+#https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 
 if (BUILD_GPU)
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
-set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
-set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 60)
+# set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
+# set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 60)
 
 TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
 TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
