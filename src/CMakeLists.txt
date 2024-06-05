@@ -56,6 +56,7 @@ add_executable(MetFEMGPU
                         Mechanical.C
                         Matrices.C
                         Solver.C
+                        # VTKWriter.C
 
               )
 
@@ -66,19 +67,19 @@ add_executable(1elem
                         Mechanical.C
                         Matrices.C
                         Solver.C
-
+                        # VTKWriter.C
 
               )
 
-#add_executable(4elem
-#                        main_4_elem_3d.C
-#                        Domain_d.C
-#                        Matrices.C
-#                        Mechanical.C
-#                        Matrices.C
-#                        Solver.C
-#                        VTKWriter.C
-#              )             
+add_executable(4elem
+                       main_4_elem_3d.C
+                       Domain_d.C
+                       Matrices.C
+                       Mechanical.C
+                       Matrices.C
+                       Solver.C
+                       # VTKWriter.C
+             )             
 
 #add_executable(beam
 #                        main_beam.C
@@ -166,11 +167,14 @@ add_executable(1elem
 
 if (BUILD_GPU)
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
-# set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
-# set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 60)
+set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
+set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 75)
+set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 75)
+
 
 TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
 TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
+TARGET_LINK_LIBRARIES (4elem  cuda cudadevrt)
 # TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)

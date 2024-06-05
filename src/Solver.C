@@ -1,5 +1,6 @@
 #include "Domain_d.h"
 #include <iostream>
+#include "VTKWriter.h"
 
 using namespace std;
 
@@ -273,6 +274,10 @@ namespace MetFEM{
   printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
 
+
+
+  memcpy__tohost_t(this->x_h,this->x,sizeof(double) * this->m_node_count*3);
+
   printf("VELOCITIES\n");
   printVecKernel<<<1,1 >>>(this, this->v);
 	cudaDeviceSynchronize(); 
@@ -320,6 +325,9 @@ namespace MetFEM{
   
   
   #endif
+
+  // VTKWriter writer(this, "out.vtk");
+  // writer.writeFile();
   
   }//SOLVE
 	

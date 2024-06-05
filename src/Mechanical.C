@@ -525,9 +525,9 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   
   // ident = 0.0d0
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
-  printf("calculating sigma \n");
-  par_loop(e,m_elem_count){
 
+  par_loop(e,m_elem_count){
+  printf("calculating sigma \n");
         // Jaumann rate terms
       tensor3 RotationRateT,SRT,RS;
       tensor3 RotRate;
