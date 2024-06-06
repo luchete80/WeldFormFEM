@@ -89,6 +89,6 @@
          - Adding vtk writer
 20240531 - Added a missing Syncronize after element mass matrix calc
 ----------------------------------------------------------------------
-20240605 - Fixed GPU problems!! ATTENTION. ARCHITECTURE WAS WRONG.
-         - # set_property(TARGET MetFEMGPU PROPERTY CUDA_ARCHITECTURES 60)
-         - GTX 1660 is not 60
+20240605 - Removed Arch type. Still with problems on GPU/CPU
+20240606 - Begining to Add VTU export 
+         

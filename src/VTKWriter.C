@@ -12,14 +12,14 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 	//Writing Inputs in a Log file
 	m_fname = fname;
 
-	m_oss << "Dimension = "<< dom->m_dim << "D\n"<<endl;
-  m_oss <<  "<VTKFile type=""UnstructuredGrid"" version=""0.1"" byte_order=""BigEndian"">"<<endl;
+	//m_oss << "Dimension = "<< dom->m_dim << "D\n"<<endl;
+  m_oss <<  "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">"<<endl;
   m_oss <<  "  <UnstructuredGrid>"<<endl;
   // FOR NOT RETURN CARRIAGE
-  m_oss <<  "    <Piece NumberOfPoints=""" <<dom->m_node_count<< """ NumberOfCells="""<<dom->m_elem_count<<""">"<<endl;  //Note that an explicit format descriptor is needed when using
+  m_oss <<  "    <Piece NumberOfPoints=\"" <<dom->m_node_count<< "\" NumberOfCells=\""<<dom->m_elem_count<<"\">"<<endl;  //Note that an explicit format descriptor is needed when using
   //write (1, '(A,2x,I5)') '<Piece NumberOfPoints="'
   m_oss << "      <Points>"<<endl;
-  m_oss << "        <DataArray type=""Float32"" Name=""Position"" NumberOfComponents=""3"" Format=""ascii"">"<<endl;
+  m_oss << "        <DataArray type=\"Float32\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">"<<endl;
 
   
   for (int i=0;i<dom->m_node_count;i++){
@@ -32,7 +32,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss << "       </Points>"<<endl;
   
   m_oss << "       <Cells>" <<endl;
-  m_oss << "         <DataArray type=""Int32"" Name=""connectivity"" Format=""ascii"">"<<endl;
+  m_oss << "         <DataArray type=\"Int32\" Name=\"connectivity\" Format=\"ascii\">"<<endl;
 
   for (int e=0;e<dom->m_elem_count;e++){
     m_oss << "         ";
@@ -44,7 +44,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   m_oss <<  ""; // END OF LINE
   m_oss <<  "        </DataArray>"<<endl;
-  m_oss <<  "        <DataArray type=""Int32"" Name=""offsets"" Format=""ascii"">"<<endl;
+  m_oss <<  "        <DataArray type=\"Int32\" Name=\"offsets\" Format=\"ascii\">"<<endl;
   
   //TODO: CREATE A VERSION OF OFFSET
   int offs = dom->m_nodxelem;
@@ -57,6 +57,41 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   m_oss <<  endl; // END OF LINE
   m_oss <<  "        </DataArray>"<<endl;
+
+
+  m_oss <<  "        <DataArray type=\"Int32\" Name=\"types\" Format=\"ascii\">"  <<endl;
+  for (int e=0;e<dom->m_elem_count;e++){
+    if (dom->m_dim==2){
+      m_oss <<  "9 ";
+    }else if (dom->m_dim==3){
+      m_oss <<  "12 ";
+    }
+      // if (dim .eq. 2) then
+        // write(1,"(I3,1x)",advance="no") 9
+      // else 
+        // write(1,"(I3,1x)",advance="no") 12
+      // end if
+  }
+  m_oss <<   "" <<endl;
+  m_oss <<   "        </DataArray>" <<endl;
+  m_oss <<   "      </Cells>" <<endl;
+  
+  m_oss << "      <PointData Scalars=\"scalars\">"  <<endl;
+  
+  m_oss << "        <DataArray type=\"Float32\" Name=\"u\" NumberOfComponents=\""<<dom->m_dim<<"\" Format=\"ascii\"> " <<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    vector_t x = dom->getDispVec(n);
+    m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;    
+    
+  }
+  m_oss << "    </DataArray>" <<endl;
+  
+  m_oss << "    </PointData>" <<endl;
+
+  m_oss << "    </Piece>" <<endl;
+  m_oss << "  </UnstructuredGrid>" <<endl;
+  m_oss << "</VTKFile>" <<endl;
+  
   
 }
 

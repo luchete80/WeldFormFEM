@@ -56,7 +56,7 @@ add_executable(MetFEMGPU
                         Mechanical.C
                         Matrices.C
                         Solver.C
-                        # VTKWriter.C
+                        VTKWriter.C
 
               )
 
@@ -67,7 +67,7 @@ add_executable(1elem
                         Mechanical.C
                         Matrices.C
                         Solver.C
-                        # VTKWriter.C
+                        VTKWriter.C
 
               )
 
@@ -78,7 +78,7 @@ add_executable(4elem
                        Mechanical.C
                        Matrices.C
                        Solver.C
-                       # VTKWriter.C
+                       VTKWriter.C
              )             
 
 #add_executable(beam

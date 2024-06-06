@@ -326,8 +326,8 @@ namespace MetFEM{
   
   #endif
 
-  // VTKWriter writer(this, "out.vtk");
-  // writer.writeFile();
+  VTKWriter writer(this, "out.vtu");
+  writer.writeFile();
   
   }//SOLVE
 	
