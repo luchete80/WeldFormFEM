@@ -42,7 +42,7 @@ public:
   Domain_d (){}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
-  
+  void CreateFromLSDyna(const LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
   inline vector_t getPosVec(const int &n){return make_vector_t(x_h[3*n], x_h[3*n+1], x_h[3*n+2]);};

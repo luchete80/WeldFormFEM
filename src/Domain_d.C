@@ -25,6 +25,7 @@
 #include "tensor3.C"
 
 using namespace std;
+using namespace LS_Dyna;
 
 namespace MetFEM {
 
@@ -585,6 +586,46 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
 		
 		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
+}
+///////////////////////////////
+//// SINGLE ELNOD AND NODEL CONNECTIVITY
+/// ASSUMES 
+// void Domain_d::SetConnectivity(int elnod_h[], int elsize, int nodxelem){
+  // m_nodxelem = nodxelem;
+    // //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
+  // int nodel_tot = 0;
+  // for (int n=0;n<m_node_count;n++){
+    // nodel_offset_h[n] = nodel_tot;
+    // nodel_tot        += nodel_count_h[n];
+    // cout << "NodEL tot " << nodel_tot<<endl;
+    // cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+
+  // }
+  // cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
+  // int *nodel_h       = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT
+  // int *nodel_loc_h   = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT    
+  
+  // for (int n=0;n<m_node_count;n++)  nodel_count_h[n] = 0;    
+  // for (int e=0;e<m_elem_count;e++){
+    // int offset = m_nodxelem * e;
+    // for (int ne=0;ne<m_nodxelem;ne++){
+      // int n = elnod_h[offset+ne];
+      
+      // nodel_h     [nodel_offset_h[n] + nodel_count_h[n]] = e;
+      // nodel_loc_h [nodel_offset_h[n] + nodel_count_h[n]] = ne;
+      
+      // nodel_count_h[n]++;
+    // }//nod x elem 
+  // }
+// }
+
+
+void Domain_d::CreateFromLSDyna(const lsdynaReader &reader){
+
+  this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
+  cout << "Node Size: "<<m_node_count<<endl;  
+  cout << "Element Size: "<<m_elem_count<<endl;  
+  
 }
 
 dev_t void Domain_d::calcElemJAndDerivatives () {

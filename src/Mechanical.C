@@ -98,8 +98,8 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
 
-      printf("Strain Rate\n");
-      str_rate->Print();
+      // printf("Strain Rate\n");
+      // str_rate->Print();
 
       // printf("Rot Rate\n");
       // str_rate->Print();
@@ -527,7 +527,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
 
   par_loop(e,m_elem_count){
-  printf("calculating sigma \n");
+      //printf("calculating sigma \n");
         // Jaumann rate terms
       tensor3 RotationRateT,SRT,RS;
       tensor3 RotRate;
