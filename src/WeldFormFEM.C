@@ -158,6 +158,8 @@ int main(int argc, char **argv) {
 	cout << "Program ended."<<endl;
   
   //dom_d->WriteToCSV("test.csv");
-	}
+	} else {
+    cout << "Please provide an input file."<<endl;
+  }
 	
 }
