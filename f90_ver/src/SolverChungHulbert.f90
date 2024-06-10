@@ -295,6 +295,13 @@ subroutine SolveChungHulbert (domi, tf, dt)
 
   call disassemble_uvele     !BEFORE CALLING UINTERNAL AND STRAIN STRESS CALC
   call cal_elem_strains
+
+  call CalcEquivalentStress()
+  call AverageData(elem%rho(:,1),nod%rho(:))
+  call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
+  call AverageData(elem%pl_strain(:,1),nod%pl_strain(:))
+  
+  ! call WriteMeshVTU('output.vtu')
   
 end subroutine SolveChungHulbert
 

@@ -111,7 +111,13 @@ subroutine WriteMeshVTU (fname)
     write (1,*) nod%sigma_eq(n)
   end do   
   write (1,*) "        </DataArray>"    
- 
+
+  write (1,*) "        <DataArray type=""Float32"" Name=""pl_strain"" NumberOfComponents=""1"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%pl_strain(n)
+  end do   
+  write (1,*) "        </DataArray>"     
+
   ! write (1,*) "        <DataArray type=""Float32"" Name=""sigma"" NumberOfComponents=""6"" Format=""ascii"">"
   ! do n =1, node_count
     ! write (1,*) nod%sigma(n,1,1), nod%sigma(n,2,2), nod%sigma(n,3,3), &

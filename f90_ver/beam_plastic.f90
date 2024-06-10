@@ -103,7 +103,7 @@ implicit none
   reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, Lz, r, rho, h,reduced_int)
   
-  !elem%sigma_y(:,:) = 300.0e6
+  elem%sigma_y(:,:) = 300.0e6
   
   do i=1,node_count
   print *, "NODE ELEMENTS "
@@ -187,7 +187,7 @@ implicit none
   call CalcEquivalentStress()
   call AverageData(elem%rho(:,1),nod%rho(:))
   call AverageData(elem%sigma_eq(:,1),nod%sigma_eq(:))
-  
+    
   call WriteMeshVTU('output.vtu')
   
   open (1,file='test.csv')!, position='APPEND')  
