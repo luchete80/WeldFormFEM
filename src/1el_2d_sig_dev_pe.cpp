@@ -161,7 +161,7 @@ void calc_str_rate(double dNdX[m_gp_count][m_dim][m_nodxelem], double v[m_nodxel
             for (int j = 0; j < m_dim; j++) {
                 str_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] + grad_v[gp][j][i]);
                 rot_rate[gp][i][j] = 0.5 * (grad_v[gp][i][j] - grad_v[gp][j][i]);
-                printf("str rate %e", str_rate[gp][i][j]);
+                //printf("str rate %e", str_rate[gp][i][j]);
             }
         }
         // str_rate[gp][2][0]=rot_rate[gp][2][0]=0.0;                str_rate[gp][0][2]=rot_rate[gp][0][2]=0.0;        

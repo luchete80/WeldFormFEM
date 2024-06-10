@@ -1,5 +1,5 @@
 #include "Domain_d.h"
-#include "VTKWriter.h"
+
 #include <iostream>
 #include "defs.h"
 
@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(){
 
-  int dim = 3;
+  int dim = 2;
   
 	Domain_d *dom_d;
 
@@ -46,7 +46,7 @@ int main(){
 	double3 L = make_double3(dx,dx,dx);
 
   if (dim ==2) L.z = 0.0;
-	double r = 0.025;
+	double r = 0.05;
 	
 	dom_d->AddBoxLength(V,L,r,true);
  
@@ -132,40 +132,22 @@ int main(){
   // } else                              printf("ERROR: Invalid material type.
 
 	//double dt = 0.7 * dx/(mat_cs);
-  double dt = 0.800e-5/4.0;
+  double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->SetEndTime (1.0e-3);
-  //dom_d->SetEndTime (2.0*dt);
+  //dom_d->SetEndTime (1.0*dt);
   
   if (dim == 3){
   //// ORIGINAL
-  cout << "Node Count "<<dom_d->getNodeCount()<<endl;
-  for (int i=0;i<dom_d->getNodeCount();i++){
-    cout <<" z "<<dom_d->getNodePos(i).z<< "dx/2 " <<dx/2.0<<endl;
-    if (dom_d->getNodePos(i).z<dx/4.0){
-      dom_d->AddBCVelNode(i,2,0.0);
-      cout << "Node "<<i<<" fixed on z"<<endl;
-
-      if (dom_d->getNodePos(i).y<dx/4.0){
-        dom_d->AddBCVelNode(i,1,0.0);
-        cout << "Node "<<i<<" fixed on y"<<endl;
-      }  
-      if (dom_d->getNodePos(i).x<dx/4.0){
-        dom_d->AddBCVelNode(i,0,0.0);
-        cout << "Node "<<i<<" fixed on x"<<endl;
-      }        
-    }
-    if (dom_d->getNodePos(i).z> L.z-dx/4.0){
-      dom_d->AddBCVelNode(i,2,-1.0);
-      cout << "Node "<<i<<" fixed on z"<<endl; 
-    }
-
-
-  }
-  // dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
-  // dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
-                                                            // dom_d->AddBCVelNode(3,2,0);
+  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
+                               dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
+  dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
+                                                            dom_d->AddBCVelNode(3,2,0);
   
+  for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
+
+
+ //for (int i=0;i<8;i++) dom_d->AddBCVelNode(i,1,0.0); //PLAIN STRAIN
   
   
   
@@ -190,10 +172,6 @@ int main(){
 	cout << "Program ended."<<endl;
   
   //dom_d->WriteToCSV("test.csv");
-  
-  VTKWriter writer(dom_d, "test.vtu");
-  
-  writer.writeFile();
 	
 	
 }

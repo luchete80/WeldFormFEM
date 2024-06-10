@@ -102,10 +102,10 @@ add_executable(WeldFormFEM
                         ../lib/LSDynaReader/src/lsdynaReader.cpp
                         VTKWriter.C
               )
-#add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
-#                                  Domain_d.C
-#                                  Matrices.C
-#                                  Mechanical.C)
+add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
+                                 Domain_d.C
+                                 Matrices.C
+                                 Mechanical.C)
 
 #add_executable(1el_3d  test_1el_3D.cpp
 #                       Domain_d.C

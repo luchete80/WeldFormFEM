@@ -193,8 +193,8 @@ namespace MetFEM{
   CalcStressStrain(dt);
   calcElemForces();
   calcElemHourglassForces();
-  calcElemMassMat(); 
-  assemblyMassMatrix();  
+  //calcElemMassMat(); 
+  //assemblyMassMatrix();  
   //cout << "Assemblying"<<endl;
   assemblyForces(); 
   //cout << "Done "<<endl;
