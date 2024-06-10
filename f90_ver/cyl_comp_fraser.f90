@@ -82,7 +82,7 @@ implicit none
   Rtot = 0.1
   
   !dx    = 0.05d0
-  dx    = 0.05d0
+  dx    = 0.005d0
   r = dx /2.0
 
   V(1) = 0.;V(2) = 0.;V(3) = 0.	
@@ -167,7 +167,7 @@ implicit none
 
   !dt = 1.0e-5
   !tf = 1.0e-3 
-  tf = 10.0*dt 
+  tf = 1.0*dt 
   
   elem%rho(:,:) = rho
   
