@@ -150,14 +150,18 @@ implicit none
       if (nod%x(i,3)<r) then
         if (nod%x(i,1)<r) then
           nod%is_fix(i,1) = .true.
+          print *, "Node ", i, "Fixed, dim X"
         end if
         if (nod%x(i,2)<r) then
-          nod%is_bcv(i,2) = .true.
+          nod%is_fix(i,2) = .true.
+          print *, "Node ", i, "Fixed, dim Y"
         end if 
+        nod%is_fix(i,3) = .true.
       end if
         if (nod%x(i,3)>L - r) then
           nod%is_bcv(i,3) = .true.
           nod%bcv(i,3) = -1.0d0          
+          print *, "Node ", i, "Fixed, dim X"
       end if 
     end do
 
@@ -193,7 +197,7 @@ implicit none
   dt = 0.8e-5/4.0
   !tf = 10.0*dt
   tf = 1.0e-3
-  tf = 1.0*dt 
+  !tf = 1.0*dt 
   
   elem%rho(:,:) = rho
   

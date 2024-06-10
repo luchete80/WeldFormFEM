@@ -101,7 +101,7 @@ subroutine cal_elem_strains ()
 			!!! IF COMPLETE MULTIPLICATION (MORE CALC)
       !!!elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       !print *, "simlpified strain rate "
-      print *, "strain rate elem ", e, elem%str_rate(e,gp,:,:)
+      !print *, "strain rate elem ", e, elem%str_rate(e,gp,:,:)
       !print *, "rot    rate ", elem%rot_rate(e,gp,:,:)
     end do !gp
   end do !element
@@ -795,12 +795,12 @@ subroutine CalcStressStrain (dt)
     
     
       ! end if
-      print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
+      !print *, " shear_stress ", elem%shear_stress(e,gp,:,:)
     
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
      
       
-       print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
       ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
       ! print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;
