@@ -152,12 +152,12 @@ int main(){
   for (int i=0;i<dom_d->getNodeCount();i++){
     
     if (dom_d->getPosVec(i).x <r/2.0) {
-      dom_d->AddBCVelNode(0,0,0);
+      for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
     }
     
     if (dom_d->getPosVec(i).x > (Lx - 1.5*r) && dom_d->getPosVec(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(0,1,-0.48);
+      dom_d->AddBCVelNode(i,1,-0.48);
       velcount++;
     }      
     
