@@ -92,3 +92,4 @@
 20240605 - Removed Arch type. Still with problems on GPU/CPU
 20240606 - Begining to Add VTU export 
 20240607 - Begining to add reading from LSDyna file.
+20240610 - Added Beam example -Not working-

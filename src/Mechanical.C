@@ -394,7 +394,7 @@ dev_t void Domain_d::calcElemForces(){
 dev_t void Domain_d::calcElemPressure(){
 
   par_loop(e,m_elem_count){
-    printf("calc pressure \n");
+    //printf("calc pressure \n");
     int offset_t = e * m_gp_count *6;
     Matrix *sigma   = new Matrix(3,3);
     //Matrix str_inc(m_dim,m_dim);
@@ -416,7 +416,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
       
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      printf("pressure %f\n",p[offset + gp]);
+      //printf("pressure %f\n",p[offset + gp]);
     }
     delete sigma;
   } // e< elem_count
@@ -582,7 +582,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   }//el < elcount
     // end do !gauss point
   // end do
-  printf("ELEMENT %d SIGMA\n");
+  //printf("ELEMENT %d SIGMA\n");
  
 }
 
@@ -921,7 +921,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.1* pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.15* pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       ////printf("c_h %.6e\n", c_h);
 
       for (int n=0;n<m_nodxelem;n++){      

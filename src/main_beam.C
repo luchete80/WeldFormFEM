@@ -147,16 +147,23 @@ int main(){
                                                             dom_d->AddBCVelNode(3,2,0);
   
   for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
-
+  int fixcount =0;
+  int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
     
-    if (dom_d->getPosVec(i).x <r) dom_d->AddBCVelNode(0,0,0);
+    if (dom_d->getPosVec(i).x <r/2.0) {
+      dom_d->AddBCVelNode(0,0,0);
+      fixcount++;
+    }
     
-    if (dom_d->getPosVec(i).x > (Lx - r) && dom_d->getPosVec(i).y > (Ly -r) ) 
+    if (dom_d->getPosVec(i).x > (Lx - 1.5*r) && dom_d->getPosVec(i).y > (Ly -1.5*r) ) {
       dom_d->AddBCVelNode(0,1,-0.48);
+      velcount++;
+    }      
     
   }
-    
+  cout << "FIXED "<<fixcount<< " NODES"<<endl;  
+  cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
   //AFTER THIS CALL
   dom_d->AllocateBCs();
