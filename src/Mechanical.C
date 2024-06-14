@@ -527,7 +527,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
 
   par_loop(e,m_elem_count){
-      //printf("calculating sigma \n");
+      printf("calculating sigma \n");
         // Jaumann rate terms
       tensor3 RotationRateT,SRT,RS;
       tensor3 RotRate;
@@ -564,14 +564,14 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      // printf("SHEAR STRESS\n");
-      // print(ShearStress);
+      printf("SHEAR STRESS\n");
+      print(ShearStress);
 
-      // printf("STR RATE\n");
-      // print(StrRate);
+      printf("STR RATE\n");
+      print(StrRate);
       
-      // printf("ELEMENT %d SIGMA\n");
-      // print(Sigma);
+      printf("ELEMENT %d SIGMA\n");
+      print(Sigma);
 
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
