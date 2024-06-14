@@ -570,7 +570,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       printf("STR RATE\n");
       print(StrRate);
       
-      printf("ELEMENT %d SIGMA\n");
+      printf("ELEMENT SIGMA\n");
       print(Sigma);
 
       ///// OUTPUT TO Flatten arrays
