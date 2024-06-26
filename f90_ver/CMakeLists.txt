@@ -40,6 +40,7 @@ add_executable(1el_axisymm ${sources} ex_1el_axisymm.f90) #Single case 1 element
 add_executable(main_beam ${sources} main_beam.f90) #Single case 1 element
 add_executable(main_beam_plastic ${sources} beam_plastic.f90) #Single case 1 element
 add_executable(cyl_comp_fraser ${sources} cyl_comp_fraser.f90) #Single case 1 element
+add_executable(cyl_axisym_plastic ${sources} cyl_axisym_plastic.f90)
 
 
 
