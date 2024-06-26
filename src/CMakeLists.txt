@@ -2,9 +2,9 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
 
 if (BUILD_GPU)
-project (MetFEMGPU LANGUAGES  CUDA)
-project (WeldFormFEM LANGUAGES CUDA)
-project (testcuns LANGUAGES  CUDA)
+project (MetFEMGPU LANGUAGES  CUDA )
+project (WeldFormFEM LANGUAGES CUDA )
+project (testcuns LANGUAGES  CUDA )
 else ()
 project (MetFEMGPU LANGUAGES CXX)
 project (1el_3d LANGUAGES CXX)
@@ -33,7 +33,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
-                            WeldFormFEM.C include/*.h 
+                            WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
+                            ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
@@ -56,7 +57,7 @@ add_executable(MetFEMGPU
                         Mechanical.C
                         Matrices.C
                         Solver.C
-                        VTKWriter.C
+                        # VTKWriter.C
 
               )
 
@@ -81,31 +82,31 @@ add_executable(4elem
                        VTKWriter.C
              )             
 
-add_executable(beam
-                       main_beam.C
-                       Domain_d.C
-                       Matrices.C
-                       Mechanical.C
-                       Matrices.C
-                       Solver.C
-                       VTKWriter.C
-             )
+# add_executable(beam
+                       # main_beam.C
+                       # Domain_d.C
+                       # Matrices.C
+                       # Mechanical.C
+                       # Matrices.C
+                       # Solver.C
+                       # VTKWriter.C
+             # )
               
-add_executable(WeldFormFEM
-                        WeldFormFEM.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
-                        input.C
-                        ../lib/LSDynaReader/src/lsdynaReader.cpp
-                        VTKWriter.C
-              )
-add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
-                                 Domain_d.C
-                                 Matrices.C
-                                 Mechanical.C)
+# add_executable(WeldFormFEM
+                        # WeldFormFEM.C
+                        # Domain_d.C
+                        # Matrices.C
+                        # Mechanical.C
+                        # Matrices.C
+                        # Solver.C
+                        # input.C
+                        # ../lib/LSDynaReader/src/lsdynaReader.cpp
+                        # VTKWriter.C
+              # )
+# add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
+                                 # Domain_d.C
+                                 # Matrices.C
+                                 # Mechanical.C)
 
 #add_executable(1el_3d  test_1el_3D.cpp
 #                       Domain_d.C
