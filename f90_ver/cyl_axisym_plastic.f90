@@ -80,13 +80,13 @@ implicit none
   r = dx /2.0
   h = dx * 1.2
 
-   V(1) = 0.01;V(2) = 0.;V(3) = 0.	
+   V(1) = 0.001;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
   call omp_set_num_threads(8); 
 
-  axisymm_vol_weight = .False.
+  axisymm_vol_weight = .false.
   bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
   
   rho = 2700.0
@@ -103,7 +103,7 @@ implicit none
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
   reduced_int = .True.
-  call AddBoxLength(0, V, Lx, Ly, 0.0d0, r, rho, h,reduced_int)
+  call AddBoxLength(0, V, Lx, Ly, 1.0d0, r, rho, h,reduced_int)
   
   elem%sigma_y(:,:) = 300.0e6
   
@@ -112,17 +112,17 @@ implicit none
     print *,"i count ", i , nod%elxnod(i),nod%nodel(i,:)
   end do
 
-
+  nod%is_fix(:,3) = .true.
+ 
   do i=1,node_count
     if (nod%x(i,2) > (Ly -r) ) then
       nod%is_bcv(i,2) = .true.
-      nod%bcv(i,2) = -1.0d0
+      nod%bcv(i,2) = -10.0d0
       nod%is_fix(i,1) = .true.
       print *, "Velocity Node ", i, " at: ", nod%x(i,:)
     end if
     if (nod%x(i,2) < r ) then
-      nod%is_fix(i,1) = .true.
-      nod%is_fix(i,2) = .true.
+      nod%is_fix(i,:) = .true.
       print *, "Fixed node ", i, " at: ", nod%x(i,:)
     end if
   end do
@@ -161,8 +161,8 @@ implicit none
   dt = 0.3 * dx/(mat_cs)
   ! tf = dt * 1.0
   
-  ! tf = 5.0e-3
-  tf = 1.0e-6
+  tf = 5.0e-3
+  ! tf = dt
   
   elem%rho(:,:) = rho
 

@@ -60,7 +60,7 @@ subroutine SolveChungHulbert (domi, tf, dt)
   real(fp_kind), dimension(dim) :: prev_acc
   real(fp_kind), dimension(node_count,dim) :: u, prev_a, x_temp
   
-  real(fp_kind) :: alpha, beta, gamma, rho_b , omega, totmass!!! CHUNG HULBERT PARAMETERS
+  real(fp_kind) :: alpha, beta, gamma, rho_b , omega!!! CHUNG HULBERT PARAMETERS
  
   real(fp_kind), dimension(nodxelem,dim) :: xtest
 
@@ -87,36 +87,40 @@ subroutine SolveChungHulbert (domi, tf, dt)
   call calc_nodal_masses()
     
   ! call calculate_element_matrices()!ATTENTION: THIS CALCULATES KNL AND KL AND THIS REQUIRES UPDATE CAUCHY STRESS TAU
-  print *, "Assemblying mass matrix" 
+
   if (bind_dom_type .eq. 3) then !!! AXISYMM
+    print *, "Assemblying mass matrix" 
     call assemble_mass_matrix() !!! mglob
   end if 
-  !print * , "done"
-  !print *, "mass matrix",m_glob
-  mdiag(:)=0.0d0
-  
-  totmass = 0.0
-  print *, "Nodal masses"
-  do iglob =1, node_count
-    do n=1, node_count  !column
-       mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
-    end do !col
-    print *,  mdiag(iglob)
-    totmass = totmass + mdiag(iglob)
-  end do  
+
+  ! mdiag(:)=0.0d0
   
   calc_m = .False.
   ! print *, "M Diag with mass mat", mdiag
-  PRINT *, "Tot Mass: ", totmass
+  PRINT *, "Tot Mass: ", tot_mass
   !print *, "Tot mass from mdiag", 
   !!!! ONLY FOR TESTING
   if (bind_dom_type .ne. 3) then
     do n=1, node_count  !column
-       mdiag(n) = tot_mass/node_count 
+      mdiag(n) = tot_mass/node_count 
+      nod%m(iglob) = mdiag(iglob)
     end do
+  else
+    if (axisymm_vol_weight .eqv. .true.) then 
+      mdiag(:)=0.0d0
+      do iglob =1, node_count
+        do n=1, node_count  !column
+           mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
+        end do !col
+          nod%m(iglob) = mdiag(iglob)
+        ! print *,  mdiag(iglob)
+      end do    
+    end if
   end if
 
   ! print *, "M Diag with node avg", mdiag
+    print *, "Nodal masses"
+  print *,  mdiag(:)
   
   !print *, "m glob", m_glob
   ! print *, "done"
@@ -258,6 +262,13 @@ subroutine SolveChungHulbert (domi, tf, dt)
   fext_glob = 0.0d0 !!!ELEMENT 1, node 3,
   
   !print *, "global int forces ", rint_glob(3,:)
+  
+  !!!! IF AREA WEIGHTED UPDATE ELEMENT MASS WITH RADIUS
+  ! if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .false.) then
+    ! do n=1,node_count
+      
+    ! end do
+  ! end if
 
 	!$omp parallel do num_threads(Nproc) private (n)  
 	do n=1,node_count

@@ -16,6 +16,8 @@ subroutine WriteMeshVTU (fname)
   implicit none
   character(len=*), intent(in) :: fname
   integer :: e,dof,d,n, offs
+  real (fp_kind) :: z
+  
   open (1,file=fname, action="write")!, position='APPEND')  
   write (1,*)  "<VTKFile type=""UnstructuredGrid"" version=""0.1"" byte_order=""BigEndian"">"
   write (1,*)  "  <UnstructuredGrid>"
@@ -25,8 +27,14 @@ subroutine WriteMeshVTU (fname)
   write (1,*) "      <Points>"
   write (1,*) "        <DataArray type=""Float32"" Name=""Position"" NumberOfComponents=""3"" Format=""ascii"">"
 
+  z = 0.0d0
   do n =1, node_count
-    write (1,*) nod%x(n,1), nod%x(n,2), nod%x(n,3) !!! No problem with putting the three component at point coords
+    if (dim .eq. 3) then
+          z = nod%x(n,3)
+    end if
+    write (1,*) nod%x(n,1), nod%x(n,2), z !!! No problem with putting the three component at point coords
+    
+
   end do 
   
   write (1,*) "         </DataArray>"
@@ -106,6 +114,12 @@ subroutine WriteMeshVTU (fname)
   end do   
   write (1,*) "        </DataArray>"  
 
+  write (1,*) "        <DataArray type=""Float32"" Name=""mass"" NumberOfComponents=""1"" Format=""ascii"">"
+  do n =1, node_count
+    write (1,*) nod%m(n)
+  end do   
+  write (1,*) "        </DataArray>"  
+  
   write (1,*) "        <DataArray type=""Float32"" Name=""sigma_eq"" NumberOfComponents=""1"" Format=""ascii"">"
   do n =1, node_count
     write (1,*) nod%sigma_eq(n)

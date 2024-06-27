@@ -1,3 +1,77 @@
+F90 PREVIOUS VERSION
+20230522 - Added Material Matrix to example
+20230523 - Added nodal Boundary Conditions boolean flags
+         - Added bc reinforcement implementation
+         - Fixed full integration (only 2 points were active)
+20230524 - Added element strain calcs
+         - Fixed element dissasemble (pass global to elem) to calculate strains
+         - Added steps for alternative solver (From Benson 1992).
+         - Added fixity and accel bc 
+20230529 - Fixed mass matrix assembly
+20230530 - Begining to work with density calc, reducing indices
+20230531 - Adding 3x3 3D matrix inversion subroutines for 3d elements
+         - Working on 3D Domain Generation
+         - Adding hourglass control
+-----------------------------------------------------------------------
+20230602 - Allocate internal forces
+20230607 - Added vtu output file writer
+20230608 - Corrected several things of Mass matrix redimension
+         - Fixed hourglass forces calculation (was not initialized)
+         - Summed hourglass correction
+20230609 - Fixed density calc errors
+20230608 - Added element shared by each node to average constant stresses and strains
+20230612 - Fixed Element volume for full integration elements
+         - Fixed error in strain rate calculation (indices of tensor diagonal were wrong)
+20230613 - Fixed hourglass controls (corrected coefficients)
+         - Added hourglass for 2D elements
+         - Fixed 2D reduced integral volume calc
+         - Fixed global ext force assembe 
+         - Fixed element forces calculation error (in diagonal term was not incremented by node)
+         - Fixed Sign of rotation rate
+         - Fixed element strain rate calculation (derivative matrix indices were wrong)
+         - Fixed nodal forces calc, relaced derivative matrix by the onw with determinant calculated
+20230617 - Begining to add contact things
+20230625 - Working on cylinder example, mesh reading
+         - Working with several elements example (cylinder)
+20230623 - Fixed domain allocation in plane mesh reading (CSV)
+20230627 - Fixed fortran vtk element output 
+         - Fixed addboxlength node arrangement
+         - Added Verlet Solver
+         - Added Equivalent stress calc
+20230628 - Fixed ERROR in rot rate value
+         - Fixed hourglass calculation (increment)
+         - Fixed Hourglass forces magnitude
+20230629 - Added sigma symm tensor output to vtk
+-----------------------------------------------------------------------------------
+20230702 - Added Contact Mesh
+2023075  - Fixed Derived matrices, volume and jacobian calc for 2D full integration
+202307XX - Added Chung Hulbert Integrator
+20230725 - Added shock viscosity calculation
+-----------------------------------------------------------------------------------
+20230810 - Added Stress calculated by deformation (and not by def gradient)
+         - Fixed calcs
+         - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
+         - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)
+         - Correct first step u_inc definition, now displacements after first step are ok.
+20230829 - Finally working Verlet integration with strain rates (OpenRadioss, ABAQUS and LS-DYNA style).
+         - This implies is not necessary to solve polar decomposition, neither F (Green Naghdi).
+         - On the other side, results are not exactly as above, so is pending to check TS, and corrections.-
+         - Hourglass and reduced integration is not working yet.
+20230830 - Chung Hulbert with strain rate (without polar decomp) is working ok. BUT LEAPFROG AND VERLET ARE DIVERGING BY THE MOMENT.
+         - Added Leapfrog, and Chung hulbert
+-------------------------------------------------------------------------------------
+20231108 - Fixed 2D plain strain stress decomposition calculation
+         - Fixed output (With numbers like E-221)
+20231113 - Added contact surfaces and things.
+20231128 - Added parallel processing on jacobian calc
+				 - Ommitted Shape matrix calculation (only derivs needed). 
+				 - Prallelized deriv matrix calc
+20231129 - Parallelized Stresses & Strains
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+20230207 - FIXED HOURGLASSING 
+20230425 - Fixed BCs
+
 20231128 - Added MemCopy From Host to Device, Nodes and Connectivity
 ----------------------------------------------------------------------------------
 20231201 - Written Element matrices (created locally by the moment)
@@ -95,3 +169,4 @@
 20240610 - Added Beam example -Not working-
          - Added Plastic Strain Output for not hardening rule
 20240627 - F90 Version, made area weighted by default
+20240628 - Fixed axisymm example, still not working

@@ -129,7 +129,7 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
-  real(fp_kind) :: area, f2 ! Axisymm
+  real(fp_kind) :: area, f2, fa ! Axisymm
   
   f2 = 1.0d0 !!!! AXISYMM FACTOR IN CASE OF INTGRAL CASE
   
@@ -175,14 +175,18 @@ subroutine cal_elem_forces ()
           if (bind_dom_type .eq. 3 ) then
             if (axisymm_vol_weight .eqv. .true.) then
             elem%f_int(e,n,:) = elem%f_int(e,n,:) * elem%radius(e,gp)
-            elem%f_int(e,n,1) = elem%f_int(e,n,1) - (elem%sigma (e,gp, 1,1) - &
+            
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
                                                      elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
-            elem%f_int(e,n,2) = elem%f_int(e,n,2) - elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
             else
-              !!! AREA WEIGHTED, BENSON EQN 4.2.3.2
-              elem%f_int(e,n,1) = elem%f_int(e,n,1) - (elem%sigma (e,gp, 1,1) - &
-                                                     elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
-              elem%f_int(e,n,2) = elem%f_int(e,n,2) - elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)          
+              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp)
+              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
+              !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) 
+              !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
+              elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
+                                                     elem%sigma (e,gp, 3,3) ) * fa
+              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * fa          
             end if !! VOL WEIGH
           end if !! AAXISYMM WEIGHT
         else 

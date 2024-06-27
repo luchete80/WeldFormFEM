@@ -378,13 +378,13 @@ subroutine calc_nodal_masses ()
   nod%m(:) = 0.0d0
   do n=1, node_count  !column
     do ne = 1, nod%elxnod(n) 
-      print *, "nn", n, "ne ", nod%nodel(n,ne)
+      ! print *, "nn", n, "ne ", nod%nodel(n,ne)
       do gp = 1, elem%gausspc(nod%nodel(n,ne))
-        print *, "Elem vol ", elem%vol(nod%nodel(n,ne))
+        ! print *, "Elem vol ", elem%vol(nod%nodel(n,ne))
         nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/nodxelem!!WEIGHT
       end do !gp
     end do  ! ne
-    print *, "nod before things", nod%m(n)
+    ! print *, "nod before things", nod%m(n)
     totmass = totmass + nod%m(n)
   end do !n
   print *, "TOTMASS ", totmass

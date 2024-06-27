@@ -415,7 +415,7 @@ contains
         Xp(2) = Xp(2) + 2 * r
         j = j +1
       end do 
-      Xp(3) = Xp(3) + 2 * r
+      ! Xp(3) = Xp(3) + 2 * r
     !end do
     
     else 
@@ -516,7 +516,7 @@ contains
     if (dim == 2) then !!!assuming plain strain
       tot_mass = tot_mass / Lz
     end if
-    print *, "Total Mass: ", tot_mass
+    print *, "Box Total Mass: ", tot_mass
     
     call SearchNodelem
   end subroutine AddBoxLength

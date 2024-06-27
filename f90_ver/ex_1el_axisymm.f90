@@ -102,7 +102,7 @@ implicit none
   
   reduced_int = .True.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
-  !axisymm_vol_weight = .True.
+  axisymm_vol_weight = .True. !!! DEFAULT IS FALSE
   bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
     
   print *, "NODE ELEMENTS "
@@ -148,9 +148,9 @@ implicit none
   !dt = 5.0e-6
   !tf = 1.5e-4
 
-  dt = 1.0e-5
-  ! tf = 1.0e-3 
-  tf = dt 
+  dt = 0.8e-5
+  tf = 1.0e-3 
+  ! tf = dt 
   
   elem%rho(:,:) = rho
   
