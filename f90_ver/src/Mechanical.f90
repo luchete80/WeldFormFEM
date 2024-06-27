@@ -64,11 +64,11 @@ subroutine cal_elem_strains ()
         
         !!! er hoop = vr/r
         if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
-          if (elem%gausspc(e) .eq. 1) then
+          ! if (elem%gausspc(e) .eq. 1) then
             elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
           ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
           elem%rot_rate(e,gp, 3,3) = 0.0d0
-          end if
+          ! end if
         end if 
         
         if (dim == 3) then
@@ -165,22 +165,26 @@ subroutine cal_elem_forces ()
           elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
-          if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
-            ! print *, "AAAAAAAAAAAAAAAAAAA", elem%radius(e,gp)
-            f2 = elem%radius(e,gp)
-          end if
-          !!elem%f_int(e,n,1) = 
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) * f2
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) * f2
+          
+          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
           
           !!!These are dividing per r so in the vol weight is like this
           !!! Goudreau 1982 eq. 19
            
-          if (bind_dom_type .eq. 3 .and. axisymm_vol_weight .eqv. .true.) then
+          if (bind_dom_type .eq. 3 ) then
+            if (axisymm_vol_weight .eqv. .true.) then
+            elem%f_int(e,n,:) = elem%f_int(e,n,:) * elem%radius(e,gp)
             elem%f_int(e,n,1) = elem%f_int(e,n,1) - (elem%sigma (e,gp, 1,1) - &
                                                      elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
             elem%f_int(e,n,2) = elem%f_int(e,n,2) - elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
-          end if
+            else
+              !!! AREA WEIGHTED, BENSON EQN 4.2.3.2
+              elem%f_int(e,n,1) = elem%f_int(e,n,1) - (elem%sigma (e,gp, 1,1) - &
+                                                     elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
+              elem%f_int(e,n,2) = elem%f_int(e,n,2) - elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)          
+            end if !! VOL WEIGH
+          end if !! AAXISYMM WEIGHT
         else 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                                   elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)

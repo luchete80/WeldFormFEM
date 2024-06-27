@@ -215,7 +215,7 @@ contains
     elem%gausspc(:) = gp
     
     bind_dom_type = 1
-    axisymm_vol_weight = .True.
+    axisymm_vol_weight = .False. !!!AREA WEIGHTED
 
 
   end subroutine

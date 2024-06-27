@@ -81,7 +81,7 @@ implicit none
   r = dx /2.0
   h = dx * 1.2
 
-   V(1) = 0.;V(2) = 0.;V(3) = 0.	
+   V(1) = 0.001;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
@@ -100,7 +100,7 @@ implicit none
 	! c[0][1] = c[1][0] = ck*nu / (1. - nu);
 	! c[2][2] = ck*(1. - 2. * nu) / (2.*(1. - nu));
   
-  reduced_int = .False.
+  reduced_int = .True.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
   !axisymm_vol_weight = .True.
   bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
@@ -149,8 +149,8 @@ implicit none
   !tf = 1.5e-4
 
   dt = 1.0e-5
-  tf = 1.0e-3 
-  !tf = dt 
+  ! tf = 1.0e-3 
+  tf = dt 
   
   elem%rho(:,:) = rho
   
