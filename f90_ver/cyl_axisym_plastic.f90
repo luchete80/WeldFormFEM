@@ -59,7 +59,7 @@ implicit none
    double precision time_init, time_final, elapsed_time
 
     
-  call omp_set_num_threads(12);
+  call omp_set_num_threads(8);
   
   maxt = omp_get_max_threads()
   
@@ -86,7 +86,7 @@ implicit none
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
   call omp_set_num_threads(8); 
 
-  axisymm_vol_weight = .false.
+  axisymm_vol_weight = .true.
   bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
   
   rho = 2700.0

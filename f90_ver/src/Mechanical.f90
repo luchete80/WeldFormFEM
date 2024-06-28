@@ -166,29 +166,36 @@ subroutine cal_elem_forces ()
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           
-          elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-          elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
+          if (bind_dom_type .ne. 3 ) then
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
           
           !!!These are dividing per r so in the vol weight is like this
           !!! Goudreau 1982 eq. 19
            
-          if (bind_dom_type .eq. 3 ) then
-            if (axisymm_vol_weight .eqv. .true.) then
-            elem%f_int(e,n,:) = elem%f_int(e,n,:) * elem%radius(e,gp)
-            
-            elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
-                                                     elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
-            elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
+          else !!!!! AXISYMMM !!!!
+            if (axisymm_vol_weight .eqv. .true.) then      
+            !!! RADIUS IS CANCELLED IN THE SECOND TERMS             
+            elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2)) &
+                                                    * elem%radius(e,gp) &
+                                                    + 0.25d0*(elem%sigma (e,gp, 1,1) - &
+                                                    elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
+            elem%f_int(e,n,2) = elem%f_int(e,n,2) + (elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)) & 
+                                                    * elem%radius(e,gp) &
+                                                    + 0.25d0*elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
             else
               fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp)
               !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
-              !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) 
+              !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
               !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
-              elem%f_int(e,n,1) = elem%f_int(e,n,1) + (elem%sigma (e,gp, 1,1) - &
-                                                     elem%sigma (e,gp, 3,3) ) * fa
-              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%sigma (e,gp, 1,2) * fa          
+              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                     (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
+                                                     
+              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                     elem%sigma (e,gp, 1,2) * fa          
             end if !! VOL WEIGH
           end if !! AAXISYMM WEIGHT
+        
         else 
           elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                                   elem%dHxy_detJ(e,gp,3,n) * elem%sigma (e,gp, 1,3)

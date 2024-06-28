@@ -381,7 +381,12 @@ subroutine calc_nodal_masses ()
       ! print *, "nn", n, "ne ", nod%nodel(n,ne)
       do gp = 1, elem%gausspc(nod%nodel(n,ne))
         ! print *, "Elem vol ", elem%vol(nod%nodel(n,ne))
-        nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/nodxelem!!WEIGHT
+        ! nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/nodxelem!!WEIGHT
+        if (axisymm_vol_weight .eqv. .true.) then 
+          nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/4.0d0 * elem%radius(nod%nodel(n,ne),gp)!!WEIGHT
+        else 
+          nod%m(n) = nod%m(n) +  elem%vol(nod%nodel(n,ne)) * elem%rho(nod%nodel(n,ne),gp)/4.0d0!!WEIGHT
+        end if
       end do !gp
     end do  ! ne
     ! print *, "nod before things", nod%m(n)

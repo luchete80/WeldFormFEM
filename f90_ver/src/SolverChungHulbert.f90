@@ -112,7 +112,9 @@ subroutine SolveChungHulbert (domi, tf, dt)
         do n=1, node_count  !column
            mdiag(iglob) = mdiag(iglob) + m_glob(iglob,n)
         end do !col
-          nod%m(iglob) = mdiag(iglob)
+          if (axisymm_vol_weight .neqv. .true.) then 
+            nod%m(iglob) = mdiag(iglob)
+          end if 
         ! print *,  mdiag(iglob)
       end do    
     end if

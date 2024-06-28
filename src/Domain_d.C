@@ -243,6 +243,7 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
           for (int j = 0; j < m_dim; j++) {
               //u_tot_[i][j] += u_[i][j];
               u[m_dim*i+j] += u_dt[m_dim*i+j];
+              printf ("U %.6e \n", u[m_dim*i+j] );
           }
       }
         
