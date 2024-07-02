@@ -281,6 +281,8 @@ subroutine SolveChungHulbert (domi, tf, dt)
 	end do
 	!$omp end parallel do
 	
+  print *, "mdiag ", mdiag(n) 
+    
   call impose_bca
   
 	!$omp parallel do num_threads(Nproc) private (n)

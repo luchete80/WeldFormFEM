@@ -129,13 +129,14 @@ subroutine cal_elem_forces ()
   !TESTING
   real (fp_kind) :: sigma_test(6,1) !ORDERED
   real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
-  real(fp_kind) :: area, f2, fa ! Axisymm
+  real(fp_kind) :: area, fc, f2, fa ! Axisymm
   
   f2 = 1.0d0 !!!! AXISYMM FACTOR IN CASE OF INTGRAL CASE
   
   elem%f_int = 0.0d0
   w = 1.0d0 !!! Full integration
 	
+  fc = 1.0
 	! !$omp parallel do num_threads(Nproc) private (e,gp,d, w,n) 
   do e=1, elem_count
     if (elem%gausspc(e) .eq. 1) then
@@ -152,7 +153,9 @@ subroutine cal_elem_forces ()
       !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
       !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
       !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
-      
+      if (axisymm_vol_weight .eqv. .true.) then
+        fc = elem%radius(e,gp)
+      end if      
       do n=1, nodxelem
       !Is only linear matrix?    
       !elem%f_int(e,n,d) =  
@@ -161,8 +164,9 @@ subroutine cal_elem_forces ()
       !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
       !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       !!!!! 
+
         do d=1, dim
-          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d)
+          elem%f_int(e,n,d) = elem%f_int(e,n,d) + elem%dHxy_detJ(e,gp,d,n) * elem%sigma (e,gp, d,d) * fc
         end do
         if (dim .eq. 2) then  !!!!! TODO: CHANGE WITH BENSON 1992 - EQ 2.4.2.11 FOR SIMPLICITY
           
@@ -172,7 +176,8 @@ subroutine cal_elem_forces ()
           
           !!!These are dividing per r so in the vol weight is like this
           !!! Goudreau 1982 eq. 19
-           
+          print *, " TEST "
+          print *, "term 1 ", elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
           else !!!!! AXISYMMM !!!!
             if (axisymm_vol_weight .eqv. .true.) then      
             !!! RADIUS IS CANCELLED IN THE SECOND TERMS             
@@ -180,6 +185,10 @@ subroutine cal_elem_forces ()
                                                     * elem%radius(e,gp) &
                                                     + 0.25d0*(elem%sigma (e,gp, 1,1) - &
                                                     elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
+              ! print *, "term 1 ", (elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2)) &
+                                                    ! * elem%radius(e,gp) &
+              ! print *, "term 2 ", 0.25d0*(elem%sigma (e,gp, 1,1) - &
+                                                    ! elem%sigma (e,gp, 3,3) ) * elem%detJ(e,gp)
             elem%f_int(e,n,2) = elem%f_int(e,n,2) + (elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)) & 
                                                     * elem%radius(e,gp) &
                                                     + 0.25d0*elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
@@ -188,11 +197,14 @@ subroutine cal_elem_forces ()
               !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
               !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
               !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
+
               elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
                                                      (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
                                                      
               elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
                                                      elem%sigma (e,gp, 1,2) * fa          
+              print *, "fa ", elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
+              print *, "term 2 ", elem%sigma (e,gp, 1,2) * fa    
             end if !! VOL WEIGH
           end if !! AAXISYMM WEIGHT
         
@@ -211,6 +223,7 @@ subroutine cal_elem_forces ()
       !print *, "s33 ", elem%sigma (e,gp, 3,3)
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
+    print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) 
   end do!elem
 	! !$omp end parallel do    
 end subroutine
@@ -816,7 +829,7 @@ subroutine CalcStressStrain (dt)
       elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
      
       
-      !print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
+      ! print *, "elem ", e, ", sigma ", elem%sigma(e,gp,:,:)
       ! print *, "elem ", e, ", sigma pressure comp", -elem%pressure(e,gp)
       ! print *, "elem ", e, ", sigma shear comp", elem%shear_stress(e,gp,:,:)	
     ! !pt%strain(i)			= dt*pt%str_rate(i + Strain;

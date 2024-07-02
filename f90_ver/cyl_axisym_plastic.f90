@@ -74,9 +74,12 @@ implicit none
   !!!! 2 ELEMENT LENGTH CANTILEVDR BEAM
 
   Dim = 2
-  Lx = 0.15	
-  Ly = 0.616
-  dx    = 0.01d0
+  Lx = 0.1	
+  Ly = 0.1
+  dx    = 0.05d0
+  ! Lx = 0.15	
+  ! Ly = 0.616
+  ! dx    = 0.01d0
   r = dx /2.0
   h = dx * 1.2
 
@@ -85,10 +88,7 @@ implicit none
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
   call omp_set_num_threads(8); 
-
-  axisymm_vol_weight = .true.
-  bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
-  
+ 
   rho = 2700.0
   
   poisson = 0.3
@@ -104,6 +104,11 @@ implicit none
   
   reduced_int = .True.
   call AddBoxLength(0, V, Lx, Ly, 1.0d0, r, rho, h,reduced_int)
+
+  !! AFTER ADD BOXLEN
+  axisymm_vol_weight = .false.
+  ! bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
+
   
   elem%sigma_y(:,:) = 300.0e6
   
@@ -117,7 +122,7 @@ implicit none
   do i=1,node_count
     if (nod%x(i,2) > (Ly -r) ) then
       nod%is_bcv(i,2) = .true.
-      nod%bcv(i,2) = -10.0d0
+      nod%bcv(i,2) = -1.0d0
       nod%is_fix(i,1) = .true.
       print *, "Velocity Node ", i, " at: ", nod%x(i,:)
     end if
@@ -162,7 +167,7 @@ implicit none
   ! tf = dt * 1.0
   
   tf = 5.0e-3
-  ! tf = dt
+  tf = dt
   
   elem%rho(:,:) = rho
 
