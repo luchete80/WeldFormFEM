@@ -176,8 +176,8 @@ subroutine cal_elem_forces ()
           
           !!!These are dividing per r so in the vol weight is like this
           !!! Goudreau 1982 eq. 19
-          print *, " TEST "
-          print *, "term 1 ", elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
+          ! print *, " TEST "
+          ! print *, "term 1 ", elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
           else !!!!! AXISYMMM !!!!
             if (axisymm_vol_weight .eqv. .true.) then      
             !!! RADIUS IS CANCELLED IN THE SECOND TERMS             
@@ -193,18 +193,16 @@ subroutine cal_elem_forces ()
                                                     * elem%radius(e,gp) &
                                                     + 0.25d0*elem%sigma (e,gp, 1,2) * elem%detJ(e,gp)
             else
-              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp)
+              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
               !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
               !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
               !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
 
-              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) 
-              ! + &
-                                                     ! (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
+              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) + &
+                                                     (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
                                                      
-              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) 
-              ! + &
-                                                     ! elem%sigma (e,gp, 1,2) * fa          
+              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) + &
+                                                     elem%sigma (e,gp, 1,2) * fa          
               ! print *, "fa ", elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
               ! print *, "term 2 ", elem%sigma (e,gp, 1,2) * fa    
             end if !! VOL WEIGH
@@ -225,7 +223,7 @@ subroutine cal_elem_forces ()
       !print *, "s33 ", elem%sigma (e,gp, 3,3)
     end do !gp
     elem%f_int(e,:,:) = elem%f_int(e,:,:) * w
-    print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) 
+    ! print *, "Element force Node ", n, "F  ", elem%f_int(e,n,:) 
   end do!elem
 	! !$omp end parallel do    
 end subroutine

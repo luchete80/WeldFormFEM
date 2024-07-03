@@ -94,6 +94,9 @@ subroutine SolveChungHulbert (domi, tf, dt)
   end if 
 
   ! mdiag(:)=0.0d0
+
+  print *, "Nodal masses"
+  print *,  nod%m(:)
   
   calc_m = .False.
   ! print *, "M Diag with mass mat", mdiag
@@ -120,8 +123,8 @@ subroutine SolveChungHulbert (domi, tf, dt)
     else  !! AXISYMM AREA WEIGHT
     do n=1, node_count  !column
       !!According to goudreau (19), Benson 
-      mdiag(n) = tot_mass/node_count 
-      nod%m(iglob) = mdiag(iglob)
+      mdiag(n) = nod%m(n)
+      ! nod%m(iglob) = mdiag(iglob)
     end do    
     end if
   end if
