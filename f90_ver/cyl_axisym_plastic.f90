@@ -83,7 +83,7 @@ implicit none
   r = dx /2.0
   h = dx * 1.2
 
-   V(1) = 0.001;V(2) = 0.;V(3) = 0.	
+   V(1) = 0.005;V(2) = 0.;V(3) = 0.	
 !  !AddBoxLength(tag, V, Lx, Ly, Lz, r, Density,  h)		
   !BOUNDARY CONDITIONS
   !GLOBAL TOP RIGHT NODE , Vx 1m/s, Vy 0.5 m/seconds
@@ -122,7 +122,7 @@ implicit none
   do i=1,node_count
     if (nod%x(i,2) > (Ly -r) ) then
       nod%is_bcv(i,2) = .true.
-      nod%bcv(i,2) = -1.0d0
+      nod%bcv(i,2) = -10.0d0
       nod%is_fix(i,1) = .true.
       print *, "Velocity Node ", i, " at: ", nod%x(i,:)
     end if
@@ -166,8 +166,8 @@ implicit none
   dt = 0.3 * dx/(mat_cs)
   ! tf = dt * 1.0
   
-  ! tf = 5.0e-3
-  tf = 10000.0*dt
+  tf = 1.0e-2
+  ! tf = 1000.0*dt
   
   elem%rho(:,:) = rho
 
