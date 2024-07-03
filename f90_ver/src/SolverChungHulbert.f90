@@ -116,7 +116,13 @@ subroutine SolveChungHulbert (domi, tf, dt)
             nod%m(iglob) = mdiag(iglob)
           end if 
         ! print *,  mdiag(iglob)
-      end do    
+      end do 
+    else  !! AXISYMM AREA WEIGHT
+    do n=1, node_count  !column
+      !!According to goudreau (19), Benson 
+      mdiag(n) = tot_mass/node_count 
+      nod%m(iglob) = mdiag(iglob)
+    end do    
     end if
   end if
 
@@ -174,6 +180,10 @@ subroutine SolveChungHulbert (domi, tf, dt)
   
   step_out = 1 !FREQUENCY
 	last_out = 0
+
+  print *, "mdiag ", mdiag(n) 
+  !! ONLY TO TEST THINGS
+  
   print *,"------------------------------------------------------------------------------------------------"
   print *,"main loop, CHUNG HULBERT -----------------------------------------------------------------------"
   do while (time < tf)
@@ -281,7 +291,6 @@ subroutine SolveChungHulbert (domi, tf, dt)
 	end do
 	!$omp end parallel do
 	
-  print *, "mdiag ", mdiag(n) 
     
   call impose_bca
   

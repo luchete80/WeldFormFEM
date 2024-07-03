@@ -105,6 +105,12 @@ implicit none
   
   reduced_int = .false.
   call AddBoxLength(0, V, L, L, L, r, rho, h,reduced_int)
+
+  !! AFTER ADD BOXLEN
+  !! TEST
+  ! axisymm_vol_weight = .false.
+  ! bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
+
   
   print *, "NODE ELEMENTS "
   do i=1,node_count

@@ -107,7 +107,7 @@ implicit none
 
   !! AFTER ADD BOXLEN
   axisymm_vol_weight = .false.
-  ! bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
+  bind_dom_type = 3 !!!AXISYMM, AFTER CREATING BOX!
 
   
   elem%sigma_y(:,:) = 300.0e6
@@ -167,7 +167,7 @@ implicit none
   ! tf = dt * 1.0
   
   tf = 5.0e-3
-  tf = dt
+  tf = 10.0*dt
   
   elem%rho(:,:) = rho
 
