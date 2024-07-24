@@ -33,7 +33,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
-                            WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
+                            WeldFormFEM.C VTKWriter.C 
+                            include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -72,6 +73,7 @@ add_executable(1elem
                         Mechanical.C
                         Matrices.C
                         Solver.C
+
                         VTKWriter.C
 
               )

@@ -240,9 +240,9 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] = (m_fe[i+d]-m_fi[i+d])/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
-    //printf("mass %f\n",m_mdiag[n]);
-    //printf("a %f %f %f \n",a[0],a[1],a[2]);
-    //printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
+    printf("mass %f\n",m_mdiag[n]);
+    printf("a %f %f %f \n",a[0],a[1],a[2]);
+    printf("f %f %f %f \n",m_fi[0],m_fi[1],m_fi[2]);
   }    
   
 }

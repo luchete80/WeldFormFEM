@@ -53,7 +53,7 @@ namespace MetFEM {
         }      
       
       }
-      //printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+      // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 
   }//assemblyForcesNonLock

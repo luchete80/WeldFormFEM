@@ -62,6 +62,16 @@ namespace MetFEM{
   //cout << "Calculating Volume..."<<endl;
   calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
+  
+  calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();
+  
+  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();
+  
+  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();
+
   #else
   calcElemJAndDerivatives();
   CalcElemInitialVol(); //ALSO CALC VOL
@@ -322,7 +332,6 @@ namespace MetFEM{
   
   printf("ROT RATES\n");
   printSymmTens(this->m_rot_rate);
-  
   
   #endif
 

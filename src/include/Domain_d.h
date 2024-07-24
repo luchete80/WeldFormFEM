@@ -48,7 +48,7 @@ public:
   inline vector_t getPosVec(const int &n){return make_vector_t(x_h[3*n], x_h[3*n+1], x_h[3*n+2]);};
   #else
   inline vector_t getPosVec(const int &n){return make_vector_t(x[3*n], x[3*n+1], x[3*n+2]);};
-  //inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);};
+  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);};
   #endif
 
   #ifdef CUDA_BUILD
@@ -178,8 +178,8 @@ protected:
   ////// PARALLELIZATION
   int             Nproc;
   
-  std::vector<double>    bcx_val_h,bcy_val_h,bcz_val_h;
-  std::vector<int> bcx_nod_h,bcy_nod_h,bcz_nod_h;
+  std::vector<double>     bcx_val_h,bcy_val_h,bcz_val_h;
+  std::vector<int>        bcx_nod_h,bcy_nod_h,bcz_nod_h;
   
   Material_ **mat; //pointer to material of each particle
   Material_ *materials; //All materials 

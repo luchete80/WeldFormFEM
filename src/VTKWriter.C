@@ -97,7 +97,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //------
   m_oss << "        <DataArray type=\"Float32\" Name=\"f\" NumberOfComponents=\""<<dom->m_dim<<"\" Format=\"ascii\"> " <<endl;
   for (int n=0;n<dom->m_node_count;n++){
-    vector_t x = dom->getIntForceVec(n);
+    vector_t x ;//= dom->getIntForceVec(n);
     m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;    
     
   }
