@@ -564,8 +564,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      // printf("SHEAR STRESS\n");
-      // print(ShearStress);
+      printf("SHEAR STRESS\n");
+      print(ShearStress);
 
       // printf("STR RATE\n");
       // print(StrRate);
