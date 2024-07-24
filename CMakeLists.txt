@@ -15,6 +15,7 @@ set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
 # SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-fast-math -std=c++17 -O3")
+set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CXX)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")

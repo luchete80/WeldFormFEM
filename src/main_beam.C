@@ -137,16 +137,10 @@ int main(){
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (10.0*dt);
+  dom_d->SetEndTime (1.0e-3);
+  dom_d->SetEndTime (1000.0*dt);
   
-  //// ORIGINAL
-  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
-                               dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
-  dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
-                                                            dom_d->AddBCVelNode(3,2,0);
-  
-  for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
+
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
@@ -154,10 +148,12 @@ int main(){
     if (dom_d->getPosVec(i).x <r/2.0) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
+      cout << "node "<< i<<" fixed "<<endl;
     }
     
     if (dom_d->getPosVec(i).x > (Lx - 1.5*r) && dom_d->getPosVec(i).y > (Ly -1.5*r) ) {
       dom_d->AddBCVelNode(i,1,-0.48);
+      cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      
     
@@ -167,7 +163,8 @@ int main(){
   
   //AFTER THIS CALL
   dom_d->AllocateBCs();
-    
+  
+ 
 
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
 	dom_d->SolveChungHulbert ();
