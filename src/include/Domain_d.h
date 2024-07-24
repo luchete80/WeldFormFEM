@@ -178,8 +178,8 @@ protected:
   ////// PARALLELIZATION
   int             Nproc;
   
-  std::vector<int>    bcx_val_h,bcy_val_h,bcz_val_h;
-  std::vector<double> bcx_nod_h,bcy_nod_h,bcz_nod_h;
+  std::vector<double>    bcx_val_h,bcy_val_h,bcz_val_h;
+  std::vector<int> bcx_nod_h,bcy_nod_h,bcz_nod_h;
   
   Material_ **mat; //pointer to material of each particle
   Material_ *materials; //All materials 

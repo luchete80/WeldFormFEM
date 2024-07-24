@@ -138,7 +138,7 @@ int main(){
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (1000.0*dt);
+  //dom_d->SetEndTime (1000.0*dt);
   
 
   int fixcount =0;

@@ -175,4 +175,4 @@ F90 PREVIOUS VERSION
 20240703 - F90 version. Fixed mass for axisymm area weighted
          - WORKING AXISYMMETRIC AREA WEIGHTED VERSION (F90).
 20240724 - Added exporting V and F to displacements.
-         - 
+         - FIXED BOUNDARY CONDITIONS ON C++ 
