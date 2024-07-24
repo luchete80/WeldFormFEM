@@ -57,7 +57,7 @@ add_executable(MetFEMGPU
                         Mechanical.C
                         Matrices.C
                         Solver.C
-                        # VTKWriter.C
+                        VTKWriter.C
 
               )
 
@@ -82,15 +82,15 @@ add_executable(4elem
                        VTKWriter.C
              )             
 
-# add_executable(beam
-                       # main_beam.C
-                       # Domain_d.C
-                       # Matrices.C
-                       # Mechanical.C
-                       # Matrices.C
-                       # Solver.C
-                       # VTKWriter.C
-             # )
+add_executable(beam
+                       main_beam.C
+                       Domain_d.C
+                       Matrices.C
+                       Mechanical.C
+                       Matrices.C
+                       Solver.C
+                       VTKWriter.C
+             )
               
 # add_executable(WeldFormFEM
                         # WeldFormFEM.C

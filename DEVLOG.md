@@ -170,6 +170,9 @@ F90 PREVIOUS VERSION
          - Added Plastic Strain Output for not hardening rule
 20240627 - F90 Version, made area weighted by default
 20240628 - Fixed axisymm example, still not working
+----------------------------------------------------------------------
 20240702 - F90 version - Fixed volumetric weight 
 20240703 - F90 version. Fixed mass for axisymm area weighted
          - WORKING AXISYMMETRIC AREA WEIGHTED VERSION (F90).
+20240724 - Added exporting V and F to displacements.
+         - 

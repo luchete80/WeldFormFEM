@@ -48,12 +48,16 @@ public:
   inline vector_t getPosVec(const int &n){return make_vector_t(x_h[3*n], x_h[3*n+1], x_h[3*n+2]);};
   #else
   inline vector_t getPosVec(const int &n){return make_vector_t(x[3*n], x[3*n+1], x[3*n+2]);};
+  //inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);};
   #endif
 
   #ifdef CUDA_BUILD
   inline vector_t getDispVec(const int &n){return make_vector_t(u_h[3*n], u_h[3*n+1], u_h[3*n+2]);};
+  inline vector_t getVelVec (const int &n){return make_vector_t(v_h[3*n], v_h[3*n+1], v_h[3*n+2]);};
   #else
+  inline vector_t getVelVec (const int &n){return make_vector_t(v[3*n], v[3*n+1], v[3*n+2]);};
   inline vector_t getDispVec(const int &n){return make_vector_t(u[3*n], u[3*n+1], u[3*n+2]);};
+  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);};
   #endif
   
   dev_t void printVec(double*);
