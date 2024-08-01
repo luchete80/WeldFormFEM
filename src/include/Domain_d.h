@@ -152,6 +152,7 @@ protected:
   int             m_node_count, m_elem_count;
 	
 	unsigned int 		*m_elnod;
+  
   //unsigned int    *m_eloffset; //FROM FIRST ELEMENT NODE
 	
 	double 				 *x, *x_h; //Vector is double, x_h is used only on host
@@ -224,6 +225,12 @@ protected:
   int            *m_nodel_loc;        //
   int            *m_nodel_offset;    //OFFSET OF THE
   int            *m_nodel_count;    
+
+  //////////////////////////// USED FOR CONTACT
+  unsigned int    *m_elnod_count;   /// FOR CONTACT, TO REPLACE FOR m_node_count
+  unsigned int    *m_contsurf_count;
+  unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
+  unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
 	
 	
 };
