@@ -19,6 +19,7 @@
 #include <string>
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
+class TriMesh_d;
 class Matrix;
 
 class BC_Node {
@@ -231,7 +232,12 @@ protected:
   unsigned int    *m_contsurf_count;
   unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
   unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
-	
+
+	// TODO, EACH RIGID PARTICLE SHOULD 
+  int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO
+  TriMesh_d **trimesh;
+  int trimesh_count;
+  int *mesh_id; //particle mesh ID	
 	
 };
 

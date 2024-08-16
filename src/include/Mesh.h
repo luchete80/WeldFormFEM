@@ -1,7 +1,17 @@
 #ifndef _MESH_CUH_
 #define _MESH_CUH_
 
-namespace SPH{
+//namespace SPH{
+
+#include "defs.h"
+
+#include <stdio.h>
+
+#ifdef  CUDA_BUILD
+#include <cuda.h>
+#endif
+
+#include "utils.h"
 
 struct elem_data{
     double3             *centroid,*normal;
@@ -29,21 +39,25 @@ class TriMesh_d{
   void SetVel(const double3 &v) {m_v = v;} //Like in WeldForm CPU version
 	inline void ApplyConstVel(const double3 &v);
 	inline void CalcCentroidVelFromNodes();
-	inline __device__ void UpdatePlaneCoeff();
+	inline dev_t void UpdatePlaneCoeff();
 	inline void UpdatePos(const double &dt);
-	inline __device__ void Move(double dt);
-  inline __device__ void CalcNormals();
-	inline __device__ void CalcSpheres();
-	inline __device__ void CalcCentroids();
-  inline __device__ void CheckNormals();
+	inline dev_t void Move(double dt);
+  inline dev_t void CalcNormals();
+	inline dev_t void CalcSpheres();
+	inline dev_t void CalcCentroids();
+  inline dev_t void CheckNormals();
   
   
 };
+
+#ifdef  CUDA_BUILD
 
 __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt);
 __global__ inline void CalcSpheresKernel(TriMesh_d *mesh_d);
 
 __global__ inline void CheckNormalsKernel(TriMesh_d *mesh_d);
-};//SPH
+#endif
+
+//};//SPH
 
 #endif
