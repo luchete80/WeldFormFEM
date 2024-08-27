@@ -47,7 +47,14 @@
 
 #define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))
 #define memcpy_t(dest,src,size)   memcpy(dest,src,size)     
-#define par_loop(n,upto)   int n;for(int n=0;n<upto;n++)
+#define OMP_PARA_INTERNAL _Pragma("omp parallel for schedule (static) num_threads(Nproc)")
+
+//#define par_loop(n,upto)   OMP_PARA_INTERNAL\
+                            for(int n=0;n<upto;n++)
+
+#define par_loop(n,upto)  for(int n=0;n<upto;n++)
 #endif
 
 #endif
+
+

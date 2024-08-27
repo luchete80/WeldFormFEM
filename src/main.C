@@ -39,6 +39,7 @@ int main(){
 	report_gpu_mem();
   #else
     dom_d = new Domain_d;
+    dom_d->setProcCount(1);
   #endif
 	
   double3 V = make_double3(0.0,0.0,0.0);
@@ -56,6 +57,7 @@ int main(){
   E   = 206.0e9;
   nu  = 0.3;
   rho = 7850.0;
+  
   
 
   

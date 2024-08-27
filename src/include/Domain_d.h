@@ -146,6 +146,7 @@ public:
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}
 	int & getDim(){return m_dim;}
+  void setProcCount(const int &np){Nproc = np;} //for CPU only
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
