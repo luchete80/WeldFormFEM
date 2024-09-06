@@ -73,10 +73,13 @@ namespace MetFEM{
 	cudaDeviceSynchronize();
 
   #else
+  printf("calc deriv\n");
   calcElemJAndDerivatives();
+  printf("calc Vol\n");
   CalcElemInitialVol(); //ALSO CALC VOL
 
   CalcElemVol();
+  printf("calc dens\n");
   calcElemDensity();
   calcElemMassMat(); 
   assemblyMassMatrix();  

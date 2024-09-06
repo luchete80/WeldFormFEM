@@ -41,6 +41,7 @@ class Domain_d {
 public:
   Domain_d (std::string);
   Domain_d (){}
+  void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
   void CreateFromLSDyna(const LS_Dyna::lsdynaReader &reader);

@@ -48,7 +48,10 @@ int main(){
   double Ly = 0.024;
   double Lz = 0.012;
 	double3 L = make_double3(Lx,Ly,Lz);
-
+  
+  //dom_d->Nproc = 8;
+  dom_d->setNproc(8);
+  
 	double r = dx/2.0;
 	
 	dom_d->AddBoxLength(V,L,r,true);

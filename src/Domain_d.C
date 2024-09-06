@@ -637,16 +637,19 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 	////printf ("threadIdx.x %d, blockDim.x%d, blockIdx.x %d\n",threadIdx.x ,blockDim.x , blockIdx.x);
   //printf("allocating m_dim %d, n_nodxelem %d\n", m_dim, m_nodxelem);
   
-	Matrix *jacob = new Matrix(m_dim, m_dim);    
-	Matrix *inv_j = new Matrix(m_dim, m_dim);    
-  //Matrix *dHrs = new Matrix(m_dim, m_nodxelem);   /////////////////////////////// IF CREATION IS DYNAMIC ! (TEST IF )
-  
-  Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
+
    
   //printf("done\n");
    
 	////printf ("e %d, elem_count %d\n",m_elem_count);
   par_loop (e, m_elem_count) {
+
+	Matrix *jacob = new Matrix(m_dim, m_dim);    
+	Matrix *inv_j = new Matrix(m_dim, m_dim);    
+  //Matrix *dHrs = new Matrix(m_dim, m_nodxelem);   /////////////////////////////// IF CREATION IS DYNAMIC ! (TEST IF )
+  
+  Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
+  
   int offset = m_gp_count * e;
   Matrix *x2 = new Matrix(m_nodxelem, m_dim);
   // integer :: e
@@ -905,9 +908,10 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
     //dHxy_detJ_loc->Print();
 		//printf("END.\n");
     delete x2; //DEFINED ON EACH BLOCK!
+      delete inv_j, jacob,dHxy_detJ_loc;
   } // e < elem_colunt
   
-      delete inv_j, jacob,dHxy_detJ_loc;
+
 }
 
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){
