@@ -179,3 +179,5 @@ F90 PREVIOUS VERSION
          - C++ 3D BEAM EXAMPLE IS WORKING
          - FIXED CUDA diagonal mass (added calculate density, vol and mass)
          - Still with error.
+----------------------------------------------------------------------
+20240906 - Fixed CPU parallel (and should be built as release)
