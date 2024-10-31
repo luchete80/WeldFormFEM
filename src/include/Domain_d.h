@@ -190,7 +190,8 @@ protected:
   
   bool            m_red_int;  //Reduced integration, 1 GAUSS POINT
   int             m_gp_count; //Assuming constant gauss points
-  int             m_nodxelem;
+  int             m_nodxelem; //THIS IS INTENDED TO BE MODIFIED BY m_nodxelem_e which is a matrix
+  int             m_nodxelem_e;
   
   /////////////////////// //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION ///////////////////////////////////
   Matrix          **m_dHrs;     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
