@@ -712,19 +712,20 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             jacob->Set(1,d,0.25*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)));
           }
         
-        AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
-        //printf(" J ptr\n");
-        //jacob->Print();
-        //printf("ADJ J ptr\n");
-        //inv_j->Print();          //printf("jacob\n");jacob->Print();
-        for (int d=0;d<2;d++){        
-          dHxy_detJ_loc->Set(d,0,0.25*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
-          dHxy_detJ_loc->Set(d,1,0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
-          dHxy_detJ_loc->Set(d,2,0.25*( inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
-          dHxy_detJ_loc->Set(d,3,0.25*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
-        }
+          AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+          //printf(" J ptr\n");
+          //jacob->Print();
+          //printf("ADJ J ptr\n");
+          //inv_j->Print();          //printf("jacob\n");jacob->Print();
+          for (int d=0;d<2;d++){        
+            dHxy_detJ_loc->Set(d,0,0.25*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
+            dHxy_detJ_loc->Set(d,1,0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
+            dHxy_detJ_loc->Set(d,2,0.25*( inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
+            dHxy_detJ_loc->Set(d,3,0.25*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
+          }
         //dHxy_detJ_loc->Mul(0.25);
         } else if (m_nodxelem == 3){ //TRIANGLE CONSTANT
+        //BENSON PAGE
           
           
           
