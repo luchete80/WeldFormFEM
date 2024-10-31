@@ -725,8 +725,14 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           }
         //dHxy_detJ_loc->Mul(0.25);
         } else if (m_nodxelem == 3){ //TRIANGLE CONSTANT
-        //BENSON PAGE
+        //BENSON 2.4.5.2 N1 = r , N2 = s, n3 = 1 - r -s
+         //dHdrs [1,0,-1;  -0,1,-1] x X2
+        for (int d=0;d<2;d++){
+          //jacob->Set(0,d,0.25*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d))); 
+          //
           
+        }
+         
           
           
         }
