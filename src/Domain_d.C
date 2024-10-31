@@ -703,13 +703,14 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         // !!! THIS IS TO AVOID MATMUL
         // ! print *, "nodes X ", x2(:,1)
         // ! print *, "nodes Y ", x2(:,2)
-        for (int d=0;d<2;d++){
-          // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
-          // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
-          // elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
-          jacob->Set(0,d,0.25*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d))); 
-          jacob->Set(1,d,0.25*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)));
-        }
+        if (m_nodxelem == 4){
+          for (int d=0;d<2;d++){
+            // elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
+            // elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
+            // elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
+            jacob->Set(0,d,0.25*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d))); 
+            jacob->Set(1,d,0.25*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)));
+          }
         
         AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
         //printf(" J ptr\n");
@@ -721,22 +722,13 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           dHxy_detJ_loc->Set(d,1,0.25*(inv_j->getVal(d,0)-inv_j->getVal(d,1)));     
           dHxy_detJ_loc->Set(d,2,0.25*( inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
           dHxy_detJ_loc->Set(d,3,0.25*(-inv_j->getVal(d,0)+inv_j->getVal(d,1)));     
-          // #ifdef CUDA_BUILD
-          // jacob->Set(0,d,0.25*(-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d)));  
-          // jacob->Set(1,d,0.25*(-x2->getVal(0,d) - x2->getVal(1,d) + x2->getVal(2,d) + x2->getVal(3,d)));  
-          // #else 
-          // jacob->operator()(0,d) = -x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d);
-          // #endif
-
-          // elem%dHxy_detJ(e,gp,:,1) = -invJ(:,1)-invJ(:,2) !For each 3 rows of inv J and dHdxy
-          // elem%dHxy_detJ(e,gp,:,2) =  invJ(:,1)-invJ(:,2)
-          // elem%dHxy_detJ(e,gp,:,3) =  invJ(:,1)+invJ(:,2)
-          // elem%dHxy_detJ(e,gp,:,4) = -invJ(:,1)+invJ(:,2)     
-          
-          // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.25d0
         }
         //dHxy_detJ_loc->Mul(0.25);
-        
+        } else if (m_nodxelem == 3){ //TRIANGLE CONSTANT
+          
+          
+          
+        }
 			} else { //!!!DIM 3
 
           for (int d=0;d<m_dim;d++){
