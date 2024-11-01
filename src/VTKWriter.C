@@ -81,7 +81,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss << "        <DataArray type=\"Float32\" Name=\"u\" NumberOfComponents=\""<<dom->m_dim<<"\" Format=\"ascii\"> " <<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t x = dom->getDispVec(n);
-    m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;    
+    m_oss << fixed<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
     
   }
 
