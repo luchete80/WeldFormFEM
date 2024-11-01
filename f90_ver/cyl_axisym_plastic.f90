@@ -166,7 +166,7 @@ implicit none
   dt = 0.3 * dx/(mat_cs)
   ! tf = dt * 1.0
   
-  tf = 1.0e-2
+  tf = 5.0e-3
   ! tf = 1000.0*dt
   
   elem%rho(:,:) = rho
