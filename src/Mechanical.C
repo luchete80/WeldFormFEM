@@ -478,9 +478,8 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
       // elem%sigma(e,gp,2,1) = elem%sigma(e,gp,1,2)      
     // end do
   // end do 
-
-  tensor3 Sigma;
   par_loop(e,m_elem_count){ 
+    tensor3 Sigma;
     for (int gp=0;gp<m_gp_count;gp++){
       int offset_s = e * m_gp_count + gp;   //SCALAR
       int offset_t = offset_s * 6 ; //SYM TENSOR

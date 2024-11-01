@@ -72,6 +72,17 @@ add_executable(MetFEMGPU
                         VTKWriter.C
 
               )
+add_executable(1elem_tri
+                        main_1_elem_2d_tri.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+                        VTKWriter.C
+
+              )
 
 add_executable(1elem
                         main_1_elem_3d.C

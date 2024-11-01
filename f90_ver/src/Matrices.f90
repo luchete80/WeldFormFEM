@@ -160,10 +160,18 @@ subroutine calculate_element_Jacobian ()
         !!! THIS IS TO AVOID MATMUL
         ! print *, "nodes X ", x2(:,1)
         ! print *, "nodes Y ", x2(:,2)
-                
-        elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
-        elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
-        elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
+        if (nodxelem .eq. 4) then
+          elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)
+          elem%jacob(e,gp,2,:) = -x2(1,:)-x2(2,:)+x2(3,:)+x2(4,:)
+          elem%jacob(e,gp,:,:) = 0.25*elem%jacob(e,gp,:,:)
+        else 
+          if (nodxelem .eq. 3) then
+            !!BENSON 2.4.5.2 N1 = r , N2 = s, n3 = 1 - r -s
+            !!dHdrs [1,0,-1;  -0,1,-1] x X2
+            elem%jacob(e,gp,1,:) = x2(1,:)-x2(3,:)
+            elem%jacob(e,gp,2,:) = x2(2,:)-x2(3,:)
+          end if
+        end if
         else !!!DIM 3
           !!!!! SETTING LIKE THIS AVOID MATMUL
           elem%jacob(e,gp,1,:) = -x2(1,:)+x2(2,:)+x2(3,:)-x2(4,:)-x2(5,:)+x2(6,:)+x2(7,:)-x2(8,:)

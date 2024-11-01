@@ -19,6 +19,8 @@
 #include <string>
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
+enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
+
 class TriMesh_d;
 class Matrix;
 
@@ -193,7 +195,7 @@ protected:
   bool            m_red_int;  //Reduced integration, 1 GAUSS POINT
   int             m_gp_count; //Assuming constant gauss points
   int             m_nodxelem; //THIS IS INTENDED TO BE MODIFIED BY m_nodxelem_e which is a matrix
-  int             m_nodxelem_e;
+  int             *m_nodxelem_e;
   
   /////////////////////// //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION ///////////////////////////////////
   Matrix          **m_dHrs;     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION

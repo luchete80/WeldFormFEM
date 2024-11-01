@@ -268,7 +268,7 @@ subroutine calc_hourglass_forces
   
   gp = 1
   do e=1, elem_count    
-    if (elem%gausspc(e) .eq. 1) then
+    if (elem%gausspc(e) .eq. 1 .and. nodxelem > 3) then
       hmod(:,:) = 0.0d0
       !test = matmul (elem%dHxy(e,gp,:,:),transpose(Sig(:,:))) !!!!SHOULD BE ORTHOGONAL
       !print *, "test ", test
