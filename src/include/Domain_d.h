@@ -122,6 +122,8 @@ public:
   dev_t void Calc_Elastic_Stress (const double dt);
   
   dev_t void Calc_Element_Radius(); //For axisymm
+  dom_type m_domtype;
+  void setDomtype();
 
   //TODO: CHANGE THIS
   inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
@@ -197,6 +199,7 @@ protected:
   int             m_nodxelem; //THIS IS INTENDED TO BE MODIFIED BY m_nodxelem_e which is a matrix
   int             *m_nodxelem_e;
   
+  /////// ELEMENT VARIABLES
   /////////////////////// //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION ///////////////////////////////////
   Matrix          **m_dHrs;     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
   Matrix          **x2;         //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
@@ -208,7 +211,7 @@ protected:
   double          *m_f_elem, *m_f_elem_hg;    //ELEMENT
   double          *m_fi, *m_fe; //NODAL
   double          *m_sigma, *m_tau;
-	
+	double          *m_radius;
   //Updated lagrangian formulation
   //real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy
   double         *dHxy_detJ ; ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
