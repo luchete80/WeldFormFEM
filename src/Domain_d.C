@@ -965,7 +965,40 @@ int Domain_d::WriteToCSV(char *FileKey){
 
 dev_t void Domain_d::Calc_Element_Radius() //For axisymm
 {
-  
+ /*
+  do e=1, elem_count
+    do i=1,nodxelem
+        !print *, "elnod " , elem%elnod(e,i)
+        x2(i,:)=nod%x(elem%elnod(e,i),:)
+    end do
+    do gp=1, elem%gausspc(e)
+      !if (bind_dom_type .eq. 3) then 
+        elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))
+        !print *, "radius", elem%radius(e,gp)
+        ! if (axisymm_vol_weight) then
+          ! elem%detJ(e,:) = elem%detJ(e,:) * radius
+        ! end if
+      !end if 
+    end do 
+  end do
+  */
+  //// NEED TO KNOW MASS MATRICES
+  for (int e=0;e<m_elem_count;e++){
+    //double temp = 0.0;
+    m_radius[e] = 0.0;
+    int offset = m_nodxelem * e;
+    for (int ne=0; ne<m_nodxelem;ne++){
+       int n = elnod_h[offset+ne];
+    //for (int gp=0;gp<m_gp_count;gp++){    
+      
+      //!if (bind_dom_type .eq. 3) then 
+      //  elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))    
+      //TO MODIFY BY H matrix
+      
+      m_radius[e] += getPosVec(n).x;
+    }
+    m_radius[e] /= m_nodxelem;
+  } 
   
   
 }
