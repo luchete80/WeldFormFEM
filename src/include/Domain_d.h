@@ -42,7 +42,9 @@ class Domain_d {
   friend class VTKWriter;
 public:
   Domain_d (std::string);
-  Domain_d (){}
+  Domain_d (){
+    m_axisymm_vol_weight = false;
+  }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true);
@@ -121,8 +123,10 @@ public:
   dev_t void CalcStressStrain(double dt);
   dev_t void Calc_Elastic_Stress (const double dt);
   
+  ///// AXISYMM VARS
   dev_t void Calc_Element_Radius(); //For axisymm
   dom_type m_domtype;
+  bool m_axisymm_vol_weight;
   void setDomtype();
 
   //TODO: CHANGE THIS

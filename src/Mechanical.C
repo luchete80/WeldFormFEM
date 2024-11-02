@@ -336,8 +336,23 @@ dev_t void Domain_d::calcElemForces(){
         }
       
         if (m_dim == 2){
+          if (m_domtype != _Axi_Symm_){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
+          } else {
+              //m_f_elem[offset + n*m_dim    ] +=
+              //if (!m_axisymm_vol_weight){
+              //AREA WEIGHT
+              //elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) - &
+              //                                       (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
+                                                     
+              //elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) - &
+              //                                       elem%sigma (e,gp, 1,2) * fa               
+              //} else {
+                
+              //}
+            
+          }
         } else {
           //printf("offset %d\n", offset + n*m_dim    );
           //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
