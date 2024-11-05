@@ -130,7 +130,7 @@ public:
   void setDomtype();
 
   //TODO: CHANGE THIS
-  inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<m_dim) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
+  inline dev_t double & getSigma  (const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};/*printf("i j symm idx %d %d %d\n",i,j,symm_idx[i][j]);*/if (j<3) return m_sigma   [e*m_gp_count*6 + symm_idx[i][j]];}
   inline dev_t double & getStrRate(const int e, const int gp, int i, int j){int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}}; if (j<3) return m_str_rate[e*m_gp_count*6 + symm_idx[i][j]];}
   
   dev_t void CalcElemInitialVol();
@@ -198,7 +198,7 @@ protected:
   std::vector<int>        bcx_nod_h,bcy_nod_h,bcz_nod_h;
   
   Material_ **mat; //pointer to material of each particle
-  Material_ *materials; //All materials 
+  Material_ *materials; //WAll materials 
   
   bool            m_red_int;  //Reduced integration, 1 GAUSS POINT
   int             m_gp_count; //Assuming constant gauss points

@@ -204,7 +204,9 @@ namespace MetFEM{
   calcElemStrainRates();
   cout << "Calc density"<<endl;
   calcElemDensity();
+  cout << "Calc pressure"<<endl;
   calcElemPressure();
+  cout << "Calc Stress Strain"<<endl;
   CalcStressStrain(dt);
   cout << "Calc Elem forces"<<endl;
   calcElemForces();

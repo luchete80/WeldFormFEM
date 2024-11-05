@@ -181,3 +181,6 @@ F90 PREVIOUS VERSION
          - Still with error.
 ----------------------------------------------------------------------
 20240906 - Fixed CPU parallel (and should be built as release)
+----------------------------------------------------------------------
+20241105 - FIXED 2D strain rate calc
+         - Added Axisymmetric calculation (still not working)
