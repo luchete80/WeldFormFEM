@@ -24,6 +24,8 @@
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
 #else
+
+
 #include "double3_c.h"
 #include "utils.h" //AFTER DEF
 

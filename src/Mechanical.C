@@ -22,17 +22,17 @@ namespace MetFEM {
 dev_t void Domain_d::calcElemStrainRates(){
 
   par_loop(e,m_elem_count){
-    Matrix *str_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
-    Matrix *rot_rate = new Matrix(m_dim,m_dim); //TODO: MAKE SYMM MATRIX
+    Matrix *str_rate = new Matrix(3,3); //TODO: MAKE SYMM MATRIX
+    Matrix *rot_rate = new Matrix(3,3); //TODO: MAKE SYMM MATRIX
   //Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
 
 //  if (e < m_elem_count) {
 
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count * 6 + gp;
-	  int offset_det = e * m_gp_count;
-		str_rate->SetZero();
-    rot_rate->SetZero();
+	    int offset_det = e * m_gp_count;
+		  str_rate->SetZero();
+      rot_rate->SetZero();
 	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset_det + gp];
       //printf("f factor: %f\n",f);
@@ -63,6 +63,16 @@ dev_t void Domain_d::calcElemStrainRates(){
         str_rate->Set(0,1, str_rate->getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
         rot_rate->Set(0,1, rot_rate->getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
+
+        //!!! er hoop = vr/r
+        //if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
+        //  ! if (elem%gausspc(e) .eq. 1) then
+        //    elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
+        //  ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
+        //  elem%rot_rate(e,gp, 3,3) = 0.0d0
+        //  ! end if
+        //end if 
+
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
         if (m_dim == 3) {
           str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +

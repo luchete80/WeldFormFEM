@@ -84,6 +84,18 @@ add_executable(1elem_tri
 
               )
 
+add_executable(main_1elem_2d
+                        main_1_elem_2d.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+                        VTKWriter.C
+
+              )
+
 add_executable(1elem
                         main_1_elem_3d.C
                         Domain_d.C
