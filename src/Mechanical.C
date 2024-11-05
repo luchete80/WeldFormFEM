@@ -286,9 +286,10 @@ dev_t void Domain_d::calcElemForces(){
       for (int d=0;d<m_dim;d++)
         m_f_elem[offset + n*m_dim + d] = 0.0;
 
-
+    int offset_det = m_gp_count * e;
+    
     for (int gp=0;gp<m_gp_count;gp++){
-
+      
       // tensor3 sigma     = FromFlatSym(m_sigma, e*m_gp_count+gp);
   // // integer :: e, i,j,k, gp,n, d
       // //printf("SIGMA\n");print(sigma);
@@ -344,7 +345,7 @@ dev_t void Domain_d::calcElemForces(){
 //              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
  //             !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
 //              !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
-                double fa = 0.25 / m_radius[e]; //TODO: CHANGE According to element data
+                double fa = 0.25 / m_radius[e] * m_detJ[offset_det + gp];; //TODO: CHANGE According to element data
 //
                 m_f_elem[offset + n*m_dim    ] += getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) - 
                                                   getSigma(e,gp,0,0) - getSigma(e,gp,2,2);

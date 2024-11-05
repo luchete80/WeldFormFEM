@@ -1000,7 +1000,9 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
       
       m_radius[e] += getPosVec(n).x;
     }
-    m_radius[e] /= m_nodxelem;
+    
+    for (int gp=0;gp<m_gp_count;gp++)
+      m_radius[m_gp_count*e+gp] /= m_nodxelem;
   } 
   
   
