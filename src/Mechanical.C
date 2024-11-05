@@ -340,17 +340,23 @@ dev_t void Domain_d::calcElemForces(){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
           } else {
-              //m_f_elem[offset + n*m_dim    ] +=
-              //if (!m_axisymm_vol_weight){
-              //AREA WEIGHT
-              //elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) - &
-              //                                       (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
-                                                     
-              //elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) - &
-              //                                       elem%sigma (e,gp, 1,2) * fa               
-              //} else {
-                
-              //}
+//              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
+//              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
+ //             !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
+//              !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
+                double fa = 0.25 / m_radius[e]; //TODO: CHANGE According to element data
+//
+                m_f_elem[offset + n*m_dim    ] += getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) - 
+                                                  getSigma(e,gp,0,0) - getSigma(e,gp,2,2);
+
+                m_f_elem[offset + n*m_dim    ] += getDerivative(e,gp,0,n) * getSigma(e,gp,0,1) - 
+                                                  getSigma(e,gp,0,1) *fa;
+                                                  
+//              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) - &
+//                                                     (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
+//                                                     
+//              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) - &
+//                                                     elem%sigma (e,gp, 1,2) * fa       
             
           }
         } else {

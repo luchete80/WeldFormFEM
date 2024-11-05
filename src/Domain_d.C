@@ -99,6 +99,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(mat,    Material_*, m_elem_count);   
   //cudaMalloc((void**)&mat,    m_elem_count * sizeof(Material_ *));
   
+  // AXISYMM
+  malloc_t (m_radius, double, m_elem_count * m_gp_count);
+    
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
   #endif
@@ -962,7 +965,7 @@ int Domain_d::WriteToCSV(char *FileKey){
 	of << oss.str();
 	of.close();
 }
-
+  
 dev_t void Domain_d::Calc_Element_Radius() //For axisymm
 {
  /*

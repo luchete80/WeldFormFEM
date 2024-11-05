@@ -3,14 +3,25 @@
 
 
 Axisymmetric
+
+1. 
 Addad bind_dom_type and axisymm_vol_weight
 
 - Added radius calc via N functions
+
+2. 
 - Added nodal mass calc (calc_nodal_masses) by using radius
   - If are weight: sum (rho x V x r / 4)
   _ If vol weight: 
-- Internal Forces: (cal_elem_forces () inside mechanical)
   
+3. Calc Vol (used?), only in vol weight
+
+3.
+- Internal Forces: (cal_elem_forces () inside mechanical)
+
+
+4. 
+-
 
 Used:
 flags/type:

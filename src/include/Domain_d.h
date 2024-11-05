@@ -145,6 +145,8 @@ public:
   dev_t void UpdateCorrectionAccVel();
   dev_t void UpdateCorrectionPos();
   dev_t void calcTotMass();
+  
+  inline dev_t double getRadius(int e, int gp){return m_radius[e*m_gp_count+gp];}
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
   inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[3*m_elnod[m_nodxelem*e+n]+d];}  
