@@ -44,6 +44,7 @@ public:
   Domain_d (std::string);
   Domain_d (){
     m_axisymm_vol_weight = false;
+    m_domtype = _Plane_Strain_;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???

@@ -35,7 +35,7 @@ dev_t void Domain_d::calcElemStrainRates(){
       rot_rate->SetZero();
 	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset_det + gp];
-      //printf("f factor: %f\n",f);
+      //printf("det J: %f\n",m_detJ[offset_det + gp]);
       //double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
 
@@ -50,7 +50,7 @@ dev_t void Domain_d::calcElemStrainRates(){
         // printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
         // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
-          //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n),  getVElem(e,n,d));
+          //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n)*f,  getVElem(e,n,d));
           
           str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           rot_rate->Set(d,d, 0.0);
@@ -108,8 +108,8 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate->ToFlatSymPtr(m_str_rate, offset);
       rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
 
-      // printf("Strain Rate\n");
-      // str_rate->Print();
+       //printf("Strain Rate\n");
+       //str_rate->Print();
 
       // printf("Rot Rate\n");
       // str_rate->Print();

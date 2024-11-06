@@ -195,27 +195,27 @@ namespace MetFEM{
   #else
   //SECOND TIME
     //STRESSES CALC
-  cout << "calc deriv"<<endl;
+  //cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
-  cout << "done "<<endl;
+  //cout << "done "<<endl;
   CalcElemVol();
-  cout << "done "<<endl;
-  cout << "Calc strain rate"<<endl;
+  //cout << "done "<<endl;
+  //cout << "Calc strain rate"<<endl;
   calcElemStrainRates();
-  cout << "Calc density"<<endl;
+  //cout << "Calc density"<<endl;
   calcElemDensity();
-  cout << "Calc pressure"<<endl;
+  //cout << "Calc pressure"<<endl;
   calcElemPressure();
-  cout << "Calc Stress Strain"<<endl;
+  //cout << "Calc Stress Strain"<<endl;
   CalcStressStrain(dt);
-  cout << "Calc Elem forces"<<endl;
+  //cout << "Calc Elem forces"<<endl;
   calcElemForces();
   calcElemHourglassForces();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
-  cout << "Assemblying"<<endl;
+  //cout << "Assemblying"<<endl;
   assemblyForces(); 
-  cout << "Done "<<endl;
+  //cout << "Done "<<endl;
   calcAccel();
   #endif
   
