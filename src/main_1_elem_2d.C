@@ -135,8 +135,9 @@ int main(){
   dom_d->m_domtype = _Plane_Strain_;
   double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (2.0*dt);
+  
+  dom_d->SetEndTime (1.0e-3);
+  //dom_d->SetEndTime (2.0*dt);
   
   if (dim == 3){
   //// ORIGINAL
@@ -155,8 +156,8 @@ int main(){
   
   
   } else {
-  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  
-                               dom_d->AddBCVelNode(1,1,0);                                  
+  dom_d->AddBCVelNode(0,0,0.0);  dom_d->AddBCVelNode(0,1,0.0);  
+                                 dom_d->AddBCVelNode(1,1,0.0);                                  
                                                             
   
   dom_d->AddBCVelNode(2,1,-1.0);      dom_d->AddBCVelNode(3,1,-1.0);    
