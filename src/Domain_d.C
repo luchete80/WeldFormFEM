@@ -157,16 +157,17 @@ dev_t void Domain_d::UpdatePrediction(){
         for (int j = 0; j < m_dim; j++) {
             //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
             //NEW; global
-            int ig = i*m_dim + j;
+            //int ig = i*m_dim + j; //BY NOW is 2D
+            int ig = i*3 + j;
             u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
         }
     }
 
     for (int i = 0; i < m_node_count; i++) {
         for (int j = 0; j < m_dim; j++) {
-            //v_[i][j] += (1.0 - m_gamma) * dt * prev_a_[i][j];
             
-            v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                
+            //v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];    
+            v[3*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                          
             //printf("v %e",v[m_dim*i+j] );
         }
     }
@@ -199,7 +200,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
         for (int j = 0; j < m_dim; j++) {
             int ig = i*m_dim + j;
 
-            //printf ("a ig %f\n",  a[ig]);
+            printf ("a ig %f, node %d, dim %d \n",  a[ig]);
             a[ig] = f * a[ig]  -m_alpha * prev_a[ig]; //GLOBAL  
 
             v[ig] += m_gamma * dt * a[ig];
@@ -233,8 +234,10 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
           for (int j = 0; j < m_dim; j++) {
               // u_[i][j] += m_beta * dt * dt * a_[i][j];
               // x_[i][j] += u_[i][j];
-              
-              int ig = i*m_dim + j;
+
+              //int ig = i*m_dim + j;
+              int ig = i*3 + j;
+              //printf("GLOBAL IND %d\n", ig);
               u_dt[ig] += m_beta * dt * dt * a[ig];
               x[ig] += u_dt[ig];
           }
@@ -242,16 +245,16 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
 
       for (int i = 0; i < m_node_count; i++) {
           for (int j = 0; j < m_dim; j++) {
-              //prev_a_[i][j] = a_[i][j];
-              
-              prev_a[m_dim*i+j] = a[m_dim*i+j];
+
+              //prev_a[m_dim*i+j] = a[m_dim*i+j];
+              prev_a[3*i+j] = a[3*i+j];
           }
       }
 
       for (int i = 0; i < m_node_count; i++) {
           for (int j = 0; j < m_dim; j++) {
-              //u_tot_[i][j] += u_[i][j];
-              u[m_dim*i+j] += u_dt[m_dim*i+j];
+              //u[m_dim*i+j] += u_dt[m_dim*i+j];
+              u[3*i+j] += u_dt[3*i+j];
               //printf ("U %.6e \n", u[m_dim*i+j] );
           }
       }
@@ -343,9 +346,10 @@ dev_t void Domain_d::ImposeBCV(const int dim){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);
     //printf("BCV dim %d\n", dim);
-    if (dim == 0)       {/*printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]); */ v[3*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {/*printf ("node %d val %f \n",bcy_nod[n], bcy_val[n]);*/v[3*bcy_nod[n]+dim] = bcy_val[n];}
-    else if (dim == 2)  {/*printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */ v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+     printf("VEL BC \n");
+    if (dim == 0)       {printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]);  v[3*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]); v[3*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);  v[3*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
@@ -354,10 +358,10 @@ dev_t void Domain_d::ImposeBCA(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
-    
-    if (dim == 0)       {/*//printf ("val %f, Nod %d\n",bcx_val[n],bcx_nod[n]);*/ a[3*bcx_nod[n]+dim] = 0.0; }
-    else if (dim == 1)  {/*//printf ("val %f \n",bcy_val[n]);*/                   a[3*bcy_nod[n]+dim] = 0.0;}
-    else if (dim == 2)  {/*//printf ("val %f, Nod %d\n",bcz_val[n],bcz_nod[n]); */a[3*bcz_nod[n]+dim] = 0.0; }
+    printf("ACEL BC \n");
+    if (dim == 0)       {printf ("dim %d val %f, Nod %d\n",dim, bcx_val[n],bcx_nod[n]); a[3*bcx_nod[n]+dim] = 0.0; }
+    else if (dim == 1)  {printf ("dim %d val %f, Nod %d\n",dim, bcy_val[n],bcy_nod[n]); a[3*bcy_nod[n]+dim] = 0.0;}
+    else if (dim == 2)  {printf ("dim %d val %f, Nod %d\n",dim, bcz_val[n],bcz_nod[n]); a[3*bcz_nod[n]+dim] = 0.0; }
   }
   
 }
@@ -1011,7 +1015,8 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
 dev_t void Domain_d::printVec(double *v){
   for (int n=0;n<m_node_count;n++){
     for (int d=0;d<m_dim;d++)
-      printf("%.6e ",v[m_dim*n + d]);
+      //printf("%.6e ",v[m_dim*n + d]);
+      printf("%.6e ",v[3*n + d]);
     printf("\n");
   }
 }

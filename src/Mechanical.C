@@ -416,10 +416,9 @@ dev_t void Domain_d::calcElemForces(){
       for (int d=0;d<m_dim;d++){
         m_f_elem[offset + n*m_dim + d] *= w;
       }
-       //printf ("elem %d forces %f %f %f\n",e,m_f_elem[offset + n*m_dim + 0],
-       //                                    m_f_elem[offset + n*m_dim + 1],
-       //                                    m_f_elem[offset + n*m_dim + 2]);
+
     }  
+
   }//if e<elem_count
 }
 
