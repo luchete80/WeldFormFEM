@@ -360,6 +360,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     if (!red_int) m_gp_count = 4;
   } else {
     nel[2] = (int)(L.z/(2.0*r));
+    nel[2] = (int)(L.z/(2.0*r));
     m_nodxelem = 8;
     if (!red_int) m_gp_count = 8; 
   }
@@ -402,7 +403,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         //m_node.push_back(new Node(Xp));
         x_H[m_dim*p  ] = Xp.x;  
         x_H[m_dim*p+1] = Xp.y;
-        if (m_dim == 3)x_H[m_dim*p+2] = Xp.z;
+        if (m_dim == 3) x_H[m_dim*p+2] = Xp.z;
         //nod%x(p,:) = Xp(:);
         cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
         p++;
@@ -414,8 +415,11 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
   //cout <<"m_node size"<<m_node.size()<<endl;
   } 
-		memcpy_t(this->x,   x_H, sizeof(m_dim*sizeof(double)) * m_node_count);    
-
+		memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
+    printf("X\n");
+    printVec(this->x);
+    printf("X_h\n");
+    printVec(x_H);
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
     int gp = 1;
@@ -659,6 +663,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       if (m_dim == 2){
         double2 x_ = Ptr_vector2(x,m_elnod[nind+i]);
         x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); 
+        printf("x2\n");
+        x2->Print();
       } else {
         vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]); 
         x2->Set(i,0,x_.x); x2->Set(i,1,x_.y);        
