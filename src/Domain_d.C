@@ -36,16 +36,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   // NODAL VARIABLES
   
-  malloc_t (x,      double,node_count*3);
-  malloc_t (v,      double,node_count*3);
-  malloc_t (a,      double,node_count*3);
-  malloc_t (u,      double,node_count*3);
-  malloc_t (u_dt,   double,node_count*3);
+  malloc_t (x,      double,node_count*m_dim);
+  malloc_t (v,      double,node_count*m_dim);
+  malloc_t (a,      double,node_count*m_dim);
+  malloc_t (u,      double,node_count*m_dim);
+  malloc_t (u_dt,   double,node_count*m_dim);
   
-  malloc_t (prev_a, double,node_count*3);  
+  malloc_t (prev_a, double,node_count*m_dim);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
-  malloc_t (m_fi,double,node_count*3); //Internal forces
-  malloc_t (m_fe,double,node_count*3);
+  malloc_t (m_fi,double,node_count*m_dim); //Internal forces
+  malloc_t (m_fe,double,node_count*m_dim);
   
   malloc_t (m_mdiag, double,node_count);
   malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
@@ -108,7 +108,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   malloc_t (x_h,      double,node_count*3);
   //malloc_t (u_h,      double,node_count*3);
-  u_h = new double [3*m_node_count];
+  u_h = new double [m_dim*m_node_count];
   
   m_contsurf_count = 0;
   
@@ -166,8 +166,8 @@ dev_t void Domain_d::UpdatePrediction(){
     for (int i = 0; i < m_node_count; i++) {
         for (int j = 0; j < m_dim; j++) {
             
-            //v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];    
-            v[3*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];                          
+            v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];    
+
             //printf("v %e",v[m_dim*i+j] );
         }
     }
@@ -200,7 +200,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
         for (int j = 0; j < m_dim; j++) {
             int ig = i*m_dim + j;
 
-            printf ("a ig %f, node %d, dim %d \n",  a[ig]);
+            //printf ("a ig %f, node %d, dim %d \n",  a[ig]);
             a[ig] = f * a[ig]  -m_alpha * prev_a[ig]; //GLOBAL  
 
             v[ig] += m_gamma * dt * a[ig];
@@ -235,8 +235,8 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
               // u_[i][j] += m_beta * dt * dt * a_[i][j];
               // x_[i][j] += u_[i][j];
 
-              //int ig = i*m_dim + j;
-              int ig = i*3 + j;
+              int ig = i*m_dim + j;
+
               //printf("GLOBAL IND %d\n", ig);
               u_dt[ig] += m_beta * dt * dt * a[ig];
               x[ig] += u_dt[ig];
@@ -246,15 +246,14 @@ dev_t void Domain_d   ::UpdateCorrectionPos(){
       for (int i = 0; i < m_node_count; i++) {
           for (int j = 0; j < m_dim; j++) {
 
-              //prev_a[m_dim*i+j] = a[m_dim*i+j];
-              prev_a[3*i+j] = a[3*i+j];
+              prev_a[m_dim*i+j] = a[m_dim*i+j];
           }
       }
 
       for (int i = 0; i < m_node_count; i++) {
           for (int j = 0; j < m_dim; j++) {
-              //u[m_dim*i+j] += u_dt[m_dim*i+j];
-              u[3*i+j] += u_dt[3*i+j];
+              u[m_dim*i+j] += u_dt[m_dim*i+j];
+              
               //printf ("U %.6e \n", u[m_dim*i+j] );
           }
       }
@@ -346,10 +345,10 @@ dev_t void Domain_d::ImposeBCV(const int dim){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);
     //printf("BCV dim %d\n", dim);
-     printf("VEL BC \n");
-    if (dim == 0)       {printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]);  v[3*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]); v[3*bcy_nod[n]+dim] = bcy_val[n];}
-    else if (dim == 2)  {printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);  v[3*bcz_nod[n]+dim] = bcz_val[n]; }
+    // printf("VEL BC \n");
+    if (dim == 0)       {/*printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]); */ v[m_dim*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {/*printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]);*/ v[m_dim*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {/*printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);*/  v[m_dim*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }
@@ -358,10 +357,10 @@ dev_t void Domain_d::ImposeBCA(const int dim){
   par_loop (n,bc_count[dim]){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions\n", n, dim, bc_count[dim]);
-    printf("ACEL BC \n");
-    if (dim == 0)       {printf ("dim %d val %f, Nod %d\n",dim, bcx_val[n],bcx_nod[n]); a[3*bcx_nod[n]+dim] = 0.0; }
-    else if (dim == 1)  {printf ("dim %d val %f, Nod %d\n",dim, bcy_val[n],bcy_nod[n]); a[3*bcy_nod[n]+dim] = 0.0;}
-    else if (dim == 2)  {printf ("dim %d val %f, Nod %d\n",dim, bcz_val[n],bcz_nod[n]); a[3*bcz_nod[n]+dim] = 0.0; }
+    //printf("ACEL BC \n");
+    if (dim == 0)       {/*printf ("dim %d val %f, Nod %d\n",dim, bcx_val[n],bcx_nod[n]);*/ a[m_dim*bcx_nod[n]+dim] = 0.0; }
+    else if (dim == 1)  {/*printf ("dim %d val %f, Nod %d\n",dim, bcy_val[n],bcy_nod[n]); */a[m_dim*bcy_nod[n]+dim] = 0.0;}
+    else if (dim == 2)  {/*printf ("dim %d val %f, Nod %d\n",dim, bcz_val[n],bcz_nod[n]); */a[m_dim*bcz_nod[n]+dim] = 0.0; }
   }
   
 }

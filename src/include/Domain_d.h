@@ -52,19 +52,19 @@ public:
   void CreateFromLSDyna(const LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
-  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[3*n], x_h[3*n+1], x_h[3*n+2]);};
+  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
   #else
-  inline vector_t getPosVec(const int &n){return make_vector_t(x[3*n], x[3*n+1], x[3*n+2]);};
+  inline vector_t getPosVec(const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);};
   #endif
 
   #ifdef CUDA_BUILD
-  inline vector_t getDispVec(const int &n){return make_vector_t(u_h[3*n], u_h[3*n+1], u_h[3*n+2]);};
-  inline vector_t getVelVec (const int &n){return make_vector_t(v_h[3*n], v_h[3*n+1], v_h[3*n+2]);};
-  inline vector_t getIntForceVec(const int &n){/*return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);*/};
+  inline vector_t getDispVec(const int &n){return make_vector_t(u_h[m_dim*n], u_h[m_dim*n+1], u_h[m_dim*n+2]);};
+  inline vector_t getVelVec (const int &n){return make_vector_t(v_h[m_dim*n], v_h[m_dim*n+1], v_h[m_dim*n+2]);};
+  inline vector_t getIntForceVec(const int &n){/*return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);*/};
   #else
-  inline vector_t getVelVec (const int &n){return make_vector_t(v[3*n], v[3*n+1], v[3*n+2]);};
-  inline vector_t getDispVec(const int &n){return make_vector_t(u[3*n], u[3*n+1], u[3*n+2]);};
-  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[3*n], m_fi[3*n+1], m_fi[3*n+2]);};
+  inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);};
+  inline vector_t getDispVec(const int &n){return make_vector_t(u[m_dim*n], u[m_dim*n+1], u[m_dim*n+2]);};
+  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);};
   #endif
   
   dev_t void printVec(double*);
@@ -113,9 +113,9 @@ public:
 	const int & getNodeCount()const{return m_node_count;}
   vector_t getNodePos(const int &n){
     #ifdef CUDA_BUILD
-    return make_vector_t (x_h[3*n],x_h[3*n+1],x_h[3*n+2]);
+    return make_vector_t (x_h[m_dim*n],x_h[m_dim*n+1],x_h[m_dim*n+2]);
     #else
-    return make_vector_t (x  [3*n],x  [3*n+1],x  [3*n+2]);      
+    return make_vector_t (x  [m_dim*n],x  [m_dim*n+1],x  [m_dim*n+2]);      
     #endif
   }
   
@@ -150,9 +150,9 @@ public:
   inline dev_t double getRadius(int e, int gp){return m_radius[e*m_gp_count+gp];}
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
-  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[3*m_elnod[m_nodxelem*e+n]+d];}  
+  inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[m_dim*m_elnod[m_nodxelem*e+n]+d];}  
   
-  inline dev_t vector_t getV(const int &n){return make_vector_t(v[3*n], v[3*n+1], v[3*n+2]);}  
+  inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
   
   
 	void SolveChungHulbert();
