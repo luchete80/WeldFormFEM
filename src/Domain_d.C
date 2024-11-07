@@ -384,7 +384,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   cout << "Dimension is: "<<m_dim<<endl;
   //SPH::Domain	dom;
 	//vector_t *x =  (vector_t *)malloc(dom.Particles.size());
-	vector_t *x_H =  new vector_t [m_node_count];
+	double *x_H =  new double [m_dim*m_node_count];
 
 
 	//int size = dom.Particles.size() * sizeof(vector_t);
@@ -400,7 +400,9 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       Xp.x = V.x;
       for (int i = 0; i < (nel[0] +1);i++){
         //m_node.push_back(new Node(Xp));
-        x_H[p] = Xp;
+        x_H[m_dim*p  ] = Xp.x;  
+        x_H[m_dim*p+1] = Xp.y;
+        if (m_dim == 3)x_H[m_dim*p+2] = Xp.z;
         //nod%x(p,:) = Xp(:);
         cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
         p++;
@@ -412,7 +414,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
   //cout <<"m_node size"<<m_node.size()<<endl;
   } 
-		memcpy_t(this->x,   x_H, sizeof(vector_t) * m_node_count);    
+		memcpy_t(this->x,   x_H, sizeof(m_dim*sizeof(double)) * m_node_count);    
 
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2

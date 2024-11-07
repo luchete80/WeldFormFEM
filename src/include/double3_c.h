@@ -1,6 +1,12 @@
 #ifndef _DOUBLE3_C_H
 #define _DOUBLE3_C_H
 
+////NEXT WILL BE 
+struct vector_t_{
+  vector_t_(int m_dim){x = new double[m_dim];}
+  double *x;
+};
+
 
 struct double2 {
   double x, y;

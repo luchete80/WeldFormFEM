@@ -116,13 +116,23 @@ public:
 	
 	const int & getElemCount()const{return m_elem_count;}
 	const int & getNodeCount()const{return m_node_count;}
-  vector_t getNodePos(const int &n){
+  vector_t getNodePos3(const int &n){
     #ifdef CUDA_BUILD
     return make_vector_t (x_h[m_dim*n],x_h[m_dim*n+1],x_h[m_dim*n+2]);
     #else
     return make_vector_t (x  [m_dim*n],x  [m_dim*n+1],x  [m_dim*n+2]);      
     #endif
   }
+
+
+  double2 getNodePos2(const int &n){
+    #ifdef CUDA_BUILD
+    return make_double2 (x_h[m_dim*n],x_h[m_dim*n+1]);
+    #else
+    return make_double2 (x  [m_dim*n],x  [m_dim*n+1]);      
+    #endif
+  }
+
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
