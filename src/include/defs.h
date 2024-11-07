@@ -44,6 +44,7 @@
 
 #define vector_t_Ptr  double3_Ptr
 #define Ptr_vector_t  Ptr_double3
+#define Ptr_vector2   Ptr_double2
 //#define V_.x   V_[0]
 // inline void Vec3D_Ptr(const Vec3D v, double *p, const int i);
 // inline Vec3D Ptr_Vec3D(double *p, const int i);

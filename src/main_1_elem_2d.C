@@ -164,11 +164,11 @@ int main(){
     
   }
   //AFTER THIS CALL
-  dom_d->AllocateBCs();
+  //dom_d->AllocateBCs();
     
 
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
-	dom_d->SolveChungHulbert ();
+	//dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;

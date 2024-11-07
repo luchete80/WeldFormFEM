@@ -35,7 +35,10 @@ inline void report_gpu_mem_()
   //inline Vec3D Ptr_Vec3D(double *p, const int i){return Vec3D(p[3*i],p[3*i+1],p[3*i+2]);}
   inline void double3_Ptr(const double3 v, double *p, const int i){p[3*i]=v.x;p[3*i+1]=v.y;p[3*i+2]=v.z;}
   inline double3 Ptr_double3(double *p, const int i){return make_double3(p[3*i],p[3*i+1],p[3*i+2]);}
-
+  
+  //// TEMPLATIZE THIS
+  inline double2 Ptr_double2(double *p, const int i){return make_double2(p[2*i],p[2*i+1]);}
+  inline void double2_Ptr(const double2 v, double *p, const int i){p[2*i]=v.x;p[2*i+1]=v.y;}
 #endif
 
 #endif

@@ -139,17 +139,7 @@ void Domain_d::setDensity(const double &r){
 
 dev_t void Domain_d::UpdatePrediction(){
   par_loop (n,m_node_count){
-    // vector_t p_a = Ptr_vector_t(prev_a, n);
 
-    // vector_t u_ = dt * (getV(n) + (0.5 - m_beta)* dt *p_a) ;// = dt * (getV(n) + 0.5 - m_beta);
-
-    // vector_t x_ = Ptr_vector_t(x, n);
-
-    // vector_t_Ptr(u_,u_dt,n);
-    // vector_t v_ = getV(n) + (1.0 - m_gamma) * dt * p_a; //nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
-    // vector_t_Ptr(v_,v,n);
-
-    // PREDICTION PHASE
 
   }
 
@@ -182,19 +172,6 @@ dev_t void Domain_d::UpdatePrediction(){
 
 dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
-  // par_loop (n,m_node_count){
-
-    // vector_t p_a = Ptr_vector_t(prev_a, n);    
-
-    // vector_t a_ = f*(Ptr_vector_t(a, n) - m_alpha * p_a);
-
-    // vector_t_Ptr(a_,a,n);
-    // vector_t_Ptr(a_,prev_a,n);
-    // vector_t v_ = getV(n) + m_gamma * dt * a_;
-    // vector_t_Ptr(v_,v,n);
-
-  // }
-
 
     for (int i = 0; i < m_node_count; i++) {
         for (int j = 0; j < m_dim; j++) {
@@ -219,16 +196,6 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
 
 dev_t void Domain_d   ::UpdateCorrectionPos(){
   double f = 1.0/(1.0-m_alpha);
-  // par_loop (n,m_node_count){
-    // vector_t uinc_  = Ptr_vector_t(u_dt, n) + m_beta * dt * dt * Ptr_vector_t(prev_a, n); // = dt * (getV(n) + 0.5 - m_beta);
-    // vector_t u_     = Ptr_vector_t(u, n) + uinc_;
-    // vector_t x_     = Ptr_vector_t(x, n);
-    // vector_t_Ptr(u_+x_,x,n);
-    // vector_t_Ptr(u_,u,n);       //Copy displacements to device
-    
-
-    // vector_t xc_  =Ptr_vector_t(x, n);
-  // }
 
       for (int i = 0; i < m_node_count; i++) {
           for (int j = 0; j < m_dim; j++) {
@@ -686,12 +653,17 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       // end do
   int nind = e * m_nodxelem;
   for (int i=0;i<m_nodxelem;i++){
-      vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]);
-      //printf("elnod %d\n",m_elnod[nind+i]);
-      //printf("x: %.6e %.6e %.6e\n",x_.x, x_.y,x_.z);
-      x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); 
-      if (m_dim == 3)
+      ////TEMPLATIZE
+      if (m_dim == 2){
+        double2 x_ = Ptr_vector2(x,m_elnod[nind+i]);
+        x2->Set(i,0,x_.x); x2->Set(i,1,x_.y); 
+      } else {
+        vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]); 
+        x2->Set(i,0,x_.x); x2->Set(i,1,x_.y);        
         x2->Set(i,2,x_.z);
+      }
+
+        
       
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
