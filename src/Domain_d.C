@@ -1000,8 +1000,10 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
       //!if (bind_dom_type .eq. 3) then 
       //  elem%radius(e,gp)= DOT_PRODUCT (elem%math(e,gp, 1,:), x2(:,1))    
       //TO MODIFY BY H matrix
-      
-      m_radius[e] += getPosVec(n).x;
+      if (m_dim ==2)
+        m_radius[e] += getPosVec2(n).x;
+      else
+         m_radius[e] += getPosVec3(n).x;
     }
     
     for (int gp=0;gp<m_gp_count;gp++)

@@ -4,6 +4,7 @@
 //TODO: TEST IT AND COMPARE WITH VEC3D...
 #include "Vec3D.h"
 
+int _DIM_;
 
 #ifdef  CUDA_BUILD
 #include "utils.h"
@@ -23,6 +24,7 @@
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
+//--------------------------------------------------------------
 #else
 
 
@@ -35,10 +37,11 @@
 
 #define vector_t double3
 #define dev_t
+#define make_vector_t make_double3
+
 #include <cmath> //POW
 #define host_ 
-//#define make_vector_t Vec3D
-#define make_vector_t make_double3
+
 #define vector_t_Ptr  double3_Ptr
 #define Ptr_vector_t  Ptr_double3
 //#define V_.x   V_[0]
@@ -56,6 +59,13 @@
 
 //#define par_loop(n,upto)  for(int n=0;n<upto;n++)
 #endif
+
+
+// FOR CUDA AND CPU
+//#define make_vector_t Vec3D
+//#define make_vector_t make_double3
+//#if 
+//inline make_vector_t(){}
 
 #endif
 
