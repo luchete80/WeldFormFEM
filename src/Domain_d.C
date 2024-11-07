@@ -991,7 +991,7 @@ dev_t void Domain_d::printVec(double *v){
   for (int n=0;n<m_node_count;n++){
     for (int d=0;d<m_dim;d++)
       //printf("%.6e ",v[m_dim*n + d]);
-      printf("%.6e ",v[3*n + d]);
+      printf("%.6e ",v[m_dim*n + d]);
     printf("\n");
   }
 }
