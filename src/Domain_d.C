@@ -106,7 +106,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	report_gpu_mem_();
   #endif
 
-  malloc_t (x_h,      double,node_count*3);
+  malloc_t (x_h,      double,node_count*m_dim);
   //malloc_t (u_h,      double,node_count*3);
   u_h = new double [m_dim*m_node_count];
   
@@ -157,8 +157,8 @@ dev_t void Domain_d::UpdatePrediction(){
         for (int j = 0; j < m_dim; j++) {
             //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
             //NEW; global
-            //int ig = i*m_dim + j; //BY NOW is 2D
-            int ig = i*3 + j;
+            int ig = i*m_dim + j; //BY NOW is 2D
+            
             u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
         }
     }
