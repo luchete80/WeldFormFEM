@@ -23,9 +23,16 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   
   for (int i=0;i<dom->m_node_count;i++){
-    vector_t x = dom->getPosVec(i);
-    m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;
-    printf("         %f %f %f \n", x.x,x.y,x.z);
+    if (dom->m_dim == 3){
+      vector_t x = dom->getPosVec3(i);
+      m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;
+    } else {
+      double2 x = dom->getPosVec2(i);
+      m_oss << x.x <<" "<<x.y <<endl;      
+      
+    }
+    
+    //printf("         %f %f %f \n", x.x,x.y,x.z);
   }
  
   m_oss << "         </DataArray>"<<endl;

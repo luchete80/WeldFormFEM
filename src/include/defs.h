@@ -4,7 +4,7 @@
 //TODO: TEST IT AND COMPARE WITH VEC3D...
 #include "Vec3D.h"
 
-int _DIM_;
+
 
 #ifdef  CUDA_BUILD
 #include "utils.h"
