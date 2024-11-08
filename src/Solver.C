@@ -24,13 +24,10 @@ namespace MetFEM{
   #else 
   AssignMatAddress();
   #endif
+
   cout << "done"<<endl;
 
-/*  cout << "Initializing bcs" << endl;
-    for (int e=0;e<m_elem_count;e++)
-      for (int n=0;n<m_nodxelem;n++)
-        for (int d=0;d<3;d++)
-          v[3*m_elnod[n]+d]=0.0;*/
+
   cout << "Imposing BCS"<<endl;
   for (int d=0;d<m_dim;d++){
     
