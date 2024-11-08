@@ -44,7 +44,7 @@ namespace MetFEM{
     #endif
   }
   cout << "done"<<endl;
-  
+
   double rho_b = 0.8182;  // DEFAULT SPECTRAL RADIUS
   
   m_alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
