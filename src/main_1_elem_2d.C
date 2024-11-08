@@ -167,8 +167,8 @@ int main(){
   dom_d->AllocateBCs();
     
 
-	cout << "Element Count "<<dom_d->getElemCount()<<endl;
-	dom_d->SolveChungHulbert ();
+	//cout << "Element Count "<<dom_d->getElemCount()<<endl;
+	//dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;

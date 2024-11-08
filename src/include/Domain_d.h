@@ -45,6 +45,7 @@ public:
   Domain_d (){
     m_axisymm_vol_weight = false;
     m_domtype = _Plane_Strain_;
+    bc_count[0]=bc_count[1]=bc_count[2]=0;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
