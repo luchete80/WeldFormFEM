@@ -582,7 +582,9 @@ dev_t void Domain_d:: calcElemHourglassForces()
   {0.0,0.0,0.0,0.0}}; //m_dim,4
   //Matrix hmod(m_dim,4);
     Matrix Sig(4,m_nodxelem);
-
+  
+  
+  if (m_dim)
       
   // //Sig nodxelem
   if (m_dim==3){
@@ -609,12 +611,13 @@ dev_t void Domain_d:: calcElemHourglassForces()
                                   // { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
                                   // {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};   
   } else if (m_dim == 2){
-    // double Sig[4][8] ={{0.25, -0.25, 0.25,-0.25},
-    // {0.25, -0.25, 0.25,-0.25},
-    // {0.25, -0.25, 0.25,-0.25},
-    // {0.25, -0.25, 0.25,-0.25}};    
+    double sig_[1][4] ={{0.25, -0.25, 0.25,-0.25}};    
+    
+    for (int n=0;n<m_nodxelem;n++)
+      Sig.Set(0,n,sig_[0][n]*4.0);
+      //Sig.Set(0,n,0.0);
   }
-
+  cout << "calcc hourglass"<<endl;
   //double f = 1/8;
   par_loop(e,m_elem_count){   
         
@@ -648,7 +651,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++){
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
-        ////printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+          //printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
         }
       }
       

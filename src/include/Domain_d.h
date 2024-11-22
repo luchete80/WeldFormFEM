@@ -190,7 +190,7 @@ protected:
 	unsigned int 		*m_elnod;              /// TO SHIFT 
   
   
-  unsigned int   *m_elnodffset; //FROM FIRST ELEMENT NODE
+  unsigned int   *m_elnodoffset; //FROM FIRST ELEMENT NODE
 	
 	double 				 *x, *x_h; //Vector is double, x_h is used only on host
 	double 				 *v; //CHANGED TO DOUBLE

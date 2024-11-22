@@ -503,16 +503,16 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		}//if dim 
     
     ///// FOR DIFFERENT ELMENT NODE COUNT
-    m_nodxelem_eh  = new int [m_elem_count];
-    m_elnodffset_h = new int [m_elem_count];
+    int *m_nodxelem_eh  = new int [m_elem_count];
+    int *m_elnodoffset_h = new int [m_elem_count];
     
-    m_elnodffset_h[0]=0;
+    m_elnodoffset[0]=0;
     for (int e = 0;e<m_elem_count;e++){
       m_nodxelem_eh[e] = 4;
-      m_elnodffset_h[e] += m_nodxelem_eh[e];
+      m_elnodoffset_h[e] += m_nodxelem_eh[e];
     }
 		memcpy_t(this->m_nodxelem_e, m_nodxelem_eh, sizeof(int) * m_elem_count); 
-		memcpy_t(this->m_elnodffset_h, m_elnodffset, sizeof(int) * m_elem_count); 
+		memcpy_t(this->m_elnodoffset, m_elnodoffset, sizeof(int) * m_elem_count); 
     
     
         
