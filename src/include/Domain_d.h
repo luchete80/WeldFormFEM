@@ -19,6 +19,10 @@
 #include <string>
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
+#define _QUA2D_ 0
+#define _TRI2D_ 1
+#define _TET2D_ 2
+
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
 
 class TriMesh_d;
@@ -183,9 +187,10 @@ protected:
 	int 						m_dim;
   int             m_node_count, m_elem_count;
 	
-	unsigned int 		*m_elnod;
+	unsigned int 		*m_elnod;              /// TO SHIFT 
   
-  //unsigned int    *m_eloffset; //FROM FIRST ELEMENT NODE
+  
+  unsigned int   *m_elnodffset; //FROM FIRST ELEMENT NODE
 	
 	double 				 *x, *x_h; //Vector is double, x_h is used only on host
 	double 				 *v; //CHANGED TO DOUBLE
