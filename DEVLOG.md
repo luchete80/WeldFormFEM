@@ -185,3 +185,4 @@ F90 PREVIOUS VERSION
 20241105 - FIXED 2D strain rate calc
          - Added Axisymmetric calculation (still not working)
 20241107 - Converting vectors to 2D
+20241122 -  FIXED 3D NO CONVENGECE! PROBLEMWAS NOT INITIALIZING V AND ACCEL
