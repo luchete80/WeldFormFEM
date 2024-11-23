@@ -186,13 +186,13 @@ int main(int argc, char **argv) {
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
     
-    if (dom_d->getPosVec(i).x <r/2.0) {
+    if (dom_d->getPosVec3(i).x <r/2.0) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
       cout << "node "<< i<<" fixed "<<endl;
     }
     
-    if (dom_d->getPosVec(i).x > (Lx - 1.5*r) && dom_d->getPosVec(i).y > (Ly -1.5*r) ) {
+    if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
       dom_d->AddBCVelNode(i,1,-0.48);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;

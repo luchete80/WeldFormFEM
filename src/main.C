@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 int main(){
 
-  int dim = 3;
+  int dim =3;
   
 	Domain_d *dom_d;
 

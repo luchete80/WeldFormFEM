@@ -75,6 +75,8 @@ dev_t void Domain_d::calcElemStrainRates(){
 
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
         if (m_dim == 3) {
+          //printf("elem %d velem %f %f %f\n", e, getVElem(e,n,1),getVElem(e,n,1),getVElem(e,n,2));
+          //printf("deriv %f\n",getDerivative(e,gp,2,n));
           str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
           str_rate->Set(0,2, str_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
@@ -617,7 +619,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
       Sig.Set(0,n,sig_[0][n]*4.0);
       //Sig.Set(0,n,0.0);
   }
-  cout << "calcc hourglass"<<endl;
+
   //double f = 1/8;
   par_loop(e,m_elem_count){   
         

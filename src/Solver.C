@@ -29,14 +29,20 @@ namespace MetFEM{
 
 
   cout << "Imposing BCS"<<endl;
+  
+  
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD
+    ////REMAINS TO INIT VELOCITIES
     N = bc_count[d];
     blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
     ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
     cudaDeviceSynchronize();
     #else
+      for (int n=0;n<m_node_count*m_dim;n++){
+        v[n]=a[n]=u[n]=0.0;
+      }
        ImposeBCV(d);
     #endif
   }
@@ -84,8 +90,13 @@ namespace MetFEM{
   #endif
 	//cout << "Done. "<<endl;
 
+/*
+  printf("INITIAL VEL\n");
+  for(int e=0;e<m_elem_count;e++)
+  for (int n=0;n<m_nodxelem;n++)
+    printf ("elem  %d %f\n",e,getVElem(e,n,0));  
+  */
 
-      
   
   Time = 0.0;
   
