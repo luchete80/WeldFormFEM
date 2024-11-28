@@ -742,20 +742,16 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           }          
         }//TRIANGLE
 			} else { //!!!DIM 3
+          if (m_nodxelem==8){
+            for (int d=0;d<m_dim;d++){ //HEXA
+              jacob->Set(0,d,0.125*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d)-x2->getVal(4,d)+x2->getVal(5,d)+x2->getVal(6,d)-x2->getVal(7,d)));  
+              jacob->Set(1,d,0.125*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)-x2->getVal(4,d)-x2->getVal(5,d)+x2->getVal(6,d)+x2->getVal(7,d)));  
+              jacob->Set(2,d,0.125*(-x2->getVal(0,d)-x2->getVal(1,d)-x2->getVal(2,d)-x2->getVal(3,d)+x2->getVal(4,d)+x2->getVal(5,d)+x2->getVal(6,d)+x2->getVal(7,d))); 
+              //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
 
-          for (int d=0;d<m_dim;d++){
-            jacob->Set(0,d,0.125*(-x2->getVal(0,d)+x2->getVal(1,d)+x2->getVal(2,d)-x2->getVal(3,d)-x2->getVal(4,d)+x2->getVal(5,d)+x2->getVal(6,d)-x2->getVal(7,d)));  
-            jacob->Set(1,d,0.125*(-x2->getVal(0,d)-x2->getVal(1,d)+x2->getVal(2,d)+x2->getVal(3,d)-x2->getVal(4,d)-x2->getVal(5,d)+x2->getVal(6,d)+x2->getVal(7,d)));  
-            jacob->Set(2,d,0.125*(-x2->getVal(0,d)-x2->getVal(1,d)-x2->getVal(2,d)-x2->getVal(3,d)+x2->getVal(4,d)+x2->getVal(5,d)+x2->getVal(6,d)+x2->getVal(7,d))); 
-            //jacob->Set(0,d,-x2->getVal(0,d) + x2->getVal(1,d) + x2->getVal(2,d) - x2->getVal(3,d));  
+            }
 
-          }
-          //printf("jacob\n");jacob->Print();
-          
-          // //printf ("Setting dhxy\n");
-          //*inv_j = jacob->Inv();
-          //Matrix inv = jacob->Inv();
-          //InvMat(*jacob, inv_j);
+
           AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
           //printf("ADJ J ptr\n");
           //inv_j->Print();          //printf("jacob\n");jacob->Print();
@@ -765,6 +761,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           //inv.Print();
           
           //inv.Print();
+          
           for (int d=0;d<m_dim;d++){            
             dHxy_detJ_loc->Set(d,0,0.125*(-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2)));         
             dHxy_detJ_loc->Set(d,1,0.125*( inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2)));  
@@ -778,6 +775,34 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           //dHxy_detJ_loc->Mul(0.125); /////->DO NOT USE THIS!! --- ERRORS ---
 
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
+          } else if (m_nodxelem==4){ //TETRA
+            //N1 = r, N2 = s, N3 = t, N4 = 1 - r - s - t, with the 
+            //dHdrs [1,0,0,-1;  0,1,0,-1, 0,0,1,-1] x X1 Y1 Z1
+            //                                        X2 Y2 Z2
+            for (int d=0;d<m_dim;d++){
+              jacob->Set(0,d,x2->getVal(0,d)-x2->getVal(3,d) ); 
+              jacob->Set(0,d,x2->getVal(1,d)-x2->getVal(3,d) );            
+              jacob->Set(0,d,x2->getVal(2,d)-x2->getVal(3,d) );      
+            }
+            //USE ADJ TO NOT DIVIDE BY DET
+            AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+            //printf(" J ptr\n");
+            //jacob->Print();
+            //printf("ADJ J ptr\n");
+            //inv_j->Print();          //printf("jacob\n");jacob->Print();
+            //invj ((d,X) x dHdrs [1,0,0,-1;  
+            //                     0,1,0,-1;
+            //                     0,0,1,-1]
+            for (int d=0;d<m_dim;d++){    
+              /////ROWS OF INVJ
+              dHxy_detJ_loc->Set(d,0, inv_j->getVal(d,0) );     
+              dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,1) );     
+              dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,2) );     
+              dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));     
+            }
+
+          }//TETRA
+
           
       } // end if  !!!!DIM
       
