@@ -13,6 +13,8 @@
 
 #include "utils.h"
 
+//namespace MetFEM{
+
 struct elem_data{
     double3             *centroid,*normal;
 };

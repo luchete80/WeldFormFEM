@@ -1,10 +1,10 @@
 // TODO: extend to all dirs
 //NOTE: DENSITY IS OF ELEMENTS
 //This also will be passed to device
-#include "Mesh.cuh"
-
+#include "Mesh.h"
+#include "vector_math.h"
 #define PRINT_V(v) printf("%f %f %f\n",v.x,v.y,v.z);
-namespace SPH{
+//namespace MetFEM{
 // ORIGINAL CPU version
 // inline void TriMesh::Move(const double &dt){
 	// //Seems to be More accurate to do this by node vel
@@ -21,20 +21,21 @@ namespace SPH{
 		// *node[n] += (*node_v[n])*dt;
 	// }
   
-  // //cout << "Min Max Node pos" << min<< "; " <<max<<endl;
+  // //printf( "Min Max Node pos" << min<< "; " <<max<<endl;
   
   // CalcCentroids();
   // CalcNormals();        //From node positions
   // UpdatePlaneCoeff();   //pplane
 // }
 
+/*
 __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
  	mesh_d->Move(dt);
   mesh_d->CalcCentroids();
   mesh_d->CalcNormals();
   mesh_d->UpdatePlaneCoeff(); 
 }
-
+*/
 //NOW THIS IS ZORIENTED, CHANGE TO EVERY PLANE
 inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
 	
@@ -60,16 +61,19 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
   nodecount = (dens+1)*(dens+1);
   
   //Is it necessary to paralellize mesh nodes??
-  cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
-  cudaMalloc((void **)&node_v , 	nodecount * sizeof (double3));
+  //cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
+  //cudaMalloc((void **)&node_v , 	nodecount * sizeof (double3));
+  
+  malloc_t (node,      double3,nodecount);
+  malloc_t (node_v,    double3,nodecount);
   
   double3 *node_h, *node_vh;
   node_h  =  new double3 [nodecount];
   node_vh =  new double3 [nodecount];
   
-	//cout <<"dens: "<<dens<<endl;
+	//printf("dens: "<<dens<<endl;
 	//Plane is in 0 and 1 dirs
-  cout << "Creating nodes.."<<endl;
+  printf("Creating nodes..");
 	int vi=0;
 	int test =dens+1;
 	for (int j=0; j<test; j++) {
@@ -78,44 +82,52 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
 		for (int i=0; i<test; i++){
 			double3 v;
 			v.x=x1;v.y=x2;v.z=x3;
-			//cout << "i,j" << i << ", " << j<<endl; 
+			//printf( "i,j" << i << ", " << j<<endl; 
 			//node.Push(new double3(x1,x2,x3));
 			node_h[vi]		=make_double3(v.x,v.y,v.z);
 			node_vh[vi]	=make_double3(0.,0.,0.);
       vi++;
 			// node.Push(new double3(v(0),v(1),v(2)));
 			// node_v.Push(new double3(0.,0.,0.));
-			//cout << "xyz: "<<x1 << ", "<<x2<<", "<<x3<<endl;
+			//printf( "xyz: "<<x1 << ", "<<x2<<", "<<x3<<endl;
 			x1+=dl;
 		}
 		x2+=dl;
 	}
-  cudaMemcpy(node, node_h,    nodecount * sizeof (double3), cudaMemcpyHostToDevice);
-  cudaMemcpy(node_v, node_vh, nodecount * sizeof (double3), cudaMemcpyHostToDevice);
+  //cudaMemcpy(node, node_h,    nodecount * sizeof (double3), cudaMemcpyHostToDevice);
+  //cudaMemcpy(node_v, node_vh, nodecount * sizeof (double3), cudaMemcpyHostToDevice);
 
-  cout << "Element count: "<<elemcount << endl;  
-  cout << "done. Creating elements... ";
+  memcpy_t(node,       node_h,  nodecount * sizeof(double3));
+  memcpy_t(node_v,    node_vh,  nodecount * sizeof(double3));
+    
+  printf( "Element count: %d",elemcount );  
+  printf( "done. Creating elements... ");
 	int n[4];
 	int el =0;
 	int i;
 	
 	elemcount = dens * dens * 2;
-	cudaMalloc((void **)&centroid , 	elemcount * sizeof (double3));
-	cudaMalloc((void **)&normal 	, 	elemcount * sizeof (double3));
-	cudaMalloc((void **)&elnode 	, 	3 * elemcount * sizeof (int));	
+  malloc_t (centroid,      double3,elemcount);
+  malloc_t (normal,        double3,elemcount);
+  malloc_t (elnode,        int, 3 * elemcount);
+  
+	//cudaMalloc((void **)&centroid , 	elemcount * sizeof (double3));
+	//cudaMalloc((void **)&normal 	, 	elemcount * sizeof (double3));
+	//cudaMalloc((void **)&elnode 	, 	3 * elemcount * sizeof (int));	
+  
   int *elnode_h = new int[3*elemcount];
   double3 *centroid_h = new double3[elemcount];
   double3 *normal_h   = new double3[elemcount];
 	
 	for (size_t j = 0 ;j  < dens; j++ ) {
-				// cout <<"j, dens" <<j<<", "<<dens<<endl;
-				// cout <<"j<dens"<< (j  < dens)<<endl;
+				// printf("j, dens" <<j<<", "<<dens<<endl;
+				// printf("j<dens"<< (j  < dens)<<endl;
 		for ( i = 0; i < dens; i++ ){
-				// cout <<"i, dens" <<i<<", "<<dens<<endl;
-				// cout <<"i <dens"<< (i  < dens)<<endl;
+				// printf("i, dens" <<i<<", "<<dens<<endl;
+				// printf("i <dens"<< (i  < dens)<<endl;
 				n[0] = (dens + 1)* j + i; 		n[1] = n[0] + 1; 
 				n[2] = (dens + 1)* (j+1) + i; n[3] = n[2] + 1;
-			//cout <<" jj" << jj<<endl;
+			//printf(" jj" << jj<<endl;
 			int elcon[2][3];	// TODO: check x, y and z normals and node direction 
 												// For all plane orientations
 			//If connectivity  is anticlockwise normal is outwards
@@ -132,14 +144,14 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
 				elnode_h[elnodeid + 0] = elcon[e][0]; 
 				elnode_h[elnodeid + 1] = elcon[e][1]; 
 				elnode_h[elnodeid + 2] = elcon[e][2];
-				//cout << "Element "<< el <<": ";
-				// for (int en = 0 ; en<3; en++) cout << elcon[e][en]<<", ";
-				// cout <<endl;
+				//printf( "Element "<< el <<": ";
+				// for (int en = 0 ; en<3; en++) printf( elcon[e][en]<<", ";
+				// printf(endl;
 				
 				double3 v = ( node_h[elcon[e][0]] + node_h[elcon[e][1]] + node_h[elcon[e][2]] ) / 3. ;
 				//element[el] -> centroid = v; 
 				centroid_h[el] = v;
-				//cout << "Centroid" << element[el] -> centroid << endl;
+				//printf( "Centroid" << element[el] -> centroid << endl;
 				el++;
 			}
 		}// i for
@@ -148,8 +160,8 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
 
 	///////////////////////////////////////////
 	//// MESH GENERATION END
-	cout << endl<<"Done. Creating normals"<<endl;
-  cout << "elem count "<<elemcount<<endl;
+	printf( "Done. Creating normals\n");
+  printf( "elem count %d\n",elemcount);
 	for (int e = 0; e < elemcount; e++){ 
 		double f=-1.;
     normal_h[e].x = normal_h[e].y = normal_h[e].z = 0.0;
@@ -159,20 +171,28 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
 		else if (axis == 1)	normal_h[e].y = f;
 		else 								normal_h[e].z = f;
     
-    // if (length(normal_h[e])<1.0e-3) cout << "ERROR. ZERO NORMAL"<<endl;
-    // if (normal_h[e].y > 1.0e-10) cout << "ERROR. NORMAL Y NOT ZERO"<<endl;    
+    // if (length(normal_h[e])<1.0e-3) printf( "ERROR. ZERO NORMAL"<<endl;
+    // if (normal_h[e].y > 1.0e-10) printf( "ERROR. NORMAL Y NOT ZERO"<<endl;    
     
-    //cout << "normal_h[e] "<<normal_h[e].x << ", " << normal_h[e].y << ", " <<normal_h[e].z<<endl;
+    //printf( "normal_h[e] "<<normal_h[e].x << ", " << normal_h[e].y << ", " <<normal_h[e].z<<endl;
 	}
   
   m_v = m_w = make_double3(0.,0.,0.);
   
-  cudaMalloc((void **)&pplane , 	elemcount * sizeof (double));
-  cudaMalloc((void **)&nfar   , 	elemcount * sizeof (int));
   
-  cudaMemcpy(elnode, elnode_h, 3 * elemcount * sizeof(int), cudaMemcpyHostToDevice);
-  cudaMemcpy(centroid, centroid_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
-  cudaMemcpy(normal, normal_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
+  malloc_t (pplane,      double,elemcount);  
+  malloc_t (nfar,        int   ,elemcount);  
+  
+  //cudaMalloc((void **)&pplane , 	elemcount * sizeof (double));
+  //cudaMalloc((void **)&nfar   , 	elemcount * sizeof (int));
+  
+  //cudaMemcpy(elnode, elnode_h, 3 * elemcount * sizeof(int), cudaMemcpyHostToDevice);
+  //cudaMemcpy(centroid, centroid_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
+  //cudaMemcpy(normal, normal_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
+  
+  memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
+  memcpy_t(centroid, centroid_h,    elemcount * sizeof(double3));
+  memcpy_t(elnode,    normal_h,     elemcount * sizeof(double3));
 
   delete node_h;
   delete node_vh;
@@ -180,6 +200,8 @@ inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const
   delete centroid_h;
   delete normal_h;  
 }
+
+/*
 
 //This is done once, Since mesh is rigid
 //Calculate radius and plane coefficient
@@ -272,4 +294,6 @@ inline __device__ void TriMesh_d::CheckNormals(){
   }  
 }
 
-};
+*/
+
+//};

@@ -273,7 +273,7 @@ protected:
 
 	// TODO, EACH RIGID PARTICLE SHOULD 
   int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO
-  TriMesh_d **trimesh;
+  TriMesh_d *trimesh;
   int trimesh_count;
   int *mesh_id; //particle mesh ID	
 	

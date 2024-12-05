@@ -38,4 +38,39 @@ inline double2 operator+(double2 v1, double2 v2){return make_double2(v1.x+v2.x,v
 inline double2 operator-(double2 v1, double2 v2){return make_double2(v1.x-v2.x,v1.y-v2.y);}
 inline double2 operator*(double  s, double2 v  ){return make_double2(v.x*s,v.y*s);}
 
+
+static double3 operator*(const double3 &a, const double3 &b)
+{
+	return make_double3(a.x * b.x, a.y * b.y, a.z * b.z);
+}
+
+
+
+
+static double3 operator*(const double3 &a, const double &s)
+{
+	return make_double3(a.x * s, a.y * s, a.z * s);
+}
+
+static double3 operator*(const double &s, const double3 &a)
+{
+	return make_double3(a.x * s, a.y * s, a.z * s);
+}
+static void operator*=(double3 &a, const double &s)
+{
+	a.x *= s; a.y *= s; a.z *= s;
+}
+
+inline double3 operator/(const double3 &a, const double &s)
+{
+	double inv = 1.0 / s;
+	return a * inv;
+}
+
+inline double3 operator/(const double &s, const double3 &a)
+{
+	double inv = 1.0 / s;
+	return a * inv;
+}
+
 #endif

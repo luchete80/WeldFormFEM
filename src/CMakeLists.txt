@@ -123,6 +123,17 @@ add_executable(beam
                        Domain_d.C
                        Matrices.C
                        Mechanical.C
+                       Mesh.C
+                       Matrices.C
+                       Solver.C
+                       VTKWriter.C
+             )
+
+add_executable(beam_contact
+                       main_beam_contact.C
+                       Domain_d.C
+                       Matrices.C
+                       Mechanical.C
                        Matrices.C
                        Solver.C
                        VTKWriter.C
@@ -140,18 +151,18 @@ add_executable(WeldFormFEM
                          VTKWriter.C
                )
 
-
-add_executable(axisymm
-                         main_axisymm.C
-                         Domain_d.C
-                         Matrices.C
-                         Mechanical.C
-                         Matrices.C
-                         Solver.C
-                         input.C
-                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-                         VTKWriter.C
-               )
+#
+#add_executable(axisymm
+#                         main_axisymm.C
+#                         Domain_d.C
+#                         Matrices.C
+#                        Mechanical.C
+                         # Matrices.C
+                         # Solver.C
+                         # input.C
+                         # ../lib/LSDynaReader/src/lsdynaReader.cpp
+                         # VTKWriter.C
+               # )
 
 # add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
                                  # Domain_d.C
