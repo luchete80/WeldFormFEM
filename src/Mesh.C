@@ -37,7 +37,7 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
 }
 */
 //NOW THIS IS ZORIENTED, CHANGE TO EVERY PLANE
-inline void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
+void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
 	
 	double x1,x2,x3;
 	double l1,l2;

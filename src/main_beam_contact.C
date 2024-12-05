@@ -146,7 +146,11 @@ int main(){
   //dom_d->SetEndTime (1000.0*dt);
   
   
-  TriMesh_d *mesh;
+  TriMesh_d *msh = new TriMesh_d();
+  
+  //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
+  msh->AxisPlaneMesh(2, true, make_double3(0,0,0), make_double3 (1,1,0),  2);
+  
   
   int fixcount =0;
   int velcount =0;
