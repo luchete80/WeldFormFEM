@@ -29,6 +29,111 @@ using namespace LS_Dyna;
 
 namespace MetFEM {
 
+// Define the maximum number of nodes and faces
+#define MAX_NODES 1000
+#define MAX_FACES 10000
+
+// Structure to define a face with 4 nodes
+struct Face {
+    int nodes[4];
+    int count; // Number of occurrences of this face
+};
+
+// Function to compare two faces to check if they are identical
+bool areFacesEqual(const Face& f1, const Face& f2) {
+    int matchCount = 0;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (f1.nodes[i] == f2.nodes[j]) {
+                matchCount++;
+                break;
+            }
+        }
+    }
+    return matchCount == 4;
+}
+
+// Add a face to the face list or increment its count if already present
+void addFace(Face faceList[], int& faceCount, const Face& newFace) {
+    for (int i = 0; i < faceCount; i++) {
+        if (areFacesEqual(faceList[i], newFace)) {
+            faceList[i].count++;
+            return;
+        }
+    }
+    // Add new face
+    faceList[faceCount] = newFace;
+    faceList[faceCount].count = 1;
+    faceCount++;
+}
+
+// Function to add all 6 faces of a hexahedron
+void addHexahedronFaces(Face faceList[], int& faceCount, const int element[8]) {
+    // Define the 6 faces of the hexahedron
+    Face faces[6] = {
+        {{element[0], element[1], element[5], element[4]}, 0}, // Front face
+        {{element[1], element[2], element[6], element[5]}, 0}, // Right face
+        {{element[2], element[3], element[7], element[6]}, 0}, // Back face
+        {{element[3], element[0], element[4], element[7]}, 0}, // Left face
+        {{element[0], element[1], element[2], element[3]}, 0}, // Bottom face
+        {{element[4], element[5], element[6], element[7]}, 0}  // Top face
+    };
+
+    // Add each face to the face list
+    for (int i = 0; i < 6; i++) {
+        addFace(faceList, faceCount, faces[i]);
+    }
+}
+
+dev_t void Domain_d::SearchExtNodes() {
+    // Example mesh: array of hexahedral elements
+    // Each hexahedron is defined by 8 node indices
+    const int MAX_ELEMENTS = 100;
+    int elements[MAX_ELEMENTS][8] = {
+        {0, 1, 2, 3, 4, 5, 6, 7}, // Hexahedron 1
+        {4, 5, 6, 7, 8, 9, 10, 11} // Hexahedron 2
+    };
+    //int elementCount = 2; // Number of hexahedra
+
+    // Array to store all faces
+    //Face faceList[MAX_FACES];
+    Face *faceList;
+    malloc_t(faceList, Face, m_elem_count*6);
+    int faceCount = 0;
+    int element[8];
+
+    // Process each hexahedron to extract its faces
+    for (int i = 0; i < m_elem_count; i++) {
+        for (int ne=0;ne<m_nodxelem;ne++)
+          element[ne] = m_elnod[m_nodxelem*i+ne];
+        addHexahedronFaces(faceList, faceCount, elements[i]);
+    }
+
+    // Array to track external nodes
+    bool externalNodes[m_node_count] = {false};
+
+    // Identify external nodes by checking faces that appear only once
+    for (int i = 0; i < faceCount; i++) {
+        if (faceList[i].count == 1) { // External face
+            for (int j = 0; j < 4; j++) {
+                externalNodes[faceList[i].nodes[j]] = true;
+            }
+        }
+    }
+
+    // Output the external nodes
+    printf("External Nodes: ");
+    for (int i = 0; i < MAX_NODES; i++) {
+        if (externalNodes[i]) {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+
+
+}
+
+
 void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   m_node_count = node_count;

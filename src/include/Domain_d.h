@@ -68,7 +68,7 @@ public:
   #endif
 
   void setTriMesh(TriMesh_d *m){trimesh = m;}
-  void SearchExtNodes();
+  dev_t void SearchExtNodes();
   
   #ifdef CUDA_BUILD
   inline vector_t getDispVec(const int &n){return make_vector_t(u_h[m_dim*n], u_h[m_dim*n+1], u_h[m_dim*n+2]);};
@@ -285,7 +285,7 @@ protected:
   TriMesh_d *trimesh;
   int trimesh_count;
   int *mesh_id; //particle mesh ID	
-	int *ext_nodes;
+	bool *ext_nodes;
   int ext_nodes_count;
   double *contforce; 
 };
@@ -356,6 +356,7 @@ inline dev_t void Domain_d::setDerivative(const int &e, const int &gp, Matrix *m
 
 }; //Namespace
 
-//#include "Contact.C"
+
+#include "Contact.C"
 
 #endif
