@@ -67,6 +67,9 @@ public:
     };
   #endif
 
+  void setTriMesh(TriMesh_d *m){trimesh = m;}
+  void SearchExtNodes();
+  
   #ifdef CUDA_BUILD
   inline vector_t getDispVec(const int &n){return make_vector_t(u_h[m_dim*n], u_h[m_dim*n+1], u_h[m_dim*n+2]);};
   inline vector_t getVelVec (const int &n){return make_vector_t(v_h[m_dim*n], v_h[m_dim*n+1], v_h[m_dim*n+2]);};
@@ -181,6 +184,11 @@ public:
   void SetEndTime(const double &tf_){end_t=tf_;}
 	int & getDim(){return m_dim;}
   void setProcCount(const int &np){Nproc = np;} //for CPU only
+  
+  
+  inline void dev_t CalcContactForcesWang();
+  //--------------------------------------------------------------------------------------------------------------------------------
+  
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
@@ -271,12 +279,15 @@ protected:
   unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
   unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
 
+  ////////////////////// CONTACT 
 	// TODO, EACH RIGID PARTICLE SHOULD 
   int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO
   TriMesh_d *trimesh;
   int trimesh_count;
   int *mesh_id; //particle mesh ID	
-	
+	int *ext_nodes;
+  int ext_nodes_count;
+  double *contforce; 
 };
 
 #ifdef  CUDA_BUILD
@@ -344,4 +355,7 @@ inline dev_t void Domain_d::setDerivative(const int &e, const int &gp, Matrix *m
 
 
 }; //Namespace
+
+//#include "Contact.C"
+
 #endif

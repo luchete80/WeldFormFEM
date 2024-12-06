@@ -1,7 +1,7 @@
 // TODO: extend to all dirs
 //NOTE: DENSITY IS OF ELEMENTS
 //This also will be passed to device
-#include "Mesh.h"
+//#include "Mesh.h"
 #include "double3_c.h"
 #define PRINT_V(v) printf("%f %f %f\n",v.x,v.y,v.z);
 //namespace MetFEM{
