@@ -145,6 +145,7 @@ int main(){
   dom_d->SetEndTime (1.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
+  dom_d->SearchExtNodes();
   
   TriMesh_d *msh = new TriMesh_d();
   
