@@ -86,6 +86,9 @@ void addHexahedronFaces(Face faceList[], int& faceCount, const int element[8]) {
 }
 
 dev_t void Domain_d::SearchExtNodes() {
+    ext_nodes_count = 0;
+    delete ext_nodes;
+    
     // Example mesh: array of hexahedral elements
     // Each hexahedron is defined by 8 node indices
     const int MAX_ELEMENTS = 100;
@@ -565,8 +568,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         elnod_h[ei+3] = (nel[0]+1)*(ey+1) + ex;     nodel_count_h[nb2 ] ++;      
 			
 				 for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
-					cout << "Nel x : "<<nel[0]<<endl;
-					cout << "nodes "<<endl;
+					//cout << "Nel x : "<<nel[0]<<endl;
+					//cout << "nodes "<<endl;
 					ei += m_nodxelem;
 					 }
       } 
@@ -595,10 +598,10 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
             // cout << elnod_h[ei + i]<<", ";
           // cout <<endl;
 
-            cout << "Nel x : "<<nel[0]<<", Element: " << ei/m_nodxelem<<endl;
-           cout << "nodes "<<endl;
-           cout << "nodxelem " <<m_nodxelem<<endl;
-           cout << "nb1, nb2 "<< nb1 << ", "<<nb2<<" nnodz"<< nnodz*(ez+1)<<"ez "<<ez<<endl;
+           //cout << "Nel x : "<<nel[0]<<", Element: " << ei/m_nodxelem<<endl;
+           //cout << "nodes "<<endl;
+           //cout << "nodxelem " <<m_nodxelem<<endl;
+           //cout << "nb1, nb2 "<< nb1 << ", "<<nb2<<" nnodz"<< nnodz*(ez+1)<<"ez "<<ez<<endl;
            for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
            ei += m_nodxelem;
 
@@ -606,11 +609,14 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       } 
 
 		}//if dim 
+    cout << "Done." <<endl;
     
+    cout << "Allocating"<<endl;
     ///// FOR DIFFERENT ELMENT NODE COUNT
     int *m_nodxelem_eh  = new int [m_elem_count];
     int *m_elnodoffset_h = new int [m_elem_count];
     
+    /*
     m_elnodoffset[0]=0;
     for (int e = 0;e<m_elem_count;e++){
       m_nodxelem_eh[e] = 4;
@@ -618,7 +624,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     }
 		memcpy_t(this->m_nodxelem_e, m_nodxelem_eh, sizeof(int) * m_elem_count); 
 		memcpy_t(this->m_elnodoffset, m_elnodoffset, sizeof(int) * m_elem_count); 
-    
+    */
     
         
     
@@ -634,6 +640,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     // }
     //cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
     malloc_t(m_jacob, Matrix, m_elem_count );
+    cout << "Done"<<endl;
     
     //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
     int nodel_tot = 0;

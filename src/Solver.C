@@ -325,6 +325,7 @@ namespace MetFEM{
 	cudaDeviceSynchronize();
   #else
   calcElemStrainRates();
+  /*
   printf("DISPLACEMENTS\n");
   printVec(this->u);   
 
@@ -348,7 +349,7 @@ namespace MetFEM{
   
   printf("ROT RATES\n");
   printSymmTens(this->m_rot_rate);
-  
+  */
   #endif
 
   VTKWriter writer(this, "out.vtu");
