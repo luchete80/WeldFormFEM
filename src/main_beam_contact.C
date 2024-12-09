@@ -144,7 +144,7 @@ int main(){
   dom_d->SetDT(dt); 
   dom_d->SetEndTime (1.e-3);
   //dom_d->SetEndTime (1000.0*dt);
-  
+  cout << "Searching external nodes"<<endl;
   dom_d->SearchExtNodes();
   
   TriMesh_d *msh = new TriMesh_d();

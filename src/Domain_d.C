@@ -68,7 +68,7 @@ void addFace(Face faceList[], int& faceCount, const Face& newFace) {
 }
 
 // Function to add all 6 faces of a hexahedron
-void addHexahedronFaces(Face faceList[], int& faceCount, const int element[8]) {
+void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
     // Define the 6 faces of the hexahedron
     Face faces[6] = {
         {{element[0], element[1], element[5], element[4]}, 0}, // Front face
@@ -86,32 +86,36 @@ void addHexahedronFaces(Face faceList[], int& faceCount, const int element[8]) {
 }
 
 dev_t void Domain_d::SearchExtNodes() {
-    ext_nodes_count = 0;
-    delete ext_nodes;
+    //ext_nodes_count = 0;
+    //delete ext_nodes;
     
     // Example mesh: array of hexahedral elements
     // Each hexahedron is defined by 8 node indices
     const int MAX_ELEMENTS = 100;
+    /*
     int elements[MAX_ELEMENTS][8] = {
         {0, 1, 2, 3, 4, 5, 6, 7}, // Hexahedron 1
         {4, 5, 6, 7, 8, 9, 10, 11} // Hexahedron 2
     };
+    */
     //int elementCount = 2; // Number of hexahedra
-
+      
+    cout << "Adding hexas"<<endl;
     // Array to store all faces
     //Face faceList[MAX_FACES];
     Face *faceList;
     malloc_t(faceList, Face, m_elem_count*6);
-    int faceCount = 0;
-    int element[8];
+    int faceCount = m_elem_count*6;
+    int elements[8];
 
     // Process each hexahedron to extract its faces
     for (int i = 0; i < m_elem_count; i++) {
         for (int ne=0;ne<m_nodxelem;ne++)
-          element[ne] = m_elnod[m_nodxelem*i+ne];
-        addHexahedronFaces(faceList, faceCount, elements[i]);
+          elements[ne] = m_elnod[m_nodxelem*i+ne];
+        
+        addHexahedronFaces(faceList, faceCount, elements);
     }
-
+    cout << "done "<<endl;
     // Array to track external nodes
     bool externalNodes[m_node_count] = {false};
 
@@ -119,7 +123,7 @@ dev_t void Domain_d::SearchExtNodes() {
     for (int i = 0; i < faceCount; i++) {
         if (faceList[i].count == 1) { // External face
             for (int j = 0; j < 4; j++) {
-                externalNodes[faceList[i].nodes[j]] = true;
+                ext_nodes[faceList[i].nodes[j]] = true;
             }
         }
     }
@@ -217,6 +221,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (x_h,      double,node_count*m_dim);
   //malloc_t (u_h,      double,node_count*3);
   u_h = new double [m_dim*m_node_count];
+  
+  
+  malloc_t(ext_nodes, bool, m_node_count);
   
   m_contsurf_count = 0;
   
