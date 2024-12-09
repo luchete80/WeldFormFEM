@@ -91,46 +91,43 @@ void dev_t Domain_d::CalcContactForcesWang(){
   for  (int i=0; i < m_node_count;i++ )   //i particle is from SOLID domain, j are always rigid 
   #endif
   {
+    //printf("Node %d\n",i);
+    printf("Element count %d\n", trimesh->elemcount);
     double min_dist = 1e10;
-    int j;
+    int e;
     if (ext_nodes[i]){ 
       //Search nearest node
-      for (int e=0;e<trimesh->elemcount;e++){
-        double3 dist = getNodePos3(i) - trimesh->node[j];
+      for (int j=0;j<trimesh->elemcount;j++){
+        double3 dist = getNodePos3(i) - trimesh->centroid[j];
         double d = norm2(dist);
         if (d < min_dist){
           min_dist = d;
-          j = e;
+          e = j;
         }
       }
-      printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, j );
+      printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, e );
         
          
-    /*
-    contforce[i] = make_double3(0.); //RESET
+    
+    //contforce[i] = make_double3(0.,0.,0.); //RESET
     // CONTACT OFFSET IS FIX BY NOW
-    int neibcount = contneib_count[i];
+    
+
     
     int test = 0; //Should be once per nb
 
-    for (int k=0;k < neibcount;k++) { //Or size
-      int j = contneib_part[i*MAX_NB_COUNT+k];
-
-      int mid = mesh_id[j];      
       
       double3 xij;
       double K;
-      //int e = element[j]; //Index of mesh Element associated with node
-      
-      int e = j - first_fem_particle_idx[mid];
 
+/*
       double3 vr = v[i] - v[j];		//Fraser 3-137
 
       double3 x_pred = x[i] + v[i] * deltat + a[i] * deltat * deltat/2.;
 
       normal[j] = trimesh[mid]->normal[e];
 
-      double dist = dot (normal[j],x_pred)  - trimesh[mid]->pplane[e];
+      double dist = dot (normal[j],x_pred)  - trimesh->pplane[e];
 
       if (dist < h[i] ) {
 

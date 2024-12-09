@@ -154,9 +154,9 @@ int main(){
   msh->AxisPlaneMesh(2, true, make_double3(0,0,0), make_double3 (1,1,0),  2);
   cout <<"Done"<<endl;
   //msh->SetVel(make_double3(0.0,0.,-1.0));
-  //dom_d->setTriMesh(msh);
+  dom_d->setTriMesh(msh);
   
-  //dom_d->SearchExtNodes();
+  dom_d->setContactOn();;
   
   int fixcount =0;
   int velcount =0;

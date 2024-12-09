@@ -219,6 +219,9 @@ namespace MetFEM{
   //cout << "Calc Elem forces"<<endl;
   calcElemForces();
   calcElemHourglassForces();
+  
+  if (contact)
+    CalcContactForcesWang();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   //cout << "Assemblying"<<endl;

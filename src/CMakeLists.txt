@@ -120,6 +120,7 @@ ENDIF()
 
 add_executable(beam
                        main_beam.C
+                       Contact.C
                        Domain_d.C
                        Matrices.C
                        Mechanical.C
@@ -142,6 +143,7 @@ add_executable(beam_contact
               
 add_executable(WeldFormFEM
                          WeldFormFEM.C
+                        Contact.C
                          Domain_d.C
                          Matrices.C
                          Mechanical.C

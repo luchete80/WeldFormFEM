@@ -51,6 +51,7 @@ public:
     m_axisymm_vol_weight = false;
     m_domtype = _Plane_Strain_;
     bc_count[0]=bc_count[1]=bc_count[2]=0;
+    contact = false;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
@@ -187,7 +188,8 @@ public:
   void setProcCount(const int &np){Nproc = np;} //for CPU only
   
   
-  inline void dev_t CalcContactForcesWang();
+  void dev_t CalcContactForcesWang();
+  void setContactOn(){contact = true;}
   //--------------------------------------------------------------------------------------------------------------------------------
   
 protected:
@@ -289,6 +291,7 @@ protected:
 	bool *ext_nodes;
   int ext_nodes_count;
   double *contforce; 
+  bool contact;
 };
 
 #ifdef  CUDA_BUILD
