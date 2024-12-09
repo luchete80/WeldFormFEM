@@ -73,4 +73,11 @@ inline double3 operator/(const double &s, const double3 &a)
 	return a * inv;
 }
 
+inline double norm2(double3 &v){
+  return v.x*v.x + v.y*v.y + v.z*v.z ;
+}
+
+inline double norm(double3 &v){
+  return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+}
 #endif

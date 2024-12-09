@@ -3,6 +3,8 @@
 //In global initialize 
 // domain max_contact_force
 //#include "Mesh.h"
+#include "Domain_d.h"
+#include "Mesh.h"
 
 namespace MetFEM{
 #define MAX_NB_COUNT    20
@@ -65,7 +67,7 @@ void __global__ CalcContactForcesKernel(Domain_d *dom_d,	const uint *particlenbc
 //// https://link.springer.com/article/10.1007/s11431-013-5262-x
 //// Wang, Wu, GU, HUA, Science China 2013
 ////////////////////////////////
-inline void dev_t Domain_d::CalcContactForcesWang(){
+void dev_t Domain_d::CalcContactForcesWang(){
 	//int i = threadIdx.x + blockDim.x*blockIdx.x;	
   
 	double min_force_ts_=1000.;
@@ -89,12 +91,19 @@ inline void dev_t Domain_d::CalcContactForcesWang(){
   for  (int i=0; i < m_node_count;i++ )   //i particle is from SOLID domain, j are always rigid 
   #endif
   {
+    double min_dist = 1e10;
+    int j;
     if (ext_nodes[i]){ 
       //Search nearest node
-      for (int j=0;j<trimesh->elemcount;j++){
+      for (int e=0;e<trimesh->elemcount;e++){
         double3 dist = getNodePos3(i) - trimesh->node[j];
-        
+        double d = norm2(dist);
+        if (d < min_dist){
+          min_dist = d;
+          j = e;
         }
+      }
+      printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, j );
         
          
     /*

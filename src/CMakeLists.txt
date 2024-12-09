@@ -130,6 +130,7 @@ add_executable(beam
 
 add_executable(beam_contact
                        main_beam_contact.C
+                       Contact.C
                        Domain_d.C
                        Matrices.C
                        Mechanical.C
