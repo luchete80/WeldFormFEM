@@ -29,9 +29,6 @@ using namespace LS_Dyna;
 
 namespace MetFEM {
 
-// Define the maximum number of nodes and faces
-#define MAX_NODES 1000
-#define MAX_FACES 10000
 
 // Structure to define a face with 4 nodes
 struct Face {
@@ -86,26 +83,13 @@ void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
 }
 
 dev_t void Domain_d::SearchExtNodes() {
-    //ext_nodes_count = 0;
-    //delete ext_nodes;
-    
-    // Example mesh: array of hexahedral elements
-    // Each hexahedron is defined by 8 node indices
-    const int MAX_ELEMENTS = 100;
-    /*
-    int elements[MAX_ELEMENTS][8] = {
-        {0, 1, 2, 3, 4, 5, 6, 7}, // Hexahedron 1
-        {4, 5, 6, 7, 8, 9, 10, 11} // Hexahedron 2
-    };
-    */
-    //int elementCount = 2; // Number of hexahedra
-      
+
     cout << "Adding hexas"<<endl;
     // Array to store all faces
     //Face faceList[MAX_FACES];
     Face *faceList;
     malloc_t(faceList, Face, m_elem_count*6);
-    int faceCount = m_elem_count*6;
+    int faceCount = 0;
     int elements[8];
 
     // Process each hexahedron to extract its faces
@@ -115,9 +99,12 @@ dev_t void Domain_d::SearchExtNodes() {
         
         addHexahedronFaces(faceList, faceCount, elements);
     }
-    cout << "done "<<endl;
+    cout << "done. Face count: "<<faceCount<<endl;
     // Array to track external nodes
-    bool externalNodes[m_node_count] = {false};
+    for (int n=0;n<m_node_count;n++)
+      ext_nodes[n] = false;
+    ext_nodes_count = 0;
+    //bool externalNodes[m_node_count] = {false};
 
     // Identify external nodes by checking faces that appear only once
     for (int i = 0; i < faceCount; i++) {
@@ -130,13 +117,14 @@ dev_t void Domain_d::SearchExtNodes() {
 
     // Output the external nodes
     printf("External Nodes: ");
-    for (int i = 0; i < MAX_NODES; i++) {
-        if (externalNodes[i]) {
+    for (int i = 0; i < m_node_count; i++) {
+        if (ext_nodes[i]) {
             printf("%d ", i);
+            ext_nodes_count++;
         }
     }
     printf("\n");
-
+    printf("Ext node count %d\n\n",ext_nodes_count);
 
 }
 
@@ -654,8 +642,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     for (int n=0;n<m_node_count;n++){
       nodel_offset_h[n] = nodel_tot;
       nodel_tot        += nodel_count_h[n];
-      cout << "NodEL tot " << nodel_tot<<endl;
-      cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+      //cout << "NodEL tot " << nodel_tot<<endl;
+      //cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
 
     }
     cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
@@ -692,6 +680,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		memcpy_t(this->m_nodel_count,    nodel_count_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
 		    
     // ///// TESTING
+    /*
     for (int n=0;n<m_node_count;n++){
       cout << "M node offset:"<<nodel_offset_h[n];
       cout << "Node  "<< n << " Elements"<<endl;
@@ -701,6 +690,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]+ne]<<", ";
       cout << endl;
     }
+    */
     
     cout << "Mesh generation done. "<<endl;
 
