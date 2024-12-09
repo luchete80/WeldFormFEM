@@ -133,7 +133,7 @@ add_executable(beam_contact
                        Domain_d.C
                        Matrices.C
                        Mechanical.C
-                       #Mesh.C
+                       Mesh.C
                        Matrices.C
                        Solver.C
                        VTKWriter.C

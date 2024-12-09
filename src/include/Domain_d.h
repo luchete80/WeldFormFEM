@@ -25,7 +25,7 @@
 
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
 
-class TriMesh_d;
+
 class Matrix;
 
 class BC_Node {
@@ -41,6 +41,7 @@ class BC_Node {
 
 namespace MetFEM{
 
+class TriMesh_d;
 class VTKWriter;
 class Domain_d {
   friend class VTKWriter;
@@ -356,7 +357,7 @@ inline dev_t void Domain_d::setDerivative(const int &e, const int &gp, Matrix *m
 
 }; //Namespace
 
-
-#include "Contact.C"
+//#include "Mesh.h"
+//#include "Contact.C"
 
 #endif

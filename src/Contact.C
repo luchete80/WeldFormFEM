@@ -2,12 +2,12 @@
 //contactforce = 0
 //In global initialize 
 // domain max_contact_force
-//#include "Mesh.cuh"
+//#include "Mesh.h"
 
 namespace MetFEM{
 #define MAX_NB_COUNT    20
 
-//#include "Mesh.h"
+
 
 #define HTOL 1.0e-6
 #define DFAC 0.0
@@ -75,13 +75,28 @@ inline void dev_t Domain_d::CalcContactForcesWang(){
 	double min_contact_force = 1000.;
 	int inside_pairs = 0;
   //printf("test\n");
+  /*
   #ifdef BUILD_GPU
   par_loop(i,ext_nodes_count)
   #else
   for  (int i=0; i < ext_nodes_count;i++ )   //i particle is from SOLID domain, j are always rigid 
   #endif
   {
-    
+  */
+  #ifdef BUILD_GPU
+  par_loop(i,m_node_count)
+  #else
+  for  (int i=0; i < m_node_count;i++ )   //i particle is from SOLID domain, j are always rigid 
+  #endif
+  {
+    if (ext_nodes[i]){ 
+      //Search nearest node
+      for (int j=0;j<trimesh->elemcount;j++){
+        double3 dist = getNodePos3(i) - trimesh->node[j];
+        
+        }
+        
+         
     /*
     contforce[i] = make_double3(0.); //RESET
     // CONTACT OFFSET IS FIX BY NOW
@@ -177,6 +192,8 @@ inline void dev_t Domain_d::CalcContactForcesWang(){
     }//neibcount	for (int k=0;k < neibcount;k++) { //Or size
     
   */
+  
+    }//external nodes
   } //i<first fem index
 	//Correct time step!
 //	std::min(deltat,dt_fext)
