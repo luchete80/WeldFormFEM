@@ -622,15 +622,16 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
         int nnodz = (nel[0]+1)*(nel[1]+1);
         
-        for (int ez = 0; ez < nel[2];ez++)
+        for (int ez = 0; ez < nel[2];ez++){
           for (int ey = 0; ey < nel[1];ey++){
             for (int ex = 0; ex < nel[0];ex++){
               
               ei += m_nodxelem;
             }
           }
+        }
         
-      }
+      }/////TRITETRA
 		}//if dim 
     cout << "Done." <<endl;
     
