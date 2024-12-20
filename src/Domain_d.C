@@ -625,8 +625,15 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         for (int ez = 0; ez < nel[2];ez++){
           for (int ey = 0; ey < nel[1];ey++){
             for (int ex = 0; ex < nel[0];ex++){
-              
-              ei += m_nodxelem;
+
+              int nb1 = nnodz*ez + (nel[0]+1) *  ey    + ex;
+              int nb2 = nnodz*ez + (nel[0]+1) * (ey+1) + ex;   
+              int nhex[] = {nb1, nb1+1, nb2+1, nb2, nb1 + nnodz,nb1 + nnodz,+1,nb2 + nnodz + 1, nb2 + nnodz};
+                         
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[2];elnod_h[ei+3] = nhex[4]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[2];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
             }
           }
         }
