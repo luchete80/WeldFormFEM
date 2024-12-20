@@ -435,7 +435,7 @@ dev_t void Domain_d::ImposeBCA(const int dim){
   
 }
 
-void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int){
+void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra){
     // integer, intent(in):: tag
   // logical, intent(in) :: redint
   // !real(fp_kind), intent(in), allocatable :: V
@@ -464,7 +464,12 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   } else {
     nel[2] = (int)(L.z/(2.0*r));
     nel[2] = (int)(L.z/(2.0*r));
-    m_nodxelem = 8;
+    
+    if (!tritetra)
+      m_nodxelem = 8;
+    else
+      m_nodxelem = 4;
+      
     if (!red_int) m_gp_count = 8; 
   }
   
@@ -473,10 +478,20 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     
 
     // write (*,*) "Creating Mesh ...", "Elements ", neL.y, ", ",neL.z
-    int nc;
+  int nc;
   if (m_dim == 2) nc = (nel[0] +1) * (nel[1]+1);
   else            nc = (nel[0] +1) * (nel[1]+1) * (nel[2]+1);
-  int ne = nel[0]*nel[1]*nel[2];
+  int ne;
+  
+  if (!tritetra)
+    ne= nel[0]*nel[1]*nel[2];
+  else {
+    if (m_dim == 2)
+      ne= 2 * nel[0]*nel[1]*nel[2];
+    else
+      ne= 6 * nel[0]*nel[1]*nel[2];
+  }
+  
   cout << "Mesh created. Element count: "<< nel[0]<<", "<<nel[1]<<", "<<nel[2]<<endl;
   
   //thisAllocateNodes((nel[0] +1) * (nel[1]+1) * (nel[2]+1));
@@ -569,40 +584,53 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 					 }
       } 
     } else { //dim: 3
-      int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
-      int nnodz = (nel[0]+1)*(nel[1]+1);
-      for (int ez = 0; ez < nel[2];ez++)
-      for (int ey = 0; ey < nel[1];ey++){
-        for (int ex = 0; ex < nel[0];ex++){
-          
-          int iv[8];
-          int nb1 = nnodz*ez + (nel[0]+1)*ey + ex;
-          int nb2 = nnodz*ez + (nel[0]+1)*(ey+1) + ex;
-          
-          elnod_h[ei  ] = nb1;                      nodel_count_h[nb1  ] ++;          
-          elnod_h[ei+1] = nb1+1;                    nodel_count_h[nb1+1] ++;
-          elnod_h[ei+2] = nb2+1;                    nodel_count_h[nb2+1] ++;
-          elnod_h[ei+3] = nb2;                      nodel_count_h[nb2  ] ++;
-          
-          elnod_h[ei+4] = nb1 + nnodz;              nodel_count_h[nb1 + nnodz    ]++;   
-          elnod_h[ei+5] = nb1 + nnodz + 1;          nodel_count_h[nb1 + nnodz + 1]++;  
-          elnod_h[ei+6] = nb2 + nnodz + 1;          nodel_count_h[nb2 + nnodz + 1]++;  
-          elnod_h[ei+7] = nb2 + nnodz;              nodel_count_h[nb2 + nnodz    ]++;  
-          
-          // for (int i=0;i<8;i++)
-            // cout << elnod_h[ei + i]<<", ";
-          // cout <<endl;
+      if (!tritetra) {
+        int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
+        int nnodz = (nel[0]+1)*(nel[1]+1);
+        for (int ez = 0; ez < nel[2];ez++)
+        for (int ey = 0; ey < nel[1];ey++){
+          for (int ex = 0; ex < nel[0];ex++){
+            
+            int iv[8];
+            int nb1 = nnodz*ez + (nel[0]+1)*ey + ex;
+            int nb2 = nnodz*ez + (nel[0]+1)*(ey+1) + ex;
+            
+            elnod_h[ei  ] = nb1;                      nodel_count_h[nb1  ] ++;          
+            elnod_h[ei+1] = nb1+1;                    nodel_count_h[nb1+1] ++;
+            elnod_h[ei+2] = nb2+1;                    nodel_count_h[nb2+1] ++;
+            elnod_h[ei+3] = nb2;                      nodel_count_h[nb2  ] ++;
+            
+            elnod_h[ei+4] = nb1 + nnodz;              nodel_count_h[nb1 + nnodz    ]++;   
+            elnod_h[ei+5] = nb1 + nnodz + 1;          nodel_count_h[nb1 + nnodz + 1]++;  
+            elnod_h[ei+6] = nb2 + nnodz + 1;          nodel_count_h[nb2 + nnodz + 1]++;  
+            elnod_h[ei+7] = nb2 + nnodz;              nodel_count_h[nb2 + nnodz    ]++;  
+            
+            // for (int i=0;i<8;i++)
+              // cout << elnod_h[ei + i]<<", ";
+            // cout <<endl;
 
-           //cout << "Nel x : "<<nel[0]<<", Element: " << ei/m_nodxelem<<endl;
-           //cout << "nodes "<<endl;
-           //cout << "nodxelem " <<m_nodxelem<<endl;
-           //cout << "nb1, nb2 "<< nb1 << ", "<<nb2<<" nnodz"<< nnodz*(ez+1)<<"ez "<<ez<<endl;
-           for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
-           ei += m_nodxelem;
+             //cout << "Nel x : "<<nel[0]<<", Element: " << ei/m_nodxelem<<endl;
+             //cout << "nodes "<<endl;
+             //cout << "nodxelem " <<m_nodxelem<<endl;
+             //cout << "nb1, nb2 "<< nb1 << ", "<<nb2<<" nnodz"<< nnodz*(ez+1)<<"ez "<<ez<<endl;
+             for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
+             ei += m_nodxelem;
 
-					 }
-      } 
-
+             }
+        } 
+      } else {
+        int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
+        int nnodz = (nel[0]+1)*(nel[1]+1);
+        
+        for (int ez = 0; ez < nel[2];ez++)
+          for (int ey = 0; ey < nel[1];ey++){
+            for (int ex = 0; ex < nel[0];ex++){
+              
+              ei += m_nodxelem;
+            }
+          }
+        
+      }
 		}//if dim 
     cout << "Done." <<endl;
     
