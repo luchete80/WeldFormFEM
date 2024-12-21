@@ -176,7 +176,7 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
     
     //printf( "normal_h[e] "<<normal_h[e].x << ", " << normal_h[e].y << ", " <<normal_h[e].z<<endl;
 	}
-  printf("Done\n");
+  //printf("Done\n");
   m_v = m_w = make_double3(0.,0.,0.);
   
   
@@ -191,15 +191,15 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   //cudaMemcpy(normal, normal_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
   
   memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
-  memcpy_t(centroid, centroid_h,    elemcount * sizeof(double3));
-  memcpy_t(elnode,    normal_h,     elemcount * sizeof(double3));
+  memcpy_t(centroid,  centroid_h,    elemcount * sizeof(double3));
+  memcpy_t(normal_h,    normal_h,     elemcount * sizeof(double3));
   
   
   
 
   delete node_h;
   delete node_vh;
-
+  //printf("End mesh gen\n");
   //CRASHES IN CPU
   //--------------
   //delete elnode_h;

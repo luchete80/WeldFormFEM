@@ -186,3 +186,5 @@ F90 PREVIOUS VERSION
          - Added Axisymmetric calculation (still not working)
 20241107 - Converting vectors to 2D
 20241122 -  FIXED 3D NO CONVENGECE! PROBLEMWAS NOT INITIALIZING V AND ACCEL
+----------------------------------------------------------------------
+20241220 - Fixed contact! mesh generation was wrong
