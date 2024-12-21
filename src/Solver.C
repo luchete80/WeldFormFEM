@@ -2,6 +2,7 @@
 #include <iostream>
 #include "VTKWriter.h"
 
+#include "Mesh.h"
 using namespace std;
 
 namespace MetFEM{
@@ -277,7 +278,21 @@ namespace MetFEM{
   #else
   UpdateCorrectionPos();
   #endif  
+
+  if (contact){
+    //MeshUpdate(this->trimesh,dt);
+    printf("mesh move\n");
+  trimesh->Move( dt);
+  printf("centroids\n");
+	trimesh->CalcCentroids();
+  printf("normals\n");
+  trimesh->CalcNormals();
   
+	//trimesh->CalcSpheres();
+  printf("plane coeffs\n");
+  trimesh->UpdatePlaneCoeff();
+  printf("done\n");  
+  }
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
   // !u = u + beta * nod%v * dt
@@ -288,6 +303,8 @@ namespace MetFEM{
   // !call AverageData(elem%rho(:,1),nod%rho(:))  
   // prev_a = nod%a
   // time = time + dt
+
+
     
   Time += dt;
   

@@ -192,7 +192,7 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   
   memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
   memcpy_t(centroid,  centroid_h,    elemcount * sizeof(double3));
-  memcpy_t(normal_h,    normal_h,     elemcount * sizeof(double3));
+  memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
   
   
   
@@ -210,59 +210,6 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   
 }
 
-inline dev_t void   TriMesh_d::CalcCentroids(){
-  //int e = threadIdx.x + blockDim.x*blockIdx.x;
-  //if (e < elemcount)
-    for (int e=0; e<elemcount;e++)
-      centroid[e] = ( node[elnode[3*e]] + node[elnode[3*e+1]] + node[elnode[3*e+2]]) / 3.; 
-}
-
-
-inline dev_t void   TriMesh_d::CalcNormals(){
-	double3 u, v, w;
-  //int e = threadIdx.x + blockDim.x*blockIdx.x;
-  //if (e < elemcount) {
-  for (int e=0; e<elemcount;e++){
-    u = node [elnode[3*e+1]] - node [elnode[3*e]];
-    v = node [elnode[3*e+2]] - node [elnode[3*e]];
-    w = cross(u,v);
-    normal[e] = w/length(w);
-    // if (length(normal[e])<1.0e-3)
-      // printf("ERROR: ZERO normal. Calc error in element %d\n",e);
-    // if (abs(normal[e].y) >1.0e-5 || abs(normal[e].x) > 1.0e-5)
-      // printf("CalcNormal %d %.6e %.6e %.6e\n u %.6e %.6e %.6e \n v %.6e %.6e %.6e\n",e, normal[e].x,normal[e].y,normal[e].z,u.x,u.y,u.z,v.x,v.y,v.z);
-    normal[e].x = normal[e].y = 0.0;
-    normal[e].z = -1.0;
-      // //printf("elnodes z coord %.6e %.6e %.6e\n", node[elnode[3*e]].z,node[elnode[3*e+1]].z,node[elnode[3*e+2]].z);
-    // }
-    //Fraser Eqn 3.34
-    //Uj x Vj / |UjxVj|
-	}
-}
-
-inline dev_t void  TriMesh_d::Move(double dt){
-
-	//int n = threadIdx.x + blockDim.x*blockIdx.x; //Parallelize by node 
-  for (int n=0;n<nodecount;n++)
-  if ( n < nodecount ){
-    //double3 vr 	= cross(m_w, node[n]);
-    //node_v[n] = m_v + vr;
-    node_v[n] = m_v;
-    // for (int i=0;i<3;i++) {
-      // if      ((*node[n])(i) < min(i)) min[i] = (*node[n])(i);
-      // else if ((*node[n])(i) > max(i)) max[i] = (*node[n])(i);
-    // } 
-
-    node[n] = node[n] + (node_v[n])*dt;
-    //printf("after \n");
-    //PRINT_V(node[n]); 
-  }//n<nodecount
-
-  // CalcCentroids();
-  // CalcNormals();        //From node positions
-  // UpdatePlaneCoeff();   //pplane
-  
-}
 
 /*
 

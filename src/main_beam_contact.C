@@ -152,6 +152,7 @@ int main(){
   //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
   cout <<"Creating plane mesh..."<<endl;
   msh->AxisPlaneMesh(2, true, make_double3(0,0,0), make_double3 (1,1,0),  2);
+  msh->CalcSpheres();
   cout <<"Done"<<endl;
   //msh->SetVel(make_double3(0.0,0.,-1.0));
   dom_d->setTriMesh(msh);

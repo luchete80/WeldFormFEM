@@ -86,4 +86,20 @@ inline double3 cross(const double3 &a, const double3 &b)
 	return make_double3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
 }
 
+// dot product
+inline double dot(const double3 &a, const double3 &b)
+{
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+// squared length
+inline double sqlength(const double3 &v)
+{
+	return dot(v, v);
+}
+
+// length
+inline double length(const double3 &v)
+{
+	return sqrt(sqlength(v));
+}
 #endif

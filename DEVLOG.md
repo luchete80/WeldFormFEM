@@ -188,3 +188,5 @@ F90 PREVIOUS VERSION
 20241122 -  FIXED 3D NO CONVENGECE! PROBLEMWAS NOT INITIALIZING V AND ACCEL
 ----------------------------------------------------------------------
 20241220 - Fixed contact! mesh generation was wrong
+20241221 - Added cross product for CPU version,calc normals
+         - Added CPU functions dot, length and calcPlaneCoeff, updated mesh move.
