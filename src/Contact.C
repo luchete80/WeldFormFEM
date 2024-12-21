@@ -92,7 +92,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
   #endif
   {
     //printf("Node %d\n",i);
-    printf("Element count %d\n", trimesh->elemcount);
+    //printf("Element count %d\n", trimesh->elemcount);
     double min_dist = 1e10;
     int e;
     if (ext_nodes[i]){ 
@@ -119,6 +119,20 @@ void dev_t Domain_d::CalcContactForcesWang(){
       
       double3 xij;
       double K;
+      
+    if (min_dist<0){
+      printf("neg dist \n");
+        // calcul de la composante normale de la force
+  //  force=(node->mass*delta/SQ(timeStep))*pside->normal;
+  //  Fn=(node->mass*delta/SQ(timeStep))*pside->normal;
+  //fn = 2. * node->mass * delta / SQ(timeStep);
+    //REDYNELAfiniteELement/contact.C
+  //computetangentialForce(fn, Ft);
+      contforce[i] = 2.0 * m_mdiag[i] * min_dist /(dt*dt);
+      
+      
+    }
+      
 
 /*
       double3 vr = v[i] - v[j];		//Fraser 3-137
