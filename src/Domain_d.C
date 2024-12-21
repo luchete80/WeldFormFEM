@@ -629,11 +629,27 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               int nb1 = nnodz*ez + (nel[0]+1) *  ey    + ex;
               int nb2 = nnodz*ez + (nel[0]+1) * (ey+1) + ex;   
               int nhex[] = {nb1, nb1+1, nb2+1, nb2, nb1 + nnodz,nb1 + nnodz,+1,nb2 + nnodz + 1, nb2 + nnodz};
-                         
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[2];elnod_h[ei+3] = nhex[4]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[2];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+              //1st valid decomp
+              //0,1,3,4
+              //1,3,4,5
+              //1,2,3,5,
+              //3,4,5,7
+              //2,3,5,6
+              
+              //Another valid decomp
+              //0,1,3,7
+             // 0,1,7,5
+              //0,3,7,4
+              //1,7,5,6
+              //1,3,7,6
+              //3,7,4,6
+              
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[3];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[4]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[7];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[3];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[3];elnod_h[ei+1] = nhex[7];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
             }
           }
         }
