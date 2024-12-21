@@ -80,4 +80,10 @@ inline double norm2(double3 &v){
 inline double norm(double3 &v){
   return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
+
+inline double3 cross(const double3 &a, const double3 &b)
+{
+	return make_double3(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
+}
+
 #endif
