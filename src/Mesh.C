@@ -210,6 +210,25 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   
 }
 
+inline dev_t void  TriMesh_d::Move(double dt){
+
+	//int n = threadIdx.x + blockDim.x*blockIdx.x; //Parallelize by node 
+  for (int n=0;n<nodecount;n++)
+  if ( n < nodecount ){
+    //double3 vr 	= cross(m_w, node[n]);
+    //node_v[n] = m_v + vr;
+    node_v[n] = m_v;
+    // for (int i=0;i<3;i++) {
+      // if      ((*node[n])(i) < min(i)) min[i] = (*node[n])(i);
+      // else if ((*node[n])(i) > max(i)) max[i] = (*node[n])(i);
+    // } 
+
+    node[n] = node[n] + (node_v[n])*dt;
+    //printf("after \n");
+    //PRINT_V(node[n]); 
+  }//n<nodecount
+}
+
 /*
 
 //This is done once, Since mesh is rigid
@@ -273,6 +292,8 @@ inline __device__ void TriMesh_d::CalcCentroids(){
   if (e < elemcount)
     centroid[e] = ( node[elnode[3*e]] + node[elnode[3*e+1]] + node[elnode[3*e+2]]) / 3.; 
 }
+
+
 
 inline __device__ void TriMesh_d::Move(double dt){
 

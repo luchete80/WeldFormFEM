@@ -31,6 +31,7 @@ namespace MetFEM {
 
 
 // Structure to define a face with 4 nodes
+//CHANGE IF TETRA
 struct Face {
     int nodes[4];
     int count; // Number of occurrences of this face
@@ -95,7 +96,7 @@ dev_t void Domain_d::SearchExtNodes() {
     // Process each hexahedron to extract its faces
     for (int i = 0; i < m_elem_count; i++) {
         for (int ne=0;ne<m_nodxelem;ne++)
-          elements[ne] = m_elnod[m_nodxelem*i+ne];
+          elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
         
         addHexahedronFaces(faceList, faceCount, elements);
     }
@@ -107,11 +108,14 @@ dev_t void Domain_d::SearchExtNodes() {
     //bool externalNodes[m_node_count] = {false};
 
     // Identify external nodes by checking faces that appear only once
+    int ext_faces = 0;
     for (int i = 0; i < faceCount; i++) {
         if (faceList[i].count == 1) { // External face
             for (int j = 0; j < 4; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
+                
             }
+            ext_faces++;
         }
     }
 
@@ -125,7 +129,7 @@ dev_t void Domain_d::SearchExtNodes() {
     }
     printf("\n");
     printf("Ext node count %d\n\n",ext_nodes_count);
-
+    printf("Ext face count %d\n\n",ext_faces);
 }
 
 
