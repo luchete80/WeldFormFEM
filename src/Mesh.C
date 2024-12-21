@@ -210,6 +210,13 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   
 }
 
+inline dev_t void   TriMesh_d::CalcCentroids(){
+  //int e = threadIdx.x + blockDim.x*blockIdx.x;
+  //if (e < elemcount)
+    for (int e=0; e<elemcount;e++)
+      centroid[e] = ( node[elnode[3*e]] + node[elnode[3*e+1]] + node[elnode[3*e+2]]) / 3.; 
+}
+
 inline dev_t void  TriMesh_d::Move(double dt){
 
 	//int n = threadIdx.x + blockDim.x*blockIdx.x; //Parallelize by node 
@@ -227,6 +234,11 @@ inline dev_t void  TriMesh_d::Move(double dt){
     //printf("after \n");
     //PRINT_V(node[n]); 
   }//n<nodecount
+
+  // CalcCentroids();
+  // CalcNormals();        //From node positions
+  // UpdatePlaneCoeff();   //pplane
+  
 }
 
 /*
