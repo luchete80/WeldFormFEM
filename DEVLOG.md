@@ -191,3 +191,4 @@ F90 PREVIOUS VERSION
 20241221 - Added cross product for CPU version,calc normals
          - Added CPU functions dot, length and calcPlaneCoeff, updated mesh move.
 20241222 - Fixed contact mesh nfar calculation, added setvel to example
+         - Removed BC movements to beam contact example

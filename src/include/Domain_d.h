@@ -190,6 +190,8 @@ public:
   
   void dev_t CalcContactForcesWang();
   void setContactOn(){contact = true;}
+  bool isContactOn(){return contact;}
+  TriMesh_d* getTriMesh(){return trimesh;}
   //--------------------------------------------------------------------------------------------------------------------------------
   
 protected:

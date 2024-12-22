@@ -2,6 +2,7 @@
 #include "VTKWriter.h"
 
 #include <fstream>  // ofstream
+#include "Mesh.h"
 
 using namespace std;
 
@@ -16,7 +17,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss <<  "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">"<<endl;
   m_oss <<  "  <UnstructuredGrid>"<<endl;
   // FOR NOT RETURN CARRIAGE
-  m_oss <<  "    <Piece NumberOfPoints=\"" <<dom->m_node_count<< "\" NumberOfCells=\""<<dom->m_elem_count<<"\">"<<endl;  //Note that an explicit format descriptor is needed when using
+  int nc = dom->m_node_count;
+  if (dom_d->isContactOn())
+    nc += dom_d->getTriMesh()->nodecount;
+  m_oss <<  "    <Piece NumberOfPoints=\"" <<nc<< "\" NumberOfCells=\""<<dom->m_elem_count<<"\">"<<endl;  //Note that an explicit format descriptor is needed when using
   //write (1, '(A,2x,I5)') '<Piece NumberOfPoints="'
   m_oss << "      <Points>"<<endl;
   m_oss << "        <DataArray type=\"Float32\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">"<<endl;

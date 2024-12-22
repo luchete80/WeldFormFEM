@@ -152,10 +152,10 @@ int main(){
   //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
   cout <<"Creating plane mesh..."<<endl;
  //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-  msh->AxisPlaneMesh(2, true, make_double3(0,0,0), make_double3 (1,1,0),  2);
+  msh->AxisPlaneMesh(2, true, make_double3(0,0,0.012), make_double3 (1,1,0.012),  2);
   msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
   cout <<"Done"<<endl;
-  msh->SetVel(make_double3(0.0,0.,-1.0));
+  msh->SetVel(make_double3(0.0,0.,-0.48));
   dom_d->setTriMesh(msh);
   
   dom_d->setContactOn();
@@ -170,11 +170,13 @@ int main(){
       cout << "node "<< i<<" fixed "<<endl;
     }
     
+    /*
     if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
       dom_d->AddBCVelNode(i,1,-0.48);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
-    }      
+    } 
+    */
     
   }
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
