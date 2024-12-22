@@ -110,7 +110,8 @@ void dev_t Domain_d::CalcContactForcesWang(){
         double d = norm2(dist);
         delta = dot(dist,trimesh->normal[j]);
         if (delta <0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
-          printf ("ELEMENT %DELTA <0------\n");
+          //printf ("ELEMENT %d DELTA <0------\n", e);
+          
           
           double3 Qj = getPosVec3(i) - d * trimesh->normal[j];
 
@@ -127,8 +128,10 @@ void dev_t Domain_d::CalcContactForcesWang(){
             l++;
           }   
             if (inside ){
+              printf("delta: %.3e\n",delta);
+              printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
               printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
-              
+              end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
           
           

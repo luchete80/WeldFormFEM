@@ -152,7 +152,7 @@ int main(){
   //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
   cout <<"Creating plane mesh..."<<endl;
  //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-  msh->AxisPlaneMesh(2, true, make_double3(0,0,0.012), make_double3 (1,1,0.012),  2);
+  msh->AxisPlaneMesh(2, false, make_double3(0,0,0.012), make_double3 (1,1,0.012),  2);
   msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
   cout <<"Done"<<endl;
   msh->SetVel(make_double3(0.0,0.,-0.48));

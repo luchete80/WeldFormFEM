@@ -192,3 +192,5 @@ F90 PREVIOUS VERSION
          - Added CPU functions dot, length and calcPlaneCoeff, updated mesh move.
 20241222 - Fixed contact mesh nfar calculation, added setvel to example
          - Removed BC movements to beam contact example
+         - Fixed beam contact example element normals (were inverted)
+         - 
