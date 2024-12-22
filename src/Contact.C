@@ -131,6 +131,9 @@ void dev_t Domain_d::CalcContactForcesWang(){
               printf("delta: %.3e\n",delta);
               printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
               printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
+              
+              
+              
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
           

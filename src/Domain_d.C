@@ -214,8 +214,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //malloc_t (u_h,      double,node_count*3);
   u_h = new double [m_dim*m_node_count];
   
-  
+  ////// CONTACT//////////////////////////////////////////////
   malloc_t(ext_nodes, bool, m_node_count);
+  malloc_t(contforce, double,node_count*m_dim);
   
   m_contsurf_count = 0;
   
