@@ -193,4 +193,4 @@ F90 PREVIOUS VERSION
 20241222 - Fixed contact mesh nfar calculation, added setvel to example
          - Removed BC movements to beam contact example
          - Fixed beam contact example element normals (were inverted)
-         - 
+         - Allocated and calculated contforce

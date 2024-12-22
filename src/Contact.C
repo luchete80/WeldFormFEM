@@ -85,6 +85,10 @@ void dev_t Domain_d::CalcContactForcesWang(){
   #endif
   {
   */
+  
+  for  (int i=0; i < m_dim*m_node_count;i++ ) 
+    contforce[i]=0.0;
+  
   #ifdef BUILD_GPU
   par_loop(i,m_node_count)
   #else
@@ -128,11 +132,16 @@ void dev_t Domain_d::CalcContactForcesWang(){
             l++;
           }   
             if (inside ){
-              printf("delta: %.3e\n",delta);
-              printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
-              printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
+              //printf("delta: %.3e\n",delta);
+              //printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
+              //printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
               
-              
+                //fn = 2. * node->mass * delta / SQ(timeStep);
+    //REDYNELAfiniteELement/contact.C
+  //computetangentialForce(fn, Ft);
+              double3 cf =  - 2.0 * m_mdiag[i] * delta * trimesh->normal[j]/(dt*dt);
+              //printf("CF %f %f %f\n",cf.x,cf.y,cf.z);
+              contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
@@ -151,27 +160,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
     
     //contforce[i] = make_double3(0.,0.,0.); //RESET
     // CONTACT OFFSET IS FIX BY NOW
-    
 
-    
-    int test = 0; //Should be once per nb
-
-      
-      double3 xij;
-      double K;
-      
-    if (min_dist<0){
-      printf("---------------------NEG DIST  \n");
-        // calcul de la composante normale de la force
-  //  force=(node->mass*delta/SQ(timeStep))*pside->normal;
-  //  Fn=(node->mass*delta/SQ(timeStep))*pside->normal;
-  //fn = 2. * node->mass * delta / SQ(timeStep);
-    //REDYNELAfiniteELement/contact.C
-  //computetangentialForce(fn, Ft);
-      contforce[i] = 2.0 * m_mdiag[i] * min_dist /(dt*dt);
-      
-      
-    }
       
 
 /*
