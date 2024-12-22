@@ -94,17 +94,51 @@ void dev_t Domain_d::CalcContactForcesWang(){
     //printf("Node %d\n",i);
     //printf("Element count %d\n", trimesh->elemcount);
     double min_dist = 1e10;
+    double delta;
     int e;
     if (ext_nodes[i]){ 
-      //Search nearest node
-      for (int j=0;j<trimesh->elemcount;j++){
+      //Search NEGATIVE DISTANCE node ON MESH
+      int j=0;
+      bool end = false;
+      while (!end){//----------------------------------------------------------
+      //CHCK isNodeinElement WITH getShapeFunctionAtPoint
+      
+      //AND isNodeinSideFace (redYnEla sideface.C)
+      
+      //for (int j=0;j<trimesh->elemcount;j++){
         double3 dist = getNodePos3(i) - trimesh->centroid[j];
         double d = norm2(dist);
-        if (d < min_dist){
-          min_dist = d;
-          e = j;
+        delta = dot(dist,trimesh->normal[j]);
+        if (delta <0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
+          printf ("ELEMENT %DELTA <0------\n");
+          
+          double3 Qj = getPosVec3(i) - d * trimesh->normal[j];
+
+          bool inside = true;
+          int l=0,n;		   
+          //printf("Entering while \n");
+          while (l<3 && inside){
+            n = l+1;	if (n>2) n = 0;
+            //double crit;
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*e+n]] - trimesh->node[trimesh->elnode[3*e+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[3*e+l]]),
+                               trimesh->normal[j]);
+            if (crit < 0.0) inside = false;
+            l++;
+          }   
+            if (inside ){
+              printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
+              
+            }
+          
+          
+          
+          
         }
-      }
+        j++;
+        if (j==trimesh->elemcount)
+          end = true;
+      } // WHILE j mesh elements
      //printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, e );
         
          
@@ -139,7 +173,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
 
       double3 x_pred = x[i] + v[i] * deltat + a[i] * deltat * deltat/2.;
 
-      normal[j] = trimesh[mid]->normal[e];
+      normal[j] = trimesh->normal[e];
 
       double dist = dot (normal[j],x_pred)  - trimesh->pplane[e];
 
@@ -155,8 +189,8 @@ void dev_t Domain_d::CalcContactForcesWang(){
             // double crit = dot (cross ( *trimesh->node[e -> node[j]] - *trimesh->node[e -> node[i]],
                                                                 // Qj  - *trimesh->node[e -> node[i]]),
                               // normal[j]);
-            double crit = dot (cross ( trimesh[mid]->node[trimesh[mid]->elnode[3*e+n]] - trimesh[mid]->node[trimesh[mid]->elnode[3*e+l]],
-                                                                Qj  - trimesh[mid]->node[trimesh[mid]->elnode[3*e+l]]),
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*e+n]] - trimesh->node[trimesh->elnode[3*e+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[3*e+l]]),
                               normal[j]);
             if (crit < 0.0) inside = false;
             l++;

@@ -27,7 +27,7 @@ inline double3 make_double3(double x_,double y_,double z_){double3 ret; ret.x=x_
 
 inline double3 operator+(double3 v1, double3 v2){return make_double3(v1.x+v2.x,v1.y+v2.y,v1.z+v2.z);}
 inline double3 operator-(double3 v1, double3 v2){return make_double3(v1.x-v2.x,v1.y-v2.y,v1.z-v2.z);}
-inline double3 operator*(double  s, double3 v  ){return make_double3(v.x*s,v.y*s,v.z*s);}
+//inline double3 operator*(double  s, double3 v  ){return make_double3(v.x*s,v.y*s,v.z*s);}
 
 
 inline double2 make_double2(double x_,double y_){double2 ret; ret.x=x_;
@@ -52,7 +52,7 @@ static double3 operator*(const double3 &a, const double &s)
 	return make_double3(a.x * s, a.y * s, a.z * s);
 }
 
-static double3 operator*(const double &s, const double3 &a)
+inline double3 operator*(const double &s, const double3 &a)
 {
 	return make_double3(a.x * s, a.y * s, a.z * s);
 }
@@ -102,4 +102,5 @@ inline double length(const double3 &v)
 {
 	return sqrt(sqlength(v));
 }
+
 #endif

@@ -18,8 +18,8 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss <<  "  <UnstructuredGrid>"<<endl;
   // FOR NOT RETURN CARRIAGE
   int nc = dom->m_node_count;
-  if (dom_d->isContactOn())
-    nc += dom_d->getTriMesh()->nodecount;
+  //if (dom->isContactOn())
+  //  nc += dom->getTriMesh()->nodecount;
   m_oss <<  "    <Piece NumberOfPoints=\"" <<nc<< "\" NumberOfCells=\""<<dom->m_elem_count<<"\">"<<endl;  //Note that an explicit format descriptor is needed when using
   //write (1, '(A,2x,I5)') '<Piece NumberOfPoints="'
   m_oss << "      <Points>"<<endl;
