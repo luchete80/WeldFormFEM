@@ -91,7 +91,7 @@ inline dev_t void  TriMesh_d::UpdatePlaneCoeff(){
   for (int e=0; e<elemcount;e++){
     //printf("elnode %f %f %f \n",elnode[3*i+nfar[i]].x,elnode[3*i+nfar[i]].y,elnode[3*i+nfar[i]].z);
     pplane[e] = dot(node[elnode[3*e]+nfar[e]],normal[e]);
-    printf("pplane %.8e \n",pplane[e]);
+    //printf("pplane %.8e \n",pplane[e]);
   }
 }
 
@@ -132,11 +132,11 @@ inline  dev_t void   TriMesh_d::CalcSpheres(){
       if (length(rv) > max) max = length(rv);
       nfar[e] = n;
     }
-    
+    printf("Element %d nfar %d\n",e,nfar[e]);
     //element[e]-> radius[e] = max;	//Fraser Eq 3-136
     
-    UpdatePlaneCoeff();
 	}
+  UpdatePlaneCoeff();
 }
 
 //__global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {

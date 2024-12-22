@@ -281,17 +281,12 @@ namespace MetFEM{
 
   if (contact){
     //MeshUpdate(this->trimesh,dt);
-    printf("mesh move\n");
   trimesh->Move( dt);
-  printf("centroids\n");
 	trimesh->CalcCentroids();
-  printf("normals\n");
   trimesh->CalcNormals();
-  
-	//trimesh->CalcSpheres();
-  printf("plane coeffs\n");
+
   trimesh->UpdatePlaneCoeff();
-  printf("done\n");  
+
   }
   // call impose_bcv !!!REINFORCE VELOCITY BC
 

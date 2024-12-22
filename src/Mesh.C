@@ -151,7 +151,7 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
 				double3 v = ( node_h[elcon[e][0]] + node_h[elcon[e][1]] + node_h[elcon[e][2]] ) / 3. ;
 				//element[el] -> centroid = v; 
 				centroid_h[el] = v;
-				//printf( "Centroid" << element[el] -> centroid << endl;
+				//printf( "Centroid element %d = %f %f %f\n" ,el,v.x,v.y,v.z);
 				el++;
 			}
 		}// i for

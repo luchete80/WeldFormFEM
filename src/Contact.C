@@ -105,7 +105,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
           e = j;
         }
       }
-      printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, e );
+     //printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, e );
         
          
     
@@ -121,7 +121,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
       double K;
       
     if (min_dist<0){
-      printf("neg dist \n");
+      printf("---------------------NEG DIST  \n");
         // calcul de la composante normale de la force
   //  force=(node->mass*delta/SQ(timeStep))*pside->normal;
   //  Fn=(node->mass*delta/SQ(timeStep))*pside->normal;
