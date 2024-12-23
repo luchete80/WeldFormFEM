@@ -498,7 +498,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   }
   
   cout << "Mesh created. Element count: "<< nel[0]<<", "<<nel[1]<<", "<<nel[2]<<endl;
-  
+  cout << "Element nodes size "<<ne<<endl;
   //thisAllocateNodes((nel[0] +1) * (nel[1]+1) * (nel[2]+1));
     // print *, "Element count in XYZ: ", nel(:)
     // write (*,*) "Box Node count ", node_count
@@ -654,6 +654,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               //3,7,4,6
               
               for (int sub=0;sub<6;sub++) {
+                cout << "sub "<<sub<<endl;
                 elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
                 elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
                 elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
@@ -672,7 +673,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		}//if dim 
     cout << "Done." <<endl;
     
-    cout << "Allocating"<<endl;
+    cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
     ///// FOR DIFFERENT ELMENT NODE COUNT
     int *m_nodxelem_eh  = new int [m_elem_count];
     int *m_elnodoffset_h = new int [m_elem_count];
@@ -691,6 +692,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     
     //cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));	
     malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
+    cout << "COPYING "<<m_elem_count * m_nodxelem<< " element nodes "<<endl;
 		memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem); 
     
     // printf("ELNOD \n");
