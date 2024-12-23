@@ -43,8 +43,10 @@ namespace MetFEM{
 
 class TriMesh_d;
 class VTKWriter;
+class VTUWriter;
 class Domain_d {
   friend class VTKWriter;
+  friend class VTUWriter;
 public:
   Domain_d (std::string);
   Domain_d (){

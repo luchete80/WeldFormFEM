@@ -47,8 +47,8 @@ int main(){
   double3 V = make_double3(0.0,0.0,0.0);
   double dx = 0.006;
   double Lx = 0.1	;
-  double Ly = 0.024;
-  double Lz = 0.012;
+  double Ly = 0.012;
+  double Lz = 0.024;
 	double3 L = make_double3(Lx,Ly,Lz);
   
   //dom_d->Nproc = 8;
@@ -152,7 +152,7 @@ int main(){
   //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
   cout <<"Creating plane mesh..."<<endl;
  //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-  msh->AxisPlaneMesh(2, false, make_double3(0,0,0.012), make_double3 (1,1,0.012),  2);
+  msh->AxisPlaneMesh(2, false, make_double3(0.09,-0.005,0.024), make_double3 (.11,0.0015,0.024),  2);
   msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
   cout <<"Done"<<endl;
   msh->SetVel(make_double3(0.0,0.,-0.48));

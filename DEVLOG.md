@@ -194,3 +194,5 @@ F90 PREVIOUS VERSION
          - Removed BC movements to beam contact example
          - Fixed beam contact example element normals (were inverted)
          - Allocated and calculated contforce
+20241223 - Added VTK format (no html, to include contact meshes)
+         - Fixed beam contact example 

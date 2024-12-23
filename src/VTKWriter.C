@@ -8,7 +8,7 @@ using namespace std;
 
 namespace MetFEM{
 
-VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
+VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   //type definition to shorten coding
 
 	//Writing Inputs in a Log file
@@ -175,7 +175,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 }
 
 
-/*
+
 VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //type definition to shorten coding
 
@@ -191,23 +191,19 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss <<  "POINTS ";
   
   
-
-  m_oss <<  "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">"<<endl;
-  m_oss <<  "  <UnstructuredGrid>"<<endl;
   // FOR NOT RETURN CARRIAGE
   int nc = dom->m_node_count;
   if (dom->isContactOn())
     nc += dom->getTriMesh()->nodecount;
-
-  int ne = dom->m_elem_count;
-  if (dom->isContactOn())
-    ne += dom->getTriMesh()->elemcount;
-  m_oss <<  "    <Piece NumberOfPoints=\"" <<nc<< "\" NumberOfCells=\""<< ne <<"\">"<<endl;  //Note that an explicit format descriptor is needed when using
-  //write (1, '(A,2x,I5)') '<Piece NumberOfPoints="'
-  m_oss << "      <Points>"<<endl;
-  m_oss << "        <DataArray type=\"Float32\" Name=\"Position\" NumberOfComponents=\"3\" Format=\"ascii\">"<<endl;
-
   
+  m_oss << nc << "float "<<endl;
+  
+  int ne = dom->m_elem_count;
+  if (dom->isContactOn()){
+    ne += dom->getTriMesh()->elemcount;
+  } 
+  
+  //cout << "Writing nodes "<<endl;
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3(i);
@@ -221,40 +217,65 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     //printf("         %f %f %f \n", x.x,x.y,x.z);
   }
   if (dom->isContactOn()){
+    cout << "Contact on"<<endl;
     for (int n=0;n<dom->getTriMesh()->nodecount;n++){
       vector_t x = dom->getTriMesh()->node[n];
       m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;      
       }
     }
  
-  m_oss << "         </DataArray>"<<endl;
-  m_oss << "       </Points>"<<endl;
+  //TODO: MODIFY IF NOT TRIAS
   
-  m_oss << "       <Cells>" <<endl;
-  m_oss << "         <DataArray type=\"Int32\" Name=\"connectivity\" Format=\"ascii\">"<<endl;
-
+  m_oss << "CELLS "<<ne<<" ";
+  
+  int items =  (dom->m_nodxelem+1)*dom->m_elem_count ; //MODIFY WHEN NODXELEM NOT UNIFORM
+  
+  if (dom->isContactOn())
+    items += 4 * dom->getTriMesh()->elemcount;
+  
+  m_oss << items << endl;
+  
+  //cout << "Writing cells "<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
-    m_oss << "         ";
+    m_oss << dom->m_nodxelem<<" ";
     for (int en=0;en<dom->m_nodxelem;en++){
       m_oss <<dom->elnod_h[dom->m_nodxelem*e+en] <<" ";
     }
     m_oss << endl;
   }
   
+  int in = dom->getNodeCount();
   if (dom->isContactOn()){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
-    m_oss << "         ";
+      m_oss << 3 <<" ";
       for (int en=0;en<3;en++){
-        m_oss << dom->getTriMesh()->elnode[3*e+en]<<" ";
+        m_oss << dom->getTriMesh()->elnode[3*e+en]+in<<" ";
       }      
       m_oss << endl;  
     }
   }
   
-  m_oss <<  ""; // END OF LINE
-  m_oss <<  "        </DataArray>"<<endl;
-  m_oss <<  "        <DataArray type=\"Int32\" Name=\"offsets\" Format=\"ascii\">"<<endl;
+  m_oss << "CELL_TYPES "<<ne<<endl;
+  for (int e=0;e<dom->m_elem_count;e++){
+    if (dom->m_dim==2){ //TODO: CHANGE 
+      m_oss <<  "9 ";
+    }else if (dom->m_dim==3){
+      if (dom->m_nodxelem==8)
+        m_oss <<  "12 ";
+      else
+        m_oss <<  "10 ";
+    }
+
+    m_oss <<endl;
+  }
+  if (dom->isContactOn()){
+    for (int e=0;e<dom->getTriMesh()->elemcount;e++){
+      m_oss <<  "5 "<<endl;
+    }
+  }
   
+  
+/*
   //TODO: CREATE A VERSION OF OFFSET
   int offs = dom->m_nodxelem;
   for (int e=0;e<dom->m_elem_count;e++){
@@ -347,10 +368,18 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss << "    </Piece>" <<endl;
   m_oss << "  </UnstructuredGrid>" <<endl;
   m_oss << "</VTKFile>" <<endl;
-  
+  */
   
 }
-*/
+
+
+void VTUWriter::writeFile(){
+  string fn(m_fname);
+  //fn.append("_log.dat");
+	std::ofstream of(fn.c_str(), std::ios::out);
+	of << m_oss.str();
+	of.close();
+}
 
 void VTKWriter::writeFile(){
   string fn(m_fname);
@@ -359,6 +388,7 @@ void VTKWriter::writeFile(){
 	of << m_oss.str();
 	of.close();
 }
+
 
 
 };
