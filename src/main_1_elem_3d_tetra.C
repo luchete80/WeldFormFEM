@@ -30,7 +30,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 int main(){
 
   int dim = 3;
-  double tf = 1.0e-3;
   
 	Domain_d *dom_d;
 
@@ -43,25 +42,20 @@ int main(){
   #endif
 	
   double3 V = make_double3(0.0,0.0,0.0);
-  double dx = 0.006;
-  double Lx = 0.1	;
-  double Ly = 0.024;
-  double Lz = 0.012;
-	double3 L = make_double3(Lx,Ly,Lz);
-  
-  //dom_d->Nproc = 8;
-  dom_d->setNproc(8);
-  
-	double r = dx/2.0;
+  double dx = 0.1;
+	double3 L = make_double3(dx,dx,dx);
+
+  if (dim ==2) L.z = 0.0;
+	double r = 0.05;
 	
 	dom_d->AddBoxLength(V,L,r,true);
  
 
   ////// MATERIAL  
   double E, nu, rho;
-  E   = 70.0e9;
+  E   = 206.0e9;
   nu  = 0.3;
-  rho = 2700.0;
+  rho = 7850.0;
   
 
   
@@ -137,37 +131,39 @@ int main(){
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
   // } else                              printf("ERROR: Invalid material type.
 
-	double dt = 0.4* dx/(mat_cs);
-  //double dt = 0.800e-5;
+	//double dt = 0.7 * dx/(mat_cs);
+  double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (5.e-3);
-  //dom_d->SetEndTime (1000.0*dt);
+  dom_d->SetEndTime (1.0e-3);
+  //dom_d->SetEndTime (50.0*dt);
   
+  if (dim == 3){
+  //// ORIGINAL
+  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  dom_d->AddBCVelNode(0,2,0);
+                               dom_d->AddBCVelNode(1,1,0);  dom_d->AddBCVelNode(1,2,0);  
+  dom_d->AddBCVelNode(2,0,0);                               dom_d->AddBCVelNode(2,2,0);
+                                                            dom_d->AddBCVelNode(3,2,0);
+  
+  for (int i=0;i<4;i++) dom_d->AddBCVelNode(i+4,2,-1.0);
 
-  int fixcount =0;
-  int velcount =0;
-  for (int i=0;i<dom_d->getNodeCount();i++){
-    
-    if (dom_d->getPosVec3(i).x <r/2.0) {
-      for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-      fixcount++;
-      cout << "node "<< i<<" fixed "<<endl;
-    }
-    
-    if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(i,1,-0.48);
-      cout << "Node "<<i <<" vel "<<endl;
-      velcount++;
-    }      
+
+ //for (int i=0;i<8;i++) dom_d->AddBCVelNode(i,1,0.0); //PLAIN STRAIN
+  
+  
+  
+  
+  
+  } else {
+  dom_d->AddBCVelNode(0,0,0);  dom_d->AddBCVelNode(0,1,0);  
+                               dom_d->AddBCVelNode(1,1,0);                                  
+                                                            
+  
+  dom_d->AddBCVelNode(2,1,-1.0);      dom_d->AddBCVelNode(2,1,-1.0);    
     
   }
-  cout << "FIXED "<<fixcount<< " NODES"<<endl;  
-  cout << "VEL  "<<velcount<< " NODES"<<endl;  
-  
   //AFTER THIS CALL
   dom_d->AllocateBCs();
-  
- 
+    
 
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
 	dom_d->SolveChungHulbert ();

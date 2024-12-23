@@ -140,7 +140,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
     //REDYNELAfiniteELement/contact.C
   //computetangentialForce(fn, Ft);
               double3 cf =  - 2.0 * m_mdiag[i] * delta * trimesh->normal[j]/(dt*dt);
-              //printf("CF %f %f %f\n",cf.x,cf.y,cf.z);
+              printf("CF %f %f %f\n",cf.x,cf.y,cf.z);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE

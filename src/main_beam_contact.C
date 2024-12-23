@@ -142,8 +142,8 @@ int main(){
 	double dt = 0.7* dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.e-3);
-  dom_d->SetEndTime (10*dt);
+  dom_d->SetEndTime (1.e-2);
+  //dom_d->SetEndTime (10*dt);
   cout << "Searching external nodes"<<endl;
   dom_d->SearchExtNodes();
   
@@ -152,7 +152,7 @@ int main(){
   //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
   cout <<"Creating plane mesh..."<<endl;
  //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-  msh->AxisPlaneMesh(2, false, make_double3(0.09,-0.005,0.024), make_double3 (.11,0.0015,0.024),  2);
+  msh->AxisPlaneMesh(2, false, make_double3(0.095,-0.005,0.024), make_double3 (.115,0.0015,0.024),  2);
   msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
   cout <<"Done"<<endl;
   msh->SetVel(make_double3(0.0,0.,-0.48));

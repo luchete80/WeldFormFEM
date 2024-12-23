@@ -627,13 +627,17 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
         int nnodz = (nel[0]+1)*(nel[1]+1);
         
+        //////https://www.researchgate.net/publication/329270810_There_are_174_subdivisions_of_the_hexahedron_into_tetrahedra
+        //////FIGURE 9
+        
         for (int ez = 0; ez < nel[2];ez++){
           for (int ey = 0; ey < nel[1];ey++){
             for (int ex = 0; ex < nel[0];ex++){
-
+            
               int nb1 = nnodz*ez + (nel[0]+1) *  ey    + ex;
               int nb2 = nnodz*ez + (nel[0]+1) * (ey+1) + ex;   
-              int nhex[] = {nb1, nb1+1, nb2+1, nb2, nb1 + nnodz,nb1 + nnodz,+1,nb2 + nnodz + 1, nb2 + nnodz};
+              int nhex[] = {nb1,         nb1+1,        nb2+1, nb2, 
+                            nb1 + nnodz, nb1 + nnodz+1,nb2 + nnodz + 1, nb2 + nnodz};
               //1st valid decomp
               //0,1,3,4
               //1,3,4,5
@@ -649,12 +653,17 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               //1,3,7,6
               //3,7,4,6
               
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[3];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[4]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[7];elnod_h[ei+2] = nhex[5];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[3];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[3];elnod_h[ei+1] = nhex[7];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
+              for (int sub=0;sub<6;sub++) {
+                elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+                elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+                elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+                elnod_h[ei] = nhex[4];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+                elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+                elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[6];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+              
+                ei += m_nodxelem;
+              }
+              
             }
           }
         }
