@@ -48,7 +48,9 @@ int main(){
   if (dim ==2) L.z = 0.0;
 	double r = 0.05;
 	
-	dom_d->AddBoxLength(V,L,r,true);
+	dom_d->AddBoxLength(V,L,r,true, true);
+  
+  //void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra)
  
 
   ////// MATERIAL  

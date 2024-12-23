@@ -118,6 +118,20 @@ ENDIF()
 #                       VTKWriter.C
 #             )             
 
+ add_executable(1elem_tetra
+                        main_1_elem_3d_tetra.C
+                        Contact.C
+                        Domain_d.C
+                        Matrices.C
+                        Mechanical.C
+                        Matrices.C
+                        Solver.C
+
+                        VTKWriter.C
+
+              )
+
+
 add_executable(beam
                        main_beam.C
                        Contact.C
