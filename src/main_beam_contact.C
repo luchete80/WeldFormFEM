@@ -142,8 +142,8 @@ int main(){
 	double dt = 0.7* dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (1.e-3);
-  //dom_d->SetEndTime (1000.0*dt);
+  //dom_d->SetEndTime (1.e-3);
+  dom_d->SetEndTime (10*dt);
   cout << "Searching external nodes"<<endl;
   dom_d->SearchExtNodes();
   

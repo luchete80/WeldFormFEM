@@ -59,7 +59,8 @@ public:
   void CreateFromLSDyna(const LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
-  inline vector_t getPosVec(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  inline vector_t getPosVec (const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  inline vector_t getPosVec3(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);}; //the same
   #else
   inline double2 getPosVec2(const int &n){
     return make_double2(x[m_dim*n], x[m_dim*n+1]);
