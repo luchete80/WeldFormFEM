@@ -637,7 +637,11 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               int nb1 = nnodz*ez + (nel[0]+1) *  ey    + ex;
               int nb2 = nnodz*ez + (nel[0]+1) * (ey+1) + ex;   
               int nhex[] = {nb1,         nb1+1,        nb2+1, nb2, 
-                            nb1 + nnodz, nb1 + nnodz+1,nb2 + nnodz + 1, nb2 + nnodz};
+                                          nb1 + nnodz, nb1 + nnodz+1,nb2 + nnodz + 1, nb2 + nnodz};
+              cout << "HEXA NODES "<<endl;
+              for (int i=0;i<8;i++)
+                cout << nhex[i]<<" ";
+              cout <<endl;
               //1st valid decomp
               //0,1,3,4
               //1,3,4,5
@@ -653,17 +657,18 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               //1,3,7,6
               //3,7,4,6
               
-              for (int sub=0;sub<6;sub++) {
-                cout << "sub "<<sub<<endl;
-                elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
-                elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
-                elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-                elnod_h[ei] = nhex[4];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-                elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-                elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[6];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[4];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[6];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
               
-                ei += m_nodxelem;
-              }
+              nodel_count_h[nhex[0]] +=2;nodel_count_h[nhex[1]] +=2;   nodel_count_h[nhex[2]] +=2; nodel_count_h[nhex[3]] +=6;
+              nodel_count_h[nhex[4]] +=2;nodel_count_h[nhex[5]] +=6;   nodel_count_h[nhex[6]] +=2; nodel_count_h[nhex[7]] +=2;                
+              
+              
               
             }
           }
@@ -671,6 +676,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         
       }/////TRITETRA
 		}//if dim 
+    
     cout << "Done." <<endl;
     
     cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
@@ -710,8 +716,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     for (int n=0;n<m_node_count;n++){
       nodel_offset_h[n] = nodel_tot;
       nodel_tot        += nodel_count_h[n];
-      //cout << "NodEL tot " << nodel_tot<<endl;
-      //cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+      cout << "NodEL tot " << nodel_tot<<endl;
+      cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
 
     }
     cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
