@@ -867,13 +867,14 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
         vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]); 
         x2->Set(i,0,x_.x); x2->Set(i,1,x_.y);        
         x2->Set(i,2,x_.z);
+       
       }
 
         
       
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
-  //printf("x2\n");x2->Print();
+  printf("x2\n");x2->Print();
   //printf("m_gp_count %d\n",m_gp_count);
     //printf("Calculating jacobian\n");
     if (m_gp_count == 1 ) {      
@@ -960,19 +961,22 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           } else if (m_nodxelem==4){ //TETRA
             //N1 = r, N2 = s, N3 = t, N4 = 1 - r - s - t, with the 
-            //dHdrs [1,0,0,-1;  0,1,0,-1, 0,0,1,-1] x X1 Y1 Z1
-            //                                        X2 Y2 Z2
+            //dHdrs [1,0,0,-1]x  X1 Y1 Z1
+            //       0,1,0,-1, 
+            //       0,0,1,-1] x X3 Y3 Z3
+            //                   x4 Y4 Z4
+            //J(0,d) =d1-d4, J(0,1)= 
             for (int d=0;d<m_dim;d++){
-              jacob->Set(0,d,x2->getVal(0,d)-x2->getVal(3,d) ); 
-              jacob->Set(0,d,x2->getVal(1,d)-x2->getVal(3,d) );            
-              jacob->Set(0,d,x2->getVal(2,d)-x2->getVal(3,d) );      
+              jacob->Set(0,d,x2->getVal(0,d)-x2->getVal(3,d) ); //d1-d4
+              jacob->Set(1,d,x2->getVal(1,d)-x2->getVal(3,d) );            
+              jacob->Set(2,d,x2->getVal(2,d)-x2->getVal(3,d) );      
             }
             //USE ADJ TO NOT DIVIDE BY DET
             AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
             //printf(" J ptr\n");
             //jacob->Print();
-            //printf("ADJ J ptr\n");
-            //inv_j->Print();          //printf("jacob\n");jacob->Print();
+            printf("ADJ J ptr\n");
+            inv_j->Print();          //printf("jacob\n");jacob->Print();
             //invj ((d,X) x dHdrs [1,0,0,-1;  
             //                     0,1,0,-1;
             //                     0,0,1,-1]
@@ -990,7 +994,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       } // end if  !!!!DIM
       
       m_detJ[offset] = jacob->calcDet();
-      //printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
+      printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
       // elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     } else { //!!!!! GP > 1
 			

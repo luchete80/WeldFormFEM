@@ -196,3 +196,4 @@ F90 PREVIOUS VERSION
          - Allocated and calculated contforce
 20241223 - Added VTK format (no html, to include contact meshes)
          - Fixed beam contact example 
+20241225 - Fixed tetra jacobian calc
