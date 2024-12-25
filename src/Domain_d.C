@@ -973,8 +973,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             }
             //USE ADJ TO NOT DIVIDE BY DET
             AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
-            //printf(" J ptr\n");
-            //jacob->Print();
+            printf(" J ptr\n");
+            jacob->Print();
             printf("ADJ J ptr\n");
             inv_j->Print();          //printf("jacob\n");jacob->Print();
             //invj ((d,X) x dHdrs [1,0,0,-1;  
