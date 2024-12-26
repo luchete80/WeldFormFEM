@@ -197,3 +197,5 @@ F90 PREVIOUS VERSION
 20241223 - Added VTK format (no html, to include contact meshes)
          - Fixed beam contact example 
 20241225 - Fixed tetra jacobian calc
+20241227 - Fixed connectivity of tetra, and shape function calc
+         - Fixed also global derivative matrix

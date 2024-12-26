@@ -134,10 +134,10 @@ int main(){
   // } else                              printf("ERROR: Invalid material type.
 
 	//double dt = 0.7 * dx/(mat_cs);
-  double dt = 0.800e-5;
+  double dt = 0.500e-5;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (1.0*dt);
+  dom_d->SetEndTime (1.0e-3);
+  //dom_d->SetEndTime (1.0*dt);
   
   if (dim == 3){
   //// ORIGINAL

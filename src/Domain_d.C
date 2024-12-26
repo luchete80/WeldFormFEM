@@ -660,10 +660,10 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
               elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[1];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
               elnod_h[ei] = nhex[1];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[5]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[4];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[4];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[7];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
-              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[6];elnod_h[ei+3] = nhex[3]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[0];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[4]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[4];elnod_h[ei+1] = nhex[5];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[6];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[7]; ei += m_nodxelem;
+              elnod_h[ei] = nhex[5];elnod_h[ei+1] = nhex[2];elnod_h[ei+2] = nhex[3];elnod_h[ei+3] = nhex[6]; ei += m_nodxelem;
               
               nodel_count_h[nhex[0]] +=2;nodel_count_h[nhex[1]] +=2;   nodel_count_h[nhex[2]] +=2; nodel_count_h[nhex[3]] +=6;
               nodel_count_h[nhex[4]] +=2;nodel_count_h[nhex[5]] +=6;   nodel_count_h[nhex[6]] +=2; nodel_count_h[nhex[7]] +=2;                
@@ -918,7 +918,9 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             jacob->Set(1,d,(x2->getVal(1,d)-x2->getVal(2,d)));          
           }
           AdjMat(*jacob, inv_j);
-          //invj x dHdrs [1,0,-1;  -0,1,-1]
+          //invj x dHdrs [-1, 1, 0,-1;  
+          //              -1, 0, 1, 0]
+          //                  
           for (int d=0;d<2;d++){    //col of dHdrs     
             dHxy_detJ_loc->Set(d,0,(inv_j->getVal(d,0)));   //row 1 of jacobian  
             dHxy_detJ_loc->Set(d,1,(inv_j->getVal(d,1)));     
@@ -960,32 +962,37 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           } else if (m_nodxelem==4){ //TETRA
-            //N1 = r, N2 = s, N3 = t, N4 = 1 - r - s - t, with the 
-            //dHdrs [1,0,0,-1]x  X1 Y1 Z1
-            //       0,1,0,-1, 
-            //       0,0,1,-1] x X3 Y3 Z3
+            printf("Element %d\n",e);
+            //1 - r - s - t, N2 = r, N3 = s, N4 = t, 
+            //dHdrs [h1'r, h2,r]
+            //      [h1's,
+            //dHdrs [-1,1,0,0]x  X1 Y1 Z1
+            //       -1,0,1,0, x X2 Y2 Z2
+            //       -1,0,0,1] x X3 Y3 Z3
             //                   x4 Y4 Z4
             //J(0,d) =d1-d4, J(0,1)= 
+            //J =dr/dx
             for (int d=0;d<m_dim;d++){
-              jacob->Set(0,d,x2->getVal(0,d)-x2->getVal(3,d) ); //d1-d4
-              jacob->Set(1,d,x2->getVal(1,d)-x2->getVal(3,d) );            
-              jacob->Set(2,d,x2->getVal(2,d)-x2->getVal(3,d) );      
+              jacob->Set(0,d,x2->getVal(1,d)-x2->getVal(0,d) ); //d1-d4
+              jacob->Set(1,d,x2->getVal(2,d)-x2->getVal(0,d) );            
+              jacob->Set(2,d,x2->getVal(3,d)-x2->getVal(0,d) );      
             }
             //USE ADJ TO NOT DIVIDE BY DET
+            //dHdr = dH/dr dr/dx
             AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
             printf(" J ptr\n");
             jacob->Print();
             printf("ADJ J ptr\n");
             inv_j->Print();          //printf("jacob\n");jacob->Print();
-            //invj ((d,X) x dHdrs [1,0,0,-1;  
-            //                     0,1,0,-1;
-            //                     0,0,1,-1]
+            //invj ((d,X) x dHdrs [-1,1,0,0;  
+            //                     -1,0,1,0;
+            //                     -1,0,0,1]
             for (int d=0;d<m_dim;d++){    
               /////ROWS OF INVJ
-              dHxy_detJ_loc->Set(d,0, inv_j->getVal(d,0) );     
-              dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,1) );     
-              dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,2) );     
-              dHxy_detJ_loc->Set(d,3,-inv_j->getVal(d,0)-inv_j->getVal(d,1)+inv_j->getVal(d,2));     
+              dHxy_detJ_loc->Set(d,0,-inv_j->getVal(d,0)-inv_j->getVal(d,1)-inv_j->getVal(d,2));   
+              dHxy_detJ_loc->Set(d,1, inv_j->getVal(d,0) );     
+              dHxy_detJ_loc->Set(d,2, inv_j->getVal(d,1) );     
+              dHxy_detJ_loc->Set(d,3, inv_j->getVal(d,2) );     
             }
 
           }//TETRA
@@ -1123,8 +1130,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           
     //printf("jacob\n");
     //jacob->Print();
-    //printf("dHdx x detJ\n");
-    //dHxy_detJ_loc->Print();
+    printf("dHdx x detJ\n");
+    dHxy_detJ_loc->Print();
 		//printf("END.\n");
     delete x2; //DEFINED ON EACH BLOCK!
       delete inv_j, jacob,dHxy_detJ_loc;
