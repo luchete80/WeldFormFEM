@@ -53,8 +53,9 @@ int main(){
   dom_d->setNproc(8);
   
 	double r = dx/2.0;
-	
-	dom_d->AddBoxLength(V,L,r,true);
+
+  bool tetra = true;	
+	dom_d->AddBoxLength(V,L,r,true, true);
  
 
   ////// MATERIAL  
@@ -62,7 +63,6 @@ int main(){
   E   = 70.0e9;
   nu  = 0.3;
   rho = 2700.0;
-  
 
   
   dom_d->setDensity(rho);
