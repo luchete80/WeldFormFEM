@@ -57,7 +57,7 @@ int main(){
   bool tetra = true;	
 	dom_d->AddBoxLength(V,L,r,true, tetra);
  
-
+  
   ////// MATERIAL  
   double E, nu, rho;
   E   = 70.0e9;
@@ -68,6 +68,7 @@ int main(){
   dom_d->setDensity(rho);
   
   cout << "Creating Material..:"<<endl;
+  
   Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
   Elastic_ el(E,nu);
   // cout << "Mat type  "<<mattype<<endl;
@@ -94,7 +95,7 @@ int main(){
   // elem%cs(:) = mat_cs
   
   // dt = 0.7 * dx/(mat_cs)
-  
+  cout << "Setting materials"<<endl;
   string mattype = "Bilinear";
   if      (mattype == "Bilinear")    {
     Ep = E*c[0]/(E-c[0]);		                              //only constant is tangent modulus
@@ -143,7 +144,7 @@ int main(){
   dom_d->SetEndTime (1.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
-
+  cout << "Setting BCs"<<endl;
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){

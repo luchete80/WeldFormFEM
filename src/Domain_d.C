@@ -237,7 +237,7 @@ dev_t void Domain_d::AssignMatAddress(){
 
 ///// MAKE TEMPLATE SET VECTOR
 void Domain_d::setDensity(const double &r){
-  double *rho_h = new double [m_node_count];
+  double *rho_h = new double [m_elem_count];
   for (int n=0;n<m_elem_count;n++) rho_h[n] = r;
   memcpy_t(this->rho_0, rho_h, sizeof(double) * m_elem_count);    
   
