@@ -724,7 +724,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		int *nodel_h       = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT
     int *nodel_loc_h   = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT    
     
-    //for (int n=0;n<m_node_count;n++)  nodel_count_h[n] = 0;    
+    //Reset nodelcount (is incremented latere)
+    for (int n=0;n<m_node_count;n++)  nodel_count_h[n] = 0;    
     
     //ALLOCATE NODEL, WHICH ARE ELEMEENTS SHARED BY A NODE
     //THIS IS FOR MORE EFFICIENT ELEMENTFORCES  ASSEMBLY
@@ -738,7 +739,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         nodel_h     [nodel_offset_h[n] + nodel_count_h[n]] = e;
         nodel_loc_h [nodel_offset_h[n] + nodel_count_h[n]] = ne;
         
-        //nodel_count_h[n]++;
+        nodel_count_h[n]++;
       }//nod x elem 
     }
 
