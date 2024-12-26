@@ -734,7 +734,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       int offset = m_nodxelem * e;
       for (int ne=0;ne<m_nodxelem;ne++){
         int n = elnod_h[offset+ne];
-        if (nodel_offset_h[n] + nodel_count_h[n] > m_node_count)
+        if (nodel_offset_h[n] + nodel_count_h[n] > nodel_tot)
           cout << "ERRROR in node index,index "<<nodel_offset_h[n] + nodel_count_h[n]<<", node "<<n<<"element "<<e<<endl;
         nodel_h     [nodel_offset_h[n] + nodel_count_h[n]] = e;
         nodel_loc_h [nodel_offset_h[n] + nodel_count_h[n]] = ne;
@@ -880,7 +880,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
-  printf("x2\n");x2->Print();
+ // printf("x2\n");x2->Print();
   //printf("m_gp_count %d\n",m_gp_count);
     //printf("Calculating jacobian\n");
     if (m_gp_count == 1 ) {      
@@ -968,7 +968,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
           // // elem%dHxy_detJ(e,gp,:,:) = elem%dHxy_detJ(e,gp,:,:) * 0.125d0    
           } else if (m_nodxelem==4){ //TETRA
-            printf("Element %d\n",e);
+            //printf("Element %d\n",e);
             //1 - r - s - t, N2 = r, N3 = s, N4 = t, 
             //dHdrs [h1'r, h2,r]
             //      [h1's,
@@ -986,10 +986,10 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
             //USE ADJ TO NOT DIVIDE BY DET
             //dHdr = dH/dr dr/dx
             AdjMat(*jacob, inv_j); //NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
-            printf(" J ptr\n");
-            jacob->Print();
-            printf("ADJ J ptr\n");
-            inv_j->Print();          //printf("jacob\n");jacob->Print();
+            //printf(" J ptr\n");
+            //jacob->Print();
+            //printf("ADJ J ptr\n");
+            //inv_j->Print();          //printf("jacob\n");jacob->Print();
             //invj ((d,X) x dHdrs [-1,1,0,0;  
             //                     -1,0,1,0;
             //                     -1,0,0,1]
@@ -1007,7 +1007,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       } // end if  !!!!DIM
       
       m_detJ[offset] = jacob->calcDet();
-      printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
+      //printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
       // elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     } else { //!!!!! GP > 1
 			
@@ -1136,8 +1136,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
           
     //printf("jacob\n");
     //jacob->Print();
-    printf("dHdx x detJ\n");
-    dHxy_detJ_loc->Print();
+    //printf("dHdx x detJ\n");
+    //dHxy_detJ_loc->Print();
 		//printf("END.\n");
     delete x2; //DEFINED ON EACH BLOCK!
       delete inv_j, jacob,dHxy_detJ_loc;

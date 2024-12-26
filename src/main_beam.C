@@ -54,8 +54,8 @@ int main(){
   
 	double r = dx/2.0;
 
-  bool tetra = true;	
-	dom_d->AddBoxLength(V,L,r,true, true);
+  bool tetra = false;	
+	dom_d->AddBoxLength(V,L,r,true, tetra);
  
 
   ////// MATERIAL  
@@ -140,7 +140,7 @@ int main(){
 	double dt = 0.4* dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (5.e-3);
+  dom_d->SetEndTime (1.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
 
