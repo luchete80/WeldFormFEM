@@ -100,7 +100,7 @@ namespace MetFEM{
 
   
   Time = 0.0;
-  
+ 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,33 +340,33 @@ namespace MetFEM{
 	cudaDeviceSynchronize();
   #else
   calcElemStrainRates();
-  /*
-  printf("DISPLACEMENTS\n");
-  printVec(this->u);   
-
-  printf("VELOCITIES\n");
-  printVec( this->v);
-
-  printf("ACCEL\n");
-	printVec(this->a); 
   
-  printf("FORCES\n");
-  printVec(this->m_fi);
+  // printf("DISPLACEMENTS\n");
+  // printVec(this->u);   
 
-  printf("STRESSES\n");
-  printSymmTens(this->m_sigma);
+  // printf("VELOCITIES\n");
+  // printVec( this->v);
 
-  printf("SHEAR STRESS\n");
-  printSymmTens(this->m_tau);
-
-  printf("STRAIN RATES\n");
-  printSymmTens(this->m_str_rate);
+  // printf("ACCEL\n");
+	// printVec(this->a); 
   
-  printf("ROT RATES\n");
-  printSymmTens(this->m_rot_rate);
-  */
+  // printf("FORCES\n");
+  // printVec(this->m_fi);
+
+  // printf("STRESSES\n");
+  // printSymmTens(this->m_sigma);
+
+  // printf("SHEAR STRESS\n");
+  // printSymmTens(this->m_tau);
+
+  // printf("STRAIN RATES\n");
+  // printSymmTens(this->m_str_rate);
+  
+  // printf("ROT RATES\n");
+  // printSymmTens(this->m_rot_rate);
+  
   #endif
-
+  
   VTUWriter writer(this, "out.vtu");
   writer.writeFile();
 
@@ -374,5 +374,5 @@ namespace MetFEM{
   writer2.writeFile();
   
   }//SOLVE
-	
+    
 };
