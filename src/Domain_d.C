@@ -219,6 +219,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(contforce, double,node_count*m_dim);
   
   m_contsurf_count = 0;
+
+  //plastic
+  malloc_t (pl_strain, double, m_elem_count * m_gp_count);
   
 }
 

@@ -236,6 +236,8 @@ protected:
   
 	double 					*p, *rho, *rho_0;
   
+  double          *pl_strain;
+  
   
   double          dt, end_t;
   
