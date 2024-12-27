@@ -545,6 +545,18 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
 
       ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS);
+      
+      double J2 = 0.5*(ShearStress.xx*ShearStress.xx +  2.0*ShearStress.xy*ShearStress.xy + 
+                                      2.0*ShearStress.xz*ShearStress.xz + 
+                     ShearStress.yy*ShearStress.yy+  
+                                      2.0*ShearStress.yz*ShearStress.yz +               
+                     ShearStress.zz*ShearStress.zz                 
+                                     
+                    );
+      double sig_trial = sqrt(3.0*J2);
+      if (sigma_y[e]<sig_trial){
+        
+      }
       //printf("Shear Stress\n");
       //print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &

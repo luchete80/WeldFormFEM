@@ -222,7 +222,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   //plastic
   malloc_t (pl_strain, double, m_elem_count * m_gp_count);
-  
+  malloc_t (sigma_y, double, m_elem_count * m_gp_count);  
 }
 
 
