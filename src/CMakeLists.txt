@@ -97,16 +97,17 @@ ENDIF()
               # )
 
 # add_executable(1elem
-                        # main_1_elem_3d.C
-                        # Domain_d.C
-                        # Matrices.C
-                        # Mechanical.C
-                        # Matrices.C
-                        # Solver.C
+#                         main_1_elem_3d.C
+#                         Contact.C
+#                         Domain_d.C
+#                         Matrices.C
+#                         Mechanical.C
+#                         Matrices.C
+#                         Solver.C
+#
+#                         VTKWriter.C
 
-                        # VTKWriter.C
-
-              # )
+#               )
 
 #add_executable(4elem
 #                       main_4_elem_3d.C
@@ -118,18 +119,18 @@ ENDIF()
 #                       VTKWriter.C
 #             )             
 
- add_executable(1elem_tetra
-                        main_1_elem_3d_tetra.C
-                        Contact.C
-                        Domain_d.C
-                        Matrices.C
-                        Mechanical.C
-                        Matrices.C
-                        Solver.C
+# add_executable(1elem_tetra
+#                        main_1_elem_3d_tetra.C
+#                        Contact.C
+#                        Domain_d.C
+#                        Matrices.C
+#                        Mechanical.C
+#                        Matrices.C
+#                        Solver.C
+#
+#                        VTKWriter.C
 
-                        VTKWriter.C
-
-              )
+#              )
 
 
 add_executable(beam
