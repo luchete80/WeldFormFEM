@@ -64,38 +64,41 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
 }
 
 
-  // dev_t void Domain_d::assemblyForces(){
+/*
+ dev_t void Domain_d::assemblyForces(){
 
-    // //if ()
-    // for (int n=0; n<m_node_count;n++) {
-      // for (int d=0;d<m_dim;d++)
-        // m_fi[n*m_dim + d] = 0.0;
-    // }
-    
-  // //par_loop(e, m_elem_count){
-
-
-          
-      // for (int e=0; e<m_elem_count;e++) {
-        // ////printf("glob %d, loc %d \n",n,ne);
-        // for (int ne=0;ne<m_nodxelem;ne++){
-          // int nglob = m_elnod[e * m_nodxelem+ne];
-          // int offset  = e * m_nodxelem * m_dim + ne*m_dim;
-          // for (int d=0;d<m_dim;d++){
-
-            // //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
-            // m_fi[3*nglob + d ] +=  m_f_elem[offset + d]
-                                          // - m_f_elem_hg[offset + d];
-          // }
-        // }
-      // }
-
-      // //printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
-    // //} // element
-
-  // }//assemblyForcesNonLock
+   //if ()
+   for (int n=0; n<m_node_count;n++) {
+     for (int d=0;d<m_dim;d++)
+       m_fi[n*m_dim + d] = 0.0;
+   }
+  
+ par_loop(e, m_elem_count){
 
 
+        
+     for (int e=0; e<m_elem_count;e++) {
+       //printf("glob %d, loc %d \n",n,ne);
+       for (int ne=0;ne<m_nodxelem;ne++){
+         int nglob = m_elnod[e * m_nodxelem+ne];
+         int offset  = e * m_nodxelem * m_dim + ne*m_dim;
+         for (int d=0;d<m_dim;d++){
+
+           //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+           m_fi[3*nglob + d ] +=  m_f_elem[offset + d]
+                                         - m_f_elem_hg[offset + d];
+         }
+       }
+     }
+
+     //printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+   }  //element
+
+ }
+  
+  //assemblyForcesNonLock
+
+*/
 
 //// ORIGINAL WAS ASSEMBLED BY ELEMENT
 //subroutine assemble_mass_matrix ()

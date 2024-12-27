@@ -760,9 +760,9 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		memcpy_t(this->m_nodel_count,    nodel_count_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
 		    
     // ///// TESTING
-    /*
+    
     for (int n=0;n<m_node_count;n++){
-      cout << "M node offset:"<<nodel_offset_h[n];
+      cout << "M node offset:"<<nodel_offset_h[n]<<endl;
       cout << "Node  "<< n << " Elements"<<endl;
       for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_h[nodel_offset_h[n]+ne]<<", ";
       cout << endl;
@@ -770,7 +770,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]+ne]<<", ";
       cout << endl;
     }
-    */
+    
     
     cout << "Mesh generation done. "<<endl;
 
