@@ -22,6 +22,23 @@
 #define _QUA2D_ 0
 #define _TRI2D_ 1
 #define _TET2D_ 2
+     
+//Assuming calling from Domain_d *dom   
+//You can add dom as another macro argument
+
+#define avgScalar(v,a,dim)    for (int n=0;n<dom->m_node_count;n++){\
+                                for (int e=0; e<dom->m_nodel_count[n];e++) {\
+                                      for (int d=0;d<dim;d++)\
+                                      a[n*dim + d] = 0.0;\
+                                      }\
+                                for (int e=0; e<dom->m_nodel_count[n];e++) {\
+                                  int eglob   = dom->m_nodel     [dom->m_nodel_offset[n]+e];\
+                                  int ne      = dom->m_nodel_loc [dom->m_nodel_offset[n]+e];\
+                                  int offset  = eglob * dom->m_nodxelem * dim;\
+                                  for (int d=0;d<dim;d++)\              
+                                    a[n*dim + d]+=v[offset + ne*dim + d];\
+                                }\  
+                              }
 
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
 
@@ -197,6 +214,7 @@ public:
   bool isContactOn(){return contact;}
   TriMesh_d* getTriMesh(){return trimesh;}
   //--------------------------------------------------------------------------------------------------------------------------------
+
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

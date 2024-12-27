@@ -4,6 +4,16 @@
 #include <fstream>  // ofstream
 #include "Mesh.h"
 
+#include "Matrix_temp.h"
+
+#if CUDA_BUILD
+#include "tensor.cuh"
+#else
+//#include "Matrix.h"
+#endif
+
+#include "tensor3.C"
+
 using namespace std;
 
 namespace MetFEM{
@@ -274,11 +284,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     }
   }
   
-  m_oss<<"POINT_DATA "<<nc<<endl;
-  //m_oss<<"SCALARS scalars float 1"<<endl;
-  //m_oss<<"LOOKUP_TABLE default"<<endl;
+
   
-  
+
+  m_oss<<"POINT_DATA "<<nc<<endl;  
   m_oss<<"VECTORS DISP float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t x = dom->getDispVec(n);
@@ -296,6 +305,44 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+
+
+
+  
+  m_oss<<"SCALARS stress float 1"<<endl;
+  m_oss<<"LOOKUP_TABLE default"<<endl;
+  
+  double *a = new double[dom->m_node_count*6];
+  
+  //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
+  cout << "Avg Scalar" <<endl;
+  avgScalar(dom->m_sigma,a,6)
+  
+  double seq;
+  //Only of relevance if parts do not flow
+  for (int n=0;n<dom->m_node_count;n++){
+
+    tensor3 sig = FromFlatSym(a,n*6);
+    double J2 = 0.5*(sig.xx*sig.xx +  2.0*sig.xy*sig.xy + 
+                                      2.0*sig.xz*sig.xz + 
+                     sig.yy*sig.yy+  
+                                      2.0*sig.yz*sig.yz +               
+                     sig.zz*sig.zz                 
+                                     
+                    );
+     m_oss << sqrt(3.0*J2)<<endl;
+  }   
+  
+  delete [] a;
+  
+
+
+  m_oss << "CELL_DATA "<<dom->m_elem_count<<endl;
+  m_oss << "SCALARS sxx float 1"<<endl;
+  m_oss << "LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss <<dom->m_sigma[6*n]<<endl;
+  
         
   
 /*

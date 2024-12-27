@@ -353,8 +353,8 @@ namespace MetFEM{
   // printf("FORCES\n");
   // printVec(this->m_fi);
 
-  // printf("STRESSES\n");
-  // printSymmTens(this->m_sigma);
+   printf("STRESSES\n");
+   printSymmTens(this->m_sigma);
 
   // printf("SHEAR STRESS\n");
   // printSymmTens(this->m_tau);
