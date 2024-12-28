@@ -200,3 +200,4 @@ F90 PREVIOUS VERSION
 20241226 - Fixed connectivity of tetra, and shape function calc
          - Fixed also global derivative matrix
 20241227 - Write cell values (stresses), failing passing to point data.
+20241228 - Added plastic strain increment equations
