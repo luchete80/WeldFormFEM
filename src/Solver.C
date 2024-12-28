@@ -32,6 +32,8 @@ namespace MetFEM{
   cout << "Imposing BCS"<<endl;
   
   
+  InitValues();
+  
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD

@@ -26,6 +26,13 @@
 //Assuming calling from Domain_d *dom   
 //You can add dom as another macro argument
 
+//FROM DOMAIN
+#define initNodalArrayCPU(dom,a,dim,val) for (int n=0;n<dom->m_node_count;n++){\
+                                        for (int d=0;d<dim;d++)\
+                                        a[n*dim + d] = val;\
+                                      }
+                                      
+                              //FOR INIT CALL PREVIOUS ARRAY
 #define avgScalar(v,a,dim)    for (int n=0;n<dom->m_node_count;n++){\
                                 for (int e=0; e<dom->m_nodel_count[n];e++) {\
                                       for (int d=0;d<dim;d++)\
@@ -213,6 +220,7 @@ public:
   void setContactOn(){contact = true;}
   bool isContactOn(){return contact;}
   TriMesh_d* getTriMesh(){return trimesh;}
+  void InitValues();
   //--------------------------------------------------------------------------------------------------------------------------------
 
   

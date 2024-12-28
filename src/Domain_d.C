@@ -132,6 +132,16 @@ dev_t void Domain_d::SearchExtNodes() {
     printf("Ext face count %d\n\n",ext_faces);
 }
 
+//THIS ASSUMES 
+void Domain_d::InitValues(){
+  
+  #ifdef CUDA_BUILD
+  
+  #else
+    initNodalArrayCPU(this,pl_strain,1,0.0)
+    initNodalArrayCPU(this,sigma_y,1,1.0e10)  
+  #endif
+}
 
 void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
