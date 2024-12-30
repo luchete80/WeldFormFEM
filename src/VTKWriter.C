@@ -342,10 +342,23 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
                     );
      m_oss << sqrt(3.0*J2)<<endl;
   }   
-  
-  delete [] a;
+
   
 
+  m_oss<<"TENSORS SIGMAT float"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    tensor3 sig = FromFlatSym(a,n*6);
+    m_oss << sig.xx << " "<<sig.xy << " "<<sig.xz<<endl;    
+    m_oss << 0.0 << " "<<sig.yy << " "<<sig.yz<<endl;    
+    m_oss << 0.0 << " "<<0.0 << " "<<sig.zz<<endl;        
+  }
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      for (int t=0;t<3;t++)
+        m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+
+
+  delete [] a;
 
   m_oss << "CELL_DATA "<<dom->m_elem_count<<endl;
   m_oss << "SCALARS sxx float 1"<<endl;

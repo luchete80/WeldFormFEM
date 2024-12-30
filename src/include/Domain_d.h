@@ -31,20 +31,31 @@
                                         for (int d=0;d<dim;d++)\
                                         a[n*dim + d] = val;\
                                       }
-                                      
+
+//// THIS IS IF THE VARIABLE IS IN THE GAUSS POINTS (ASSUMING 1 GAUSS POINT)  
+//// IS NOT THE SAME FOR ELEMENT NODAL VARIABLE (LIKE ELEMENT FORCES)        
+////FOR ELEMENT FORCES IT WOULD BE:  ///a[n*dim + d]+=v[offset + ne*dim + d];\
+                          
                               //FOR INIT CALL PREVIOUS ARRAY
 #define avgScalar(v,a,dim)    for (int n=0;n<dom->m_node_count;n++){\
-                                for (int e=0; e<dom->m_nodel_count[n];e++) {\
-                                      for (int d=0;d<dim;d++)\
-                                      a[n*dim + d] = 0.0;\
-                                      }\
+                                for (int d=0;d<dim;d++)\
+                                  a[n*dim + d] = 0.0;\
                                 for (int e=0; e<dom->m_nodel_count[n];e++) {\
                                   int eglob   = dom->m_nodel     [dom->m_nodel_offset[n]+e];\
                                   int ne      = dom->m_nodel_loc [dom->m_nodel_offset[n]+e];\
                                   int offset  = eglob * dom->m_nodxelem * dim;\
+                                  if (n==1){\
+                                    printf("Node %d Element %d, global %d, local node %d\n",n,e, eglob,ne);\
+                                    printf("Scalar val:%f  %d\n",v[eglob*dim ]);\                                  
+                                  }\
                                   for (int d=0;d<dim;d++)\              
-                                    a[n*dim + d]+=v[offset + ne*dim + d];\
+                                     a[n*dim + d]+=v[eglob*dim + d];/*FOR FORCES a[n*dim + d]+=v[offset + ne*dim + d];*/\
                                 }\  
+                                for (int d=0;d<dim;d++)\              
+                                  a[n*dim + d]/=dom->m_nodel_count[n];\
+                                if (n==1){\
+                                  printf("Scalar val:%f \n",a[0]);\                                  
+                                }\
                               }
 
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
