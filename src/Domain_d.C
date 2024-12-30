@@ -65,6 +65,24 @@ void addFace(Face faceList[], int& faceCount, const Face& newFace) {
     faceCount++;
 }
 
+
+// Function to add all 6 faces of a hexahedron
+void addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
+    // Define the 6 faces of the hexahedron
+    Face faces[4] = {
+        {{element[0], element[1], element[2]}, 0}, // Front face
+        {{element[1], element[0], element[4]}, 0}, // Right face
+        {{element[2], element[3], element[7]}, 0}, // Back face
+        {{element[3], element[0], element[4]}, 0}, // Left face
+    };
+
+    // Add each face to the face list
+    for (int i = 0; i < 6; i++) {
+        addFace(faceList, faceCount, faces[i]);
+    }
+}
+
+
 // Function to add all 6 faces of a hexahedron
 void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
     // Define the 6 faces of the hexahedron
