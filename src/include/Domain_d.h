@@ -124,6 +124,8 @@ public:
   dev_t void printVec(double*);
   dev_t void printSymmTens( double *);
   
+  void setNodElem(int *elnod);//For assembly and parallel processing
+  
   void WriteToVTK(char *);
   int WriteToCSV(char *);
   

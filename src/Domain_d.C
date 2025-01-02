@@ -233,6 +233,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   // AXISYMM
   malloc_t (m_radius, double, m_elem_count * m_gp_count);
+  
+  
+  malloc_t(m_jacob, Matrix, m_elem_count );
     
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
@@ -739,7 +742,6 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       // printf("\n");
     // }
     //cudaMalloc(&m_jacob,m_elem_count * sizeof(Matrix ));
-    malloc_t(m_jacob, Matrix, m_elem_count );
     cout << "Done"<<endl;
     
     //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
@@ -809,6 +811,107 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 		
 		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
 }
+
+
+//USED FOR PARALLEL ASSEMBLY AND AVERAGING
+void Domain_d::setNodElem(int *elnod_h){
+
+
+     int *nodel_count_h  = new int [m_node_count];
+     int *nodel_offset_h = new int [m_node_count];
+    for (int n=0;n<m_node_count;n++){
+      nodel_count_h[n] = 0;
+    }
+    
+    //Must initialize nodel_count_h
+  int offset = 0;
+  for (int n=0;n<m_node_count;n++)
+    for (int ne=0;ne<m_nodxelem;ne++){
+      nodel_count_h[elnod_h[offset+ne]]++;
+      offset+=m_nodxelem;
+    }
+
+  cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
+  ///// FOR DIFFERENT ELMENT NODE COUNT
+  int *m_nodxelem_eh  = new int [m_elem_count];
+  int *m_elnodoffset_h = new int [m_elem_count];
+  
+
+  
+  //cudaMalloc((void **)&m_elnod, m_elem_count * m_nodxelem * sizeof (int));	
+  malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
+  cout << "COPYING "<<m_elem_count * m_nodxelem<< " element nodes "<<endl;
+  memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem); 
+
+  cout << "Done"<<endl;
+  
+  //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////
+  int nodel_tot = 0;
+  for (int n=0;n<m_node_count;n++){
+    nodel_offset_h[n] = nodel_tot;
+    nodel_tot        += nodel_count_h[n];
+    cout << "NodEL tot " << nodel_tot<<endl;
+    cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+
+  }
+  cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
+  int *nodel_h       = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT
+  int *nodel_loc_h   = new int [nodel_tot];          //ASSUMED EACH NODE SHARES 8 ELEMENT    
+  
+  //Reset nodelcount (is incremented latere)
+  for (int n=0;n<m_node_count;n++)  nodel_count_h[n] = 0;    
+  
+  //ALLOCATE NODEL, WHICH ARE ELEMEENTS SHARED BY A NODE
+  //THIS IS FOR MORE EFFICIENT ELEMENTFORCES  ASSEMBLY
+  //
+  for (int e=0;e<m_elem_count;e++){
+    int offset = m_nodxelem * e;
+    for (int ne=0;ne<m_nodxelem;ne++){
+      int n = elnod_h[offset+ne];
+      if (nodel_offset_h[n] + nodel_count_h[n] > nodel_tot)
+        cout << "ERRROR in node index,index "<<nodel_offset_h[n] + nodel_count_h[n]<<", node "<<n<<"element "<<e<<endl;
+      nodel_h     [nodel_offset_h[n] + nodel_count_h[n]] = e;
+      nodel_loc_h [nodel_offset_h[n] + nodel_count_h[n]] = ne;
+      
+      nodel_count_h[n]++;
+    }//nod x elem 
+  }
+  
+  malloc_t (m_nodel,        int,nodel_tot);
+  malloc_t (m_nodel_loc,    int,nodel_tot);
+  
+  malloc_t (m_nodel_offset, int, m_node_count);
+  malloc_t (m_nodel_count,  int, m_node_count);
+  
+  //THIS IS ONLY FOR COMPLETENESS IN CASE OF CPU, SHOULD BE BETTER TO WRITE ON FINALL ARRAY
+  memcpy_t(this->m_nodel,         nodel_h,        sizeof(int) * nodel_tot); 
+  memcpy_t(this->m_nodel_loc,     nodel_loc_h,    sizeof(int) * nodel_tot);
+   
+  memcpy_t(this->m_nodel_offset,  nodel_offset_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+  memcpy_t(this->m_nodel_count,    nodel_count_h, sizeof(int) * m_node_count);  //OFFSET FOR PREVIOUS ARRAYS
+    
+  /*
+  // ///// TESTING
+  cout << endl<<endl;
+  for (int n=0;n<m_node_count;n++){
+    cout << "M node offset:"<<nodel_offset_h[n]<<endl;
+    cout << "Node  "<< n << " Elements ("<< nodel_count_h[n]<<")"<<endl;
+    for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_h[nodel_offset_h[n]+ne]<<", ";
+    cout << endl;
+    cout << "Node  "<< n << " Elements Internal Node"<<endl;
+    for (int ne=0;ne<nodel_count_h[n];ne++) cout << nodel_loc_h[nodel_offset_h[n]+ne]<<", ";
+    cout << endl;
+  }
+  */
+  
+  cout << "Node Elemets set. "<<endl;
+
+  
+  delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
+
+}
+
+
 ///////////////////////////////
 //// SINGLE ELNOD AND NODEL CONNECTIVITY
 /// ASSUMES 

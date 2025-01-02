@@ -201,3 +201,6 @@ F90 PREVIOUS VERSION
          - Fixed also global derivative matrix
 20241227 - Write cell values (stresses), failing passing to point data.
 20241228 - Added plastic strain increment equations
+20241230 - Fixed 
+----------------------------------------------------------------------
+20250102 - Begining to add node element after create elements. 
