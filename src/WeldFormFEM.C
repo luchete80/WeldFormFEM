@@ -6,6 +6,19 @@
 #include "lsdynaReader.h"
 #include "nlohmann/json.hpp"
 #include "Mesh.h"
+#include <fstream>
+#include <iomanip>	//ONY FOR GCC!!
+
+
+template <typename T>
+bool readValue(const nlohmann::json &j, T &v)
+{
+	if (j.is_null())
+		return false;
+
+	v = j.get<T>();
+	return true;
+}
 
 
 using namespace MetFEM;
@@ -69,6 +82,10 @@ int main(int argc, char **argv) {
     cout << "Opening JSON format file"<<endl;
     
     nlohmann::json j;
+
+		string inputFileName=argv[1];	
+		std::ifstream i(argv[1]);
+		i >> j;
     
 		nlohmann::json config 		= j["Configuration"];
 		nlohmann::json material 	= j["Materials"];
@@ -79,8 +96,55 @@ int main(int argc, char **argv) {
     nlohmann::json contact_ 		= j["Contact"];
 		nlohmann::json bcs 			= j["BoundaryConditions"];
 		nlohmann::json ics 			= j["InitialConditions"];    
-    
-    TriMesh_d *mesh_d;
+
+  /////////////-/////////////////////////////////////////////////////////////////////////////////
+  // DOMAIN //
+  ////////////
+		string domtype = "Box";
+  //Vec3_t start,L;    
+  //TriMesh_d *mesh_d;
+		//cout << "Reading Domain dim" << endl;  readVector(domblock[0]["dim"], 	L);
+		cout << "Reading Domain type" << endl; readValue(domblock[0]["type"], 	domtype); //0: Box
+    //cout << "Reading Domain mat id" << endl;  readValue(domblock[0]["matID"], 	matID); //0: Box
+    //cout << "Grid Coordinate System" << endl;  readValue(domblock[0]["gridCoordSys"], 	gridCS); //0: Box
+    //cout << "Slice Angle " << endl;  readValue(domblock[0]["sliceAngle"], 	slice_ang); //0: Box
+    //readBoolVector(domblock[0]["sym"], 	sym); //0: Box
+  cout << "Domain type: "<<domtype<<endl;
+  if (domtype == "File") {
+        
+    string filename = "";
+    readValue(domblock[0]["fileName"], 	filename); 
+    cout << "Reading Input file " << filename <<endl;  
+
+    string extension = filename.substr(inputFileName.find_last_of(".") + 1);
+    cout << "Extension "<<extension<<endl;
+    if(extension == "k") { 
+      cout << "Creating domain from "<< inputFileName<<endl;
+      lsdynaReader reader(inputFileName.c_str());
+      dom_d->CreateFromLSDyna(reader);
+    }
+        //dom.ReadFromLSdyna(filename.c_str(), rho);
+/*
+        double totmass = 0.0;
+        readValue(domblock[0]["totMass"], 	totmass); 
+        
+          cout << "calculating avg distance ..."<<endl;
+          double avgdist = dom.getAvgMinDist();
+          cout << "Avg particle distance "<<avgdist<<endl;
+        
+        cout <<"Setting smoothing length to "<<avgdist<<endl;
+        for (int i=0;i<dom.Particles.Size();i++){
+            dom.Particles[i]->h = avgdist*hfactor;
+        }
+        if (totmass != 0){
+        for (int i=0;i<dom.Particles.Size();i++)
+            dom.Particles[i]->Mass = totmass/dom.Particles.Size();
+        } else 
+          cout << "TOT  MASS UNKNOWN"<<endl;
+*/          
+  
+      
+    }//File
 
   int dim = 3;
   double tf = 5.0e-3;
@@ -102,8 +166,11 @@ int main(int argc, char **argv) {
 	double3 L = make_double3(Lx,Ly,Lz);
 
 	double r = dx/2.0;
-	
-	dom_d->AddBoxLength(V,L,r,true);
+  
+  
+      
+      
+	//dom_d->AddBoxLength(V,L,r,true);
  
 
   ////// MATERIAL  
