@@ -948,6 +948,16 @@ void Domain_d::setNodElem(int *elnod_h){
 void Domain_d::CreateFromLSDyna(const lsdynaReader &reader){
 
   this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
+  for (int n=0;n<reader.m_elem_count;n++){
+    
+  }
+  for (int e=0;e<reader.m_elem_count;e++){
+    cout << "Element node count "<<reader.m_elem[e].node.size()<<endl;
+    for (int en=0;en<reader.m_elem[e].node.size();en++  ){
+      ls_node n = reader.getElemNode(e, en);
+      cout << "Node id "<<n.m_id<<", xyz:"<<n.m_x[0]<<", "<<n.m_x[1]<<", "<<n.m_x[2]<<endl;
+    }    
+  }
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
   

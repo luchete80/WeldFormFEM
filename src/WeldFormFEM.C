@@ -114,13 +114,13 @@ int main(int argc, char **argv) {
         
     string filename = "";
     readValue(domblock[0]["fileName"], 	filename); 
-    cout << "Reading Input file " << filename <<endl;  
+    cout << "Reading Domain from Input file " << filename <<endl;  
 
-    string extension = filename.substr(inputFileName.find_last_of(".") + 1);
+    string extension = filename.substr(filename.find_last_of(".") + 1);
     cout << "Extension "<<extension<<endl;
     if(extension == "k") { 
-      cout << "Creating domain from "<< inputFileName<<endl;
-      lsdynaReader reader(inputFileName.c_str());
+      cout << "Creating domain from "<< filename<<endl;
+      lsdynaReader reader(filename.c_str());
       dom_d->CreateFromLSDyna(reader);
     }
         //dom.ReadFromLSdyna(filename.c_str(), rho);
