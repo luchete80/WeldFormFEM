@@ -827,11 +827,14 @@ void Domain_d::setNodElem(int *elnod_h){
     //Must initialize nodel_count_h
   int offset = 0;
   for (int e=0;e<m_elem_count;e++){
-    cout << "Element "<<e<<endl;
+    //cout << "Element "<<e<<endl;
     for (int ne=0;ne<m_nodxelem;ne++){
+      if (elnod_h[offset+ne]<m_node_count)
       nodel_count_h[elnod_h[offset+ne]]++;
-      offset+=m_nodxelem;
+      else 
+        cout << "ERROR, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<endl;
     }
+    offset+=m_nodxelem;
   }
   cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
   ///// FOR DIFFERENT ELMENT NODE COUNT
@@ -966,15 +969,17 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
   m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
   int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
   cout << "Allocating elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
-
+  
+  int offs = 0;
   for (int e=0;e<reader.m_elem_count;e++){
     //cout << "Element node count "<<reader.m_elem[e].node.size()<<endl;
-    int offs = 0;
     for (int en=0;en<reader.m_elem[e].node.size();en++  ){
       elnod_h [offs+en] = reader.m_elem[e].node[en];
       //ls_node n = reader.getElemNode(e, en);
+      //cout << reader.m_elem[e].node[en]<<" ";
       //cout << "Node id "<<n.m_id<<", xyz:"<<n.m_x[0]<<", "<<n.m_x[1]<<", "<<n.m_x[2]<<endl;
     }
+    //cout << endl;
     offs += reader.m_elem[e].node.size();    
   }
 
