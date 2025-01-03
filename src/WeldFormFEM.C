@@ -282,16 +282,19 @@ int main(int argc, char **argv) {
   #endif
     
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
-	//dom_d->SolveChungHulbert ();
+
+    
+    
+    
+    
+
+  }
+
+	dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;
-    
-    
-    
-    
-  }
-    
+      
 	} else {
     cout << "Please provide an input file."<<endl;
   }
