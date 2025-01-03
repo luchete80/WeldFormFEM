@@ -93,7 +93,7 @@ public:
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
-  void CreateFromLSDyna(const LS_Dyna::lsdynaReader &reader);
+  void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
   inline vector_t getPosVec (const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};

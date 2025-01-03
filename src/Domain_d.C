@@ -23,6 +23,7 @@
 #endif
 
 #include "tensor3.C"
+#include "../lib/LSDynaReader/src/lsdynaReader.h"
 
 using namespace std;
 using namespace LS_Dyna;
@@ -825,12 +826,13 @@ void Domain_d::setNodElem(int *elnod_h){
     
     //Must initialize nodel_count_h
   int offset = 0;
-  for (int n=0;n<m_node_count;n++)
+  for (int e=0;e<m_elem_count;e++){
+    cout << "Element "<<e<<endl;
     for (int ne=0;ne<m_nodxelem;ne++){
       nodel_count_h[elnod_h[offset+ne]]++;
       offset+=m_nodxelem;
     }
-
+  }
   cout << "Allocating "<< m_elem_count<< " and "<<m_nodxelem<< "nodes x elem" <<endl;
   ///// FOR DIFFERENT ELMENT NODE COUNT
   int *m_nodxelem_eh  = new int [m_elem_count];
@@ -945,19 +947,42 @@ void Domain_d::setNodElem(int *elnod_h){
 // }
 
 
-void Domain_d::CreateFromLSDyna(const lsdynaReader &reader){
-
+void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
+ 
+  m_dim = 3;
+  vector_t Xp;
   this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
-  for (int n=0;n<reader.m_elem_count;n++){
-    
+  
+  cout << "Allocating "<< reader.m_node.size()<< " nodes "<<endl;
+  double *x_H =  new double [m_dim*m_node_count];
+  for (int n=0;n<m_node_count;n++){
+    //cout << "Node "<<n<<endl;
+    for (int d=0;d<3;d++)
+      //cout <<reader.m_node[n].m_x[d]<< " ";
+      x_H[3*n+d] = reader.m_node[n].m_x[d]; 
+    //cout <<endl;
   }
+
+  m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
+  int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
+  cout << "Allocating elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
+
   for (int e=0;e<reader.m_elem_count;e++){
-    cout << "Element node count "<<reader.m_elem[e].node.size()<<endl;
+    //cout << "Element node count "<<reader.m_elem[e].node.size()<<endl;
+    int offs = 0;
     for (int en=0;en<reader.m_elem[e].node.size();en++  ){
-      ls_node n = reader.getElemNode(e, en);
-      cout << "Node id "<<n.m_id<<", xyz:"<<n.m_x[0]<<", "<<n.m_x[1]<<", "<<n.m_x[2]<<endl;
-    }    
+      elnod_h [offs+en] = reader.m_elem[e].node[en];
+      //ls_node n = reader.getElemNode(e, en);
+      //cout << "Node id "<<n.m_id<<", xyz:"<<n.m_x[0]<<", "<<n.m_x[1]<<", "<<n.m_x[2]<<endl;
+    }
+    offs += reader.m_elem[e].node.size();    
   }
+
+  cout << "Element nodes "<<elnod_h [0]<<" "<<elnod_h [1] << " "<<elnod_h [2]<<endl;
+    
+  cout << "Setting elements per node "<<endl; 
+  setNodElem(elnod_h);
+  
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
   

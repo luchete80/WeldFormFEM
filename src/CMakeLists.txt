@@ -141,6 +141,7 @@ add_executable(beam
                        Mechanical.C
                        Matrices.C
                        Solver.C
+                         ../lib/LSDynaReader/src/lsdynaReader.cpp
                        VTKWriter.C
              )
 
@@ -153,6 +154,7 @@ add_executable(beam_contact
                        Mesh.C
                        Matrices.C
                        Solver.C
+                         ../lib/LSDynaReader/src/lsdynaReader.cpp
                        VTKWriter.C
              )
               
