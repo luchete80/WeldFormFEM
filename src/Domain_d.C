@@ -162,6 +162,9 @@ void Domain_d::InitValues(){
   #endif
 }
 
+
+///// IMPORTANT: m_gp_count 
+
 void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   m_node_count = node_count;
@@ -829,9 +832,11 @@ void Domain_d::setNodElem(int *elnod_h){
   for (int e=0;e<m_elem_count;e++){
     //cout << "Element "<<e<<endl;
     for (int ne=0;ne<m_nodxelem;ne++){
-      if (elnod_h[offset+ne]<m_node_count)
-      nodel_count_h[elnod_h[offset+ne]]++;
-      else 
+      if (elnod_h[offset+ne]<m_node_count){
+        if (elnod_h[offset+ne]==3)
+          cout << "Node 3 shared element "<< e<<endl;
+        nodel_count_h[elnod_h[offset+ne]]++;
+      }else 
         cout << "ERROR, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<endl;
     }
     offset+=m_nodxelem;
@@ -954,6 +959,8 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
  
   m_dim = 3;
   vector_t Xp;
+  ///IMPORTANT BEFORE SETDIMENSION, m_gp_count must be set
+  m_gp_count = 1;
   this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
   
   cout << "Allocating "<< reader.m_node.size()<< " nodes "<<endl;
