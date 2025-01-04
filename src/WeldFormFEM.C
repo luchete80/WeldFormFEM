@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
   dom_d->SetEndTime (1.0e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
-
+/*
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
@@ -261,7 +261,7 @@ int main(int argc, char **argv) {
   }
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
   cout << "VEL  "<<velcount<< " NODES"<<endl;  
-  
+  */
   //AFTER THIS CALL
   dom_d->AllocateBCs();
   
@@ -283,7 +283,7 @@ int main(int argc, char **argv) {
 
   }
 
-	//dom_d->SolveChungHulbert ();
+	dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;

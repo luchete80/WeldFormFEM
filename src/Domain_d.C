@@ -194,6 +194,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //cudaMalloc((void **)&m_dH_detJ_dz, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
   malloc_t (m_H,          double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   
+  cout <<"setting deriv allocation size of "<<m_dim * m_nodxelem * m_elem_count * m_gp_count<<endl;
+  cout <<"mdim"<<m_dim << " "<<m_nodxelem<<" "<< m_elem_count <<" "<<m_gp_count<<endl;
   malloc_t (m_dH_detJ_dx,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dy,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
   malloc_t (m_dH_detJ_dz,double, m_dim * m_nodxelem * m_elem_count * m_gp_count);
@@ -833,8 +835,8 @@ void Domain_d::setNodElem(int *elnod_h){
     //cout << "Element "<<e<<endl;
     for (int ne=0;ne<m_nodxelem;ne++){
       if (elnod_h[offset+ne]<m_node_count){
-        if (elnod_h[offset+ne]==3)
-          cout << "Node 3 shared element "<< e<<endl;
+        //if (elnod_h[offset+ne]==3)
+          //cout << "Node 3 shared element "<< e<<endl;
         nodel_count_h[elnod_h[offset+ne]]++;
       }else 
         cout << "ERROR, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<endl;
@@ -860,8 +862,8 @@ void Domain_d::setNodElem(int *elnod_h){
   for (int n=0;n<m_node_count;n++){
     nodel_offset_h[n] = nodel_tot;
     nodel_tot        += nodel_count_h[n];
-    cout << "NodEL tot " << nodel_tot<<endl;
-    cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+    //cout << "NodEL tot " << nodel_tot<<endl;
+    //cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
 
   }
   cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
@@ -959,21 +961,25 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
  
   m_dim = 3;
   vector_t Xp;
-  ///IMPORTANT BEFORE SETDIMENSION, m_gp_count must be set
+  ///IMPORTANT BEFORE SETDIMENSION, m_gp_count and m_nodxelem must be set
   m_gp_count = 1;
+  m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
   this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
   
   cout << "Allocating "<< reader.m_node.size()<< " nodes "<<endl;
   double *x_H =  new double [m_dim*m_node_count];
   for (int n=0;n<m_node_count;n++){
     //cout << "Node "<<n<<endl;
-    for (int d=0;d<3;d++)
+    for (int d=0;d<3;d++){
       //cout <<reader.m_node[n].m_x[d]<< " ";
       x_H[3*n+d] = reader.m_node[n].m_x[d]; 
-    //cout <<endl;
+    }
+    cout <<endl;
   }
+  memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
+  delete x_H;
+  
 
-  m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
   int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
   cout << "Allocating "<< m_elem_count <<" elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
   

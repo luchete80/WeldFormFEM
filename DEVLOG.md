@@ -208,3 +208,4 @@ F90 PREVIOUS VERSION
          - Adding reading Domain block as .k file
 20250104 - Fixed mem things. Domain was allocated twice.
          - FIXED ALLOCATION WIRH SET DIMENSION 
+         - Fixed node location device allocation 
