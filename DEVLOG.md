@@ -206,3 +206,4 @@ F90 PREVIOUS VERSION
 20250102 - Begining to add node element after create elements. 
          - Begining to add json reader
          - Adding reading Domain block as .k file
+20250104 - Domain was allocated twice.

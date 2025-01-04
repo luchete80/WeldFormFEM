@@ -968,7 +968,7 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
 
   m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
   int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
-  cout << "Allocating elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
+  cout << "Allocating "<< m_elem_count <<" elements, node x element: "<<m_nodxelem<<endl; //TO CHANGE (CONSTANT)
   
   int offs = 0;
   for (int e=0;e<reader.m_elem_count;e++){

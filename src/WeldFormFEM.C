@@ -146,17 +146,10 @@ int main(int argc, char **argv) {
       
     }//File
 
+
+
   int dim = 3;
   double tf = 5.0e-3;
-  
-
-  #ifdef CUDA_BUILD
-	report_gpu_mem();
-	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
-	report_gpu_mem();
-  #else
-    dom_d = new Domain_d;
-  #endif
 	
   double3 V = make_double3(0.0,0.0,0.0);
   double dx = 0.006;
@@ -180,9 +173,9 @@ int main(int argc, char **argv) {
   rho = 2700.0;
   
 
-  
+  cout << "Setting density"<<endl;
   dom_d->setDensity(rho);
-  
+  cout <<"Done."<<endl;
   cout << "Creating Material..:"<<endl;
   Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
   Elastic_ el(E,nu);
@@ -290,7 +283,7 @@ int main(int argc, char **argv) {
 
   }
 
-	dom_d->SolveChungHulbert ();
+	//dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;
