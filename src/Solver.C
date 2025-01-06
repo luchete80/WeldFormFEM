@@ -343,8 +343,8 @@ namespace MetFEM{
   #else
   calcElemStrainRates();
   
-  // printf("DISPLACEMENTS\n");
-  // printVec(this->u);   
+   printf("DISPLACEMENTS\n");
+   printVec(this->u);   
 
   // printf("VELOCITIES\n");
   // printVec( this->v);
@@ -368,12 +368,14 @@ namespace MetFEM{
   // printSymmTens(this->m_rot_rate);
   
   #endif
-  
-  VTUWriter writer(this, "out.vtu");
-  writer.writeFile();
+  cout << "Writing output "<<endl;
+  //VTUWriter writer(this, "out.vtu");
+  //writer.writeFile();
 
   VTKWriter writer2(this, "out.vtk");
   writer2.writeFile();
+  
+  cout << "Done."<<endl;
   
   }//SOLVE
     

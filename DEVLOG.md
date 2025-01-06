@@ -209,3 +209,4 @@ F90 PREVIOUS VERSION
 20250104 - Fixed mem things. Domain was allocated twice.
          - FIXED ALLOCATION WIRH SET DIMENSION 
          - Fixed node location device allocation 
+20250106 - Fixed VTK output, rewriting elnod_h on each remeshing thing.
