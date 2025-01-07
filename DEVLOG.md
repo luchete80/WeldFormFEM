@@ -210,3 +210,6 @@ F90 PREVIOUS VERSION
          - FIXED ALLOCATION WIRH SET DIMENSION 
          - Fixed node location device allocation 
 20250106 - Fixed VTK output, rewriting elnod_h on each remeshing thing.
+20250107 - Fixed yield stress initialization (was up until element count)
+         - Added plastic increment (only for bilinear)
+         - Added Cylidner example (still missing bc applying from json)

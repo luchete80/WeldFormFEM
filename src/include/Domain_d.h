@@ -32,6 +32,11 @@
                                         a[n*dim + d] = val;\
                                       }
 
+#define initElemArrayCPU(dom,a,dim,val) for (int n=0;n<dom->m_elem_count;n++){\
+                                        for (int d=0;d<dim;d++)\
+                                        a[n*dim + d] = val;\
+                                      }
+                                      
 //// THIS IS IF THE VARIABLE IS IN THE GAUSS POINTS (ASSUMING 1 GAUSS POINT)  
 //// IS NOT THE SAME FOR ELEMENT NODAL VARIABLE (LIKE ELEMENT FORCES)        
 ////FOR ELEMENT FORCES IT WOULD BE:  ///a[n*dim + d]+=v[offset + ne*dim + d];\

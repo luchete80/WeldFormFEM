@@ -372,7 +372,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)
     m_oss <<dom->m_sigma[6*n]<<endl;
-  
+
+  m_oss << "SCALARS pl_strain float 1"<<endl;
+  m_oss << "LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss <<dom->pl_strain[n]<<endl;  
         
   
 /*

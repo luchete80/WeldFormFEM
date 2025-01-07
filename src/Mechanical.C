@@ -555,10 +555,11 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                     );
       double sig_trial = sqrt(3.0*J2);
       if (sigma_y[e]<sig_trial){
+        //printf("Yield elem %d, sig_trial %f, yield stress %f\n",e,sig_trial, sigma_y[e]);
         //elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma_y(e,gp) / sig_trial
         //elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
-        //ShearStress = ShearStress * (sigma_y[e] / sig_trial);
-        //pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 *  mat[e]->Elastic().G());
+        ShearStress = ShearStress * (sigma_y[e] / sig_trial);
+        pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 *  mat[e]->Elastic().G());
         
       }
       //printf("Shear Stress\n");
@@ -577,6 +578,15 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       
       // printf("ELEMENT SIGMA\n");
       // print(Sigma);
+      double Ep = 0;
+			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+			//cout << "dep: "<<dep<<endl;
+			//pl_strain[e] += dep;
+			//delta_pl_strain = dep; // For heating work calculation
+			
+      //if (Material_model < JOHNSON_COOK ) //In johnson cook there are several fluences per T,eps,strain rate
+			//if (Material_model == BILINEAR )
+			//  Sigmay += dep*Ep;
 
       ///// OUTPUT TO Flatten arrays
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		

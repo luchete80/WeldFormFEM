@@ -158,7 +158,10 @@ void Domain_d::InitValues(){
   
   #else
     initNodalArrayCPU(this,pl_strain,1,0.0)
-    initNodalArrayCPU(this,sigma_y,1,1.0e10)  
+    //initElemArrayCPU (this,sigma_y,1,1.0e10)  
+    for (int e=0;e<m_elem_count;e++){
+      sigma_y[e] = mat[e]->sy0;      
+    }
   #endif
 }
 

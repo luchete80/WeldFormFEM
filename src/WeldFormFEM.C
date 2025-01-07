@@ -201,6 +201,7 @@ int main(int argc, char **argv) {
     cout << "CS_0: "<<material_h->cs0<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
+    readValue(material[0]["yieldStress0"], 	material_h->sy0 );
     // cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
@@ -238,30 +239,34 @@ int main(int argc, char **argv) {
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (1.0e-3);
+  dom_d->SetEndTime (1.0e-2);
   //dom_d->SetEndTime (1000.0*dt);
   
-/*
+
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
     
-    if (dom_d->getPosVec3(i).x <r/2.0) {
+    if (dom_d->getPosVec3(i).z <0.025) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
       cout << "node "<< i<<" fixed "<<endl;
     }
     
-    if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(i,1,-0.48);
+    if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
+      dom_d->AddBCVelNode(i,0,-0.0);
+      dom_d->AddBCVelNode(i,1,-0.0);
+      dom_d->AddBCVelNode(i,2,-1.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      
     
   }
+  //initElemArrayCPU (this,sigma_y,1,300.0e6)  
+  
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
   cout << "VEL  "<<velcount<< " NODES"<<endl;  
-  */
+  
   //AFTER THIS CALL
   dom_d->AllocateBCs();
   
