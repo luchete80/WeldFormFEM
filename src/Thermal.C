@@ -4,7 +4,7 @@ Domain_d::ThermalCalcs(){
 
 //parallel loop here
 for (int e=0)
-  Matrix *Kt   = new Matrix(3,3);
+  Matrix *Kt   = new Matrix(m_nodxelem,m_nodxelem );
   /////Tn+1=Tn+dt*invM(Q-KTn)
 //BT x B
 //faster than matmult? 
@@ -17,10 +17,18 @@ for (int i=0;i<m_nodxelem;i++)
     Kt->setVal(i,j,k);
   }
  }
-int offset=m_nodxelem*e;
+
+Matrix *Te   = new Matrix(3,1);
+Matrix *dTde   = new Matrix(3,1);
+int offset=m_nodxelem*e;   ///// TO DO: improving var offset
+for (int i=0;i<m_nodxelem;i++)
+  Te[i] = T[m_elnod[offset+i]];
+MatMul(*Kt, *Te, *dTde);
+
+
 for (int i=0;i<m_nodxelem;i++){
-   m_dTedt[offset+i]=; /////TODO: make function for this
+   m_dTedt[offset+i]+=dTde->getVal(i); /////TODO: make function for this
  
 }
-  delete Kt; 
+  delete Kt, Te,dTde; 
 } // for element
