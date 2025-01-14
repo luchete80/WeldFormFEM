@@ -39,8 +39,8 @@ Domain_d::calcInelasticHeatFraction(){
 
 //parallel loop here
 for (int e=0)
-
-  tensor3 sig=;
+int offset_t = e * 6 ; //SYM TENSOR
+tensor3 sig= FromFlatSym(m_sigma,          offset_t );
 
 
 
