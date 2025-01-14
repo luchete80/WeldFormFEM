@@ -39,6 +39,9 @@ namespace MetFEM {
           //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
+          if(m_thermal){
+            T[n]+=dTedt[eglob*m_nodxelem+ne];
+	  }
       }
       if (m_gp_count == 1 ) {  
         for (int e=0; e<m_nodel_count[n];e++) {
