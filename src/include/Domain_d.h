@@ -262,6 +262,7 @@ protected:
   
 	double 					*p, *rho, *rho_0;
   double *T;   /// temperature
+  double *m_dTedt; //elem node
   double          *pl_strain, *sigma_y;
   
   
