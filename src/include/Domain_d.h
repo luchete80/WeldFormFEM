@@ -261,8 +261,14 @@ protected:
   double         *m_mglob, *m_mdiag, *m_ematm; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses, and element masses
   
 	double 					*p, *rho, *rho_0;
+  
+  //////Thermal
+  bool m_thermal;
   double *T;   /// temperature
   double *m_dTedt; //elem node
+
+
+
   double          *pl_strain, *sigma_y;
   
   
