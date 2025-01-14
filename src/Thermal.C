@@ -17,5 +17,10 @@ for (int i=0;i<m_nodxelem;i++)
     Kt->setVal(i,j,k);
   }
  }
- delete
+int offset=m_nodxelem*e;
+for (int i=0;i<m_nodxelem;i++){
+   m_dTedt[offset+i]=; /////TODO: make function for this
+ 
 }
+  delete Kt; 
+} // for element
