@@ -560,7 +560,19 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         //elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
         ShearStress = ShearStress * (sigma_y[e] / sig_trial);
         pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 *  mat[e]->Elastic().G());
-        
+/*
+To calculate inelastic fraction and plastic work
+double f = dep/Sigmay;
+		Strain_pl_incr (0,0) = f*(Sigma(0,0)-0.5*(Sigma(1,1) + Sigma(2,2) ));
+		Strain_pl_incr (1,1) = f*(Sigma(1,1)-0.5*(Sigma(0,0) + Sigma(2,2) ));
+		Strain_pl_incr (2,2) = f*(Sigma(2,2)-0.5*(Sigma(0,0) + Sigma(1,1) ));
+		Strain_pl_incr (0,1) = Strain_pl_incr (1,0) = 1.5*f*(Sigma(0,1));
+		Strain_pl_incr (0,2) = Strain_pl_incr (2,0) = 1.5*f*(Sigma(0,2));
+		Strain_pl_incr (1,2) = Strain_pl_incr (2,1) = 1.5*f*(Sigma(1,2));
+		
+		Strain_pl = Strain_pl + Strain_pl_incr;
+*/
+
       }
       //printf("Shear Stress\n");
       //print(ShearStress);
