@@ -188,7 +188,10 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   malloc_t (m_mdiag, double,node_count);
   malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
-	
+
+  //////if thermal
+  
+  malloc_t (T,      double,node_count);
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODXELEM
   /// TO AVOID EXCESSIVE OFFSET, SPLIT DIMENSIONS
