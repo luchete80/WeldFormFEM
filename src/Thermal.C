@@ -31,4 +31,17 @@ for (int i=0;i<m_nodxelem;i++){
  
 }
   delete Kt, Te,dTde; 
-} // for element
+} // for elements
+
+}
+
+Domain_d::calcInelasticHeatFraction(){
+
+//parallel loop here
+for (int e=0)
+
+  tensor3 sig=;
+
+
+
+}//IHF
