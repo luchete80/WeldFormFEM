@@ -3,7 +3,7 @@
 
 #include <fstream>  // ofstream
 #include "Mesh.h"
-
+#include <iomanip>
 #include "Matrix_temp.h"
 
 #if CUDA_BUILD
@@ -218,7 +218,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3(i);
-      m_oss << std::scientific<<x.x <<" "<<x.y <<" " <<x.z<<endl;
+      //for (int d=0;d<3;d++){
+        m_oss << std::scientific<<std::setprecision(4)<<float(x.x) <<" "<<float(x.y) <<" " <<float(x.z)<<endl;
+      //}
+      //m_oss<<endll;
       //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
     } else {
       double2 x = dom->getPosVec2(i);

@@ -215,3 +215,4 @@ F90 PREVIOUS VERSION
          - Added Cylidner example (still missing bc applying from json)
 20250116 - Fixed VTK wiriting, not copying to elnod_h. Remains remesh
          - Fixing search external nodes for tetras
+         - Fixed vtk writer formatting
