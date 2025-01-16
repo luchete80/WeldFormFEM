@@ -203,9 +203,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   
   // FOR NOT RETURN CARRIAGE
   int nc = dom->m_node_count;
-  if (dom->isContactOn())
+  if (dom->isContactOn()){
+    cout << "CONTACT ON "<<endl;
     nc += dom->getTriMesh()->nodecount;
-  
+  }
   m_oss << nc << "float "<<endl;
   
   int ne = dom->m_elem_count;
@@ -213,7 +214,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     ne += dom->getTriMesh()->elemcount;
   } 
   
-  //cout << "Writing nodes "<<endl;
+  cout << "Writing nodes "<<endl;
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3(i);
@@ -227,7 +228,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     //printf("         %f %f %f \n", x.x,x.y,x.z);
   }
   if (dom->isContactOn()){
-    //cout << "Contact on"<<endl;
+    cout << "Contact on"<<endl;
     for (int n=0;n<dom->getTriMesh()->nodecount;n++){
       vector_t x = dom->getTriMesh()->node[n];
       m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;      
@@ -250,7 +251,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   dom->elnod_h = new int[sizeof(int) * dom->m_nodxelem * dom->m_elem_count];
   memcpy_t(dom->elnod_h, dom->m_elnod, sizeof(int) * dom->m_nodxelem * dom->m_elem_count);   
   
-  //cout << "Writing cells "<<endl;
+  cout << "Writing cells "<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     //    cout << "Element "<<e<<endl;
     m_oss << dom->m_nodxelem<<" ";
@@ -270,7 +271,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       m_oss << endl;  
     }
   }
-  //cout << "Writing cell types "<<endl;
+  cout << "Writing cell types "<<endl;
   m_oss << "CELL_TYPES "<<ne<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     //cout << "Element "<<e<<endl;
@@ -292,7 +293,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   }
   
 
-  //cout << "Writing point data "<<endl;
+  cout << "Writing point data "<<endl;
 
   m_oss<<"POINT_DATA "<<nc<<endl;  
   m_oss<<"VECTORS DISP float"<<endl;

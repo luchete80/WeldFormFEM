@@ -102,14 +102,15 @@ namespace MetFEM{
 
   
   Time = 0.0;
- 
+  int step_count = 0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "Main Loop----"<<endl;
   while (Time < end_t) {
-    
-  printf("Time %f\n",Time);  
+      
+  if (step_count % 100 == 0)
+    printf("Time %f\n",Time);  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
@@ -304,6 +305,7 @@ namespace MetFEM{
 
     
   Time += dt;
+  step_count ++;
   
   }// WHILE LOOP
 
