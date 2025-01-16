@@ -94,6 +94,7 @@ public:
     m_domtype = _Plane_Strain_;
     bc_count[0]=bc_count[1]=bc_count[2]=0;
     contact = false;
+    m_thermal = false;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???

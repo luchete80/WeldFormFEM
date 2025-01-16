@@ -40,7 +40,7 @@ namespace MetFEM {
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
           if(m_thermal){
-            T[n] += dt * dTedt[eglob*m_nodxelem+ne];
+            T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
 	  }
       }
       if (m_gp_count == 1 ) {  
