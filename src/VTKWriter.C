@@ -207,7 +207,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     cout << "CONTACT ON "<<endl;
     nc += dom->getTriMesh()->nodecount;
   }
-  m_oss << nc << "float "<<endl;
+  m_oss << nc << " float "<<endl;
   
   int ne = dom->m_elem_count;
   if (dom->isContactOn()){
@@ -218,14 +218,15 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3(i);
-      m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;
+      m_oss <</* std::scientific<<*/x.x <<" "<<x.y <<" " <<x.z<<endl;
+      //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
     } else {
       double2 x = dom->getPosVec2(i);
       m_oss << x.x <<" "<<x.y <<endl;      
       
     }
     
-    //printf("         %f %f %f \n", x.x,x.y,x.z);
+
   }
   if (dom->isContactOn()){
     cout << "Contact on"<<endl;
@@ -238,25 +239,32 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //TODO: MODIFY IF NOT TRIAS
   
   m_oss << "CELLS "<<ne<<" ";
-  
+
+  cout << "Writing cells "<<endl;  
   int items =  (dom->m_nodxelem+1)*dom->m_elem_count ; //MODIFY WHEN NODXELEM NOT UNIFORM
-  
-  if (dom->isContactOn())
+  cout << "items"<<items<<endl;
+  if (dom->isContactOn()){
+    cout << "CONTACT "<<endl;
     items += 4 * dom->getTriMesh()->elemcount;
-  
+  }
   m_oss << items << endl;
   
-  //IF REMESH 
-  delete dom->elnod_h;
-  dom->elnod_h = new int[sizeof(int) * dom->m_nodxelem * dom->m_elem_count];
-  memcpy_t(dom->elnod_h, dom->m_elnod, sizeof(int) * dom->m_nodxelem * dom->m_elem_count);   
   
-  cout << "Writing cells "<<endl;
+  //IF REMESH 
+  //delete dom->elnod_h;
+  //dom->elnod_h = new int[sizeof(int) * dom->m_nodxelem * dom->m_elem_count];
+  //memcpy_t(dom->elnod_h, dom->m_elnod, sizeof(int) * dom->m_nodxelem * dom->m_elem_count);   
+  
+  cout << "cell loop"<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
-    //    cout << "Element "<<e<<endl;
+        cout << "Element "<<e<<endl;
     m_oss << dom->m_nodxelem<<" ";
     for (int en=0;en<dom->m_nodxelem;en++){
+  #ifdef CUDA_BUILD      
       m_oss <<dom->elnod_h[dom->m_nodxelem*e+en] <<" ";
+  #else
+      m_oss <<dom->m_elnod[dom->m_nodxelem*e+en] <<" ";    
+  #endif
     }
     m_oss << endl;
   }

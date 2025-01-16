@@ -243,6 +243,7 @@ int main(int argc, char **argv) {
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
+  cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
   //dom_d->SetEndTime (1000.0*dt);
   

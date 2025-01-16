@@ -109,7 +109,7 @@ namespace MetFEM{
   cout << "Main Loop----"<<endl;
   while (Time < end_t) {
       
-  if (step_count % 100 == 0)
+  if (step_count % 10 == 0)
     printf("Time %f\n",Time);  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -305,7 +305,7 @@ namespace MetFEM{
 
     
   Time += dt;
-  step_count ++;
+  step_count++;
   
   }// WHILE LOOP
 
