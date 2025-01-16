@@ -213,3 +213,5 @@ F90 PREVIOUS VERSION
 20250107 - Fixed yield stress initialization (was up until element count)
          - Added plastic increment (only for bilinear)
          - Added Cylidner example (still missing bc applying from json)
+20250116 - Fixed VTK wiriting, not copying to elnod_h. Remains remesh
+         - Fixing search external nodes for tetras

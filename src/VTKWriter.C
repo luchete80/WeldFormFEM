@@ -214,11 +214,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     ne += dom->getTriMesh()->elemcount;
   } 
   
-  cout << "Writing nodes "<<endl;
+  //cout << "Writing nodes "<<endl;
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3(i);
-      m_oss <</* std::scientific<<*/x.x <<" "<<x.y <<" " <<x.z<<endl;
+      m_oss << std::scientific<<x.x <<" "<<x.y <<" " <<x.z<<endl;
       //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
     } else {
       double2 x = dom->getPosVec2(i);
@@ -240,7 +240,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   
   m_oss << "CELLS "<<ne<<" ";
 
-  cout << "Writing cells "<<endl;  
+  //cout << "Writing cells "<<endl;  
   int items =  (dom->m_nodxelem+1)*dom->m_elem_count ; //MODIFY WHEN NODXELEM NOT UNIFORM
   cout << "items"<<items<<endl;
   if (dom->isContactOn()){
@@ -257,7 +257,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   
   cout << "cell loop"<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
-        cout << "Element "<<e<<endl;
+    //    cout << "Element "<<e<<endl;
     m_oss << dom->m_nodxelem<<" ";
     for (int en=0;en<dom->m_nodxelem;en++){
   #ifdef CUDA_BUILD      

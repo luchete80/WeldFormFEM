@@ -109,8 +109,8 @@ namespace MetFEM{
   cout << "Main Loop----"<<endl;
   while (Time < end_t) {
       
-  if (step_count % 10 == 0)
-    printf("Time %f\n",Time);  
+  if (step_count % 100 == 0)
+    printf("Step %d, Time %f\n",step_count, Time);  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
@@ -345,8 +345,8 @@ namespace MetFEM{
   #else
   calcElemStrainRates();
   
-   printf("DISPLACEMENTS\n");
-   printVec(this->u);   
+   //printf("DISPLACEMENTS\n");
+   //printVec(this->u);   
 
   // printf("VELOCITIES\n");
   // printVec( this->v);

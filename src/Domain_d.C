@@ -72,13 +72,13 @@ void addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
     // Define the 6 faces of the hexahedron
     Face faces[4] = {
         {{element[0], element[1], element[2]}, 0}, // Front face
-        {{element[1], element[0], element[4]}, 0}, // Right face
-        {{element[2], element[3], element[7]}, 0}, // Back face
-        {{element[3], element[0], element[4]}, 0}, // Left face
+        {{element[0], element[1], element[3]}, 0}, // Right face
+        {{element[1], element[2], element[3]}, 0}, // Back face
+        {{element[1], element[0], element[3]}, 0}, // Left face
     };
 
     // Add each face to the face list
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 3; i++) {
         addFace(faceList, faceCount, faces[i]);
     }
 }
@@ -102,22 +102,27 @@ void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
     }
 }
 
+//PARALLELIZE WITH GPU : TODO
+#define ELNOD  4 //ORIGINALLY 8
+#define FACENOD 3 //ORIGINALLY 4
+#define ELFAC  4 //ORIGINALLY 6
+//OLD FOT HEXA, CHANGE IT
 dev_t void Domain_d::SearchExtNodes() {
 
     cout << "Adding hexas"<<endl;
     // Array to store all faces
     //Face faceList[MAX_FACES];
     Face *faceList;
-    malloc_t(faceList, Face, m_elem_count*6);
+    malloc_t(faceList, Face, m_elem_count*ELFAC);
     int faceCount = 0;
-    int elements[8];
+    int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
 
     // Process each hexahedron to extract its faces
     for (int i = 0; i < m_elem_count; i++) {
         for (int ne=0;ne<m_nodxelem;ne++)
           elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
         
-        addHexahedronFaces(faceList, faceCount, elements);
+        addTriangleFaces(faceList, faceCount, elements);
     }
     cout << "done. Face count: "<<faceCount<<endl;
     // Array to track external nodes
@@ -130,7 +135,7 @@ dev_t void Domain_d::SearchExtNodes() {
     int ext_faces = 0;
     for (int i = 0; i < faceCount; i++) {
         if (faceList[i].count == 1) { // External face
-            for (int j = 0; j < 4; j++) {
+            for (int j = 0; j < FACENOD; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
                 
             }
