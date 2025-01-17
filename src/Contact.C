@@ -110,14 +110,26 @@ void dev_t Domain_d::CalcContactForcesWang(){
       //AND isNodeinSideFace (redYnEla sideface.C)
       
       //for (int j=0;j<trimesh->elemcount;j++){
-        double3 dist = getNodePos3(i) - trimesh->centroid[j];
-        double d = norm2(dist);
-        delta = dot(dist,trimesh->normal[j]);
+        //FROM WeldForm Contact Wang
+        //dist =  dot (Particles[P2]->normal, x_pred ) - trimesh[m]-> element[Particles[P2]->element] -> pplane;
+        //qj = Particles[P1]->x - dist * Particles[P2]->normal;
+        
+        //Original (wrong)
+        //double3 dist = getNodePos3(i) - trimesh->centroid[j];
+        //double d = norm2(dist);
+        
+        //IN wang is predicted
+        double d = dot(trimesh->normal[j],getNodePos3(i))  - trimesh->pplane[j];
+        //double d = norm2(dist);
+        //Original (wrong
+        //delta = dot(dist,trimesh->normal[j]);
+        delta = dot(getNodePos3(i) - trimesh->centroid[j],trimesh->normal[j]);
         if (delta <0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
           //printf ("ELEMENT %d DELTA <0------\n", e);
           
-          
+          //ORIGINAL
           double3 Qj = getPosVec3(i) - d * trimesh->normal[j];
+          
 
           bool inside = true;
           int l=0,n;		   
@@ -130,7 +142,8 @@ void dev_t Domain_d::CalcContactForcesWang(){
                                trimesh->normal[j]);
             if (crit < 0.0) inside = false;
             l++;
-          }   
+          }
+
             if (inside ){
               //printf("delta: %.3e\n",delta);
               //printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
@@ -140,7 +153,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
     //REDYNELAfiniteELement/contact.C
   //computetangentialForce(fn, Ft);
               double3 cf =  - 2.0 * m_mdiag[i] * delta * trimesh->normal[j]/(dt*dt);
-              printf("CF %f %f %f\n",cf.x,cf.y,cf.z);
+              printf("Node %d CF %f %f %f\n",i, cf.x,cf.y,cf.z);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE

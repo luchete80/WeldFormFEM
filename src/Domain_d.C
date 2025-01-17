@@ -45,6 +45,7 @@ struct Face {
     int count; // Number of occurrences of this face
 };
 
+/*
 // Function to compare two faces to check if they are identical
 bool areFacesEqual(const Face& f1, const Face& f2) {
     int matchCount = 0;
@@ -58,7 +59,20 @@ bool areFacesEqual(const Face& f1, const Face& f2) {
     }
     return matchCount == 4;
 }
-
+*/
+// Function to compare two faces to check if they are identical
+bool areFacesEqual(const Face& f1, const Face& f2) {
+    int matchCount = 0;
+    for (int i = 0; i < FACENOD; i++) {
+        for (int j = 0; j < FACENOD; j++) {
+            if (f1.nodes[i] == f2.nodes[j]) {
+                matchCount++;
+                break;
+            }
+        }
+    }
+    return matchCount == FACENOD;
+}
 // Add a face to the face list or increment its count if already present
 void addFace(Face faceList[], int& faceCount, const Face& newFace) {
     for (int i = 0; i < faceCount; i++) {
@@ -77,7 +91,8 @@ void addFace(Face faceList[], int& faceCount, const Face& newFace) {
 // Function to add all 6 faces of a hexahedron
 void addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
     // Define the 6 faces of the hexahedron
-    Face faces[4] = {
+    //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
+    Face faces[ELFAC] = {
         {{element[0], element[1], element[2]}, 0}, // Front face
         {{element[0], element[1], element[3]}, 0}, // Right face
         {{element[1], element[2], element[3]}, 0}, // Back face
@@ -124,7 +139,7 @@ dev_t void Domain_d::SearchExtNodes() {
     for (int i = 0; i < m_elem_count; i++) {
         for (int ne=0;ne<m_nodxelem;ne++)
           elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
-        
+        //cout << "Adding faces "<<endl;
         addTriangleFaces(faceList, faceCount, elements);
     }
     cout << "done. Face count: "<<faceCount<<endl;
