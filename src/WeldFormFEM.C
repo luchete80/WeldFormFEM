@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
   contact = true;
   double3 dim_,start;
   
-  readVector(rigbodies[0]["start"], 	start);       
+  readVector(rigbodies[0]["start"], 	start); 
   readVector(rigbodies[0]["dim"], 	dim_); 
   bool flipnormals = false;
   readValue(rigbodies[0]["flipNormals"],flipnormals);
@@ -255,6 +255,8 @@ int main(int argc, char **argv) {
     //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
     cout <<"Creating plane mesh..."<<endl;
    //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
+   cout <<"Mesh start: "<<start.x<<","<<start.y<<", "<<start.z<<endl;
+   cout <<"Mesh dim: "<<dim_.x<<","<<dim_.y<<", "<<dim_.z<<endl;
     msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     cout <<"Done"<<endl;
@@ -272,7 +274,42 @@ int main(int argc, char **argv) {
   dom_d->setdtOut(out_time);
   //dom_d->SetEndTime (1000.0*dt);
   
-
+  //////////////////// BOUNDARY CONDITIONS
+    int bc_count = 0;
+    //std::vector<boundaryCondition> bcondvec;
+		for (auto& bc : bcs) { //TODO: CHECK IF DIFFERENTS ZONES OVERLAP
+			// MaterialData* data = new MaterialData();
+			int zoneid,valuetype,var,ampid;
+      /*
+			double ampfactor;
+			bool free=true;
+			//SPH::boundaryCondition bcon;
+      //bcon.type = 0;        //DEFAULT: VELOCITY
+      //bcon.valueType = 0;   //DEFAULT: CONSTANT
+      //bcon.value_ang = make_double3 (0.0);
+			readValue(bc["zoneId"], 	bcon.zoneId);
+      //type 0 means velocity vc
+			readValue(bc["valueType"], 	bcon.valueType);
+			if (bcon.valueType == 0){//Constant
+        readVector(bc["value"], 	      bcon.value);      //Or value linear
+        readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+      } else 
+        if ( bcon.valueType == 1){ //Amplitude
+				readValue(bc["amplitudeId"], 		bcon.ampId);
+				readValue(bc["amplitudeFactor"], 	bcon.ampFactor);
+			}
+				
+			readValue(bc["free"], 	bcon.free);
+			//dom_d->bConds.push_back(bcon);
+      //bcondvec.push_back(bcon);
+      bc_count++;
+			
+      std::cout<< "BCs "<<  ", Zone ID: "<<bcon.zoneId<<", Value :" <<bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<std::endl;
+      */
+		}//Boundary Conditions
+  
+  
+  
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
@@ -283,13 +320,15 @@ int main(int argc, char **argv) {
       cout << "node "<< i<<" fixed "<<endl;
     }
     
+    
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-1.0);
+      dom_d->AddBCVelNode(i,2,-10.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
-    }      
+    }     
+        
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  

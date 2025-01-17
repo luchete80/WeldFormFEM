@@ -55,9 +55,10 @@ int main(){
   dom_d->setNproc(8);
   
 	double r = dx/2.0;
-	
-	dom_d->AddBoxLength(V,L,r,true);
- 
+
+  bool tetra = true;		
+	dom_d->AddBoxLength(V,L,r,true, tetra);
+
 
   ////// MATERIAL  
   double E, nu, rho;
@@ -143,6 +144,7 @@ int main(){
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->SetEndTime (1.e-2);
+  dom_d->setdtOut(1.0e-3);
   //dom_d->SetEndTime (10*dt);
   cout << "Searching external nodes"<<endl;
   dom_d->SearchExtNodes();

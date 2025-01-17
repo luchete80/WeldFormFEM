@@ -121,6 +121,7 @@ public:
   inline vector_t getVelVec (const int &n){return make_vector_t(v_h[m_dim*n], v_h[m_dim*n+1], v_h[m_dim*n+2]);};
   inline vector_t getIntForceVec(const int &n){/*return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);*/};
   #else
+  inline vector_t getAccVec (const int &n){return make_vector_t(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};
   inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);};
   inline vector_t getDispVec(const int &n){return make_vector_t(u[m_dim*n], u[m_dim*n+1], u[m_dim*n+2]);};
   inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);};
@@ -228,7 +229,7 @@ public:
   
   
 	void SolveChungHulbert();
-  void setdtOut(double &t){m_dtout=t;}
+  void setdtOut(const double &t){m_dtout=t;}
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}
 	int & getDim(){return m_dim;}

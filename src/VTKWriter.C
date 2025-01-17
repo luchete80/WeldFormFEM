@@ -318,13 +318,22 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss<<"VECTORS DISP float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t x = dom->getDispVec(n);
-    m_oss << fixed<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
+    m_oss << std::scientific<<std::setprecision(4)<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
   }
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
-  m_oss<<"VECTORS ACCEL float"<<endl;
+  m_oss<<"VECTORS Acceleration float"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    vector_t a = dom->getAccVec(n);
+    m_oss << std::scientific<<std::setprecision(4)<<a.x <<" "<<a.y <<" " <<a.z<<endl;    
+  }
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+
+  m_oss<<"VECTORS Velocity float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t v = dom->getVelVec(n);
     m_oss << fixed<<v.x <<" "<<v.y <<" " <<v.z<<endl;    

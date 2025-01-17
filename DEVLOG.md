@@ -219,3 +219,5 @@ F90 PREVIOUS VERSION
          - Added sim time and output time output reading from json
 20250117 - Begining to add contact to input reading
          - Add destructor to cpu vector_t, still freezing
+         - Fixed vtk writing for contact problems
+         - Corrected dtout to const, addedoutput to contact beam
