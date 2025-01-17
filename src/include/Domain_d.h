@@ -144,6 +144,8 @@ public:
   dev_t void calcElemForces();
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void calcElemPressureFromJ();
+  dev_t void calcElemPressureANP(); //AVERAGE NODAL POINT
 
   dev_t void assemblyMassMatrix();
   dev_t void assemblyForces();

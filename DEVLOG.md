@@ -221,3 +221,4 @@ F90 PREVIOUS VERSION
          - Add destructor to cpu vector_t, still freezing
          - Fixed vtk writing for contact problems
          - Corrected dtout to const, addedoutput to contact beam
+         - Added Formula CalcPressure Average Noodal Pressure (ANP).

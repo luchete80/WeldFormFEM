@@ -219,7 +219,11 @@ namespace MetFEM{
   //cout << "Calc density"<<endl;
   calcElemDensity();
   //cout << "Calc pressure"<<endl;
-  calcElemPressure();
+  
+  //calcElemPressure();
+  calcElemPressureFromJ();
+  //calcElemPressureANP();
+  
   //cout << "Calc Stress Strain"<<endl;
   CalcStressStrain(dt);
   //cout << "Calc Elem forces"<<endl;

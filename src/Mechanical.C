@@ -411,9 +411,7 @@ dev_t void Domain_d::calcElemPressure(){
   par_loop(e,m_elem_count){
     //printf("calc pressure \n");
     int offset_t = e * m_gp_count *6;
-    Matrix *sigma   = new Matrix(3,3);
-    //Matrix str_inc(m_dim,m_dim);
-    //sigma.FromFlatSymPtr();
+
     double trace;
     double press_inc = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
@@ -433,8 +431,52 @@ dev_t void Domain_d::calcElemPressure(){
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
       //printf("pressure %f\n",p[offset + gp]);
     }
-    delete sigma;
+
   } // e< elem_count
+}
+
+//Computational Methods in lagfangian & Eulerian Hydrocodes
+//From Benson 1992
+// Equation 1.3.12
+dev_t void Domain_d::calcElemPressureFromJ(){
+
+  par_loop(e,m_elem_count){
+    p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
+  } // e< elem_count
+}
+
+//FROM BENSON 1998
+// SHOULDBE CALCULATE INITIAL AND CURRENT VOLUMES FIRST 
+//ONLY FOR CONSTANT TETRA
+//JOLDES, WITTEK, MILLER
+//Non-locking tetrahedral finite element for surgical simulation
+dev_t void Domain_d::calcElemPressureANP(){
+  double *pn = new double [m_node_count];
+  double *voln_0 = new double [m_node_count];
+  double *voln = new double [m_node_count];
+
+  //assume same bulk modulus
+  double k = mat[0]->Elastic().BulkMod();
+  par_loop(n, m_node_count){
+    voln_0[n]=0.0;
+    voln  [n]=0.0;
+    pn[n]    = 0.0;
+  }
+  par_loop(n, m_node_count){
+    for (int e=0; e<m_nodel_count[n];e++) {    
+      int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+      voln_0[n]+= /*0.25**/vol_0[eglob];
+      voln[n] +=/*0.25**/vol[eglob]; 
+    }
+    pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
+  } //NODE LOOP
+
+  par_loop(e,m_elem_count){
+    for (int ne=0;ne<m_nodxelem;ne++) //I.E. 4 
+      p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
+    p[e] *= 0.25;
+  }
+
 }
     
 
