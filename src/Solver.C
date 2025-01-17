@@ -221,8 +221,8 @@ namespace MetFEM{
   //cout << "Calc pressure"<<endl;
   
   //calcElemPressure();
-  calcElemPressureFromJ();
-  //calcElemPressureANP();
+  //calcElemPressureFromJ();
+  calcElemPressureANP();
   
   //cout << "Calc Stress Strain"<<endl;
   CalcStressStrain(dt);
