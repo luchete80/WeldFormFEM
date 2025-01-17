@@ -86,7 +86,9 @@ class Material_{
     T_m=T_m_;T_t=T_t_;
   }
 
-	Material_(){}
+	Material_(){
+    sy0=1.0e10;
+  }
   spec_ void test(){printf("test\n");}
 //  //virtual spec_ double testret(){return 2.0;}
 	Material_(const Elastic_ el):elastic_m(el){}
