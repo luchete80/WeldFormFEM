@@ -32,9 +32,16 @@ namespace MetFEM {
 
 
 // Structure to define a face with 4 nodes
-//CHANGE IF TETRA
+//FOR HEXA IS 4
+//PARALLELIZE WITH GPU : TODO
+//// ORIGINALLY MEANS HEXA
+#define ELNOD  4   //ORIGINALLY 8
+#define FACENOD 3  //ORIGINALLY 4
+#define ELFAC  4   //ORIGINALLY 6
+//OLD FOT HEXA, CHANGE IT
+
 struct Face {
-    int nodes[4];
+    int nodes[FACENOD];
     int count; // Number of occurrences of this face
 };
 
@@ -74,16 +81,16 @@ void addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
         {{element[0], element[1], element[2]}, 0}, // Front face
         {{element[0], element[1], element[3]}, 0}, // Right face
         {{element[1], element[2], element[3]}, 0}, // Back face
-        {{element[1], element[0], element[3]}, 0}, // Left face
+        {{element[2], element[0], element[3]}, 0}, // Left face
     };
 
     // Add each face to the face list
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < ELFAC; i++) {
         addFace(faceList, faceCount, faces[i]);
     }
 }
 
-
+/*
 // Function to add all 6 faces of a hexahedron
 void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
     // Define the 6 faces of the hexahedron
@@ -101,12 +108,8 @@ void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
         addFace(faceList, faceCount, faces[i]);
     }
 }
+*/
 
-//PARALLELIZE WITH GPU : TODO
-#define ELNOD  4 //ORIGINALLY 8
-#define FACENOD 3 //ORIGINALLY 4
-#define ELFAC  4 //ORIGINALLY 6
-//OLD FOT HEXA, CHANGE IT
 dev_t void Domain_d::SearchExtNodes() {
 
     cout << "Adding hexas"<<endl;
