@@ -243,6 +243,8 @@ int main(int argc, char **argv) {
   readVector(rigbodies[0]["dim"], 	dim_); 
   bool flipnormals = false;
   readValue(rigbodies[0]["flipNormals"],flipnormals);
+  int partSide = 1;
+  readValue(rigbodies[0]["partSide"],partSide);
 
   if (contact){
     cout << "Searching external nodes"<<endl;
@@ -253,7 +255,7 @@ int main(int argc, char **argv) {
     //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
     cout <<"Creating plane mesh..."<<endl;
    //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-    msh->AxisPlaneMesh(2, false, make_double3(0.095,-0.005,0.024), make_double3 (.115,0.0015,0.024),  2);
+    msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     cout <<"Done"<<endl;
     msh->SetVel(make_double3(0.0,0.,-0.48));

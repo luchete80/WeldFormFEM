@@ -5,7 +5,7 @@
 struct vector_t_{
   vector_t_(int m_dim){x = new double[m_dim];}
   double *x;
-  ~vector_t_(){delete x;}
+  ~vector_t_(){delete[] x;}
 };
 
 

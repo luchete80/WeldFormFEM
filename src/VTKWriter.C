@@ -16,7 +16,15 @@
 
 using namespace std;
 
+
+
 namespace MetFEM{
+
+void printDummyElem(Domain_d *dom, ostringstream &m_oss){
+    if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->elemcount;n++)
+        m_oss <<0.0 <<endl;       
+}
 
 VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   //type definition to shorten coding
@@ -377,26 +385,25 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
         m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
 
-  delete [] a;
+  delete[] a;
 
-  m_oss << "CELL_DATA "<<dom->m_elem_count<<endl;
-  m_oss << "SCALARS sxx float 1"<<endl;
-  m_oss << "LOOKUP_TABLE default"<<endl;
-  for (int n=0;n<dom->m_elem_count;n++)
-    m_oss <<dom->m_sigma[6*n]<<endl;
+  m_oss << "CELL_DATA "<<ne<<endl;
 
   m_oss << "SCALARS pressure float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)
     m_oss <<dom->p[n]<<endl;  
-        
+
+  printDummyElem(dom,m_oss);
+      
   //ADD ALSO DU;;Y pressure CONTACT PARTICLES
 
   m_oss << "SCALARS pl_strain float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)
     m_oss <<dom->pl_strain[n]<<endl;  
-        
+
+  printDummyElem(dom,m_oss);
         
 /*
   //TODO: CREATE A VERSION OF OFFSET
