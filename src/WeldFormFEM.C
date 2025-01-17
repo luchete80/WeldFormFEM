@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-1.0);
+      dom_d->AddBCVelNode(i,2,-10.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      

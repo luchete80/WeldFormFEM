@@ -385,12 +385,19 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int n=0;n<dom->m_elem_count;n++)
     m_oss <<dom->m_sigma[6*n]<<endl;
 
+  m_oss << "SCALARS pressure float 1"<<endl;
+  m_oss << "LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss <<dom->p[n]<<endl;  
+        
+  //ADD ALSO DU;;Y pressure CONTACT PARTICLES
+
   m_oss << "SCALARS pl_strain float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)
     m_oss <<dom->pl_strain[n]<<endl;  
         
-  
+        
 /*
   //TODO: CREATE A VERSION OF OFFSET
   int offs = dom->m_nodxelem;
