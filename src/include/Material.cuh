@@ -91,7 +91,9 @@ class Material_{
   }
   spec_ void test(){printf("test\n");}
 //  //virtual spec_ double testret(){return 2.0;}
-	Material_(const Elastic_ el):elastic_m(el){}
+	Material_(const Elastic_ el):elastic_m(el){
+     sy0=1.0e10;
+  }
 	// //virtual  __device__ inline double CalcTangentModulus(){};
 	// //virtual  __device__ inline double CalcTangentModulus(const double &strain, const double &strain_rate, const double &temp){};
 	// //virtual  __device__ inline double CalcTangentModulus(const double &strain){};
