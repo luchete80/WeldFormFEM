@@ -8,18 +8,7 @@
 #include "Mesh.h"
 #include <fstream>
 #include <iomanip>	//ONY FOR GCC!!
-
-
-template <typename T>
-bool readValue(const nlohmann::json &j, T &v)
-{
-	if (j.is_null())
-		return false;
-
-	v = j.get<T>();
-	return true;
-}
-
+#include "Input.h"
 
 using namespace MetFEM;
 
@@ -240,6 +229,39 @@ int main(int argc, char **argv) {
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
   // } else                              printf("ERROR: Invalid material type.
 
+
+      
+  // //////////////////////////////////////////////////////////
+  // ////////////////// RIGID BODIES //////////////////////////
+  string rigbody_type;
+  bool contact = false;
+  if (readValue(rigbodies[0]["type"],rigbody_type))
+  contact = true;
+  double3 dim_,start;
+  
+  readVector(rigbodies[0]["start"], 	start);       
+  readVector(rigbodies[0]["dim"], 	dim_); 
+  bool flipnormals = false;
+  readValue(rigbodies[0]["flipNormals"],flipnormals);
+
+  if (contact){
+    cout << "Searching external nodes"<<endl;
+    dom_d->SearchExtNodes();
+    
+    TriMesh_d *msh = new TriMesh_d();
+    
+    //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
+    cout <<"Creating plane mesh..."<<endl;
+   //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
+    msh->AxisPlaneMesh(2, false, make_double3(0.095,-0.005,0.024), make_double3 (.115,0.0015,0.024),  2);
+    msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
+    cout <<"Done"<<endl;
+    msh->SetVel(make_double3(0.0,0.,-0.48));
+    dom_d->setTriMesh(msh);
+    
+    dom_d->setContactOn();
+  }
+
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
@@ -262,7 +284,7 @@ int main(int argc, char **argv) {
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-10.0);
+      dom_d->AddBCVelNode(i,2,-1.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      

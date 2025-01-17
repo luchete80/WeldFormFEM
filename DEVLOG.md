@@ -217,3 +217,5 @@ F90 PREVIOUS VERSION
          - Fixing search external nodes for tetras
          - Fixed vtk writer formatting
          - Added sim time and output time output reading from json
+20250117 - Begining to add contact to input reading
+         - Add destructor to cpu vector_t, still freezing

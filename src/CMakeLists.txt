@@ -164,6 +164,7 @@ add_executable(WeldFormFEM
                          Domain_d.C
                          Matrices.C
                          Mechanical.C
+                         Mesh.C
                          Matrices.C
                          Solver.C
                          input.C
