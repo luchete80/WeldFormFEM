@@ -124,12 +124,18 @@ void dev_t Domain_d::CalcContactForcesWang(){
         //Original (wrong
         //delta = dot(dist,trimesh->normal[j]);
         delta = dot(getNodePos3(i) - trimesh->centroid[j],trimesh->normal[j]);
+        
+        //ACCORDING TO WANG
+			//double3 vr = Particles[P1]->v - Particles[P2]->v;		//Fraser 3-137
+			//delta = - dot(trimesh->normal[j], vr);	//Penetration rate, Fraser 3-138        
+        
         if (delta <0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
           //printf ("ELEMENT %d DELTA <0------\n", e);
           
           //ORIGINAL
           double3 Qj = getPosVec3(i) - d * trimesh->normal[j];
-          
+          if (i==254)
+            printf("node 254 qj %f %f %f \n", Qj.x,Qj.y,Qj.z);
 
           bool inside = true;
           int l=0,n;		   
@@ -143,7 +149,11 @@ void dev_t Domain_d::CalcContactForcesWang(){
             if (crit < 0.0) inside = false;
             l++;
           }
-
+          if (i==254 && !inside)
+            printf("Node 254 not inside, Normal distance %f\n",d);
+          if (i==220)
+            printf("Node 220 inside, Normal distance %f\n",d);
+          
             if (inside ){
               //printf("delta: %.3e\n",delta);
               //printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
