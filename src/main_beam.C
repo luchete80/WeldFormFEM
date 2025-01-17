@@ -104,6 +104,7 @@ int main(){
     cout << "CS_0: "<<material_h->cs0<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
+    material_h->sy0 = 1.0e10;
     // cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
@@ -142,7 +143,7 @@ int main(){
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->setdtOut(1.0e-3);  
-  dom_d->SetEndTime (1.e-2);
+  dom_d->SetEndTime (1.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
   cout << "Setting BCs"<<endl;
