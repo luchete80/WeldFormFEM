@@ -216,3 +216,4 @@ F90 PREVIOUS VERSION
 20250116 - Fixed VTK wiriting, not copying to elnod_h. Remains remesh
          - Fixing search external nodes for tetras
          - Fixed vtk writer formatting
+         - Added sim time and output time output reading from json

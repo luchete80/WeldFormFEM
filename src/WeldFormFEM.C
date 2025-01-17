@@ -245,6 +245,7 @@ int main(int argc, char **argv) {
   dom_d->SetDT(dt); 
   cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
+  dom_d->setdtOut(out_time);
   //dom_d->SetEndTime (1000.0*dt);
   
 

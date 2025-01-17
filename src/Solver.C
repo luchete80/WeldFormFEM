@@ -103,6 +103,8 @@ namespace MetFEM{
   
   Time = 0.0;
   int step_count = 0;
+  double tout = 0;
+  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,7 +303,13 @@ namespace MetFEM{
   // !call AverageData(elem%rho(:,1),nod%rho(:))  
   // prev_a = nod%a
   // time = time + dt
-
+  
+  if (Time>=tout){
+    string outfname = "out_" + std::to_string(Time) + ".vtk";
+    VTKWriter writer2(this, outfname.c_str());
+    writer2.writeFile();
+    tout +=m_dtout;
+  }
 
     
   Time += dt;

@@ -228,7 +228,7 @@ public:
   
   
 	void SolveChungHulbert();
-  
+  void setdtOut(double &t){m_dtout=t;}
   void SetDT(const double &dt_){dt=dt_;}
   void SetEndTime(const double &tf_){end_t=tf_;}
 	int & getDim(){return m_dim;}
@@ -326,7 +326,7 @@ protected:
   double					Time;    				//Current time of simulation at each solving step
 	double					dtmin;			//Minimum Time Step
 	double					dtint;			//Initial Time Step
-  
+  double          m_dtout;  //VTK outtime  
   
   ////////////////////////////// REDUCTION THINGS ////////////////////////////////////////
   //THESE ARE USED IF NODAL FORCES WANTED TO BE REDUCED (SUMMED) NOT BY ATOMIC (GPU) OR LOCK (OPENMP CPU)
