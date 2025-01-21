@@ -1,7 +1,10 @@
 # WeldFormFEM
 Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver.
 The idea is to work pure lagrangian with rezoning (adaptive mesh refinement) first and later to include also coupled eulerian ALE formulations.
+WeldFormFEM works both on Ubuntu and Windows.
+you can select to build it to CPU and GPU only jy changing some CMAKE var.
 
+##How to build
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
 
