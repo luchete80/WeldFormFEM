@@ -1,4 +1,4 @@
-pno# WeldFormFEM
+WeldFormFEM
 Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver.
 The idea is to work pure lagrangian with rezoning (adaptive mesh refinement) first and later to include also coupled eulerian ALE formulations.
 WeldFormFEM works both on Ubuntu and Windows.
@@ -6,11 +6,14 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 
 ## Features
 - Explicit time integration
-- C++/CUDA CPU/GPU Architectures
+- C++/CUDA CPU/GPU(WIP) Architectures
 - Constant Stress Tetra/Triangle Element with Average Nodal Pressure (ANP) for volumetric locking fixing
 - Reduced Integration Hexaheadra with viscous hourglass control
 - OpenMP (WIP) CPU  parallelization
-
+- Contact algorithm (WIP)
+- Automatic Remeshing (rezoning) (WIP)
+- 2D Plain Strain/Axisymm & 3D \
+- 
 Locking (left) and fixing (right) tetra \
 Compression cylinder \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="200">
