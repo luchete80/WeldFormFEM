@@ -17,9 +17,8 @@ Compression cylinder \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="250">
 
 Bending \
-
-<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="250">
-<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_3.png" width="200" height="250">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="100">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_3.png" width="200" height="100">
 ## Build instructions
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
