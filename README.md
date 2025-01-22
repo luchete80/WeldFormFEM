@@ -11,10 +11,13 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 - Reduced Integration Hexaheadra with viscous hourglass control
 - OpenMP (WIP) CPU  parallelization
 
-Locking (left) and fixing (right) tetra 
-<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="300">
-<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="300">
+Locking (left) and fixing (right) tetra \
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="250">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="250">
+\
 
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="250">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_3.png" width="200" height="250">
 ## Build instructions
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
