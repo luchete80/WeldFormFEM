@@ -6,7 +6,10 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 
 ## Features
 - Explicit time integration
-- CPU/GPU Architectures
+- C++/CUDA CPU/GPU Architectures
+- Constant Stress Tetra/Triangle Element with Average Nodal Pressure (ANP) for volumetric locking fixing
+- Reduced Integration Hexaheadra with viscous hourglass control
+- OpenMP (WIP) CPU  parallelization
 
 ![alt text](https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png)
 ![alt text](https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png)
