@@ -1,5 +1,6 @@
-WeldFormFEM
-Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver.
+# WeldFormFEM
+Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver. \
+WeldFormFEM is aimed to solve large strain metal forming like problems. \
 The idea is to work pure lagrangian with rezoning (adaptive mesh refinement) first and later to include also coupled eulerian ALE formulations.
 WeldFormFEM works both on Ubuntu and Windows.
 you can select to build it to CPU and GPU only jy changing some CMAKE var.
@@ -12,8 +13,9 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 - OpenMP (WIP) CPU  parallelization
 - Contact algorithm (WIP)
 - Automatic Remeshing (rezoning) (WIP)
-- 2D Plain Strain/Axisymm & 3D \
-- 
+- 2D Plain Strain/Axisymm & 3D
+- Thermal-Mechanical coupling (WIP)
+
 Locking (left) and fixing (right) tetra \
 Compression cylinder \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="200">
