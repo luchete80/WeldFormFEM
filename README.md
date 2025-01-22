@@ -8,8 +8,8 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 - Explicit time integration
 - CPU/GPU Architectures
 
-![alt text](https://github.com/luchete80/WeldForm/blob/master/20250117_1.png)
-![alt text](https://github.com/luchete80/WeldForm/blob/master/20250117_2.png)
+![alt text](https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png)
+![alt text](https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png)
 
 ## Build instructions
 
