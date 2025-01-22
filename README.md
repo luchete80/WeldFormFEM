@@ -4,6 +4,13 @@ The idea is to work pure lagrangian with rezoning (adaptive mesh refinement) fir
 WeldFormFEM works both on Ubuntu and Windows.
 you can select to build it to CPU and GPU only jy changing some CMAKE var.
 
+## Features
+- Explicit time integration
+- CPU/GPU Architectures
+
+![alt text](https://github.com/luchete80/WeldForm/blob/master/20250117_1.png)
+![alt text](https://github.com/luchete80/WeldForm/blob/master/20250117_2.png)
+
 ## Build instructions
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
