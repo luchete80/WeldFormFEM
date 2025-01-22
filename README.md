@@ -19,6 +19,10 @@ Compression cylinder \
 Bending \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="100">
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_3.png" width="200" height="100">
+
+Hexa/Quad Hourglass \
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20240610_2.png" width="200" height="100">
+
 ## Build instructions
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
