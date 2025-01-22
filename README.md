@@ -11,8 +11,9 @@ you can select to build it to CPU and GPU only jy changing some CMAKE var.
 - Reduced Integration Hexaheadra with viscous hourglass control
 - OpenMP (WIP) CPU  parallelization
 
-<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="400" height="300">
-![alt text](https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png)
+Locking (left) and fixing (right) tetra 
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="300">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="300">
 
 ## Build instructions
 
