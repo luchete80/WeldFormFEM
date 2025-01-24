@@ -6,6 +6,7 @@ WeldFormFEM works both on Ubuntu and Windows.
 you can select to build it to CPU and GPU only by changing a single CMAKE var.
 
 ## Features
+- Structure Of Arrays (SOA) data arrangement which allows fast CUDA accesing
 - Explicit time integration
 - C++/CUDA CPU/GPU(WIP) Architectures
 - Constant Stress Tetra/Triangle Element with Average Nodal Pressure (ANP) for volumetric locking fixing
