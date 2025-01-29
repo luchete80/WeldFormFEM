@@ -1,7 +1,9 @@
 # WeldFormFEM
 Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver. \
 WeldFormFEM is aimed to solve solid mechanics large strain problems, such as metal forming. \
-The idea is to work pure lagrangian with rezoning (adaptive mesh refinement) first and later to include also coupled eulerian ALE formulations. \
+The idea is to work via 2 different solvers:
+1 - Pure lagrangian with rezoning (adaptive mesh refinement or AMR), Work In Progress as first option \
+2 - Coupled Eulerian (fixed mesh or Arbitrarian Eulerian Lagrangian) Lagrangian solver based on Benson works. \
 WeldFormFEM works both on Ubuntu and Windows.
 you can select to build it to CPU and GPU only by changing a single CMAKE var.
 
