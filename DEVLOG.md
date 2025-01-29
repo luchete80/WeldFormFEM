@@ -222,3 +222,5 @@ F90 PREVIOUS VERSION
          - Fixed vtk writing for contact problems
          - Corrected dtout to const, addedoutput to contact beam
          - Added Formula CalcPressure Average Noodal Pressure (ANP).
+20250129 - Added omega_h library. Adapted some signals to MINGW32
+         - Fixing macro things for CUDA & CPU MSVC

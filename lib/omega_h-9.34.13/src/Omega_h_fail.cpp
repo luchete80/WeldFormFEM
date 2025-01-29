@@ -7,6 +7,15 @@
 #include <Omega_h_profile.hpp>
 #include <Omega_h_dbg.hpp>
 
+#ifdef __MINGW32__
+
+#define SIGHUP                 1
+#define SIGQUIT                 3
+#define SIGTSTP                20
+#define SIGSYS                31
+
+#endif
+
 extern "C" void Omega_h_signal_handler(int s);
 
 namespace Omega_h {
