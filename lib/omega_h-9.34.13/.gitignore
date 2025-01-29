@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles
+install_manifest.txt
+Makefile
+cmake_install.cmake
+/build*
+/.vs
+/out/build/x64-Debug
+/CMakeSettings.json
+/out/build/x64-Release

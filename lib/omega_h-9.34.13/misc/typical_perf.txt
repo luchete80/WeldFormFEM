@@ -1,0 +1,60 @@
+MacBook serial, no Kokkos:
+
+eigendecomposition of 1000000 metric tensors 3 times takes 0.734473 seconds
+inversion of 1000000 metric tensors 30 times takes 1.00979 seconds
+reproducibly adding 1000000 reals 100 times takes 0.568613 seconds
+adding 1000000 reals 100 times takes 0.109893 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.613292 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.85981 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.901262 seconds
+building a 42x42x42 box took 0.86094 seconds
+reordering a 444528 tet mesh took 0.291451 seconds
+asking tet->vert and tri->vert of a 444528 tet mesh took 0.100245 seconds
+inverting 444528 tets -> verts 5 times takes 0.236589 seconds
+reflect_down 444528 tets -> tris by only upward 2 times takes 0.46036 seconds
+
+Pachisi with 1 thread:
+
+eigendecomposition of 1000000 metric tensors 3 times takes 0.76538 seconds
+inversion of 1000000 metric tensors 30 times takes 1.50607 seconds
+reproducibly adding 1000000 reals 100 times takes 0.441217 seconds
+adding 1000000 reals 100 times takes 0.0722293 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.417497 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.488998 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.569658 seconds
+building a 42x42x42 box took 0.506467 seconds
+reordering a 444528 tet mesh took 0.205562 seconds
+asking tet->vert and tri->vert of a 444528 tet mesh took 0.0540816 seconds
+inverting 444528 tets -> verts 5 times takes 0.223971 seconds
+reflect_down 444528 tets -> tris by only upward 2 times takes 0.298245 seconds
+
+Pachisi with 4 threads:
+
+eigendecomposition of 1000000 metric tensors 3 times takes 0.203963 seconds
+inversion of 1000000 metric tensors 30 times takes 0.407054 seconds
+reproducibly adding 1000000 reals 100 times takes 0.120153 seconds
+adding 1000000 reals 100 times takes 0.0198411 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.138563 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.170442 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.189544 seconds
+building a 42x42x42 box took 0.172196 seconds
+reordering a 444528 tet mesh took 0.0659448 seconds
+asking tet->vert and tri->vert of a 444528 tet mesh took 0.0161231 seconds
+inverting 444528 tets -> verts 5 times takes 0.063777 seconds
+reflect_down 444528 tets -> tris by only upward 2 times takes 0.0848556 seconds
+
+Shannon K80:
+
+eigendecomposition of 1000000 metric tensors 3 times takes 0.0461753 seconds
+inversion of 1000000 metric tensors 30 times takes 0.163082 seconds
+reproducibly adding 1000000 reals 100 times takes 0.0240003 seconds
+adding 1000000 reals 100 times takes 0.00938026 seconds
+warning: the naive sum gave the same answer
+sorting 1000000 sets of 1 integers 5 times takes 0.0781106 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.103468 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.126491 seconds
+building a 42x42x42 box took 0.144641 seconds
+reordering a 444528 tet mesh took 0.034265 seconds
+asking tet->vert and tri->vert of a 444528 tet mesh took 0.00291053 seconds
+inverting 444528 tets -> verts 5 times takes 0.0648589 seconds
+reflect_down 444528 tets -> tris by only upward 2 times takes 0.0267918 seconds
