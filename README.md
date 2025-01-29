@@ -1,7 +1,37 @@
-# EuLaFEM
-Eulerian Lagrange FEM
+# WeldFormFEM
+Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver. \
+WeldFormFEM is aimed to solve solid mechanics large strain problems, such as metal forming. \
+The idea is to work via 2 different solvers:
+1 - Pure lagrangian with rezoning (adaptive mesh refinement or AMR), Work In Progress as first option \
+2 - Coupled Eulerian (fixed mesh or Arbitrarian Eulerian Lagrangian) Lagrangian solver based on Benson works. \
+WeldFormFEM works both on Ubuntu and Windows.
+you can select to build it to CPU and GPU only by changing a single CMAKE var.
 
+## Features
+- Structure Of Arrays (SOA) data arrangement which allows fast CUDA accesing
+- Explicit time integration
+- C++/CUDA CPU/GPU(WIP) Architectures
+- Constant Stress Tetra/Triangle Element with Average Nodal Pressure (ANP) for volumetric locking fixing
+- Reduced Integration Hexaheadra with viscous hourglass control
+- OpenMP (WIP) CPU  parallelization
+- Contact algorithm (WIP)
+- Automatic Remeshing (rezoning) (WIP)
+- 2D Plain Strain/Axisymm & 3D
+- Thermal-Mechanical coupling (WIP)
 
+Locking (left) and fixing (right) tetra \
+Compression cylinder \
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="200">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="200">
+
+Bending \
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="100">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_3.png" width="200" height="100">
+
+Hexa/Quad Hourglass \
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/20240610_2.png" width="200" height="100">
+
+## Build instructions
 
 CUDACXX=/usr/local/cuda-12.3/bin/nvcc cmake ../WeldFormFEM -DBUILD_GPU=ON
 
