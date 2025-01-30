@@ -41,8 +41,8 @@
 
 class Matrix {
 public: 
-  /*__spec*/ Matrix(){}
-  /*__spec*/ Matrix(const int row, const int col);
+  __spec Matrix(){}
+  __spec Matrix(const int row, const int col);
   
   inline double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
