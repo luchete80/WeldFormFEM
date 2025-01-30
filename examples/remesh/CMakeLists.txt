@@ -1,11 +1,15 @@
 project (examples LANGUAGES CXX )
+include_directories(${PROJECT_SOURCE_DIR})
+include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
+include_directories(${PROJECT_SOURCE_DIR}/src/include)
 add_executable(remesh_ex1
                        remesh_ex.C
                        ../../src/Domain_d.C
+                       ../../src/ReMesher.C
                        ../../src/VTKWriter.C
              )
 
-TARGET_LINK_LIBRARIES (remesh_ex1  omega_h )
+#TARGET_LINK_LIBRARIES (remesh_ex1  omega_h )
 
 if (BUILD_GPU)
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
