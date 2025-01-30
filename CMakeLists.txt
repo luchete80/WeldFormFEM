@@ -52,6 +52,7 @@ if (BUILD_LAGRANGIAN)
   #default is CPU
   endif() 
   add_subdirectory("lib/omega_h-9.34.13")
+  add_subdirectory("examples/remesh")
 endif (BUILD_LAGRANGIAN)
 
 if (BUILD_GPU)

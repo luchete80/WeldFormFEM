@@ -80,6 +80,7 @@ namespace MetFEM{
 class TriMesh_d;
 class VTKWriter;
 class VTUWriter;
+class ReMesher;
 class Domain_d {
   friend class VTKWriter;
   friend class VTUWriter;

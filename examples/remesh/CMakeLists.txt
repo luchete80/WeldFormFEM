@@ -1,8 +1,8 @@
-
+project (examples LANGUAGES CXX )
 add_executable(remesh_ex1
-                       remesh.C
-                       ../src/Domain_d.C
-                       ../src/VTKWriter.C
+                       remesh_ex.C
+                       ../../src/Domain_d.C
+                       ../../src/VTKWriter.C
              )
 
 TARGET_LINK_LIBRARIES (remesh_ex1  omega_h )
