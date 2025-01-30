@@ -1406,6 +1406,7 @@ int Domain_d::WriteToCSV(char *FileKey){
 	std::ofstream of(fn.c_str(), std::ios::out);
 	of << oss.str();
 	of.close();
+  return 1;
 }
   
 dev_t void Domain_d::Calc_Element_Radius() //For axisymm

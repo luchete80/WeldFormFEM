@@ -224,3 +224,4 @@ F90 PREVIOUS VERSION
          - Added Formula CalcPressure Average Noodal Pressure (ANP).
 20250129 - Added omega_h library. Adapted some signals to MINGW32
          - Fixing macro things for CUDA & CPU MSVC
+         - Change __inline__ to inline since is not vendor specifig

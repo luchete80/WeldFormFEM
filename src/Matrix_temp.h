@@ -34,17 +34,17 @@
 
 
 #include <cuda.h>
-#define __spec __host__ __device__ __inline__
+#define __spec __host__ __device__ inline
 #else 
-#define __spec __inline__
+#define __spec inline
 #endif
 
 class Matrix {
 public: 
-  __spec Matrix(){}
-  __spec Matrix(const int row, const int col);
+  /*__spec*/ Matrix(){}
+  /*__spec*/ Matrix(const int row, const int col);
   
-  __spec double & getVal(int a, int b);
+  inline double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   //__spec Matrix  operator=(const Matrix &m);
