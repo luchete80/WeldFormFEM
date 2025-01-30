@@ -225,3 +225,5 @@ F90 PREVIOUS VERSION
 20250129 - Added omega_h library. Adapted some signals to MINGW32
          - Fixing macro things for CUDA & CPU MSVC
          - Change __inline__ to inline since is not vendor specifig
+         - Change "ssize_t" to "size_t" of omega_h/tpl/pss
+         - Now omega_h compiling ok for MSVC         
