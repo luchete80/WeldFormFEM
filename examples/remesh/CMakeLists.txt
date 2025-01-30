@@ -1,7 +1,9 @@
-project (examples LANGUAGES CXX )
-include_directories(${PROJECT_SOURCE_DIR})
+project (remesh_ex1 LANGUAGES CXX )
+include_directories(include_directories ../../)
+include_directories(include_directories ../../lib)
+include_directories(include_directories ../../lib/omega_h-9.34.13/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
-include_directories(${PROJECT_SOURCE_DIR}/src/include)
+include_directories(../../src/include)
 add_executable(remesh_ex1
                        remesh_ex.C
                        ../../src/Domain_d.C
