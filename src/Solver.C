@@ -231,7 +231,8 @@ namespace MetFEM{
   calcElemHourglassForces();
   
   if (contact)
-    CalcContactForcesWang();
+//    CalcContactForcesWang();
+    CalcContactForces();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   //cout << "Assemblying"<<endl;
@@ -287,7 +288,7 @@ namespace MetFEM{
   #else
   UpdateCorrectionPos();
   #endif  
-
+  
   if (contact){
     //MeshUpdate(this->trimesh,dt);
   trimesh->Move( dt);
@@ -297,6 +298,7 @@ namespace MetFEM{
   trimesh->UpdatePlaneCoeff();
 
   }
+
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
   // !u = u + beta * nod%v * dt

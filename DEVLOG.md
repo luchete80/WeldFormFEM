@@ -227,3 +227,6 @@ F90 PREVIOUS VERSION
          - Change __inline__ to inline since is not vendor specifig
          - Change "ssize_t" to "size_t" of omega_h/tpl/pss
          - Now omega_h compiling ok for MSVC         
+20250131 - Fixing contact algorithm (wrong elnode index)
+         - Add contact algorithm without preduction byut with current node position
+         

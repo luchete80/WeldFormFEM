@@ -106,6 +106,7 @@ int main(){
     cout << "CS_0: "<<material_h->cs0<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
+    material_h->sy0 = 1.0e10;
     // cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
@@ -157,7 +158,7 @@ int main(){
   msh->AxisPlaneMesh(2, false, make_double3(0.095,-0.005,0.024), make_double3 (.115,0.0015,0.024),  2);
   msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
   cout <<"Done"<<endl;
-  msh->SetVel(make_double3(0.0,0.,-0.48));
+  msh->SetVel(make_double3(0.0,0.,-0.1));
   dom_d->setTriMesh(msh);
   
   dom_d->setContactOn();

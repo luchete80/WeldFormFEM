@@ -99,7 +99,7 @@ void dev_t Domain_d::CalcContactForcesWang(){
     //printf("Element count %d\n", trimesh->elemcount);
     double min_dist = 1e10;
     double delta;
-    int e;
+
     if (ext_nodes[i]){ 
       //Search NEGATIVE DISTANCE node ON MESH
       int j=0;
@@ -143,16 +143,16 @@ void dev_t Domain_d::CalcContactForcesWang(){
           while (l<3 && inside){
             n = l+1;	if (n>2) n = 0;
             //double crit;
-            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*e+n]] - trimesh->node[trimesh->elnode[3*e+l]],
-                                                                Qj  - trimesh->node[trimesh->elnode[3*e+l]]),
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*j+n]] - trimesh->node[trimesh->elnode[3*j+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[3*j+l]]),
                                trimesh->normal[j]);
             if (crit < 0.0) inside = false;
             l++;
           }
-          if (i==254 && !inside)
-            printf("Node 254 not inside, Normal distance %f\n",d);
-          if (i==220)
-            printf("Node 220 inside, Normal distance %f\n",d);
+          // if (i==254 && !inside)
+            // printf("Node 254 not inside, Normal distance %f\n",d);
+          // if (i==220)
+            // printf("Node 220 inside, Normal distance %f\n",d);
           
             if (inside ){
               //printf("delta: %.3e\n",delta);
@@ -173,6 +173,201 @@ void dev_t Domain_d::CalcContactForcesWang(){
           
           
         }
+        j++;
+        if (j==trimesh->elemcount)
+          end = true;
+      } // WHILE j mesh elements
+     //printf("MinDist Node%d %.3e, on element %d\n", i, min_dist, e );
+        
+         
+    
+    //contforce[i] = make_double3(0.,0.,0.); //RESET
+    // CONTACT OFFSET IS FIX BY NOW
+
+      
+
+/*
+      double3 vr = v[i] - v[j];		//Fraser 3-137
+
+      double3 x_pred = x[i] + v[i] * deltat + a[i] * deltat * deltat/2.;
+
+      normal[j] = trimesh->normal[e];
+
+      double dist = dot (normal[j],x_pred)  - trimesh->pplane[e];
+
+      if (dist < h[i] ) {
+
+          double3 Qj = x[i] - dist * normal[j];
+
+          bool inside = true;
+          int l=0,n;		   
+          //printf("Entering while \n");
+          while (l<3 && inside){
+            n = l+1;	if (n>2) n = 0;
+            // double crit = dot (cross ( *trimesh->node[e -> node[j]] - *trimesh->node[e -> node[i]],
+                                                                // Qj  - *trimesh->node[e -> node[i]]),
+                              // normal[j]);
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*e+n]] - trimesh->node[trimesh->elnode[3*e+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[3*e+l]]),
+                              normal[j]);
+            if (crit < 0.0) inside = false;
+            l++;
+          }
+          //printf("Outside while\n");
+          
+          if (inside ) { //Contact point inside element, contact proceeds
+            // //Calculate penetration depth (Fraser 3-49)
+            double delta = h[i] - dist;
+            double delta_ = - dot( normal[j] , vr);	//Penetration rate, Fraser 3-138
+            //printf("delta: %f\n", delta);
+            // // DAMPING
+            // //Calculate SPH and FEM elements stiffness (series)
+            // //Since FEM is assumed as rigid, stiffness is simply the SPH one 
+            double kij = 2.0 * m[i] / (deltat * deltat);
+
+
+						double omega = sqrt (kij/m[i]);
+						double psi_cont = 2. * m[i] * omega * DFAC; // Fraser Eqn 3-158
+
+            //Normal Force
+            //contforce[i] = (0.05*kij * delta - psi_cont * delta_) * normal[j]; // NORMAL DIRECTION, Fraser 3-159
+            contforce[i] = 0.4 * kij * delta  * normal[j]; // NORMAL DIRECTION, Fraser 3-159
+            
+            //contforce[i].x = contforce[i].y = 0.0; ///// TO TEST BAD CONTACT
+            a[i] += (contforce[i] / m[i]);
+            //a[i].x = a[i].y = 0.0;
+            // //NORMALS NOT RIGHT. IF REPLACING a[i] BY THIS IS OK
+             // a[i].x = a[i].y = 0.0; ///// TO TEST BAD CONTACT
+             // a[i].z = -1000;
+           
+            test++;
+  
+            if (friction_sta > 0.){
+              double3 du = x_pred - x[i] - v[j] * deltat ;  
+              //printf ("vj %f %f %f\n",v[j].x,v[j].y,v[j].z);
+              double3 delta_tg = du - dot(du, normal[j])* normal[j];
+              double3 tg_force = kij * delta_tg;
+              
+              //double dS = pow(m[i]/rho[i],0.33333); //Fraser 3-119
+              if (length(tg_force) < friction_sta * length(contforce[i]) ){ //STATIC; NO SLIP
+                a[i] -= tg_force / m[i];   
+              } else {
+                double3 tgforce_dyn = friction_dyn * length(contforce[i]) * tg_force/length(tg_force);
+                contforce[i] -= tgforce_dyn;
+                a[i] -= tgforce_dyn / m[i];
+              }
+            }
+
+        }// if inside
+
+      } //dist <h
+    }//neibcount	for (int k=0;k < neibcount;k++) { //Or size
+    
+  */
+  
+    }//external nodes
+  } //i<first fem index
+	//Correct time step!
+//	std::min(deltat,dt_fext)
+} //Contact Forces
+
+
+void dev_t Domain_d::CalcContactForces(){
+	//int i = threadIdx.x + blockDim.x*blockIdx.x;	
+  
+	double min_force_ts_=1000.;
+// https://stackoverflow.com/questions/10850155/whats-the-difference-between-static-and-dynamic-schedule-in-openmp
+			
+  //max_contact_force = 0.;
+	double min_contact_force = 1000.;
+	int inside_pairs = 0;
+  //printf("test\n");
+  /*
+  #ifdef BUILD_GPU
+  par_loop(i,ext_nodes_count)
+  #else
+  for  (int i=0; i < ext_nodes_count;i++ )   //i particle is from SOLID domain, j are always rigid 
+  #endif
+  {
+  */
+  
+  for  (int i=0; i < m_dim*m_node_count;i++ ) 
+    contforce[i]=0.0;
+  
+  #ifdef BUILD_GPU
+  par_loop(i,m_node_count)
+  #else
+  for  (int i=0; i < m_node_count;i++ )   //i particle is from SOLID domain, j are always rigid 
+  #endif
+  {
+    //printf("Node %d\n",i);
+    //printf("Element count %d\n", trimesh->elemcount);
+    double min_dist = 1e10;
+    double delta;
+    
+    if (ext_nodes[i]){ 
+      //Search NEGATIVE DISTANCE node ON MESH
+      int j=0;
+      bool end = false;
+      while (!end){//----------------------------------------------------------
+      //CHCK isNodeinElement WITH getShapeFunctionAtPoint
+        //printf("Node i %d Element  j %d\n", i,j);      
+
+        double d = dot(trimesh->normal[j],getNodePos3(i))  - trimesh->pplane[j];
+        //double d = norm2(dist);
+        //Original (wrong
+        //delta = dot(dist,trimesh->normal[j]);
+        //delta = dot(getNodePos3(i) - trimesh->centroid[j],trimesh->normal[j]);
+        
+        //ACCORDING TO WANG
+			//double3 vr = Particles[P1]->v - Particles[P2]->v;		//Fraser 3-137
+			//delta = - dot(trimesh->normal[j], vr);	//Penetration rate, Fraser 3-138        
+        //printf("Node %d d %f\n",i, d);
+        if (d < 0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
+          //printf ("ELEMENT %d DELTA <0------\n", e);
+          
+          //ORIGINAL
+          double3 Qj = getPosVec3(i) - d * trimesh->normal[j];
+          // if (i==254)
+            // printf("node 254 qj %f %f %f \n", Qj.x,Qj.y,Qj.z);
+
+          bool inside = true;
+          int l=0,n;		   
+          //printf("Entering while \n");
+          while (l<3 && inside){
+            n = l+1;	if (n>2) n = 0;
+            //double crit;
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*j+n]] - trimesh->node[trimesh->elnode[3*j+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[3*j+l]]),
+                               trimesh->normal[j]);
+            if (crit < 0.0) inside = false;
+            l++;
+          }
+          // if (i==254 && !inside)
+            // printf("Node 254 not inside, Normal distance %f\n",d);
+          // if (i==220)
+            // printf("Node 220 inside, Normal distance %f\n",d);
+          
+            if (inside ){
+              //printf("delta: %.3e\n",delta);
+              //printf("dist %f %f %f\n",dist.x,dist.y,dist.z);
+              //printf("Node: %d, Mesh Element %d INSIDE!--------------------\n",i, e);
+              
+                //fn = 2. * node->mass * delta / SQ(timeStep);
+    //REDYNELAfiniteELement/contact.C
+  //computetangentialForce(fn, Ft);
+              double3 cf =  - 2.0 * m_mdiag[i] * d * trimesh->normal[j]/(dt*dt);
+              printf("Node %d CF %f %f %f, dist %f\n",i, cf.x,cf.y,cf.z, d);
+              contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
+              
+              end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
+            }
+          
+          
+          
+          
+        }
+
         j++;
         if (j==trimesh->elemcount)
           end = true;

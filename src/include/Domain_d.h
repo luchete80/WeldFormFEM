@@ -49,14 +49,9 @@
                                   int eglob   = dom->m_nodel     [dom->m_nodel_offset[n]+e];\
                                   int ne      = dom->m_nodel_loc [dom->m_nodel_offset[n]+e];\
                                   int offset  = eglob * dom->m_nodxelem * dim;\
-                                  if (n==1){\
-                                    printf("Node %d Element %d, global %d, local node %d\n",n,e, eglob,ne);\
-                                    printf("Scalar val:%f %d\n",v[eglob*dim ]);}\
                                   for (int d=0;d<dim;d++) a[n*dim + d]+=v[eglob*dim + d];\
                                   }\
                                 for (int d=0;d<dim;d++) a[n*dim + d]/=dom->m_nodel_count[n];\
-                                if (n==1){\
-                                  printf("Scalar val:%f \n",a[0]);}\
                               }
 
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
@@ -236,6 +231,7 @@ public:
   
   
   void dev_t CalcContactForcesWang();
+  void dev_t CalcContactForces(); //standard, not predicted
   void setContactOn(){contact = true;}
   bool isContactOn(){return contact;}
   TriMesh_d* getTriMesh(){return trimesh;}

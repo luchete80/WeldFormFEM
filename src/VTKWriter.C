@@ -365,6 +365,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   avgScalar(dom->m_sigma,a,6)
   
   double seq;
+  cout <<  "Averaging node count "<<endl;
   //Only of relevance if parts do not flow
   for (int n=0;n<dom->m_node_count;n++){
 
@@ -380,7 +381,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   }   
 
   
-
+  cout << "done"<<endl;
   m_oss<<"TENSORS SIGMAT float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     tensor3 sig = FromFlatSym(a,n*6);
@@ -393,7 +394,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       for (int t=0;t<3;t++)
         m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
-
+  //cout <<"tensors done "<<endl;
   delete[] a;
 
   m_oss << "CELL_DATA "<<ne<<endl;
@@ -413,7 +414,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     m_oss <<dom->pl_strain[n]<<endl;  
 
   printDummyElem(dom,m_oss);
-        
+  //cout << "Dummy done "<<endl;
 /*
   //TODO: CREATE A VERSION OF OFFSET
   int offs = dom->m_nodxelem;
