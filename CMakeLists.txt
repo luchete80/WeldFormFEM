@@ -26,7 +26,7 @@ ENDIF()
 if (NOT DEFINED BUILD_GPU)
 SET (BUILD_GPU OFF)
 SET (BUILD_LAGRANGIAN ON)
-SET (BUID_OMEGA_H OFF) #SET OFF IFALREADY BUILT ANDYOURE TESTING
+SET (BUID_OMEGA_H ON) #SET OFF IFALREADY BUILT ANDYOURE TESTING
 endif (NOT DEFINED BUILD_GPU)
 
 if (BUILD_GPU)
@@ -44,15 +44,15 @@ include_directories(${PROJECT_SOURCE_DIR}/src/include)
 add_subdirectory (src)
 
 if (BUILD_LAGRANGIAN)
-  set (Omega_h_USE_ZLIB OFF)
-  if (BUILD_GPU)
-  set (Omega_h_USE_CUDA ON)
-  else()
-    set (Omega_h_USE_OpenMP ON)
-  #default is CPU
-  endif() 
   if (BUID_OMEGA_H)
     add_subdirectory("lib/omega_h-9.34.13")
+    set (Omega_h_USE_ZLIB OFF)
+    if (BUILD_GPU)
+    set (Omega_h_USE_CUDA ON)
+    else()
+      set (Omega_h_USE_OpenMP ON)
+    #default is CPU
+    endif() 
   endif()
   add_subdirectory("examples/remesh")
 endif (BUILD_LAGRANGIAN)
