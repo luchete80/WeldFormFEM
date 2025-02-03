@@ -7,6 +7,8 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_build.hpp>
 
+#include "Domain_d.h"
+
 //From build
 
 // void build_from_elems_and_coords(
@@ -61,7 +63,7 @@
 // }
 
 namespace MetFEM{
-  ReMesher(Domain_d *d){
+  ReMesher::ReMesher(Domain_d *d){
     m_dom = d;
 
 

@@ -26,7 +26,7 @@ ENDIF()
 if (NOT DEFINED BUILD_GPU)
 SET (BUILD_GPU OFF)
 SET (BUILD_LAGRANGIAN ON)
-SET (BUID_OMEGA_H ON) #SET OFF IFALREADY BUILT ANDYOURE TESTING
+SET (BUID_OMEGA_H OFF) #SET OFF IFALREADY BUILT ANDYOURE TESTING
 endif (NOT DEFINED BUILD_GPU)
 
 if (BUILD_GPU)
@@ -54,6 +54,12 @@ if (BUILD_LAGRANGIAN)
     #default is CPU
     endif() 
   endif()
+#  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
+#                  POST_BUILD
+#                  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#                  ${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src/Omega_h_config.h
+#                  ${EXECUTABLE_OUTPUT_PATH})
+  include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
   add_subdirectory("examples/remesh")
 endif (BUILD_LAGRANGIAN)
 

@@ -49,6 +49,7 @@ ELSE ()
   message ("OPENMP NOT FOUND")
   endif()
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
+                            ReMesher.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             PROPERTIES LANGUAGE CXX)
