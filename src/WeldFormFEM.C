@@ -260,7 +260,7 @@ int main(int argc, char **argv) {
     msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     cout <<"Done"<<endl;
-    msh->SetVel(make_double3(0.0,0.,-0.48));
+    msh->SetVel(make_double3(0.0,0.,-10.0));
     dom_d->setTriMesh(msh);
     
     dom_d->setContactOn();
