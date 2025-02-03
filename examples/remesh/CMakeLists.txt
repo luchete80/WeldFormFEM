@@ -4,6 +4,7 @@ include_directories(include_directories ../../lib)
 include_directories(include_directories ../../lib/omega_h-9.34.13/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
 include_directories(../../src/include)
+include_directories(../../src)
 add_executable(remesh_ex1
                        remesh_ex.C
                        ../../src/Domain_d.C
