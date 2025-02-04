@@ -360,6 +360,13 @@ void dev_t Domain_d::CalcContactForces(){
               printf("Node %d CF %f %f %f, dist %f\n",i, cf.x,cf.y,cf.z, d);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
+              ////FRICTION 
+              //1. Calculare slave nodal tg vel 
+              //v tan=vs −dot(vs,normal)⋅normal
+
+              //2. Compute Friction Force Magnitude
+              //ft = -mu |fn| vtan/(|vtan| + eps)
+              
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
           
