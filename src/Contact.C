@@ -363,9 +363,10 @@ void dev_t Domain_d::CalcContactForces(){
               ////FRICTION 
               //1. Calculare slave nodal tg vel 
               //v tan=vs −dot(vs,normal)⋅normal
-
+              double3 vtan = getVelVec(i) - dot(getVelVec(i),trimesh->normal[j]) * trimesh->normal[j];
               //2. Compute Friction Force Magnitude
               //ft = -mu |fn| vtan/(|vtan| + eps)
+              double3 ft = - 0.2 * norm2(cf) * vtan/(norm2(vtan)+1.0e-5);
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
