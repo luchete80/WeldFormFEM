@@ -368,7 +368,7 @@ void dev_t Domain_d::CalcContactForces(){
               //ft = -mu |fn| vtan/(|vtan| + eps)
               double3 ft = - 0.2 * norm2(cf) * vtan/(norm2(vtan)+1.0e-5);
 
-              contforce[m_dim*i] += ft.x;contforce[m_dim*i+1] += ft.y;contforce[m_dim*i+2] += ft.z;
+              //contforce[m_dim*i] += ft.x;contforce[m_dim*i+1] += ft.y;contforce[m_dim*i+2] += ft.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
