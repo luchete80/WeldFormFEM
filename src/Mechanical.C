@@ -500,7 +500,7 @@ dev_t void Domain_d::CalcNodalVol(){
       //printf ("eglob %d, vol %f\n",eglob,vol[eglob]);
       m_voln[n] += 1.0/m_nodxelem * vol[eglob]; 
     }
-    //printf("Node %d vol %f \n",n,m_voln[n]);
+    printf("Node %d vol %f \n",n,m_voln[n]);
   } //NODE LOOP
 
 }
@@ -515,10 +515,10 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
   par_loop(n, m_node_count){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      rhon[n] += 1/m_nodxelem * rho[eglob]; 
+      rhon[n] += 1.0/m_nodxelem * rho[eglob]; 
     }
     m_mdiag[n] = rhon[n] * m_voln[n];
-    printf("Node %d mass %f rho %f\n",n,m_mdiag[n],rhon[n]);
+    printf("Node %d mass %f rho %f vol %f\n",n,m_mdiag[n],rhon[n], m_voln[n]);
     
   } //NODE LOOP
   delete rhon;
