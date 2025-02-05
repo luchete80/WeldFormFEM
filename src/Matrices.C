@@ -359,8 +359,8 @@ dev_t void Domain_d::calcElemMassMat() {
 
   }//if gp == 1
   
-    //delete temph;
-    //delete tempm;
+    delete temph;
+    delete tempm;
   }//par loop element
 
 }

@@ -356,8 +356,9 @@ void dev_t Domain_d::CalcContactForces(){
                 //fn = 2. * node->mass * delta / SQ(timeStep);
     //REDYNELAfiniteELement/contact.C
   //computetangentialForce(fn, Ft);
+              //fn = 2. * node->mass * delta / SQ(timeStep);
               double3 cf =  - 2.0 * m_mdiag[i] * d * trimesh->normal[j]/(dt*dt);
-              printf("Node %d CF %f %f %f, dist %f\n",i, cf.x,cf.y,cf.z, d);
+              printf("Node %d CF %f %f %f, dist %f mass %f\n",i, cf.x,cf.y,cf.z, d,m_mdiag[i]);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
               ////FRICTION 
@@ -367,7 +368,9 @@ void dev_t Domain_d::CalcContactForces(){
               //2. Compute Friction Force Magnitude
               //ft = -mu |fn| vtan/(|vtan| + eps)
               double3 ft = - 0.2 * norm2(cf) * vtan/(norm2(vtan)+1.0e-5);
-
+              //FROM REDYNELA
+              //  // Force tangentielle
+              // Ft = -(node->mass / Global_Structure->domains.current()->/*times.timeStep*/ currentSolver->getTimeStep()) * Vt;
               //contforce[m_dim*i] += ft.x;contforce[m_dim*i+1] += ft.y;contforce[m_dim*i+2] += ft.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
