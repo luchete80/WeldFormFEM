@@ -90,8 +90,8 @@ namespace MetFEM{
   calcElemMassMat(); 
   assemblyMassMatrix();  
   //Replaces PREVIOUS, INSTEAD MASS APPROACH
-  //CalcNodalVol(); //To calc nodal mass
-  //CalcNodalMassFromVol(); //Repla
+  CalcNodalVol(); //To calc nodal mass
+  CalcNodalMassFromVol(); //Repla
   
   #endif
 	//cout << "Done. "<<endl;
