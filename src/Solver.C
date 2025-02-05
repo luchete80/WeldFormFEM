@@ -234,6 +234,8 @@ namespace MetFEM{
 //    CalcContactForcesWang();
     CalcContactForces();
   
+  CalcNodalVol(); //To calc nodal mass
+  CalcNodalMassFromVol();
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   

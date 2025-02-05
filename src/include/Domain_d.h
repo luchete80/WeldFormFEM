@@ -206,7 +206,10 @@ public:
   dev_t void InitUVA(); 
   
   dev_t void CalcElemVol();
+  //Specially for tetra
   dev_t void CalcNodalVol();
+  dev_t void CalcNodalMassFromVol();
+  
   dev_t void calcElemDensity();
     
   dev_t void calcAccel();

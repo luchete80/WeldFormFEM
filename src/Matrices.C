@@ -243,8 +243,10 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   
 //////////  CALCULATE MATM ///////////
 ///////// m_ematm //////
-  
-  
+////  SEE BENSON 2017
+//// Explicit Finite Element Methods for Large
+//// Deformation Problems in Solid Mechanics
+//// Section 
 dev_t void Domain_d::calcElemMassMat() {   
   // !!!!! PREVIOUSLY JACOBIAN DETERMINANT SHOULD BE CALCULATED
 // subroutine calculate_element_shapeMat ()
@@ -273,7 +275,7 @@ dev_t void Domain_d::calcElemMassMat() {
 
   int offset = e * m_nodxelem * m_nodxelem;
   
-  
+
   if (m_gp_count == 1 ) {  
   // do e=1, elem_count
     // gp = 1

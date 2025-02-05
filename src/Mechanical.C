@@ -484,15 +484,12 @@ dev_t void Domain_d::calcElemPressureANP(){
       p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
     p[e] *= 0.25;
   }
-
+  delete pn,voln_0,voln;
 }
 
 ///// ASSUMING TETRA 
 dev_t void Domain_d::CalcNodalVol(){
-  double *pn = new double [m_node_count];
 
-  //assume same bulk modulus
-  double k = mat[0]->Elastic().BulkMod();
   par_loop(n, m_node_count){
     //voln_0[n]=0.0;
     m_voln  [n]=0.0;
@@ -500,12 +497,30 @@ dev_t void Domain_d::CalcNodalVol(){
   par_loop(n, m_node_count){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      m_voln[n] += 0.25 * vol[eglob]; 
+      m_voln[n] += 1/m_nodxelem * vol[eglob]; 
     }
+    printf("Node %d vol %f \n",n,m_voln[n]);
   } //NODE LOOP
 
 }
-    
+
+//Assuming constant material
+dev_t void Domain_d::CalcNodalMassFromVol(){
+  double *rhon = new double [m_node_count];  
+  par_loop(n, m_node_count){
+    //voln_0[n]=0.0;
+    rhon[n]=0.0;
+  }
+  par_loop(n, m_node_count){
+    for (int e=0; e<m_nodel_count[n];e++) {    
+      int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+      rhon[n] += 1/m_nodxelem * rho[eglob]; 
+    }
+    m_mdiag[n] = rhon[n] * m_voln[n];
+    printf("Node %d mass %f rho \n",n,m_mdiag[n]);
+  } //NODE LOOP
+  delete rhon;
+}
 
 // subroutine Calc_Elastic_Stress(dom, dt)
 dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
