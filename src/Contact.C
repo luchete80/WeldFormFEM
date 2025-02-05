@@ -358,7 +358,7 @@ void dev_t Domain_d::CalcContactForces(){
   //computetangentialForce(fn, Ft);
               //fn = 2. * node->mass * delta / SQ(timeStep);
               //double3 cf =  - 2.0 * m_mdiag[i] * d * trimesh->normal[j]/(dt*dt);
-              double3 cf =  - 0.4 * m_mdiag[i] * d * trimesh->normal[j]/(dt*dt);
+              double3 cf =  - 0.2 * m_mdiag[i] * d * trimesh->normal[j]/(dt*dt);
               //printf("Node %d CF %f %f %f, dist %f mass %f\n",i, cf.x,cf.y,cf.z, d,m_mdiag[i]);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               
