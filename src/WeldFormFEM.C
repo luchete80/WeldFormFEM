@@ -265,7 +265,7 @@ int main(int argc, char **argv) {
     
     dom_d->setContactOn();
   }
-
+  //dom_d->calcMinEdgeLength();
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 

@@ -94,7 +94,7 @@ public:
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
   #ifdef CUDA_BUILD
-  inline vector_t getPosVec (const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  inline vector_t getPosVec (int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
   inline vector_t getPosVec3(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);}; //the same
   #else
   inline double2 getPosVec2(const int &n){
@@ -106,6 +106,7 @@ public:
   #endif
 
   void setTriMesh(TriMesh_d *m){trimesh = m;}
+  
   dev_t void SearchExtNodes();
   
   #ifdef CUDA_BUILD
@@ -153,6 +154,7 @@ public:
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
+  dev_t void calcMinEdgeLength();
   
   ///// ATENTION! THIS IS Deriv x DETJ
   inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
@@ -167,6 +169,7 @@ public:
 	int threadsPerBlock, blocksPerGrid; //TO BE USED BY SOLVER
 	
 	const int & getElemCount()const{return m_elem_count;}
+  const int & getElemNode(const int &e, const int &n)const{return m_elnod[m_nodxelem*e+n];}
 	const int & getNodeCount()const{return m_node_count;}
   vector_t getNodePos3(const int &n){
     #ifdef CUDA_BUILD
