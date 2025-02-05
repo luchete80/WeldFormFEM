@@ -89,6 +89,8 @@ namespace MetFEM{
   calcElemDensity();
   calcElemMassMat(); 
   assemblyMassMatrix();  
+  //Replaces 
+  //CalcNodalMassFromVol(); //Repla
   
   #endif
 	//cout << "Done. "<<endl;
@@ -235,7 +237,9 @@ namespace MetFEM{
     CalcContactForces();
   
   CalcNodalVol(); //To calc nodal mass
-  CalcNodalMassFromVol();
+  //CalcNodalMassFromVol();
+  
+  
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   

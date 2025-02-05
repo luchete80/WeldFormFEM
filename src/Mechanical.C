@@ -212,7 +212,7 @@ dev_t void Domain_d::CalcElemVol(){
     double w;
     //TODO: CHANGE WEIGHT TO ARRAY
     if (m_gp_count == 1) {
-      if (m_dim == 3) w = 4;//w = pow(2.0, m_dim);
+      if (m_dim == 2) w = 4;//w = pow(2.0, m_dim);
       if (m_dim == 3)     
         if      (m_nodxelem == 4)  w = 1.0/6.0;
         else if (m_nodxelem == 8)  w = 8.0;
@@ -487,7 +487,7 @@ dev_t void Domain_d::calcElemPressureANP(){
   delete pn,voln_0,voln;
 }
 
-///// ASSUMING TETRA 
+///// ASSUMING CONSTANT element node count
 dev_t void Domain_d::CalcNodalVol(){
 
   par_loop(n, m_node_count){
@@ -497,9 +497,10 @@ dev_t void Domain_d::CalcNodalVol(){
   par_loop(n, m_node_count){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      m_voln[n] += 1/m_nodxelem * vol[eglob]; 
+      //printf ("eglob %d, vol %f\n",eglob,vol[eglob]);
+      m_voln[n] += 1.0/m_nodxelem * vol[eglob]; 
     }
-    printf("Node %d vol %f \n",n,m_voln[n]);
+    //printf("Node %d vol %f \n",n,m_voln[n]);
   } //NODE LOOP
 
 }
@@ -517,7 +518,8 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
       rhon[n] += 1/m_nodxelem * rho[eglob]; 
     }
     m_mdiag[n] = rhon[n] * m_voln[n];
-    printf("Node %d mass %f rho \n",n,m_mdiag[n]);
+    printf("Node %d mass %f rho %f\n",n,m_mdiag[n],rhon[n]);
+    
   } //NODE LOOP
   delete rhon;
 }
