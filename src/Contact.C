@@ -293,7 +293,7 @@ void dev_t Domain_d::CalcContactForces(){
   
   for  (int i=0; i < m_dim*m_node_count;i++ ) 
     contforce[i]=0.0;
-  
+  int max_cf = 0.0;
   #ifdef BUILD_GPU
   par_loop(i,m_node_count)
   #else
@@ -368,11 +368,11 @@ void dev_t Domain_d::CalcContactForces(){
               double3 vtan = getVelVec(i) - dot(getVelVec(i),trimesh->normal[j]) * trimesh->normal[j];
               //2. Compute Friction Force Magnitude
               //ft = -mu |fn| vtan/(|vtan| + eps)
-              double3 ft = - 0.2 * norm2(cf) * vtan/(norm2(vtan)+1.0e-5);
+             // double3 ft = - 0.2 * norm2(cf) * vtan/(norm2(vtan)+1.0e-5);
               //FROM REDYNELA
               //  // Force tangentielle
               // Ft = -(node->mass / Global_Structure->domains.current()->/*times.timeStep*/ currentSolver->getTimeStep()) * Vt;
-              //contforce[m_dim*i] += ft.x;contforce[m_dim*i+1] += ft.y;contforce[m_dim*i+2] += ft.z;
+              contforce[m_dim*i] += ft.x;contforce[m_dim*i+1] += ft.y;contforce[m_dim*i+2] += ft.z;
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             }
