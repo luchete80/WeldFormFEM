@@ -206,6 +206,7 @@ public:
   dev_t void InitUVA(); 
   
   dev_t void CalcElemVol();
+  dev_t void CalcNodalVol();
   dev_t void calcElemDensity();
     
   dev_t void calcAccel();
@@ -274,6 +275,7 @@ protected:
   double          m_alpha, m_beta, m_gamma;
   double          *vol_0, *vol;  //Element initial and current volume
   
+  double          *m_voln,*m_vol_0n; //Nodal values, useful for TETRA nodal Average Nodal Pressure
   
   //TO NOT OCCUPY SO MUCH MEMORY
   int             *bcx_nod, *bcy_nod, *bcz_nod;
@@ -375,6 +377,8 @@ __global__ void UpdateCorrectionPosKernel   (Domain_d *dom_d);
 __global__ void calcStressStrainKernel(Domain_d *dom_d, double dt);
 
 __global__ void calcElemVolKernel(Domain_d *dom_d);
+//__global__ void calcNoadlVolKernel(Domain_d *dom_d);
+
 __global__ void calcElemInitialVolKernel(Domain_d *dom_d);
 
 __global__ void AssignMatAddressKernel(Domain_d *dom/*, Material_ *mat*/);

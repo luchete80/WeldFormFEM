@@ -210,12 +210,19 @@ __global__ void calcElemStrainRatesKernel(Domain_d *dom_d){
 dev_t void Domain_d::CalcElemVol(){
   par_loop(e,m_elem_count){
     double w;
-    if (m_gp_count == 1)  w = pow(2.0, m_dim);      
-    else                  w = 1.0;
+    //TODO: CHANGE WEIGHT TO ARRAY
+    if (m_gp_count == 1) {
+      if (m_dim == 3) w = 4;//w = pow(2.0, m_dim);
+      if (m_dim == 3)     
+        if      (m_nodxelem == 4)  w = 1.0/6.0;
+        else if (m_nodxelem == 8)  w = 8.0;
+    } else                  w = 1.0;
+    
     int offset = m_gp_count * e;
     vol[e] = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
       vol[e] += m_detJ[offset] * w;
+      //printf("Element %d Vol %f\n",e,vol[e]);
     }    
   }
 }
@@ -468,6 +475,7 @@ dev_t void Domain_d::calcElemPressureANP(){
       voln_0[n]+= /*0.25**/vol_0[eglob];
       voln[n] +=/*0.25**/vol[eglob]; 
     }
+    //printf("Node %d vol %f\n", n,voln[n]);
     pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
   } //NODE LOOP
 
@@ -476,6 +484,25 @@ dev_t void Domain_d::calcElemPressureANP(){
       p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
     p[e] *= 0.25;
   }
+
+}
+
+///// ASSUMING TETRA 
+dev_t void Domain_d::CalcNodalVol(){
+  double *pn = new double [m_node_count];
+
+  //assume same bulk modulus
+  double k = mat[0]->Elastic().BulkMod();
+  par_loop(n, m_node_count){
+    //voln_0[n]=0.0;
+    m_voln  [n]=0.0;
+  }
+  par_loop(n, m_node_count){
+    for (int e=0; e<m_nodel_count[n];e++) {    
+      int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+      m_voln[n] += 0.25 * vol[eglob]; 
+    }
+  } //NODE LOOP
 
 }
     

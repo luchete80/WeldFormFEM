@@ -233,8 +233,10 @@ namespace MetFEM{
   if (contact)
 //    CalcContactForcesWang();
     CalcContactForces();
+  
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
+  
   //cout << "Assemblying"<<endl;
   assemblyForces(); 
   //cout << "Done "<<endl;

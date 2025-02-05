@@ -296,6 +296,7 @@ dev_t void Domain_d::calcElemMassMat() {
       for (int k=0;k<m_nodxelem;k++){  
         for (int d=0;d<m_dim;d++)
           temph.Set(d,k,f);
+          printf("Element %d node %d mass: %f\n",e,k,f);
       }
       // TODO: DO NOT PERFORM THIS MULT
       
@@ -359,8 +360,8 @@ dev_t void Domain_d::calcElemMassMat() {
 
   }//if gp == 1
   
-    delete temph;
-    delete tempm;
+    //delete temph;
+    //delete tempm;
   }//par loop element
 
 }

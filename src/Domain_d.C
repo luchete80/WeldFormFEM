@@ -258,8 +258,13 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   malloc_t(vol,      double, m_elem_count); 
   malloc_t(vol_0,    double, m_elem_count); 
+  
   // cudaMalloc((void **)&vol,       m_elem_count * sizeof (double)); 
   // cudaMalloc((void **)&vol_0,     m_elem_count * sizeof (double)); 
+  
+  // USEFUL FOR TETRA Average Nodal Pressure 
+  malloc_t(m_voln,      double, node_count); 
+  malloc_t(m_vol_0n,    double, node_count); 
 
   malloc_t(m_f_elem,    double, m_elem_count * m_dim * m_nodxelem);   
   malloc_t(m_f_elem_hg, double, m_elem_count * m_dim * m_nodxelem);   
