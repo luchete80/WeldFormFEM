@@ -154,7 +154,7 @@ public:
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
-  dev_t void calcMinEdgeLength();
+  dev_t double calcMinEdgeLength();
   
   ///// ATENTION! THIS IS Deriv x DETJ
   inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
@@ -236,8 +236,6 @@ public:
 	int & getDim(){return m_dim;}
   void setProcCount(const int &np){Nproc = np;} //for CPU only
   
-  
-  void dev_t CalcContactForcesWang();
   void dev_t CalcContactForces(); //standard, not predicted
   void setContactOn(){contact = true;}
   bool isContactOn(){return contact;}
