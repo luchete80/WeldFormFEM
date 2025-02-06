@@ -266,7 +266,8 @@ int main(int argc, char **argv) {
     dom_d->setContactOn();
   }
   cout << "Calulating min element size ..."<<endl;
-  dx = dom_d->calcMinEdgeLength();
+  dom_d->calcMinEdgeLength();
+  dx = dom_d->getMinLength();
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 

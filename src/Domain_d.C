@@ -1488,7 +1488,7 @@ dev_t void Domain_d::printSymmTens(double *v){
 }
 //ATTENTION  WITH PARALELIZ
 //SHOULD BE ATOMIC
-dev_t double Domain_d::calcMinEdgeLength(){
+dev_t void Domain_d::calcMinEdgeLength(){
   double min_len = 1.0e6;
   for (int e=0;e<m_elem_count;e++){
     int off = m_nodxelem * e;
@@ -1514,7 +1514,7 @@ dev_t double Domain_d::calcMinEdgeLength(){
     
   }
   printf("Min Edge length %lf\n", min_len);
-  return min_len;
+  m_min_length = min_len;
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
@@ -1552,6 +1552,10 @@ __global__ void printVecKernel(Domain_d *dom_d, double *v){
 
 __global__ void printSymmTensKernel(Domain_d *dom_d, double *v){
   dom_d->printSymmTens(v);
+}
+
+__global__ void calcMinEdgeLength(Domain_d *dom_d){
+  dom_d->calcMinEdgeLength();
 }
 
 

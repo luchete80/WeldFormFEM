@@ -154,7 +154,7 @@ public:
   dev_t void ImposeBCV(const int dim); /// DO NOT USE REFERENCESSS!!!!!!
   host_ void ImposeBCVAllDim();
   
-  dev_t double calcMinEdgeLength();
+  dev_t void calcMinEdgeLength();
   
   ///// ATENTION! THIS IS Deriv x DETJ
   inline dev_t double & getDerivative(const int &e, const int &gp, const int &i, const int &j); //I AND J ARE: DIMENSION AND NODE
@@ -241,6 +241,7 @@ public:
   bool isContactOn(){return contact;}
   TriMesh_d* getTriMesh(){return trimesh;}
   void InitValues();
+  double getMinLength(){return m_min_length;}
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
@@ -268,7 +269,7 @@ protected:
   bool m_thermal;
   double *T;   /// temperature
   double *m_dTedt; //elem node
-
+  double m_min_length;
 
 
   double          *pl_strain, *sigma_y;
@@ -395,6 +396,7 @@ __global__ void calcAccelKernel(Domain_d *dom_d);
 
 __global__ void printVecKernel(Domain_d *dom_d, double *);
 __global__ void printSymmTensKernel(Domain_d *dom_d,  double *);
+__global__ void calcMinEdgeLength(Domain_d *dom_d);
 
 #endif
 
