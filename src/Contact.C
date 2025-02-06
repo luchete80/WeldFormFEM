@@ -154,7 +154,7 @@ void dev_t Domain_d::CalcContactForces(){
               //2. Compute Friction Force Magnitude
               //ft = -mu |fn| vtan/(|vtan| + eps)
               //double3 ft = - 0.2 * norm(cf) * vtan/(norm(vtan)+1.0e-5);
-              double3 ft = - 0.2 * norm(cf) * vtan/(norm(vtan)+1.0e-5);
+              double3 ft = - 0.0 * norm(cf) * vtan/(norm(vtan)+1.0e-5);
               //FROM REDYNELA
               //  // Force tangentielle
               // Ft = -(node->mass / Global_Structure->domains.current()->/*times.timeStep*/ currentSolver->getTimeStep()) * Vt;
