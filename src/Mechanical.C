@@ -464,12 +464,11 @@ dev_t void Domain_d::calcElemPressureANP(){
 
   //assume same bulk modulus
   double k = mat[0]->Elastic().BulkMod();
+
   par_loop(n, m_node_count){
     voln_0[n]=0.0;
     voln  [n]=0.0;
     pn[n]    = 0.0;
-  }
-  par_loop(n, m_node_count){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
       voln_0[n]+= /*0.25**/vol_0[eglob];
@@ -491,10 +490,7 @@ dev_t void Domain_d::calcElemPressureANP(){
 dev_t void Domain_d::CalcNodalVol(){
 
   par_loop(n, m_node_count){
-    //voln_0[n]=0.0;
-    m_voln  [n]=0.0;
-  }
-  par_loop(n, m_node_count){
+    m_voln[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
       //printf ("eglob %d, vol %f\n",eglob,vol[eglob]);
@@ -508,11 +504,9 @@ dev_t void Domain_d::CalcNodalVol(){
 //Assuming constant material
 dev_t void Domain_d::CalcNodalMassFromVol(){
   double *rhon = new double [m_node_count];  
+
   par_loop(n, m_node_count){
-    //voln_0[n]=0.0;
     rhon[n]=0.0;
-  }
-  par_loop(n, m_node_count){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
       rhon[n] += 1.0/m_nodxelem * rho[eglob]; 
