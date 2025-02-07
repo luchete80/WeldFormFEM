@@ -22,17 +22,16 @@ namespace MetFEM {
 dev_t void Domain_d::calcElemStrainRates(){
 
   par_loop(e,m_elem_count){
-    Matrix *str_rate = new Matrix(3,3); //TODO: MAKE SYMM MATRIX
-    Matrix *rot_rate = new Matrix(3,3); //TODO: MAKE SYMM MATRIX
-  //Matrix *dHxy_detJ_loc = new Matrix(m_dim, m_nodxelem);
+    Matrix str_rate(3,3); //TODO: MAKE SYMM MATRIX
+    Matrix rot_rate(3,3); //TODO: MAKE SYMM MATRIX);
 
 //  if (e < m_elem_count) {
 
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count * 6 + gp;
 	    int offset_det = e * m_gp_count;
-		  str_rate->SetZero();
-      rot_rate->SetZero();
+		  str_rate.SetZero();
+      rot_rate.SetZero();
 	//printf ("offset, %f , det %f\n", offset, m_detJ[offset + gp]);
       double f = 1.0 / m_detJ[offset_det + gp];
       //printf("det J: %f\n",m_detJ[offset_det + gp]);
@@ -52,17 +51,17 @@ dev_t void Domain_d::calcElemStrainRates(){
         for (int d=0;d<m_dim;d++){
           //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n)*f,  getVElem(e,n,d));
           
-          str_rate->Set(d,d, str_rate->getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
-          rot_rate->Set(d,d, 0.0);
+          str_rate.Set(d,d, str_rate.getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
+          rot_rate.Set(d,d, 0.0);
 
           // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
           // elem%rot_rate(e,gp, d,d) = 0.0d0
           
         }//dim
         // !!!! TO AVOID ALL MATMULT
-        str_rate->Set(0,1, str_rate->getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
+        str_rate.Set(0,1, str_rate.getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
-        rot_rate->Set(0,1, rot_rate->getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
+        rot_rate.Set(0,1, rot_rate.getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
 
         //!!! er hoop = vr/r
         //if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
@@ -77,44 +76,44 @@ dev_t void Domain_d::calcElemStrainRates(){
         if (m_dim == 3) {
           //printf("elem %d velem %f %f %f\n", e, getVElem(e,n,1),getVElem(e,n,1),getVElem(e,n,2));
           //printf("deriv %f\n",getDerivative(e,gp,2,n));
-          str_rate->Set(1,2, str_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
+          str_rate.Set(1,2, str_rate.getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) +
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
-          str_rate->Set(0,2, str_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
+          str_rate.Set(0,2, str_rate.getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) +
                                                          getDerivative(e,gp,0,n) * getVElem(e,n,2)));
 
-          rot_rate->Set(1,2, rot_rate->getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) -
+          rot_rate.Set(1,2, rot_rate.getVal(1,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,1) -
                                                          getDerivative(e,gp,1,n) * getVElem(e,n,2)));
-          rot_rate->Set(0,2, rot_rate->getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
+          rot_rate.Set(0,2, rot_rate.getVal(0,2) + f *(getDerivative(e,gp,2,n) * getVElem(e,n,0) -
                                                          getDerivative(e,gp,0,n) * getVElem(e,n,2)));
         
 
         }// end if     
       }// end do !Nod x elem
       //printf ("test %fn", test);
-      str_rate->Set(0,1, str_rate->getVal(0,1) *0.5);
-      str_rate->Set(0,2, str_rate->getVal(0,2) *0.5);  
-      str_rate->Set(1,2, str_rate->getVal(1,2) *0.5);
+      str_rate.Set(0,1, str_rate.getVal(0,1) *0.5);
+      str_rate.Set(0,2, str_rate.getVal(0,2) *0.5);  
+      str_rate.Set(1,2, str_rate.getVal(1,2) *0.5);
       
-      rot_rate->Set(0,1, rot_rate->getVal(0,1) *0.5);
-      rot_rate->Set(0,2, rot_rate->getVal(0,2) *0.5);  
-      rot_rate->Set(1,2, rot_rate->getVal(1,2) *0.5);
+      rot_rate.Set(0,1, rot_rate.getVal(0,1) *0.5);
+      rot_rate.Set(0,2, rot_rate.getVal(0,2) *0.5);  
+      rot_rate.Set(1,2, rot_rate.getVal(1,2) *0.5);
       
-      str_rate->Set(1,0,  str_rate->getVal(0,1));   
-      str_rate->Set(2,1,  str_rate->getVal(1,2));  
-      str_rate->Set(2,0,  str_rate->getVal(0,2));
+      str_rate.Set(1,0,  str_rate.getVal(0,1));   
+      str_rate.Set(2,1,  str_rate.getVal(1,2));  
+      str_rate.Set(2,0,  str_rate.getVal(0,2));
 
-      rot_rate->Set(1,0, -rot_rate->getVal(0,1));      
-      rot_rate->Set(2,1, -rot_rate->getVal(1,2));  
-      rot_rate->Set(2,0, -rot_rate->getVal(0,2)); 
+      rot_rate.Set(1,0, -rot_rate.getVal(0,1));      
+      rot_rate.Set(2,1, -rot_rate.getVal(1,2));  
+      rot_rate.Set(2,0, -rot_rate.getVal(0,2)); 
 
-      str_rate->ToFlatSymPtr(m_str_rate, offset);
-      rot_rate->ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
+      str_rate.ToFlatSymPtr(m_str_rate, offset);
+      rot_rate.ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
 
        //printf("Strain Rate\n");
-       //str_rate->Print();
+       //str_rate.Print();
 
       // printf("Rot Rate\n");
-      // str_rate->Print();
+      // str_rate.Print();
       
       // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
       // !print *, "simlpified strain rate "
@@ -123,16 +122,16 @@ dev_t void Domain_d::calcElemStrainRates(){
       // Matrix *test = new Matrix(3,3);
       // Matrix *invtest = new Matrix(3,3);
       // //printf("A\n");
-      // test->Set(0,0,1);test->Set(0,1,1);test->Set(0,2,1);
-      // test->Set(1,0,1);test->Set(1,1,2);test->Set(1,2,2);      
-      // test->Set(2,0,1);test->Set(2,1,2);test->Set(2,2,3);
+      // test.Set(0,0,1);test.Set(0,1,1);test.Set(0,2,1);
+      // test.Set(1,0,1);test.Set(1,1,2);test.Set(1,2,2);      
+      // test.Set(2,0,1);test.Set(2,1,2);test.Set(2,2,3);
       // InvMat(*test,invtest);
       // ////printf("inv A\n");
-      // test->Print();
-      // invtest->Print();
+      // test.Print();
+      // invtest.Print();
         // delete test, invtest;
       } // Gauss Point
-      delete str_rate,rot_rate;
+
     }//if e<elem_count
     
 
