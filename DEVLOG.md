@@ -235,3 +235,4 @@ F90 PREVIOUS VERSION
 20250205 - Fixed tetrahedral masses 
          - Fixed Friction Contact Forces!!
          - Changing GPU broken things.
+20250506 - Adapted both tetras & hexas via pressure and mass calculation 
