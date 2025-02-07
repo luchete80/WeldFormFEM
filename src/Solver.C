@@ -221,19 +221,14 @@ namespace MetFEM{
   //SECOND TIME
     //STRESSES CALC
   //cout << "calc deriv"<<endl;
-  //calcElemJAndDerivatives();
-  //cout << "done "<<endl;
-  //CalcElemVol();
-  //cout << "done "<<endl;
-  //cout << "Calc strain rate"<<endl;
-  //calcElemStrainRates();
-  //cout << "Calc density"<<endl;
-  //calcElemDensity();
-  //cout << "Calc pressure"<<endl;
-  //if (m_dim == 3 && m_nodxelem ==4)
-  //  calcElemPressureANP();
-  //else
-  //  calcElemPressure();
+  calcElemJAndDerivatives();
+  CalcElemVol();
+  calcElemStrainRates();
+  calcElemDensity();
+  if (m_dim == 3 && m_nodxelem ==4)
+    calcElemPressureANP();
+  else
+    calcElemPressure();
   //calcElemPressureFromJ();
   //
   
@@ -254,9 +249,9 @@ namespace MetFEM{
   //assemblyMassMatrix();  
   
   //cout << "Assemblying"<<endl;
-  //assemblyForces(); 
+  assemblyForces(); 
 
-  //calcAccel();
+  calcAccel();
   
   #endif
   
