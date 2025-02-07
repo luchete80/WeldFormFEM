@@ -89,12 +89,17 @@ namespace MetFEM{
   calcElemDensity();
   calcElemMassMat(); 
   assemblyMassMatrix();  
-  //Replaces PREVIOUS, INSTEAD MASS APPROACH
-  calcElemMassMat();
-  assemblyMassMatrix();
-  
-  //CalcNodalVol(); //To calc nodal mass
-  //CalcNodalMassFromVol(); //Repla
+
+  if (m_dim == 3 && m_nodxelem ==4){
+  //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
+    CalcNodalVol(); //To calc nodal mass
+    CalcNodalMassFromVol(); //Repla
+  } else{
+
+    calcElemMassMat();
+    assemblyMassMatrix();    
+    
+    }
   
   #endif
 	//cout << "Done. "<<endl;
