@@ -272,7 +272,7 @@ namespace MetFEM{
   
   #else
     
-  //UpdateCorrectionAccVel();
+  UpdateCorrectionAccVel();
   
   #endif
 
