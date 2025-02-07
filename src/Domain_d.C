@@ -616,9 +616,9 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   } 
 		memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
     printf("X\n");
-    printVec(this->x);
-    printf("X_h\n");
-    printVec(x_H);
+    //printVec(this->x);
+    //printf("X_h\n");
+    //printVec(x_H);
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
     int gp = 1;
