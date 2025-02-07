@@ -32,7 +32,7 @@
 #include "vector_math.h"
 
 //#define __spec __device__ __forceinline__
-#define __spec __device__ __inline__
+#define __spec __host__ __device__ __inline__
 #else
   
 #endif
