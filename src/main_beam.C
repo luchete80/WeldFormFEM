@@ -54,7 +54,7 @@ int main(){
   
 	double r = dx/2.0;
 
-  bool tetra = true;	
+  bool tetra = false;	
 	dom_d->AddBoxLength(V,L,r,true, tetra);
  
   
@@ -141,11 +141,11 @@ int main(){
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
   // } else                              printf("ERROR: Invalid material type.
 
-	double dt = 0.4* dx/(mat_cs);
+	double dt = 0.3* dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->setdtOut(1.0e-3);  
-  dom_d->SetEndTime (1.e-2);
+  dom_d->SetEndTime (5.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
   cout << "Setting BCs"<<endl;

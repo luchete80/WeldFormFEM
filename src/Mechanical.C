@@ -712,8 +712,6 @@ dev_t void Domain_d:: calcElemHourglassForces()
   //Matrix hmod(m_dim,4);
     Matrix Sig(4,m_nodxelem);
   
-  
-  if (m_dim)
       
   // //Sig nodxelem
   if (m_dim==3){
@@ -774,7 +772,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.2 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.15 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       ////printf("c_h %.6e\n", c_h);
 /*
       for (int n=0;n<m_nodxelem;n++){      

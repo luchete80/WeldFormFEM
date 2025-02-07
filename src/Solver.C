@@ -239,7 +239,19 @@ namespace MetFEM{
   if (contact)
 //    CalcContactForcesWang();
     CalcContactForces();
-  
+
+  if (m_dim == 3 && m_nodxelem ==4){
+  //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
+    //THIS IS NOT WORKING
+    //CalcNodalVol(); //To calc nodal mass
+    //CalcNodalMassFromVol(); //Repla
+  } else{
+
+    calcElemMassMat();
+    assemblyMassMatrix();    
+    
+    }
+    
   //CalcNodalVol(); //To calc nodal mass
   //CalcNodalMassFromVol();
     
