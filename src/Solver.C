@@ -232,7 +232,7 @@ namespace MetFEM{
     calcElemPressure();
   //calcElemPressureFromJ();
   
-  //CalcStressStrain(dt);
+  CalcStressStrain(dt);
   calcElemForces();
   calcElemHourglassForces();
   
