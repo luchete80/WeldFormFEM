@@ -244,6 +244,8 @@ public:
   TriMesh_d* getTriMesh(){return trimesh;}
   void InitValues();
   double getMinLength(){return m_min_length;}
+
+  bool m_auto_contact; // if not define external nodes
   //--------------------------------------------------------------------------------------------------------------------------------
 
   

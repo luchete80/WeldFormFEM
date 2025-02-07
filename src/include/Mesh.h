@@ -9,6 +9,7 @@
 
 #ifdef  CUDA_BUILD
 #include <cuda.h>
+#include "vector_math.h"
 #endif
 
 #include "utils.h"

@@ -300,12 +300,14 @@ namespace MetFEM{
   
   if (contact){
     //MeshUpdate(this->trimesh,dt);
-  trimesh->Move( dt);
-	trimesh->CalcCentroids();
-  trimesh->CalcNormals();
+  #ifdef CUDA_BUILD  
+  #else
+    trimesh->Move( dt);
+    trimesh->CalcCentroids();
+    trimesh->CalcNormals();
 
-  trimesh->UpdatePlaneCoeff();
-
+    trimesh->UpdatePlaneCoeff();
+  #endif
   }
 
   // call impose_bcv !!!REINFORCE VELOCITY BC
