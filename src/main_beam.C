@@ -160,7 +160,7 @@ int main(){
     }
     
     if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(i,1,-0.48);
+      dom_d->AddBCVelNode(i,1,-1.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      

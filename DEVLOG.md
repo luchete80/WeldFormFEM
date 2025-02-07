@@ -236,3 +236,5 @@ F90 PREVIOUS VERSION
          - Fixed Friction Contact Forces!!
          - Changing GPU broken things.
 20250506 - Adapted both tetras & hexas via pressure and mass calculation 
+         - Fixed Huge mem leaking in CPU file  
+         - Fixed some commented hourglass for hexa

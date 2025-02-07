@@ -87,20 +87,18 @@ namespace MetFEM{
   CalcElemVol();
   printf("calc dens\n");
   calcElemDensity();
-  calcElemMassMat(); 
-  assemblyMassMatrix();  
 
-  if (m_dim == 3 && m_nodxelem ==4){
-  //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
-  cout << "Calc tetra vol"<<endl;
+  // if (m_dim == 3 && m_nodxelem ==4){
+  // //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
+  // cout << "Calc tetra vol"<<endl;
     CalcNodalVol(); //To calc nodal mass
     CalcNodalMassFromVol(); //Repla
-  } else{
+  // } else{
 
-    calcElemMassMat();
-    assemblyMassMatrix();    
+    // calcElemMassMat();
+    // assemblyMassMatrix();    
     
-    }
+    // }
   
   #endif
 	//cout << "Done. "<<endl;

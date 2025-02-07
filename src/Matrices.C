@@ -197,7 +197,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
     
     delete mdiag_h;
   }
-  
+  double totmass = 0.0;
   /// DEVICE FUNCTION
   //// THIS ASSEMBLES LOOPING THROUGH NODES INSTEAD OF ELEMENTS
   //  CALCULATE ALSO M_DIAG
@@ -229,9 +229,11 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
         
       } // element
       m_mdiag [n] = diag;
+      totmass += m_mdiag[n];
       //printf("m diag %d: %f\n",n, m_mdiag [n]);
     }//NODE N (N1)
-  }
+  printf("TOTAL MASS: %f\n",totmass);
+ }
   ///// INITIALIZE Displacements, velocities and Acceleration
   dev_t void Domain_d::InitUVA(){
     par_loop(n, m_node_count){    
