@@ -711,6 +711,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
   {0.0,0.0,0.0,0.0}}; //m_dim,4
   //Matrix hmod(m_dim,4);
     Matrix Sig(4,m_nodxelem);
+ 
   
       
   // //Sig nodxelem
@@ -772,16 +773,16 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.15 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
-      ////printf("c_h %.6e\n", c_h);
-/*
+      double c_h = 0.1 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      //printf("c_h %.6e\n", c_h);
+
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++){
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
-          printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+          //printf("hg forces: %f %f %f\n",m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
         }
       }
-*/      
+      
   } //gp ==1
   }//ELEM
 }
