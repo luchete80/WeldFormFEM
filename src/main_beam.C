@@ -54,7 +54,7 @@ int main(){
   
 	double r = dx/2.0;
 
-  bool tetra = false;	
+  bool tetra = true;	
 	dom_d->AddBoxLength(V,L,r,true, tetra);
  
   
@@ -145,7 +145,7 @@ int main(){
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->setdtOut(1.0e-3);  
-  dom_d->SetEndTime (5.e-3);
+  dom_d->SetEndTime (1.e-2);
   //dom_d->SetEndTime (1000.0*dt);
   
   cout << "Setting BCs"<<endl;

@@ -333,10 +333,14 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
-
+  
+  double eps = 1.0e-20;
   m_oss<<"VECTORS Acceleration float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t a = dom->getAccVec(n);
+    if (length(a)<eps)
+    m_oss <<0.0<< " "<< 0.0 << " "<<0.0<<endl;
+    else
     m_oss << std::scientific<<std::setprecision(4)<<a.x <<" "<<a.y <<" " <<a.z<<endl;    
   }
   if (dom->isContactOn())

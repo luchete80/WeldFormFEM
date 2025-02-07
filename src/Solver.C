@@ -92,6 +92,7 @@ namespace MetFEM{
 
   if (m_dim == 3 && m_nodxelem ==4){
   //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
+  cout << "Calc tetra vol"<<endl;
     CalcNodalVol(); //To calc nodal mass
     CalcNodalMassFromVol(); //Repla
   } else{
@@ -225,9 +226,9 @@ namespace MetFEM{
   CalcElemVol();
   calcElemStrainRates();
   calcElemDensity();
-  if (m_dim == 3 && m_nodxelem ==4)
+  if (m_dim == 3 && m_nodxelem ==4){
     calcElemPressureANP();
-  else
+  }else
     calcElemPressure();
   //calcElemPressureFromJ();
   
@@ -297,7 +298,7 @@ namespace MetFEM{
   UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
   #else
-  //UpdateCorrectionPos();
+  UpdateCorrectionPos();
   #endif  
   
   if (contact){
