@@ -248,7 +248,10 @@ int main(int argc, char **argv) {
 
   if (contact){
     cout << "Searching external nodes"<<endl;
+    #ifdef CUDA_BUILD
+    #else
     dom_d->SearchExtNodes();
+    #endif
     
     TriMesh_d *msh = new TriMesh_d();
     
@@ -258,7 +261,11 @@ int main(int argc, char **argv) {
    cout <<"Mesh start: "<<start.x<<","<<start.y<<", "<<start.z<<endl;
    cout <<"Mesh dim: "<<dim_.x<<","<<dim_.y<<", "<<dim_.z<<endl;
     msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
+    #ifdef CUDA_BUILD
+
+    #else
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
+    #endif
     cout <<"Done"<<endl;
     msh->SetVel(make_double3(0.0,0.,-10.0));
     dom_d->setTriMesh(msh);
@@ -266,7 +273,11 @@ int main(int argc, char **argv) {
     dom_d->setContactOn();
   }
   cout << "Calulating min element size ..."<<endl;
+  #ifdef CUDA_BUILD
+
+  #else
   dom_d->calcMinEdgeLength();
+  #endif
   dx = dom_d->getMinLength();
 	double dt = 0.7 * dx/(mat_cs);
   //double dt = 0.800e-5;
@@ -315,12 +326,14 @@ int main(int argc, char **argv) {
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
-    
+    #ifdef CUDA_BUILD
+    #else
     if (dom_d->getPosVec3(i).z <0.025) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
       cout << "node "<< i<<" fixed "<<endl;
     }
+    #endif
     
     /*
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
@@ -345,7 +358,7 @@ int main(int argc, char **argv) {
   //
   cout << "Reading contact "<<endl;
   #ifdef CUDA_BUILD
-  cudaMalloc((void**)&dom_d->trimesh,         rigbodies.size()* sizeof(SPH::TriMesh_d));
+  //cudaMalloc((void**)&dom_d->trimesh,         rigbodies.size()* sizeof(SPH::TriMesh_d));
   #else
     
   #endif
