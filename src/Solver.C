@@ -221,27 +221,27 @@ namespace MetFEM{
   //SECOND TIME
     //STRESSES CALC
   //cout << "calc deriv"<<endl;
-  calcElemJAndDerivatives();
+  //calcElemJAndDerivatives();
   //cout << "done "<<endl;
-  CalcElemVol();
+  //CalcElemVol();
   //cout << "done "<<endl;
   //cout << "Calc strain rate"<<endl;
-  calcElemStrainRates();
+  //calcElemStrainRates();
   //cout << "Calc density"<<endl;
-  calcElemDensity();
+  //calcElemDensity();
   //cout << "Calc pressure"<<endl;
-  if (m_dim == 3 && m_nodxelem ==4)
-    calcElemPressureANP();
-  else
-    calcElemPressure();
+  //if (m_dim == 3 && m_nodxelem ==4)
+  //  calcElemPressureANP();
+  //else
+  //  calcElemPressure();
   //calcElemPressureFromJ();
   //
   
   //cout << "Calc Stress Strain"<<endl;
-  CalcStressStrain(dt);
+  //CalcStressStrain(dt);
   //cout << "Calc Elem forces"<<endl;
-  calcElemForces();
-  calcElemHourglassForces();
+  //calcElemForces();
+  //calcElemHourglassForces();
   
   if (contact)
 //    CalcContactForcesWang();
@@ -249,15 +249,15 @@ namespace MetFEM{
   
   //CalcNodalVol(); //To calc nodal mass
   //CalcNodalMassFromVol();
-  
-  
+    
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   
   //cout << "Assemblying"<<endl;
-  assemblyForces(); 
-  //cout << "Done "<<endl;
-  calcAccel();
+  //assemblyForces(); 
+
+  //calcAccel();
+  
   #endif
   
   ImposeBCAAllDim(); //FOR BOTH GPU AND CPU
@@ -272,7 +272,7 @@ namespace MetFEM{
   
   #else
     
-  UpdateCorrectionAccVel();
+  //UpdateCorrectionAccVel();
   
   #endif
 
@@ -305,7 +305,7 @@ namespace MetFEM{
   UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
   #else
-  UpdateCorrectionPos();
+  //UpdateCorrectionPos();
   #endif  
   
   if (contact){

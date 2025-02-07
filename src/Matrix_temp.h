@@ -41,7 +41,7 @@
 
 class Matrix {
 public: 
-  __spec Matrix(){}
+  __spec Matrix() : m_data(nullptr), m_row(0), m_col(0), m_dim(0) {}
   __spec Matrix(const int row, const int col);
   
   inline double & getVal(int a, int b);
@@ -51,7 +51,8 @@ public:
 
 // Copy constructor
     __spec Matrix(const Matrix& other) : m_row(other.m_row), m_col(other.m_col) {
-        m_data = (double *)malloc(m_row * m_col * sizeof(double));
+        //m_data = (double *)malloc(m_row * m_col * sizeof(double));
+        malloc_t(m_data,double,m_col*m_row);
         if (m_data == nullptr) {
             printf("Memory allocation failed!n");
             //exit(EXIT_FAILURE);
@@ -63,7 +64,10 @@ public:
     __spec Matrix& operator=(const Matrix& other) {
         if (this != &other) {
             // Free existing memory
-            free(m_data);
+            if (m_data != nullptr) {
+                free(m_data);
+                m_data = nullptr;
+            }
             
             // Allocate new memory
             m_row = other.m_row;
@@ -80,6 +84,27 @@ public:
         return *this;
     }
 
+// Move Constructor
+__spec Matrix(Matrix&& other) noexcept
+    : m_data(other.m_data), m_row(other.m_row), m_col(other.m_col), m_dim(other.m_dim) {
+    other.m_data = nullptr;
+    other.m_row = other.m_col = other.m_dim = 0;
+}
+
+// Move Assignment Operator
+__spec Matrix& operator=(Matrix&& other) noexcept {
+    if (this != &other) {
+        free(m_data);  // Free current resources
+        m_data = other.m_data;
+        m_row = other.m_row;
+        m_col = other.m_col;
+        m_dim = other.m_dim;
+
+        other.m_data = nullptr;
+        other.m_row = other.m_col = other.m_dim = 0;
+    }
+    return *this;
+}
 
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int r, const int c, const double d);
@@ -89,7 +114,10 @@ public:
   __spec Matrix getTranspose();
   __spec Matrix Inv();
   __spec ~Matrix(){/*cudaFree (m_data);*/
-                       free(m_data);}
+      if (m_data != nullptr) {
+                       free(m_data); 
+    }
+  }
 	
 	__spec double calcDet();
   
