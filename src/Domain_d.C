@@ -61,7 +61,7 @@ bool areFacesEqual(const Face& f1, const Face& f2) {
 }
 */
 // Function to compare two faces to check if they are identical
-bool areFacesEqual(const Face& f1, const Face& f2) {
+bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
     int matchCount = 0;
     for (int i = 0; i < FACENOD; i++) {
         for (int j = 0; j < FACENOD; j++) {
@@ -74,7 +74,7 @@ bool areFacesEqual(const Face& f1, const Face& f2) {
     return matchCount == FACENOD;
 }
 // Add a face to the face list or increment its count if already present
-void addFace(Face faceList[], int& faceCount, const Face& newFace) {
+void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     for (int i = 0; i < faceCount; i++) {
         if (areFacesEqual(faceList[i], newFace)) {
             faceList[i].count++;
@@ -89,7 +89,7 @@ void addFace(Face faceList[], int& faceCount, const Face& newFace) {
 
 
 // Function to add all 6 faces of a hexahedron
-void addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
+void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
     // Define the 6 faces of the hexahedron
     //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
     Face faces[ELFAC] = {
@@ -127,7 +127,7 @@ void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
 
 dev_t void Domain_d::SearchExtNodes() {
 
-    cout << "Adding hexas"<<endl;
+    printf("Adding hexas\n");
     // Array to store all faces
     //Face faceList[MAX_FACES];
     Face *faceList;
@@ -142,7 +142,7 @@ dev_t void Domain_d::SearchExtNodes() {
         //cout << "Adding faces "<<endl;
         addTriangleFaces(faceList, faceCount, elements);
     }
-    cout << "done. Face count: "<<faceCount<<endl;
+    //cout << "done. Face count: "<<faceCount<<endl;
     // Array to track external nodes
     for (int n=0;n<m_node_count;n++)
       ext_nodes[n] = false;
@@ -1504,8 +1504,8 @@ dev_t void Domain_d::calcMinEdgeLength(){
           
           //double3 x1 = getPosVec3(getElemNode(e,i))-getPosVec3(getElemNode(e,0));+ //getElemNode CRASHES
           //double3 x2 = getPosVec3(getElemNode(e,i))-getPosVec3(getElemNode(e,3));
-          double d = norm2(x1);
-          double d2 = norm2(x2);
+          double d = sqlength(x1);
+          double d2 = sqlength(x2);
         printf("Edge Length d %lf, d2 %lf \n", d,d2);
         if ( d < min_len )  min_len= d;
         if ( d2 < min_len ) min_len= d2;
@@ -1514,7 +1514,7 @@ dev_t void Domain_d::calcMinEdgeLength(){
     
   }
   printf("Min Edge length %lf\n", min_len);
-  m_min_length = min_len;
+  m_min_length = sqrt(min_len);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
