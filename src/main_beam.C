@@ -54,7 +54,7 @@ int main(){
   
 	double r = dx/2.0;
 
-  bool tetra = true;	
+  bool tetra = false;	
 	dom_d->AddBoxLength(V,L,r,true, tetra);
  
   
@@ -102,15 +102,17 @@ int main(){
     material_h  = new Material_(el);
     material_h->cs0 = sqrt(material_h->Elastic().BulkMod()/rho); //TODO: INSIDE MATERIAL 
     cout << "CS_0: "<<material_h->cs0<<endl;
+    cout << "Material Ep "<<Ep<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
-    material_h->sy0 = 1.0e10;
+    
     // cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
     // cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(Bilinear), cudaMemcpyHostToDevice);	
-
+    material_h->sy0 = 300.0e6;
     dom_d->AssignMaterial(material_h);
+    
   } 
   cout << "Done."<<endl;
   // else if (mattype == "Hollomon")    {
@@ -143,7 +145,7 @@ int main(){
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   dom_d->setdtOut(1.0e-3);  
-  dom_d->SetEndTime (1.e-3);
+  dom_d->SetEndTime (5.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
   cout << "Setting BCs"<<endl;
@@ -158,7 +160,7 @@ int main(){
     }
     
     if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(i,1,-0.1);
+      dom_d->AddBCVelNode(i,1,-0.48);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      

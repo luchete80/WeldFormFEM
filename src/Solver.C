@@ -90,8 +90,11 @@ namespace MetFEM{
   calcElemMassMat(); 
   assemblyMassMatrix();  
   //Replaces PREVIOUS, INSTEAD MASS APPROACH
-  CalcNodalVol(); //To calc nodal mass
-  CalcNodalMassFromVol(); //Repla
+  calcElemMassMat();
+  assemblyMassMatrix();
+  
+  //CalcNodalVol(); //To calc nodal mass
+  //CalcNodalMassFromVol(); //Repla
   
   #endif
 	//cout << "Done. "<<endl;
@@ -222,10 +225,12 @@ namespace MetFEM{
   //cout << "Calc density"<<endl;
   calcElemDensity();
   //cout << "Calc pressure"<<endl;
-  
-  //calcElemPressure();
+  if (m_dim == 3 && m_nodxelem ==4)
+    calcElemPressureANP();
+  else
+    calcElemPressure();
   //calcElemPressureFromJ();
-  calcElemPressureANP();
+  //
   
   //cout << "Calc Stress Strain"<<endl;
   CalcStressStrain(dt);
@@ -323,8 +328,10 @@ namespace MetFEM{
   
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
+    #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
     writer2.writeFile();
+    #endif
     tout +=m_dtout;
   }
 
@@ -337,6 +344,7 @@ namespace MetFEM{
 
   
   #ifdef CUDA_BUILD
+  /*
   printf("DISPLACEMENTS\n");
   memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*m_dim);
   for (int i=0;i<m_node_count;i++)
@@ -367,6 +375,7 @@ namespace MetFEM{
   printf("SHEAR STRESSES\n");
   printVecKernel<<<1,1 >>>(this, this->m_tau);
 	cudaDeviceSynchronize();
+  */
   #else
   calcElemStrainRates();
   
@@ -398,10 +407,12 @@ namespace MetFEM{
   cout << "Writing output "<<endl;
   //VTUWriter writer(this, "out.vtu");
   //writer.writeFile();
-
+  
+  #ifndef CUDA_BUILD
+  cout << "Writing output"<<endl;
   VTKWriter writer2(this, "out.vtk");
   writer2.writeFile();
-  
+  #endif
   cout << "Done."<<endl;
   
   }//SOLVE
