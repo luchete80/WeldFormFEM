@@ -370,8 +370,8 @@ namespace MetFEM{
   #else
   calcElemStrainRates();
   
-   //printf("DISPLACEMENTS\n");
-   //printVec(this->u);   
+   printf("DISPLACEMENTS\n");
+   printVec(this->u);   
 
   // printf("VELOCITIES\n");
   // printVec( this->v);

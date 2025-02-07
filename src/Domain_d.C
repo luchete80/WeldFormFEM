@@ -1514,7 +1514,7 @@ dev_t void Domain_d::calcMinEdgeLength(){
     
   }
   printf("Min Edge length %lf\n", min_len);
-  m_min_length = sqrt(min_len);
+  m_min_length = /*sqrt(*/min_len/*)*/;
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
