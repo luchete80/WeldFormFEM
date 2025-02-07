@@ -230,13 +230,10 @@ namespace MetFEM{
   else
     calcElemPressure();
   //calcElemPressureFromJ();
-  //
   
-  //cout << "Calc Stress Strain"<<endl;
-  //CalcStressStrain(dt);
-  //cout << "Calc Elem forces"<<endl;
-  //calcElemForces();
-  //calcElemHourglassForces();
+  CalcStressStrain(dt);
+  calcElemForces();
+  calcElemHourglassForces();
   
   if (contact)
 //    CalcContactForcesWang();
