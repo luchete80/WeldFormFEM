@@ -96,27 +96,31 @@ public:
   inline dev_t double2 getPosVec2(const int &n){
     return make_double2(x[m_dim*n], x[m_dim*n+1]);
     };
-  inline dev_t vector_t getPosVec3(const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);}; //the same
+  inline dev_t vector_t getPosVec3  (const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);}; //the same
+  
+
   #ifdef CUDA_BUILD
   inline vector_t getPosVec (int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);};
+  inline double2  getPosVec2_h(const int &n){return make_double2 (x_h[m_dim*n], x_h[m_dim*n+1]);}; //the same
   inline vector_t getPosVec3_h(const int &n){return make_vector_t(x_h[m_dim*n], x_h[m_dim*n+1], x_h[m_dim*n+2]);}; //the same
   #else
-
-  inline vector_t getPosVec3(const int &n){
-    return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);//Directly on x, and not x_host?
+  inline dev_t vector_t getPosVec3_h(const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);}; //the same of getPosVec3
+  inline dev_t double2 getPosVec2_h(const int &n){
+    return make_double2(x[m_dim*n], x[m_dim*n+1]);
     };
   #endif
 
   void setTriMesh(TriMesh_d *m){trimesh = m;}
   
   dev_t void SearchExtNodes();
-  
+
+  inline vector_t getAccVec (const int &n){return make_double3(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};  
   #ifdef CUDA_BUILD
   inline vector_t getDispVec(const int &n){return make_vector_t(u_h[m_dim*n], u_h[m_dim*n+1], u_h[m_dim*n+2]);};
   inline vector_t getVelVec (const int &n){return make_vector_t(v_h[m_dim*n], v_h[m_dim*n+1], v_h[m_dim*n+2]);};
   inline vector_t getIntForceVec(const int &n){/*return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);*/};
   #else
-  inline vector_t getAccVec (const int &n){return make_vector_t(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};
+  //inline vector_t getAccVec (const int &n){return make_vector_t(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};
   inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);};
   inline vector_t getDispVec(const int &n){return make_vector_t(u[m_dim*n], u[m_dim*n+1], u[m_dim*n+2]);};
   inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);};

@@ -51,10 +51,20 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
-      vector_t x = dom->getPosVec3(i);
+      vector_t x;
+      #ifdef CUDA_BUILD
+      x = dom->getPosVec3_h(i);
+      #else
+      x = dom->getPosVec3(i);
+      #endif
       m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;
     } else {
-      double2 x = dom->getPosVec2(i);
+      double2 x;
+      #ifdef CUDA_BUILD
+      x = dom->getPosVec2_h(i);
+      #else
+      x = dom->getPosVec2(i);
+      #endif
       m_oss << x.x <<" "<<x.y <<endl;      
       
     }
@@ -225,14 +235,14 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //cout << "Writing nodes "<<endl;
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
-      vector_t x = dom->getPosVec3(i);
+      vector_t x = dom->getPosVec3_h(i);
       //for (int d=0;d<3;d++){
         m_oss << std::scientific<<std::setprecision(4)<<float(x.x) <<" "<<float(x.y) <<" " <<float(x.z)<<endl;
       //}
       //m_oss<<endll;
       //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
     } else {
-      double2 x = dom->getPosVec2(i);
+      double2 x = dom->getPosVec2_h(i);
       m_oss << x.x <<" "<<x.y <<endl;      
       
     }
