@@ -223,8 +223,8 @@ namespace MetFEM{
     //STRESSES CALC
   //cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
-  CalcElemVol();
-  calcElemStrainRates();
+  //CalcElemVol();
+  //calcElemStrainRates();
   calcElemDensity();
   if (m_dim == 3 && m_nodxelem ==4){
     calcElemPressureANP();
@@ -232,7 +232,7 @@ namespace MetFEM{
     calcElemPressure();
   //calcElemPressureFromJ();
   
-  CalcStressStrain(dt);
+  //CalcStressStrain(dt);
   calcElemForces();
   calcElemHourglassForces();
   

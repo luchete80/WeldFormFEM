@@ -24,6 +24,16 @@
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
+/////ACCording to Omega_h
+// template <class F, class ForwardIt>
+// __global__
+// void cuda_for_each(F f, ForwardIt first, ForwardIt last) {
+  // using difference_type = typename std::iterator_traits<ForwardIt>::difference_type;
+  // auto const i = static_cast<difference_type>(
+          // threadIdx.x + blockIdx.x * blockDim.x);
+  // ForwardIt const it = first + i;
+  // if (it < last) f(*it);
+// }
 //--------------------------------------------------------------
 #else
 

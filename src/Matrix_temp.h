@@ -39,10 +39,23 @@
 #define __spec inline
 #endif
 
+//template <int ROWS, int COLS>
 class Matrix {
 public: 
-  __spec Matrix() : m_data(nullptr), m_row(0), m_col(0), m_dim(0) {}
-  __spec Matrix(const int row, const int col);
+  Matrix() : m_data(nullptr), m_row(0), m_col(0), m_dim(0) {}
+  Matrix(const int row, const int col) {
+  m_row = row;
+  m_col = col;
+	if (m_row == m_col) m_dim = m_row;
+  //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
+  m_data = (double*)malloc(row * col * sizeof (double));
+        if (m_data == nullptr) {
+            printf("Memory allocation failed!\n");
+            exit(EXIT_FAILURE);  // Handle allocation failure
+        }
+        
+  for (int i=0;i<row*col;i++) m_data[i] = 0.0;
+}
   
   inline double & getVal(int a, int b);
   __spec double & operator()(int a, int b);
@@ -84,27 +97,27 @@ public:
         return *this;
     }
 
-// Move Constructor
-__spec Matrix(Matrix&& other) noexcept
-    : m_data(other.m_data), m_row(other.m_row), m_col(other.m_col), m_dim(other.m_dim) {
-    other.m_data = nullptr;
-    other.m_row = other.m_col = other.m_dim = 0;
-}
+  // Move Constructor
+  __spec Matrix(Matrix&& other) noexcept
+      : m_data(other.m_data), m_row(other.m_row), m_col(other.m_col), m_dim(other.m_dim) {
+      other.m_data = nullptr;
+      other.m_row = other.m_col = other.m_dim = 0;
+  }
 
-// Move Assignment Operator
-__spec Matrix& operator=(Matrix&& other) noexcept {
-    if (this != &other) {
-        free(m_data);  // Free current resources
-        m_data = other.m_data;
-        m_row = other.m_row;
-        m_col = other.m_col;
-        m_dim = other.m_dim;
+  // Move Assignment Operator
+  __spec Matrix& operator=(Matrix&& other) noexcept {
+      if (this != &other) {
+          free(m_data);  // Free current resources
+          m_data = other.m_data;
+          m_row = other.m_row;
+          m_col = other.m_col;
+          m_dim = other.m_dim;
 
-        other.m_data = nullptr;
-        other.m_row = other.m_col = other.m_dim = 0;
-    }
-    return *this;
-}
+          other.m_data = nullptr;
+          other.m_row = other.m_col = other.m_dim = 0;
+      }
+      return *this;
+  }
 
   __spec Matrix & Mul(const double &f);
   __spec void Set(const int r, const int c, const double d);
@@ -113,9 +126,11 @@ __spec Matrix& operator=(Matrix&& other) noexcept {
   __spec Matrix & Transpose();
   __spec Matrix getTranspose();
   __spec Matrix Inv();
-  __spec ~Matrix(){/*cudaFree (m_data);*/
+  void Free(){free(m_data);m_data=nullptr;}
+  ~Matrix(){/*cudaFree (m_data);*/
       if (m_data != nullptr) {
-                       free(m_data); 
+      //printf("deleting\n");
+      free(m_data); 
     }
   }
 	
@@ -128,17 +143,9 @@ __spec Matrix& operator=(Matrix&& other) noexcept {
 	double *m_data;
   int m_row, m_col, m_dim;
 
-};
+}; //MATRIX
 
 
-__spec Matrix::Matrix(const int row, const int col) {
-  m_row = row;
-  m_col = col;
-	if (m_row == m_col) m_dim = m_row;
-  //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
-  m_data = (double*)malloc(row * col * sizeof (double));
-  for (int i=0;i<row*col;i++) m_data[i] = 0.0;
-}
 
 //// OPERATION WITH MATRIX CREATION COULD PRODUCE MEM LEAKING
 __spec Matrix MatMul(Matrix &A, Matrix &B){
