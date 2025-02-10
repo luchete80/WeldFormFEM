@@ -48,7 +48,8 @@ public:
   m_col = col;
 	if (m_row == m_col) m_dim = m_row;
   //cudaMalloc((void**)&m_data, row * col * sizeof(double)); //CRASHES
-  m_data = (double*)malloc(row * col * sizeof (double));
+  //m_data = (double*)malloc(row * col * sizeof (double));
+  malloc_t(m_data,double,m_col*m_row);
         if (m_data == nullptr) {
             printf("Memory allocation failed!\n");
             exit(EXIT_FAILURE);  // Handle allocation failure

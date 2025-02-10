@@ -23,7 +23,7 @@
 #define memcpy__tohost_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyDeviceToHost)
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
-
+#define free_t(x)                 cudaFree(x)
 /////ACCording to Omega_h
 // template <class F, class ForwardIt>
 // __global__
@@ -62,6 +62,7 @@
 
 #define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))
 #define memcpy_t(dest,src,size)   memcpy(dest,src,size)     
+#define free_t(x)                 free(x)
 #define OMP_PARA_INTERNAL _Pragma("omp parallel for schedule (static) num_threads(Nproc)")
 
 //#define par_loop(n,upto)   OMP_PARA_INTERNAL\
