@@ -42,8 +42,8 @@
 //template <int ROWS, int COLS>
 class Matrix {
 public: 
-  Matrix() : m_data(nullptr), m_row(0), m_col(0), m_dim(0) {}
-  Matrix(const int row, const int col) {
+  __spec Matrix() : m_data(nullptr), m_row(0), m_col(0), m_dim(0) {}
+  __spec Matrix(const int row, const int col) {
   m_row = row;
   m_col = col;
 	if (m_row == m_col) m_dim = m_row;
@@ -127,7 +127,7 @@ public:
   __spec Matrix getTranspose();
   __spec Matrix Inv();
   void Free(){free(m_data);m_data=nullptr;}
-  ~Matrix(){/*cudaFree (m_data);*/
+  __spec ~Matrix(){/*cudaFree (m_data);*/
       if (m_data != nullptr) {
       //printf("deleting\n");
       free(m_data); 
