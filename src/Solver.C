@@ -249,10 +249,7 @@ namespace MetFEM{
     //assemblyMassMatrix();    
     
     //}
-    
-  //CalcNodalVol(); //To calc nodal mass
-  //CalcNodalMassFromVol();
-    
+     
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   

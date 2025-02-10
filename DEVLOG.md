@@ -239,4 +239,6 @@ F90 PREVIOUS VERSION
          - Fixed Huge mem leaking in CPU file  
          - Fixed some commented hourglass for hexa
 20250510 - Fixed mass calculation from vol
-         - FIXED CHUNG HULBERT ACCEL CORRECTION! NOW WORKING 
+         - FIXED CHUNG HULBERT ACCEL CORRECTION! NOW C++ version WORKING 
+         - Cube results is exactly like F90 ver.
+         - With change in mass friction is working

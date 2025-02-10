@@ -492,7 +492,7 @@ dev_t void Domain_d::CalcNodalVol(){
     m_voln[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      printf ("eglob %d, vol %e\n",eglob,vol[eglob]);
+      //printf ("eglob %d, vol %e\n",eglob,vol[eglob]);
       m_voln[n] += /*1.0/m_nodxelem */ vol[eglob]; 
     }
     m_voln[n]/=m_nodxelem;
