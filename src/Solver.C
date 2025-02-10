@@ -393,11 +393,11 @@ namespace MetFEM{
   // printf("VELOCITIES\n");
   // printVec( this->v);
 
-  // printf("ACCEL\n");
-	// printVec(this->a); 
+  printf("ACCEL\n");
+	printVec(this->a); 
   
-  // printf("FORCES\n");
-  // printVec(this->m_fi);
+  printf("FORCES\n");
+  printVec(this->m_fi);
 
   // printf("STRESSES\n");
   // printSymmTens(this->m_sigma);

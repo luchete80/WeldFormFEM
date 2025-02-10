@@ -54,7 +54,7 @@ int main(){
   
 	double r = dx/2.0;
 
-  bool tetra = false;	
+  bool tetra = true;	
 	dom_d->AddBoxLength(V,L,r,true, tetra);
  
   

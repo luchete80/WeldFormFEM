@@ -221,7 +221,7 @@ dev_t void Domain_d::CalcElemVol(){
     vol[e] = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
       vol[e] += m_detJ[offset] * w;
-      //printf("Element %d Vol %f\n",e,vol[e]);
+      printf("Element %d Vol %f\n",e,vol[e]);
     }    
   }
 }
@@ -492,13 +492,14 @@ dev_t void Domain_d::CalcNodalVol(){
     m_voln[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      //printf ("eglob %d, vol %f\n",eglob,vol[eglob]);
-      m_voln[n] += 1.0/m_nodxelem * vol[eglob]; 
+      printf ("eglob %d, vol %e\n",eglob,vol[eglob]);
+      m_voln[n] += /*1.0/m_nodxelem */ vol[eglob]; 
     }
+    m_voln[n]/=m_nodxelem;
     //printf("Node %d vol %f ne count %d\n",n,m_voln[n],m_nodel_count[n]);
     tot_vol+=m_voln[n];
   } //NODE LOOP
-  //printf("Total vol %f\n",tot_vol);
+  printf("Total vol %f\n",tot_vol);
 }
 
 //Assuming constant material
@@ -777,7 +778,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.06 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.0 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       //printf("c_h %.6e\n", c_h);
 
 
