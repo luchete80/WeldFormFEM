@@ -144,7 +144,7 @@ int main(){
 	double dt = 0.3* dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
-  dom_d->setdtOut(1.0e-3);  
+  dom_d->setdtOut(1.0e-4);  
   dom_d->SetEndTime (5.e-3);
   //dom_d->SetEndTime (1000.0*dt);
   
@@ -160,7 +160,7 @@ int main(){
     }
     
     if (dom_d->getPosVec3(i).x > (Lx - 1.5*r) && dom_d->getPosVec3(i).y > (Ly -1.5*r) ) {
-      dom_d->AddBCVelNode(i,1,-1.0);
+      dom_d->AddBCVelNode(i,1,-0.48);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }      

@@ -267,7 +267,7 @@ int main(int argc, char **argv) {
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     #endif
     cout <<"Done"<<endl;
-    msh->SetVel(make_double3(0.0,0.,-10.0));
+    msh->SetVel(make_double3(0.0,0.,-1.0));
     dom_d->setTriMesh(msh);
     
     dom_d->setContactOn();

@@ -487,7 +487,7 @@ dev_t void Domain_d::calcElemPressureANP(){
 
 ///// ASSUMING CONSTANT element node count
 dev_t void Domain_d::CalcNodalVol(){
-
+  double tot_vol = 0.0; //Only for verif
   par_loop(n, m_node_count){
     m_voln[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
@@ -495,25 +495,29 @@ dev_t void Domain_d::CalcNodalVol(){
       //printf ("eglob %d, vol %f\n",eglob,vol[eglob]);
       m_voln[n] += 1.0/m_nodxelem * vol[eglob]; 
     }
-    printf("Node %d vol %f \n",n,m_voln[n]);
+    //printf("Node %d vol %f ne count %d\n",n,m_voln[n],m_nodel_count[n]);
+    tot_vol+=m_voln[n];
   } //NODE LOOP
-
+  //printf("Total vol %f\n",tot_vol);
 }
 
 //Assuming constant material
 dev_t void Domain_d::CalcNodalMassFromVol(){
   double *rhon = new double [m_node_count];  
-
+  double tot_mass = 0.0;
+  
   par_loop(n, m_node_count){
     rhon[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      rhon[n] += 1.0/m_nodxelem * rho[eglob]; 
+      rhon[n] += rho[eglob]; 
     }
-    m_mdiag[n] = rhon[n] * m_voln[n];
-    printf("Node %d mass %f rho %f vol %f\n",n,m_mdiag[n],rhon[n], m_voln[n]);
+    m_mdiag[n] = rhon[n]/(double)m_nodel_count[n] * m_voln[n];
+    tot_mass +=m_mdiag[n];
+    //printf("Node %d mass %f rho %f vol %f\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
     
   } //NODE LOOP
+  printf("Tot mass: %f\n",tot_mass);
   delete rhon;
 }
 
@@ -773,8 +777,9 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.3 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.015 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       //printf("c_h %.6e\n", c_h);
+
 
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++){
