@@ -362,7 +362,7 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
             int ig = i*m_dim + j;
 
             //printf ("a ig %f, node %d, dim %d \n",  a[ig]);
-            a[ig] = f * a[ig]  -m_alpha * prev_a[ig]; //GLOBAL  
+            a[ig] = f * (a[ig]  -m_alpha * prev_a[ig]); //GLOBAL  
 
             v[ig] += m_gamma * dt * a[ig];
             
