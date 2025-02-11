@@ -295,7 +295,7 @@ subroutine calc_hourglass_forces
             elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
           end do
       end do
-      c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      c_h  = 0.0 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
       !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h

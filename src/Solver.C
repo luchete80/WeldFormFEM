@@ -51,15 +51,15 @@ namespace MetFEM{
   }
   cout << "done"<<endl;
 
-  double rho_b = 0.8182;  // DEFAULT SPECTRAL RADIUS
+  double rho_b = 0.818200;  // DEFAULT SPECTRAL RADIUS
   
   m_alpha = (2.0 * rho_b - 1.0) / (1.0 + rho_b);
   m_beta  = (5.0 - 3.0 * rho_b) / ((1.0 + rho_b) * (1.0 + rho_b) * (2.0 - rho_b));
   m_gamma = 1.5 - m_alpha;
 
-  printf ("alpha %f\n", m_alpha);
-  printf ("beta %f\n",  m_beta);
-  printf ("gamma %f\n", m_gamma);
+  printf ("alpha %.10e\n", m_alpha);
+  printf ("beta %.10e\n",  m_beta);
+  printf ("gamma %.10e\n", m_gamma);
   
   //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
@@ -387,8 +387,8 @@ namespace MetFEM{
    printf("DISPLACEMENTS\n");
    printVec(this->u);   
 
-  // printf("VELOCITIES\n");
-  // printVec( this->v);
+  printf("VELOCITIES\n");
+  printVec( this->v);
 
   printf("ACCEL\n");
 	printVec(this->a); 
