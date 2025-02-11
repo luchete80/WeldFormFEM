@@ -113,6 +113,19 @@ ENDIF()
 
                )
 
+ add_executable(4elem
+                         main_4_elem_3d.C
+                         Contact.C
+                         Domain_d.C
+                         Matrices.C
+                         Mechanical.C
+                         Matrices.C
+                         Solver.C
+#
+                         VTKWriter.C
+
+               )
+               
 #add_executable(4elem
 #                       main_4_elem_3d.C
 #                       Domain_d.C
