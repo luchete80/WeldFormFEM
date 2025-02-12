@@ -269,11 +269,11 @@ namespace MetFEM{
   #ifdef CUDA_BUILD
   
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    //printf("Upate Correction\n");
   UpdateCorrectionAccVelKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   
   #else
-  printf("Upate Correction\n");
   UpdateCorrectionAccVel();
   
   #endif
