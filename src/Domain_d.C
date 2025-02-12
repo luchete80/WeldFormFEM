@@ -849,8 +849,11 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     */
     
     cout << "Mesh generation done. "<<endl;
+		m_tot_mass = L.x*L.y;
+    if (m_dim == 3){
+      m_tot_mass*=L.z;
+    }
 
-		
 		delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
 }
 
