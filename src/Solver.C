@@ -348,9 +348,13 @@ namespace MetFEM{
   
   }// WHILE LOOP
 
-
+  
   
   #ifdef CUDA_BUILD
+  cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
+  
+  printf("X %.6e\n", x_h[0]);
+
   /*
   printf("DISPLACEMENTS\n");
   memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*m_dim);
