@@ -129,8 +129,10 @@ namespace MetFEM{
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   #endif
   #if CUDA_BUILD
+  printf("Prediction ----------------\n");
   UpdatePredictionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
+  printf("Done\n");
   #else
   UpdatePrediction();  
   #endif
@@ -200,7 +202,7 @@ namespace MetFEM{
 
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  cout << "dt "<<dt<<endl;
+  //cout << "dt "<<dt<<endl;
   calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
   cudaDeviceSynchronize();
 
@@ -271,7 +273,7 @@ namespace MetFEM{
 	cudaDeviceSynchronize(); 
   
   #else
-    
+  printf("Upate Correction\n");
   UpdateCorrectionAccVel();
   
   #endif
@@ -360,11 +362,11 @@ namespace MetFEM{
 
 
   memcpy__tohost_t(this->x_h,this->x,sizeof(double) * this->m_node_count*m_dim);
-
+*/
   printf("VELOCITIES\n");
   printVecKernel<<<1,1 >>>(this, this->v);
 	cudaDeviceSynchronize(); 
-  
+/*  
   printf("ACCEL\n");
   printVecKernel<<<1,1 >>>(this, this->a);
 	cudaDeviceSynchronize();   

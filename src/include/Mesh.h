@@ -16,9 +16,7 @@
 
 namespace MetFEM{
 
-struct elem_data{
-    double3             *centroid,*normal;
-};
+
 //Element is not anymore here, is everything flattened in mesh_d class
 class TriMesh_d{
 	

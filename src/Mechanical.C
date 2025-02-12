@@ -641,12 +641,14 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                     );
       double sig_trial = sqrt(3.0*J2);
       //printf("sy %f\n", sigma_y[e]);
+      //printf("Sigmay %.f\n",pl_strain[e]);
       if (sigma_y[e]<sig_trial){
         //printf("Yield elem %d, %f, sig_trial %f, yield stress %f\n",e,pl_strain[e],sig_trial, sigma_y[e]);
         //elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma_y(e,gp) / sig_trial
         //elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
         ShearStress = ShearStress * (sigma_y[e] / sig_trial);
         pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 *  mat[e]->Elastic().G());
+
 /*
 To calculate inelastic fraction and plastic work
 double f = dep/Sigmay;

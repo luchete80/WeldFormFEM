@@ -2,9 +2,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
 
 if (BUILD_GPU)
-project (MetFEMGPU LANGUAGES  CUDA )
-project (WeldFormFEM LANGUAGES CUDA )
-project (testcuns LANGUAGES  CUDA )
+project (WeldFormFEM LANGUAGES CXX CUDA )
 else ()
 project (MetFEMGPU LANGUAGES CXX)
 project (1el_3d LANGUAGES CXX)
@@ -32,10 +30,13 @@ set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (co
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
+set_source_files_properties(Contact.C Domain_d.C Matrices.C Mechanical.C input.C Mesh.C Solver.C Tensor.C main.C  main_1_elem_3d.C
                             WeldFormFEM.C VTKWriter.C 
                             include/*.h src/include/defs.h src/include/utils.h
+                            src/include/*.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
+                            main_4_elem_3d.C
+                            main_1_elem_3d.C
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
@@ -52,6 +53,7 @@ set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C
                             ReMesher.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
+                            main_4_elem_3d.C
                             PROPERTIES LANGUAGE CXX)
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
@@ -87,18 +89,6 @@ ENDIF()
 
               # )
 
- add_executable(main_1elem_3d
-                        main_1_elem_3d.C
-                         Contact.C
-                         Domain_d.C
-                         Matrices.C
-                         Mechanical.C
-                         Matrices.C
-                         Solver.C
-
-                         VTKWriter.C
-
-               )
 
  add_executable(1elem
                          main_1_elem_3d.C
@@ -121,7 +111,6 @@ ENDIF()
                          Mechanical.C
                          Matrices.C
                          Solver.C
-#
                          VTKWriter.C
 
                )
@@ -150,30 +139,30 @@ ENDIF()
 #              )
 
 
-add_executable(beam
-                       main_beam.C
-                       Contact.C
-                       Domain_d.C
-                       Matrices.C
-                       Mechanical.C
-                       Matrices.C
-                       Solver.C
-                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-                       VTKWriter.C
-             )
+#add_executable(beam
+#                       main_beam.C
+#                       Contact.C
+#                       Domain_d.C
+#                       Matrices.C
+#                       Mechanical.C
+#                       Matrices.C
+#                       Solver.C
+#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
+#                       VTKWriter.C
+#             )
 
-add_executable(beam_contact
-                       main_beam_contact.C
-                       Contact.C
-                       Domain_d.C
-                       Matrices.C
-                       Mechanical.C
-                       Mesh.C
-                       Matrices.C
-                       Solver.C
-                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-                       VTKWriter.C
-             )
+#add_executable(beam_contact
+#                       main_beam_contact.C
+#                       Contact.C
+#                       Domain_d.C
+#                       Matrices.C
+#                       Mechanical.C
+#                       Mesh.C
+#                       Matrices.C
+#                       Solver.C
+#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
+#                       VTKWriter.C
+#             )
               
 add_executable(WeldFormFEM
                          WeldFormFEM.C
@@ -269,12 +258,15 @@ if (BUILD_GPU)
 #THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
 #set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
 set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 75)
+set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
+
 set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
 
-#TARGET_LINK_LIBRARIES (MetFEMGPU  cuda cudadevrt)
-TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
-#TARGET_LINK_LIBRARIES (4elem  cuda cudadevrt)
+
+#TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
+TARGET_LINK_LIBRARIES (4elem  cuda cudadevrt)
+
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)

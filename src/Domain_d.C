@@ -1470,6 +1470,7 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
 }
 
 dev_t void Domain_d::printVec(double *v){
+  printf("Printing vectors: \n");
   for (int n=0;n<m_node_count;n++){
     for (int d=0;d<m_dim;d++)
       //printf("%.6e ",v[m_dim*n + d]);

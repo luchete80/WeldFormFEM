@@ -1,8 +1,11 @@
 // TODO: extend to all dirs
 //NOTE: DENSITY IS OF ELEMENTS
 //This also will be passed to device
-#include "Mesh.h"
+#ifndef CUDA_BUILD
 #include "double3_c.h"
+#endif
+#include "Mesh.h"
+
 #define PRINT_V(v) printf("%f %f %f\n",v.x,v.y,v.z);
 namespace MetFEM{
 // ORIGINAL CPU version
@@ -38,7 +41,7 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
 */
 //NOW THIS IS ZORIENTED, CHANGE TO EVERY PLANE
 void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
-	
+	#ifndef CUDA_BUILD
 	double x1,x2,x3;
 	double l1,l2;
 	double3 p = p2-p1;
@@ -207,7 +210,7 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   //delete centroid_h;
 
   //delete normal_h;  
-  
+  #endif
 }
 
 

@@ -58,6 +58,9 @@ void __global__ CalcContactForcesKernel(Domain_d *dom_d,	const uint *particlenbc
 */
 
 void dev_t Domain_d::CalcContactForces(){
+  
+  #ifndef CUDA_BUILD
+  
 	//int i = threadIdx.x + blockDim.x*blockIdx.x;	
   
 	double min_force_ts_=1000.;
@@ -263,6 +266,8 @@ void dev_t Domain_d::CalcContactForces(){
   
     }//external nodes
   } //i<first fem index
+  
+  #endif 
 	//Correct time step!
 //	std::min(deltat,dt_fext)
 } //Contact Forces
