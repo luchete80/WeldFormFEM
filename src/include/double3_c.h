@@ -1,6 +1,7 @@
 #ifndef _DOUBLE3_C_H
 #define _DOUBLE3_C_H
 
+#include <math.h>
 ////NEXT WILL BE 
 struct vector_t_{
   vector_t_(int m_dim){x = new double[m_dim];}
