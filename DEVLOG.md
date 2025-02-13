@@ -242,3 +242,4 @@ F90 PREVIOUS VERSION
          - FIXED CHUNG HULBERT ACCEL CORRECTION! NOW C++ version WORKING 
          - Cube results is exactly like F90 ver.
          - With change in mass friction is working
+20251312 - FINALLY FOUND ERROR ON HEAX BEAM! Problem is Nonlock (nodal) assembly.

@@ -20,6 +20,7 @@ namespace MetFEM {
 
 
 ///////HERE THE LOOP IS PER NODE INSTEAD THAN PER ELEMENT
+
   dev_t void Domain_d::assemblyForces(){
 
     //if ()
@@ -60,10 +61,10 @@ namespace MetFEM {
     } // element
 
 
-   //printf("ASSEMBLY\n");
-   //for (int n=0; n<m_node_count;n++) {
-    //printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);
-   //}
+   // printf("ASSEMBLY\n");
+   // for (int n=0; n<m_node_count;n++) {
+    // printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);
+   // }
 }//assemblyForcesNonLock
 
 
@@ -102,11 +103,15 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
      //printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
    }  //element
 
+   printf("ASSEMBLY\n");
+   for (int n=0; n<m_node_count;n++) {
+    printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);
+   }
  }
-  
+  */
   //assemblyForcesNonLock
 
-*/
+
 
 //// ORIGINAL WAS ASSEMBLED BY ELEMENT
 //subroutine assemble_mass_matrix ()
