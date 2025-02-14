@@ -65,7 +65,7 @@ namespace MetFEM {
       // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 
-  /*
+/*  
     printf("ASSEMBLY\n");
    for (int n=0; n<m_node_count;n++) {
      printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);

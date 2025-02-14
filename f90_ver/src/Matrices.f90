@@ -642,10 +642,10 @@ subroutine assemble_forces()
       end do
     end if 
   end do ! e
-  !print *, "ASSEMBLY "
-  !do n =1, node_count
-  !  print *, "fglob ",n,rint_glob(n,:)
-  !end do
+  print *, "ASSEMBLY "
+  do n =1, node_count
+    print *, "fglob ",n,rint_glob(n,:)
+  end do
 end subroutine 
 
 

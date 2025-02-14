@@ -140,17 +140,17 @@ ENDIF()
 #              )
 
 
-#add_executable(beam
-#                       main_beam.C
-#                       Contact.C
-#                       Domain_d.C
-#                       Matrices.C
-#                       Mechanical.C
-#                       Matrices.C
-#                       Solver.C
-#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-#                       VTKWriter.C
-#             )
+add_executable(beam
+                       main_beam.C
+                       Contact.C
+                       Domain_d.C
+                       Matrices.C
+                       Mechanical.C
+                       Matrices.C
+                       Solver.C
+                         ../lib/LSDynaReader/src/lsdynaReader.cpp
+                       VTKWriter.C
+             )
 
 #add_executable(beam_contact
 #                       main_beam_contact.C

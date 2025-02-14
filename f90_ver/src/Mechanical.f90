@@ -298,7 +298,7 @@ subroutine calc_hourglass_forces
       end do
       c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
-      !print *, "hourglass c ", c_h
+      print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
       
       
@@ -334,9 +334,9 @@ subroutine calc_hourglass_forces
         ! end do
       ! end do
 
-      ! do n=1,nodxelem
-          ! print *, "v ", vel (n,:)
-      ! end do
+       do n=1,nodxelem
+          print *, "v ", vel (n,:)
+       end do
   else
     !print *, "NO HOURGLASS"
     end if
