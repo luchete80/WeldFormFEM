@@ -279,7 +279,9 @@ int main(int argc, char **argv) {
   dom_d->calcMinEdgeLength();
   #endif
   dx = dom_d->getMinLength();
-	double dt = 0.7 * dx/(mat_cs);
+
+  cout<< "Min length: "<<dx<<endl;
+	double dt = 0.05 * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   cout << "End Time: "<<sim_time<<endl;
@@ -335,15 +337,15 @@ int main(int argc, char **argv) {
     }
     #endif
     
-    /*
+    
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-10.0);
+      dom_d->AddBCVelNode(i,2,-1.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     
-    */  
+      
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  

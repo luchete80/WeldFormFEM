@@ -134,9 +134,8 @@ int main(){
 	//double dt = 0.7 * dx/(mat_cs);
   double dt = 0.800e-5/4.0;
   dom_d->SetDT(dt); 
-  dom_d->SetEndTime (1.0e-3);
-  //dom_d->SetEndTime (dt);
-  
+  //dom_d->SetEndTime (1.0e-3);
+  dom_d->SetEndTime (dt);
   if (dim == 3){
   //// ORIGINAL
   cout << "Node Count "<<dom_d->getNodeCount()<<endl;
@@ -192,6 +191,12 @@ int main(){
   //dom_d->WriteToCSV("test.csv");
   
   VTKWriter writer(dom_d, "test.vtu");
+
+  #ifndef CUDA_BUILD
+  cout << "Writing output"<<endl;
+  VTKWriter writer2(dom_d, "out.vtk");
+  writer2.writeFile();
+  #endif
   
   writer.writeFile();
 	

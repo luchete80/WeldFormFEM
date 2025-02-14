@@ -771,7 +771,11 @@ dev_t void Domain_d:: calcElemHourglassForces()
     for (int d=0;d<m_dim;d++)
         for (int n=0;n<m_nodxelem;n++)
           m_f_elem_hg[offset + n*m_dim + d] = 0.0;
-  
+
+
+
+      //for (int n=0;n<m_nodxelem;n++)
+      //  printf("Elem Vel %.6e %.6e %.6e\n",getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2)); ////DIM  
 
       for (int d=0;d<m_dim;d++)
         for (int j=0;j<jmax;j++)
@@ -795,7 +799,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
         for (int d=0;d<m_dim;d++){
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
         }
-        //printf("hg forces el %d node %d: %f %f %f\n",e, n,m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+        printf("hg forces el %d node %d: %f %f %f\n",e, n,m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
       }
       
   } //gp ==1

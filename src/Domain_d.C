@@ -1503,7 +1503,7 @@ dev_t void Domain_d::calcMinEdgeLength(){
   double min_len = 1.0e6;
   for (int e=0;e<m_elem_count;e++){
     int off = m_nodxelem * e;
-    printf("node %d \n",m_elnod[off+0]);
+    //printf("node %d \n",m_elnod[off+0]);
     if (m_dim == 3){
       //TETRA
       for (int i = 0;i<3;i++){      
@@ -1517,15 +1517,15 @@ dev_t void Domain_d::calcMinEdgeLength(){
           //double3 x2 = getPosVec3(getElemNode(e,i))-getPosVec3(getElemNode(e,3));
           double d = sqlength(x1);
           double d2 = sqlength(x2);
-        //printf("Edge Length d %lf, d2 %lf \n", d,d2);
+        printf("Edge Length d %lf, d2 %lf \n", sqrt(d),sqrt(d2));
         if ( d < min_len )  min_len= d;
         if ( d2 < min_len ) min_len= d2;
       }
     }
     
   }
-  printf("Min Edge length %lf\n", min_len);
-  m_min_length = /*sqrt(*/min_len/*)*/;
+  //printf("Min Edge length %lf\n", min_len);
+  m_min_length = sqrt(min_len);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
