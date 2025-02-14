@@ -287,7 +287,7 @@ subroutine calc_hourglass_forces
         end do
       end do
       
-      print *, "Element vel ", vel (:,:)
+      !print *, "Element vel ", vel (:,:)
       
       
       !!!!!!!!! GOUDREAU 1982
@@ -298,16 +298,16 @@ subroutine calc_hourglass_forces
       end do
       c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
       
-      print *, "hourglass c ", c_h
+      !print *, "hourglass c ", c_h
       elem%hourg_nodf(e,:,:) = elem%hourg_nodf(e,:,:) * c_h
       
       
       !!!!!!!!! FLANAGAN 1981
       
-      print *, "ELEM HORGLASS F", e
-      do n=1,nodxelem
-      print *, elem%hourg_nodf(e,n,:) 
-      end do
+      !print *, "ELEM HORGLASS F", e
+      !do n=1,nodxelem
+      !print *, elem%hourg_nodf(e,n,:) 
+      !end do
       ! ! elem%hourg_nodf(e,:,:) = - matmul(matmul(transpose(Sig(:,:)),Sig(:,:)),vel (:,:)) * c_h 
       
       ! print *, "alt hourglass forces", elem%hourg_nodf(e,:,:) 
@@ -334,9 +334,9 @@ subroutine calc_hourglass_forces
         ! end do
       ! end do
 
-       do n=1,nodxelem
-          print *, "v ", vel (n,:)
-       end do
+       !do n=1,nodxelem
+       !   print *, "v ", vel (n,:)
+       !end do
   else
     !print *, "NO HOURGLASS"
     end if

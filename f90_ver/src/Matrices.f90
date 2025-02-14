@@ -627,7 +627,7 @@ subroutine assemble_forces()
     do n = 1, nodxelem
       !print *,"elem mat kl", elem%matkl(e,:,:)
       !print *, "elem fext ", elem%f_ext(e,n,:)
-      print *, "elem fint ", e, elem%f_int(e,n,:)
+      !print *, "elem fint ", e, elem%f_int(e,n,:)
       do i=1,dim 
         iglob  = dim * (elem%elnod(e,n) - 1 ) + i
         !rint_glob(elem%elnod(e,n),i) =  rint_glob(elem%elnod(e,n),i) + rtemp(dim*(n-1)+i,1)
@@ -642,10 +642,10 @@ subroutine assemble_forces()
       end do
     end if 
   end do ! e
-  print *, "ASSEMBLY "
-  do n =1, node_count
-    print *, "fglob ",n,rint_glob(n,:)
-  end do
+  !print *, "ASSEMBLY "
+  !do n =1, node_count
+  !  print *, "fglob ",n,rint_glob(n,:)
+  !end do
 end subroutine 
 
 
