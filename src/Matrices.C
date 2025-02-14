@@ -32,14 +32,17 @@ namespace MetFEM {
   par_loop(n, m_node_count){
 
       
-          
+      //printf("--------\n");    
       for (int e=0; e<m_nodel_count[n];e++) {
         int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
         int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
         int offset  = eglob * m_nodxelem * m_dim;
-        ////printf("glob %d, loc %d \n",n,ne);
+        //printf("nglob %d eglob %d, loc %d offset %d\n",n,eglob,ne, offset);
+        //printf("%6e %6e %6e\n",m_f_elem[offset + ne*m_dim],m_f_elem[offset + ne*m_dim+1],m_f_elem[offset + ne*m_dim+2]);
         for (int d=0;d<m_dim;d++){
           //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+          //if (n==9)
+          //  printf("%6e %6e %6e\n",m_fi[n*m_dim],m_f_elem[n*m_dim+1],m_f_elem[n*m_dim+2]);
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
           if(m_thermal){
@@ -62,11 +65,12 @@ namespace MetFEM {
       // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
     } // element
 
-
-   // printf("ASSEMBLY\n");
-   // for (int n=0; n<m_node_count;n++) {
-    // printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);
-   // }
+  /*
+    printf("ASSEMBLY\n");
+   for (int n=0; n<m_node_count;n++) {
+     printf("Node %d %.4e %.4e %.4e\n",n,m_fi[n*m_dim],m_fi[n*m_dim+1],m_fi[n*m_dim+2]);
+    }
+  */
 }//assemblyForcesNonLock
 
 

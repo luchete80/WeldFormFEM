@@ -94,8 +94,8 @@ namespace MetFEM{
     CalcNodalVol(); //To calc nodal mass
     CalcNodalMassFromVol(); //Repla
   //ONLY FOR 4 elem cube
-  // for(int n=0;n<m_node_count;n++)
-    // m_mdiag[n]=7.85/m_node_count;
+  //for(int n=0;n<m_node_count;n++)
+    //m_mdiag[n]=7.85/m_node_count;
     
   // } else{
 
