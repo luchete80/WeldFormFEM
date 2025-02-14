@@ -24,9 +24,11 @@ Compression cylinder \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="200">
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_1.png" width="200" height="200">
 
-Compression cylinder HEXA w/reduced integration\
+Compression cylinder HEXA w/reduced integration\ - TETRA
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/images/hexa_pl_strain.png" width="200" height="200">
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/images/hexa_pressure.png" width="200" height="200">
+<img src="https://github.com/luchete80/WeldFormFEM/blob/master/images/tetra_pl_strain.png" width="200" height="200">
+
 
 Bending \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_4.png" width="200" height="100">
