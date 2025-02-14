@@ -89,6 +89,8 @@ int main(int argc, char **argv) {
     double out_time,sim_time;
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
+    double cflFactor = 0.3;
+    readValue(config["cflFactor"], cflFactor);
 
   /////////////-/////////////////////////////////////////////////////////////////////////////////
   // DOMAIN //
@@ -281,7 +283,7 @@ int main(int argc, char **argv) {
   dx = dom_d->getMinLength();
 
   cout<< "Min length: "<<dx<<endl;
-	double dt = 0.05 * dx/(mat_cs);
+	double dt = cflFactor * dx/(mat_cs);
   //double dt = 0.800e-5;
   dom_d->SetDT(dt); 
   cout << "End Time: "<<sim_time<<endl;
@@ -341,7 +343,7 @@ int main(int argc, char **argv) {
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-1.0);
+      dom_d->AddBCVelNode(i,2,-10.0);
       cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     

@@ -243,4 +243,6 @@ F90 PREVIOUS VERSION
          - Cube results is exactly like F90 ver.
          - With change in mass friction is working
 20250213 - FINALLY FOUND ERROR ON HEAX BEAM! Problem is Nonlock (nodal) assembly.
-20250214 - The error was founf in fact in HMOD 
+20250214 - The error was founf in fact in HMOD
+         - CFL factor is now readed from json.
+         -Found error in read some .k tetra meshes 
