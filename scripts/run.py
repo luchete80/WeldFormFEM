@@ -11,14 +11,14 @@ from job_holder import JobHolder
 
 job_holder = JobHolder()
 root = tk.Tk()
-root.title('OpenRadioss')
+root.title('WeldFormFEM')
 root.geometry('800x105')
 root.minsize(800, 105)
 root.resizable(True, False)
 #icon_image = tk.PhotoImage(file='./icon/ross.png')
 #root.iconphoto(True, icon_image)
 
-icon_folder = tk.PhotoImage(file='./icon/icon_folder.png')
+#icon_folder = tk.PhotoImage(file='./icon/icon_folder.png')
 
 def close_window():
     if job_holder.is_empty() or messagebox.askokcancel('Close Window', 'Job is running. Close?'):
@@ -108,9 +108,10 @@ def apply_config():
 
 frame_file = tk.Frame(root)
 frame_file.pack(fill=tk.X, pady=(10,0))
-job_file_entry = EntryWithPlaceholder(frame_file, placeholder='Job file (.rad, .key, or .k)', width=83)
+job_file_entry = EntryWithPlaceholder(frame_file, placeholder='Job file (.json, .key, or .k)', width=83)
 job_file_entry.pack(side=tk.LEFT, expand=True, fill='x', padx=(30, 0), ipady=2)
-job_file_button = ButtonWithHighlight(frame_file, image=icon_folder, command=select_file, width=20)
+#job_file_button = ButtonWithHighlight(frame_file, image=icon_folder, command=select_file, width=20)
+job_file_button = ButtonWithHighlight(frame_file, command=select_file, width=20)
 job_file_button.pack(side=tk.RIGHT, padx=(5, 30))
 
 frame_thread = tk.Frame(root)

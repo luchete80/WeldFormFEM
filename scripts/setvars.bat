@@ -1,0 +1,2 @@
+set WELDFORMFEM_PATH = D:\LUCIANO\Numerico\WeldFormFEM_bin\
+set PATH=%PATH%;%WELDFORMFEM_PATH%
