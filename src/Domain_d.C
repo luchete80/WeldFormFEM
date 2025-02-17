@@ -1012,7 +1012,7 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
       //cout <<reader.m_node[n].m_x[d]<< " ";
       x_H[3*n+d] = reader.m_node[n].m_x[d]; 
     }
-    cout <<endl;
+    //cout <<endl;
   }
   memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
   delete x_H;

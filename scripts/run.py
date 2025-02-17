@@ -53,8 +53,9 @@ def add_job():
     arg7 = 'yes' if starter_status.get() else 'no'
 
     if messagebox.askokcancel('Add Job', 'Add job?'):
-        save_config()
-        script_path = os.path.abspath('./openradioss_run_script_ps.sh')
+        #save_config()
+        script_path = os.path.abspath('./weldformfem_run_script.bat')
+        print("job:",arg1)
         allcommand = [script_path, arg1, arg2, arg3, arg4, arg5, arg6, arg7]
         job_holder.push_job(allcommand)
 
@@ -72,7 +73,7 @@ def run_job():
 def select_file():
     file_path = filedialog.askopenfilename(
        title='Select input file',
-       filetypes=[('Radioss or Dyna file', '*.rad *.key *.k')]
+       filetypes=[('Radioss or Dyna file', '*.json *.key *.k')]
 )
     job_file_entry.foc_in()
     job_file_entry.delete(0, tk.END)

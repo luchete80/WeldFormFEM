@@ -58,6 +58,7 @@ class JobHolder():
             self.state = State.WAITING
         
     def run_job(self):
+        #print ("running ",self.deque)
         self.update_state()
         if self.state == State.RUNNING: return
         if not self.deque: return

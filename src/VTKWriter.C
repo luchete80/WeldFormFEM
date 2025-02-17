@@ -33,6 +33,7 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
 	m_fname = fname;
 
 	//m_oss << "Dimension = "<< dom->m_dim << "D\n"<<endl;
+  cout << "Writing VTK output "<<m_fname<<endl;
   m_oss <<  "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\" byte_order=\"BigEndian\">"<<endl;
   m_oss <<  "  <UnstructuredGrid>"<<endl;
   // FOR NOT RETURN CARRIAGE
@@ -211,7 +212,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 	m_fname = fname;
 
 	//m_oss << "Dimension = "<< dom->m_dim << "D\n"<<endl;
-
+  cout << "Writing VTK output "<<m_fname<<endl;
   m_oss <<  "# vtk DataFile Version 3.0"<<endl;
   m_oss <<  "VTK Example"<<endl;
   m_oss <<  "ASCII"<<endl;
@@ -263,9 +264,9 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   //cout << "Writing cells "<<endl;  
   int items =  (dom->m_nodxelem+1)*dom->m_elem_count ; //MODIFY WHEN NODXELEM NOT UNIFORM
-  cout << "items"<<items<<endl;
+  //cout << "items"<<items<<endl;
   if (dom->isContactOn()){
-    cout << "CONTACT "<<endl;
+    //cout << "CONTACT "<<endl;
     items += 4 * dom->getTriMesh()->elemcount;
   }
   m_oss << items << endl;
@@ -276,7 +277,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //dom->elnod_h = new int[sizeof(int) * dom->m_nodxelem * dom->m_elem_count];
   //memcpy_t(dom->elnod_h, dom->m_elnod, sizeof(int) * dom->m_nodxelem * dom->m_elem_count);   
   
-  cout << "cell loop"<<endl;
+  //cout << "cell loop"<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     //    cout << "Element "<<e<<endl;
     m_oss << dom->m_nodxelem<<" ";
@@ -300,7 +301,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       m_oss << endl;  
     }
   }
-  cout << "Writing cell types "<<endl;
+  //cout << "Writing cell types "<<endl;
   m_oss << "CELL_TYPES "<<ne<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     //cout << "Element "<<e<<endl;
@@ -322,7 +323,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   }
   
 
-  cout << "Writing point data "<<endl;
+  //cout << "Writing point data "<<endl;
 
   m_oss<<"POINT_DATA "<<nc<<endl;  
   m_oss<<"VECTORS DISP float"<<endl;
@@ -375,11 +376,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   double *a = new double[dom->m_node_count*6];
   
   //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
-  cout << "Avg Scalar" <<endl;
+  //cout << "Avg Scalar" <<endl;
   avgScalar(dom->m_sigma,a,6)
   
   double seq;
-  cout <<  "Averaging node count "<<endl;
+  //cout <<  "Averaging node count "<<endl;
   //Only of relevance if parts do not flow
   for (int n=0;n<dom->m_node_count;n++){
 
@@ -395,7 +396,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   }   
 
   
-  cout << "done"<<endl;
+  //cout << "done"<<endl;
   m_oss<<"TENSORS SIGMAT float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     tensor3 sig = FromFlatSym(a,n*6);

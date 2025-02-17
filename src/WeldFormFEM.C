@@ -335,7 +335,7 @@ int main(int argc, char **argv) {
     if (dom_d->getPosVec3(i).z <0.025) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
-      cout << "node "<< i<<" fixed "<<endl;
+      //cout << "node "<< i<<" fixed "<<endl;
     }
     #endif
     
@@ -344,7 +344,7 @@ int main(int argc, char **argv) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
       dom_d->AddBCVelNode(i,2,-10.0);
-      cout << "Node "<<i <<" vel "<<endl;
+      //cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     
       

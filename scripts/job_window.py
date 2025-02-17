@@ -14,7 +14,7 @@ class JobWindow():
         self.command = command
         self.job_dir = os.path.dirname(command[1])
         jnm1 = command[1]
-        if jnm1.endswith('.rad'):
+        if jnm1.endswith('.json'):
             self.job_name = os.path.basename(jnm1)[0:-9]
         elif jnm1.endswith('.k'):
             self.job_name = os.path.basename(jnm1)[0:-2]
@@ -25,7 +25,7 @@ class JobWindow():
         self.window = tk.Toplevel()
         self.window.title(self.job_name)
         self.window.protocol('WM_DELETE_WINDOW', (lambda: 'pass'))
-        self.window.iconbitmap('./icon/ross.ico')
+        #self.window.iconbitmap('./icon/ross.ico')
         self.log_text = scrolledtext.ScrolledText(self.window, width=100, height=40)
         self.log_text.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
       
