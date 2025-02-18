@@ -635,7 +635,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
       tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
-
+      //printf("mat G %f\n",mat[e]->Elastic().G());
       ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS);
       
       double J2 = 0.5*(ShearStress.xx*ShearStress.xx +  2.0*ShearStress.xy*ShearStress.xy + 
@@ -683,8 +683,8 @@ double f = dep/Sigmay;
       // printf("STR RATE\n");
       // print(StrRate);
       
-      // printf("ELEMENT SIGMA\n");
-      // print(Sigma);
+      printf("ELEMENT SIGMA\n");
+      print(Sigma);
       double Ep = 0;
 			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;
