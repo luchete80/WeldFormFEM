@@ -212,6 +212,7 @@ namespace MetFEM{
   cudaDeviceSynchronize();
 
   N = getNodeCount();
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
