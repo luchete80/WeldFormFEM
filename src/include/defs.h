@@ -70,7 +70,6 @@
 #define par_loop(n, upto) \
     _Pragma("omp parallel for") \
     for (int n = 0; n < upto; ++n)
-#endif
 
 //#define par_loop(n,upto)  for(int n=0;n<upto;n++)
 #endif
