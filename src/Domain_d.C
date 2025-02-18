@@ -1111,7 +1111,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
- // printf("x2\n");x2.Print();
+  //printf("x2\n");x2.Print();
   //printf("m_gp_count %d\n",m_gp_count);
     //printf("Calculating jacobian\n");
     if (m_gp_count == 1 ) {      

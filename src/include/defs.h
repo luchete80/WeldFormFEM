@@ -19,7 +19,17 @@
 #define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
 #define malloc_t(x,t,y)           cudaMalloc((void **)&x, y * sizeof (t))
+__device__ void device_memcpy(void* dest, const void* src, size_t size) {
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
+    for (size_t i = 0; i < size; i++) {
+        d[i] = s[i];  // Manual byte-wise copy
+    }
+}
+
 #define memcpy_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyHostToDevice)
+
+#define memcpy_dev_t(dest,src,size)       device_memcpy(dest,src,size)
 #define memcpy__tohost_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyDeviceToHost)
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
@@ -60,6 +70,7 @@
 // #define vector_t_Ptr  Vec3D_Ptr
 
 #define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))
+#define memcpy_dev_t(dest,src,size)   memcpy(dest,src,size)     
 #define memcpy_t(dest,src,size)   memcpy(dest,src,size)     
 #define free_t(x)                 free(x)
 #define OMP_PARA_INTERNAL _Pragma("omp parallel for schedule (static) num_threads(Nproc)")

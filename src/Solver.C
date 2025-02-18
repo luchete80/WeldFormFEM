@@ -61,8 +61,9 @@ namespace MetFEM{
   printf ("beta %.10e\n",  m_beta);
   printf ("gamma %.10e\n", m_gamma);
   
-  //cout << "Calculating derivatives..."<<endl;
+
 	#if CUDA_BUILD
+  cout << "------Calculating derivatives..."<<endl;
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   //cout << "Calculating Volume..."<<endl;
@@ -123,8 +124,9 @@ namespace MetFEM{
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "Main Loop----"<<endl;
+  /*
   while (Time < end_t) {
-      
+    
   if (step_count % 100 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
   //printf("Prediction ----------------\n");
@@ -359,38 +361,11 @@ namespace MetFEM{
   
   printf("X %.6e\n", x_h[0]);
 
-  /*
-  printf("DISPLACEMENTS\n");
-  memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*m_dim);
-  for (int i=0;i<m_node_count;i++)
-    printf("%.6e %.6e %.6e\n", this->u_h[i*3+0],this->u_h[i*3+1],this->u_h[i*3+2]);
-  printVecKernel<<<1,1 >>>(this, this->u);
-	cudaDeviceSynchronize(); 
 
-
-
-  memcpy__tohost_t(this->x_h,this->x,sizeof(double) * this->m_node_count*m_dim);
-*/
   printf("VELOCITIES\n");
   printVecKernel<<<1,1 >>>(this, this->v);
 	cudaDeviceSynchronize(); 
-/*  
-  printf("ACCEL\n");
-  printVecKernel<<<1,1 >>>(this, this->a);
-	cudaDeviceSynchronize();   
 
-  printf("FORCES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_fi);
-	cudaDeviceSynchronize(); 
-  
-  printf("STRESSES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_sigma);
-	cudaDeviceSynchronize();   
-
-  printf("SHEAR STRESSES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_tau);
-	cudaDeviceSynchronize();
-  */
   #else
   calcElemStrainRates();
   
@@ -429,6 +404,8 @@ namespace MetFEM{
   writer2.writeFile();
   #endif
   cout << "Done."<<endl;
+  
+  */
   
   }//SOLVE
     

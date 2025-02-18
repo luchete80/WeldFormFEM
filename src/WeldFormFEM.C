@@ -339,7 +339,9 @@ int main(int argc, char **argv) {
     }
     #endif
     
-    
+
+    #ifdef CUDA_BUILD
+    #else    
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
@@ -347,7 +349,7 @@ int main(int argc, char **argv) {
       //cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     
-      
+    #endif
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  

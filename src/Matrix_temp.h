@@ -34,7 +34,7 @@
 
 
 #include <cuda.h>
-#define __spec __host__ __device__ inline
+#define __spec __device__ inline
 #else 
 #define __spec inline
 #endif
@@ -52,7 +52,7 @@ public:
   malloc_t(m_data,double,m_col*m_row);
         if (m_data == nullptr) {
             printf("Memory allocation failed!\n");
-            exit(EXIT_FAILURE);  // Handle allocation failure
+            //exit(EXIT_FAILURE);  // Handle allocation failure
         }
         
   for (int i=0;i<row*col;i++) m_data[i] = 0.0;
@@ -79,21 +79,23 @@ public:
         if (this != &other) {
             // Free existing memory
             if (m_data != nullptr) {
-                free(m_data);
+                free_t(m_data);
                 m_data = nullptr;
             }
             
             // Allocate new memory
             m_row = other.m_row;
             m_col = other.m_col;
-            m_data = (double *)malloc(m_row * m_col * sizeof(double));
+            //m_data = (double *)malloc(m_row * m_col * sizeof(double));
+            malloc_t(m_data,double,m_col*m_row);
             if (m_data == nullptr) {
                 printf("Memory allocation failed!n");
                 //exit(EXIT_FAILURE);
             }
 
             // Copy data
-            memcpy(m_data, other.m_data, m_row * m_col * sizeof(double));
+            //memcpy(m_data, other.m_data, m_row * m_col * sizeof(double));
+            memcpy_dev_t(m_data, other.m_data, m_row * m_col * sizeof(double));
         }
         return *this;
     }
@@ -108,7 +110,7 @@ public:
   // Move Assignment Operator
   __spec Matrix& operator=(Matrix&& other) noexcept {
       if (this != &other) {
-          free(m_data);  // Free current resources
+          free_t(m_data);  // Free current resources
           m_data = other.m_data;
           m_row = other.m_row;
           m_col = other.m_col;
@@ -127,11 +129,11 @@ public:
   __spec Matrix & Transpose();
   __spec Matrix getTranspose();
   __spec Matrix Inv();
-  void Free(){free(m_data);m_data=nullptr;}
+  void Free(){free_t(m_data);m_data=nullptr;}
   __spec ~Matrix(){/*cudaFree (m_data);*/
       if (m_data != nullptr) {
       //printf("deleting\n");
-      free(m_data); 
+      free_t(m_data); 
     }
   }
 	
