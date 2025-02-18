@@ -36,7 +36,7 @@
 // }
 //--------------------------------------------------------------
 #else
-
+#include <omp>
 
 #include "double3_c.h"
 #include "utils.h" //AFTER DEF
@@ -67,8 +67,11 @@
 
 //#define par_loop(n,upto)   OMP_PARA_INTERNAL\
 //                            for(int n=0;n<upto;n++)
-
-#define par_loop(n,upto)  for(int n=0;n<upto;n++)
+#define par_loop(n, upto) \
+    _Pragma("omp parallel for") \
+    for (int n = 0; n < upto; ++n)
+    
+//#define par_loop(n,upto)  for(int n=0;n<upto;n++)
 #endif
 
 

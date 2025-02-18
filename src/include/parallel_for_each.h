@@ -18,6 +18,7 @@ namespace parallel {
 
 #if defined(USE_CUDA)
 
+/*
 // CUDA kernel for parallel for_each
 template <class F, class ForwardIt>
 __global__
@@ -27,6 +28,17 @@ void cuda_for_each(F f, ForwardIt first, ForwardIt last) {
   ForwardIt const it = first + i;
   if (it < last) f(*it);
 }
+*/
+
+// CUDA kernel for parallel for_each specialized for double*
+template <class F>
+__global__
+void cuda_for_each(F f, double* first, double* last) {
+    auto const i = threadIdx.x + blockIdx.x * blockDim.x;
+    double* it = first + i;
+    if (it < last) f(*it);
+}
+
 
 // Helper function for ceiling division
 template <class T>
@@ -53,6 +65,7 @@ void for_each(ForwardIt first, ForwardIt last, UnaryFunction f) {
   
   // Explicit synchronization
   cudaDeviceSynchronize();
+  
 #elif defined(USE_OPENMP)
   // CPU execution path with OpenMP
   #pragma omp parallel for
