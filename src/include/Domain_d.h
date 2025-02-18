@@ -198,7 +198,10 @@ public:
 
   
   void AssignMaterial (Material_ *material_h); //Create and copy material
+  
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
+  void AssignMatAddress_(); //Assign particle data to material array to zero array
+  
   dev_t void CalcStressStrain(double dt);
   dev_t void Calc_Elastic_Stress (const double dt);
   

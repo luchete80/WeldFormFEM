@@ -154,7 +154,7 @@ __global__ void assemblyForcesKernel(Domain_d *dom_d){
   // USES ELNOD_H; CHANGE TO GPU
   
   /// NOT WORKING
-  void Domain_d::calcMassDiagFromElementNodes(const double &rho) // To use existing array
+  dev_t void Domain_d::calcMassDiagFromElementNodes(const double &rho) // To use existing array
   {
     Matrix m_glob(m_node_count,m_node_count);
     Matrix temph(m_dim, m_nodxelem);

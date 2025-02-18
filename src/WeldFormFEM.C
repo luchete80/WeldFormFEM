@@ -31,12 +31,20 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+#else
+#include <omp.h>
 
 #endif
 
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
+  #ifdef CUDA_BUILD
+  
+  #else
+  omp_set_num_threads(8);
+  #endif
+  
   int dim = 3;
 	if (argc > 1){
 		string inputFileName=argv[1];	
@@ -339,7 +347,9 @@ int main(int argc, char **argv) {
     }
     #endif
     
-    
+
+    #ifdef CUDA_BUILD
+    #else    
     if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
@@ -347,7 +357,7 @@ int main(int argc, char **argv) {
       //cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     
-      
+    #endif
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  

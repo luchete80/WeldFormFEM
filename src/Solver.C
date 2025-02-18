@@ -119,6 +119,7 @@ namespace MetFEM{
   int step_count = 0;
   double tout = 0;
   
+  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +165,7 @@ namespace MetFEM{
   //cout <<"Done."<<endl;
  
   //ELEMENT PARALLEL
-
+  
   #ifdef CUDA_BUILD
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
@@ -210,6 +211,8 @@ namespace MetFEM{
   calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
   cudaDeviceSynchronize();
 
+  N = getNodeCount();
+  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
@@ -345,10 +348,11 @@ namespace MetFEM{
     #endif
     tout +=m_dtout;
   }
-
+  
     
   Time += dt;
   step_count++;
+  
   
   }// WHILE LOOP
 
@@ -357,40 +361,13 @@ namespace MetFEM{
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
   
-  printf("X %.6e\n", x_h[0]);
+  //printf("X %.6e\n", x_h[0]); //CRASHES
 
-  /*
+
   printf("DISPLACEMENTS\n");
-  memcpy__tohost_t(this->u_h,this->u,sizeof(double) * this->m_node_count*m_dim);
-  for (int i=0;i<m_node_count;i++)
-    printf("%.6e %.6e %.6e\n", this->u_h[i*3+0],this->u_h[i*3+1],this->u_h[i*3+2]);
-  printVecKernel<<<1,1 >>>(this, this->u);
+  printVecKernel<<<1,1 >>>(this, this->x);
 	cudaDeviceSynchronize(); 
 
-
-
-  memcpy__tohost_t(this->x_h,this->x,sizeof(double) * this->m_node_count*m_dim);
-*/
-  printf("VELOCITIES\n");
-  printVecKernel<<<1,1 >>>(this, this->v);
-	cudaDeviceSynchronize(); 
-/*  
-  printf("ACCEL\n");
-  printVecKernel<<<1,1 >>>(this, this->a);
-	cudaDeviceSynchronize();   
-
-  printf("FORCES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_fi);
-	cudaDeviceSynchronize(); 
-  
-  printf("STRESSES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_sigma);
-	cudaDeviceSynchronize();   
-
-  printf("SHEAR STRESSES\n");
-  printVecKernel<<<1,1 >>>(this, this->m_tau);
-	cudaDeviceSynchronize();
-  */
   #else
   calcElemStrainRates();
   
@@ -424,11 +401,12 @@ namespace MetFEM{
   //writer.writeFile();
   
   #ifndef CUDA_BUILD
-  cout << "Writing output"<<endl;
-  VTKWriter writer2(this, "out.vtk");
-  writer2.writeFile();
+  //cout << "Writing output"<<endl;
+  //VTKWriter writer2(this, "out.vtk");
+  //writer2.writeFile();
   #endif
   cout << "Done."<<endl;
+  
   
   }//SOLVE
     

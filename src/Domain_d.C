@@ -25,6 +25,8 @@
 #include "tensor3.C"
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
+#include "parallel_for_each.h"
+
 using namespace std;
 using namespace LS_Dyna;
 
@@ -303,6 +305,42 @@ void Domain_d::AssignMaterial (Material_ *material_h) {
 //    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //
     malloc_t(materials, Material_,1);
     memcpy_t(materials, material_h, 1 * sizeof(Material_));	
+}
+#ifdef CUDA_BUILD
+
+struct Increment {
+    __device__ void operator()(double& x) {
+        x += 1.0;
+    }
+};
+
+#else
+struct Increment {
+    void operator()(double& x) {
+        x += 1.0;
+    }
+};
+
+#endif
+
+//// NEW PARALLEL INCREMENT
+void Domain_d::AssignMatAddress_(){
+    int N = 100;
+    double* d_array;
+/*
+    // Allocate device memory
+    malloc_t(&d_array, N * sizeof(double));
+    
+    // Initialize with zeros
+    cudaMemset(d_array, 0, N * sizeof(double));
+  parallel::for_each(d_array, d_array + N, Increment());
+
+    // Free memory
+    cudaFree(d_array);
+
+    std::cout << "CUDA for_each completed!" << std::endl;
+    //return 0;
+    */
 }
 
 dev_t void Domain_d::AssignMatAddress(){
@@ -1111,7 +1149,7 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       
       ////printf ("elnod %d, %lf %lf %lf \n",m_elnod[nind+i],x[m_elnod[nind+i]].x,x[m_elnod[nind+i]].y,x[m_elnod[nind+i]].z);
   } 
- // printf("x2\n");x2.Print();
+  //printf("x2\n");x2.Print();
   //printf("m_gp_count %d\n",m_gp_count);
     //printf("Calculating jacobian\n");
     if (m_gp_count == 1 ) {      
@@ -1469,7 +1507,7 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
 }
 
 dev_t void Domain_d::printVec(double *v){
-  printf("Printing vectors: \n");
+  //printf("Printing vectors: \n");
   for (int n=0;n<m_node_count;n++){
     for (int d=0;d<m_dim;d++)
       //printf("%.6e ",v[m_dim*n + d]);

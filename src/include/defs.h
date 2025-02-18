@@ -19,11 +19,26 @@
 #define loop (n,upto)   n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 
 #define malloc_t(x,t,y)           cudaMalloc((void **)&x, y * sizeof (t))
+//#define malloc_dev_t(x, t, y)  x = new t[y]
+#define malloc_dev_t(x, t, y)     x = (t*)malloc(y * sizeof(t))
+
+__device__ inline void device_memcpy(void* dest, const void* src, size_t size) {
+    char* d = (char*)dest;
+    const char* s = (const char*)src;
+    for (size_t i = 0; i < size; i++) {
+        d[i] = s[i];  // Manual byte-wise copy
+    }
+}
+
 #define memcpy_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyHostToDevice)
+
+#define memcpy_dev_t(dest,src,size)       device_memcpy(dest,src,size)
 #define memcpy__tohost_t(dest,src,size)   cudaMemcpy(dest,src,size,cudaMemcpyDeviceToHost)
 
 #define par_loop(n,upto)   blocksPerGrid = (upto + threadsPerBlock - 1) / threadsPerBlock; int n=threadIdx.x+blockDim.x*blockIdx.x;if(n<upto)
 #define free_t(x)                 cudaFree(x)
+
+#define free_dev_t(x)                 free(x)
 /////ACCording to Omega_h
 // template <class F, class ForwardIt>
 // __global__
@@ -36,7 +51,6 @@
 // }
 //--------------------------------------------------------------
 #else
-
 
 #include "double3_c.h"
 #include "utils.h" //AFTER DEF
@@ -60,15 +74,22 @@
 // #define Ptr_vector_t  Ptr_Vec3D
 // #define vector_t_Ptr  Vec3D_Ptr
 
-#define malloc_t(x,t,y)           x=(t*)malloc(y * sizeof(t))
+#define malloc_t(x,t,y)               x=(t*)malloc(y * sizeof(t))
+#define malloc_dev_t(x,t,y)           x=(t*)malloc(y * sizeof(t)) //could change with 
+//#define malloc_t(x, t, y)  x = new t[y]
+#define memcpy_dev_t(dest,src,size)   memcpy(dest,src,size)     
 #define memcpy_t(dest,src,size)   memcpy(dest,src,size)     
 #define free_t(x)                 free(x)
+#define free_dev_t(x)                 free(x)
+//#define free_t(x)                 delete x[]
 #define OMP_PARA_INTERNAL _Pragma("omp parallel for schedule (static) num_threads(Nproc)")
 
 //#define par_loop(n,upto)   OMP_PARA_INTERNAL\
 //                            for(int n=0;n<upto;n++)
-
-#define par_loop(n,upto)  for(int n=0;n<upto;n++)
+#define par_loop(n, upto) \
+    _Pragma("omp parallel for") \
+    for (int n = 0; n < upto; ++n)
+//#define par_loop(n,upto)  for(int n=0;n<upto;n++)
 #endif
 
 

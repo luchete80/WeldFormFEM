@@ -140,17 +140,17 @@ ENDIF()
 #              )
 
 
-add_executable(beam
-                       main_beam.C
-                       Contact.C
-                       Domain_d.C
-                       Matrices.C
-                       Mechanical.C
-                       Matrices.C
-                       Solver.C
-                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-                       VTKWriter.C
-             )
+#add_executable(beam
+#                       main_beam.C
+#                       Contact.C
+#                       Domain_d.C
+#                       Matrices.C
+#                       Mechanical.C
+#                       Matrices.C
+#                       Solver.C
+#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
+#                       VTKWriter.C
+#             )
 
 #add_executable(beam_contact
 #                       main_beam_contact.C
@@ -266,9 +266,10 @@ set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
 
 #TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
-TARGET_LINK_LIBRARIES (4elem  cuda cudadevrt)
+TARGET_LINK_LIBRARIES (1elem   cuda cudart cudadevrt)
+TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 
-TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
+TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 endif()
