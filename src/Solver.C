@@ -211,6 +211,7 @@ namespace MetFEM{
   calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
   cudaDeviceSynchronize();
 
+  N = getNodeCount();
   calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
   cudaDeviceSynchronize();
 
