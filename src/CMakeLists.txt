@@ -266,10 +266,10 @@ set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
 
 #TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
-TARGET_LINK_LIBRARIES (1elem  cuda cudart cudadevrt)
+TARGET_LINK_LIBRARIES (1elem   cuda cudart cudadevrt)
 TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 
-TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudadevrt)
+TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 endif()

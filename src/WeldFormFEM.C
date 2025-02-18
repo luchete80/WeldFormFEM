@@ -31,12 +31,20 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
    }
 }
 
+#else
+#include <omp.h>
 
 #endif
 
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
+  #ifdef CUDA_BUILD
+  
+  #else
+  omp_set_num_threads(8);
+  #endif
+  
   int dim = 3;
 	if (argc > 1){
 		string inputFileName=argv[1];	

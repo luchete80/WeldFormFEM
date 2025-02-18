@@ -61,9 +61,8 @@ namespace MetFEM{
   printf ("beta %.10e\n",  m_beta);
   printf ("gamma %.10e\n", m_gamma);
   
-
+  //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
-  cout << "------Calculating derivatives..."<<endl;
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   //cout << "Calculating Volume..."<<endl;
@@ -120,13 +119,13 @@ namespace MetFEM{
   int step_count = 0;
   double tout = 0;
   
+  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "Main Loop----"<<endl;
-  /*
   while (Time < end_t) {
-    
+      
   if (step_count % 100 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
   //printf("Prediction ----------------\n");
@@ -166,7 +165,7 @@ namespace MetFEM{
   //cout <<"Done."<<endl;
  
   //ELEMENT PARALLEL
-
+  
   #ifdef CUDA_BUILD
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
@@ -347,10 +346,11 @@ namespace MetFEM{
     #endif
     tout +=m_dtout;
   }
-
+  
     
   Time += dt;
   step_count++;
+  
   
   }// WHILE LOOP
 
@@ -359,11 +359,11 @@ namespace MetFEM{
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
   
-  printf("X %.6e\n", x_h[0]);
+  //printf("X %.6e\n", x_h[0]); //CRASHES
 
 
-  printf("VELOCITIES\n");
-  printVecKernel<<<1,1 >>>(this, this->v);
+  printf("DISPLACEMENTS\n");
+  printVecKernel<<<1,1 >>>(this, this->x);
 	cudaDeviceSynchronize(); 
 
   #else
@@ -399,13 +399,12 @@ namespace MetFEM{
   //writer.writeFile();
   
   #ifndef CUDA_BUILD
-  cout << "Writing output"<<endl;
-  VTKWriter writer2(this, "out.vtk");
-  writer2.writeFile();
+  //cout << "Writing output"<<endl;
+  //VTKWriter writer2(this, "out.vtk");
+  //writer2.writeFile();
   #endif
   cout << "Done."<<endl;
   
-  */
   
   }//SOLVE
     

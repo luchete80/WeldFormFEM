@@ -1,4 +1,6 @@
-#include "parallel_for_each.h"
+/*
+ Case of vector
+include "parallel_for_each.h"
 #include <vector>
 #include <iostream>
 
@@ -18,4 +20,28 @@ int main() {
   std::cout << std::endl;
 
   return 0;
+}
+*/
+
+//Case to handle doubles
+
+#include "parallel_for_each.h"
+#include <iostream>
+
+void example() {
+    double arr[5] = {1.0, 2.0, 3.0, 4.0, 5.0};
+
+    parallel::for_each(arr, arr + 5, [] __host__ __device__ (double& x) {
+        x *= 2.0;
+    });
+
+    for (double x : arr) {
+        std::cout << x << " ";  // Should print: 2 4 6 8 10
+    }
+    std::cout << std::endl;
+}
+
+int main() {
+    example();
+    return 0;
 }

@@ -245,4 +245,8 @@ F90 PREVIOUS VERSION
 20250213 - FINALLY FOUND ERROR ON HEAX BEAM! Problem is Nonlock (nodal) assembly.
 20250214 - The error was founf in fact in HMOD
          - CFL factor is now readed from json.
-         -Found error in read some .k tetra meshes 
+         - Found error in read some .k tetra meshes 
+20250217 - Adding script to run solver 
+20250218 - Changing Matrix to all device in CUDA version
+         - Corrected openmp, still not tested
+         - Begining to add new parallel format
