@@ -390,29 +390,18 @@ void Domain_d::setDensity(const double &r){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-  par_loop (n,m_node_count){
+  par_loop (i,m_node_count){
+      for (int j = 0; j < m_dim; j++) {
+          //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
+          //NEW; global
+          int ig = i*m_dim + j; //BY NOW is 2D
+          
+          u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
+          v   [ig] += (1.0 - m_gamma) * dt * prev_a[ig];    
 
-
+          //printf("v %e",v[m_dim*i+j] );
+      }
   }
-
-    for (int i = 0; i < m_node_count; i++) {
-        for (int j = 0; j < m_dim; j++) {
-            //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
-            //NEW; global
-            int ig = i*m_dim + j; //BY NOW is 2D
-            
-            u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
-        }
-    }
-
-    for (int i = 0; i < m_node_count; i++) {
-        for (int j = 0; j < m_dim; j++) {
-            
-            v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];    
-
-            //printf("v %e",v[m_dim*i+j] );
-        }
-    }
 
 
 }

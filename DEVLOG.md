@@ -251,3 +251,4 @@ F90 PREVIOUS VERSION
          - Corrected openmp, still not tested
          - Begining to add new parallel format
 20250219 - Fixed several paralllel things. GPU RESULTS ARE GIVING OK.
+         - Fixed & simplified prediction and correction displacements, vels, and accels for cuda.
