@@ -176,13 +176,44 @@ dev_t void Domain_d::SearchExtNodes() {
     printf("Ext face count %d\n\n",ext_faces);
 }
 
+struct AssignValue {
+    __device__ void operator()(double& x) const {
+        x = 300.0e6;
+    }
+};
+
+///// FUNCTOR SHOULD BE DEVICE
+struct AssignVal {
+    __device__ void operator()(double& x) const {
+        x = 300.0e6;
+        printf("VAL %.6e\n",x);
+    }
+};
+
+dev_t void Domain_d::InitElemValues(double *arr, double val){
+  
+  par_loop(i, m_elem_count)
+    arr[i] = val;
+  
+}
+
 //THIS ASSUMES 
 void Domain_d::InitValues(){
+
+
   
   #ifdef CUDA_BUILD
-  
+    AssignValueFunctor assignValueFunctor(300.0e6);
+
+    // Call parallel::for_each using the functor
+    parallel::for_each(sigma_y, sigma_y + m_elem_count, assignValueFunctor);
+
+
+    InitElemValuesKernel<<<1,1>>>(this,sigma_y, 300.0e6); //Another approach
+    parallel::for_each(this->u, this->u + m_dim*m_node_count, AssignValueFunctor(0.0));
+    InitElemValuesKernel<<<1,1>>>(this,this->v, 0.0);
   #else
-    initNodalArrayCPU(this,pl_strain,1,0.0)
+    initElemArrayCPU(this,pl_strain,1,0.0)
     //initElemArrayCPU (this,sigma_y,1,1.0e10)  
     for (int e=0;e<m_elem_count;e++){
       sigma_y[e] = mat[e]->sy0;      
@@ -394,8 +425,9 @@ dev_t void Domain_d::UpdatePrediction(){
 
 dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
-
-    for (int i = 0; i < m_node_count; i++) {
+  
+    //for (int i = 0; i < m_node_count; i++) {
+    par_loop (i,m_node_count) {
         for (int j = 0; j < m_dim; j++) {
             int ig = i*m_dim + j;
 
@@ -416,36 +448,25 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
   // nod%x = nod%x + u
 
 dev_t void Domain_d   ::UpdateCorrectionPos(){
+  
   double f = 1.0/(1.0-m_alpha);
 
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-              // u_[i][j] += m_beta * dt * dt * a_[i][j];
-              // x_[i][j] += u_[i][j];
+//      for (int i = 0; i < m_node_count; i++) {
+  par_loop (i,m_node_count) {
+    for (int j = 0; j < m_dim; j++) {
+        // u_[i][j] += m_beta * dt * dt * a_[i][j];
+        // x_[i][j] += u_[i][j];
 
-              int ig = i*m_dim + j;
+        int ig = i*m_dim + j;
 
-              //printf("GLOBAL IND %d\n", ig);
-              u_dt[ig] += m_beta * dt * dt * a[ig];
-              x[ig] += u_dt[ig];
-          }
-      }
-
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-
-              prev_a[m_dim*i+j] = a[m_dim*i+j];
-          }
-      }
-
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-              u[m_dim*i+j] += u_dt[m_dim*i+j];
-              
-              //printf ("U %.6e \n", u[m_dim*i+j] );
-          }
-      }
-        
+        //printf("GLOBAL IND %d\n", ig);
+        u_dt[ig] += m_beta * dt * dt * a[ig];
+        x[ig] += u_dt[ig];
+        prev_a[m_dim*i+j] = a[m_dim*i+j];
+        u[m_dim*i+j] += u_dt[m_dim*i+j];         
+    }
+    //printf ("U Node %d %.6e %.6e %.6e\n", i, u[m_dim*i],u[m_dim*i+1],u[m_dim*i+2] );     
+  }      
 }
 
 host_ void Domain_d::ImposeBCAAllDim()//ALL DIM
@@ -1605,6 +1626,10 @@ __global__ void printSymmTensKernel(Domain_d *dom_d, double *v){
 
 __global__ void calcMinEdgeLength(Domain_d *dom_d){
   dom_d->calcMinEdgeLength();
+}
+
+__global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val){
+  dom_d->InitElemValues(arr, val);
 }
 
 

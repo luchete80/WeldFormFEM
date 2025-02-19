@@ -683,8 +683,8 @@ double f = dep/Sigmay;
       // printf("STR RATE\n");
       // print(StrRate);
       
-      printf("ELEMENT SIGMA\n");
-      print(Sigma);
+      //printf("ELEMENT SIGMA\n");
+      //print(Sigma);
       double Ep = 0;
 			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;

@@ -365,8 +365,17 @@ namespace MetFEM{
 
 
   printf("DISPLACEMENTS\n");
-  printVecKernel<<<1,1 >>>(this, this->x);
+  printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
+
+  printf("VELOCITIES\n");
+  printVecKernel<<<1,1 >>>(this, this->v);
+	cudaDeviceSynchronize(); 
+
+  printf("FORCES\n");
+  printVecKernel<<<1,1 >>>(this, this->m_fi);
+	cudaDeviceSynchronize(); 
+
 
   #else
   calcElemStrainRates();

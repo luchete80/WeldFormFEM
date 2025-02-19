@@ -19,6 +19,8 @@
 #include <string>
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
+#include "parallel_for_each.h"
+
 #define _QUA2D_ 0
 #define _TRI2D_ 1
 #define _TET2D_ 2
@@ -36,6 +38,14 @@
                                         for (int d=0;d<dim;d++)\
                                         a[n*dim + d] = val;\
                                       }
+
+#if CUDA_BUILD
+
+#define initElemArray (dom,a,dim,val) for (int n=0;n<dom->m_elem_count;n++){\
+                                        for (int d=0;d<dim;d++)\
+                                        a[n*dim + d] = val;\
+                                      }
+#endif
                                       
 //// THIS IS IF THE VARIABLE IS IN THE GAUSS POINTS (ASSUMING 1 GAUSS POINT)  
 //// IS NOT THE SAME FOR ELEMENT NODAL VARIABLE (LIKE ELEMENT FORCES)        
@@ -231,6 +241,7 @@ public:
   dev_t void UpdateCorrectionAccVel();
   dev_t void UpdateCorrectionPos();
   dev_t void calcTotMass();
+  dev_t void InitElemValues(double *arr, double val = 0.0);
   
   inline dev_t double getRadius(int e, int gp){return m_radius[e*m_gp_count+gp];}
 	
@@ -410,6 +421,8 @@ __global__ void calcAccelKernel(Domain_d *dom_d);
 __global__ void printVecKernel(Domain_d *dom_d, double *);
 __global__ void printSymmTensKernel(Domain_d *dom_d,  double *);
 __global__ void calcMinEdgeLength(Domain_d *dom_d);
+
+__global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val = 0.0);
 
 #endif
 
