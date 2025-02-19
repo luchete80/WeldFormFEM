@@ -316,8 +316,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	report_gpu_mem_();
   #endif
 
-  malloc_t (x_h,      double,node_count*m_dim);
-  //malloc_t (u_h,      double,node_count*3);
+  x_h = new double [m_dim*m_node_count];
   u_h = new double [m_dim*m_node_count];
   
   ////// CONTACT//////////////////////////////////////////////

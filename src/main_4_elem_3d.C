@@ -135,7 +135,7 @@ int main(){
   double dt = 0.800e-5/4.0;
   dom_d->SetDT(dt); 
   //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (2.0*dt);
+  dom_d->SetEndTime (dt);
   if (dim == 3){
   //// ORIGINAL
   cout << "Node Count "<<dom_d->getNodeCount()<<endl;
