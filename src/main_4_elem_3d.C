@@ -140,6 +140,7 @@ int main(){
   //// ORIGINAL
   cout << "Node Count "<<dom_d->getNodeCount()<<endl;
   for (int i=0;i<dom_d->getNodeCount();i++){
+    dom_d->getNodePos3(0);
     cout <<" z "<<dom_d->getNodePos3(i).z<< "dx/2 " <<dx/2.0<<endl;
     if (dom_d->getNodePos3(i).z<dx/4.0){
       dom_d->AddBCVelNode(i,2,0.0);
