@@ -203,15 +203,15 @@ void Domain_d::InitValues(){
 
   
   #ifdef CUDA_BUILD
-    AssignValueFunctor assignValueFunctor(300.0e6);
-
-    // Call parallel::for_each using the functor
-    parallel::for_each(sigma_y, sigma_y + m_elem_count, assignValueFunctor);
+    //AssignValueFunctor assignValueFunctor(1.0e10);
+    //parallel::for_each(sigma_y, sigma_y + m_elem_count, assignValueFunctor);
 
 
-    InitElemValuesKernel<<<1,1>>>(this,sigma_y, 300.0e6); //Another approach
+    //InitElemValuesKernel<<<1,1>>>(this,sigma_y, 300.0e6); //Another approach
     parallel::for_each(this->u, this->u + m_dim*m_node_count, AssignValueFunctor(0.0));
     InitElemValuesKernel<<<1,1>>>(this,this->v, 0.0);
+    
+    InitStressesFromMatKernel<<<1,1>>>(this);
   #else
     initElemArrayCPU(this,pl_strain,1,0.0)
     //initElemArrayCPU (this,sigma_y,1,1.0e10)  
@@ -219,6 +219,15 @@ void Domain_d::InitValues(){
       sigma_y[e] = mat[e]->sy0;      
     }
   #endif
+}
+
+dev_t void Domain_d::InitStressesFromMat(){
+    par_loop(e,m_elem_count){
+      
+      sigma_y[e] = mat[e]->sy0;      
+      
+  }
+  
 }
 
 
@@ -1617,6 +1626,10 @@ __global__ void calcMinEdgeLength(Domain_d *dom_d){
 __global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val){
   dom_d->InitElemValues(arr, val);
 }
+
+__global__ void InitStressesFromMatKernel(Domain_d *dom_d){
+  dom_d->InitStressesFromMat();
+ }
 
 
 };

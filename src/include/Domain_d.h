@@ -242,7 +242,8 @@ public:
   dev_t void UpdateCorrectionPos();
   dev_t void calcTotMass();
   dev_t void InitElemValues(double *arr, double val = 0.0);
-  
+  dev_t void InitStressesFromMat();
+    
   inline dev_t double getRadius(int e, int gp){return m_radius[e*m_gp_count+gp];}
 	
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
@@ -423,6 +424,7 @@ __global__ void printSymmTensKernel(Domain_d *dom_d,  double *);
 __global__ void calcMinEdgeLength(Domain_d *dom_d);
 
 __global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val = 0.0);
+__global__ void InitStressesFromMatKernel(Domain_d *dom_d);
 
 #endif
 
