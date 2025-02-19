@@ -410,12 +410,11 @@ dev_t void Domain_d::calcElemForces(){
     }  
     
     //TO CHECK
-    /*
+    
     for (int n=0; n<m_nodxelem;n++) {
-      printf("Element %d forces\n",e);
-      printf("%.3e %.3e %.3e\n",m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
+      printf("Element %d Node %d forces %.3e %.3e %.3e\n",e, n, m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
     } 
-    */ 
+     
     
   }//if e<elem_count
 }
