@@ -411,8 +411,8 @@ namespace MetFEM{
   
   #ifndef CUDA_BUILD
   //cout << "Writing output"<<endl;
-  VTKWriter writer2(this, "out.vtk");
-  writer2.writeFile();
+  //VTKWriter writer2(this, "out.vtk");
+  //writer2.writeFile();
   #endif
   cout << "Done."<<endl;
   

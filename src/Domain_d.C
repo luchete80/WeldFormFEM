@@ -209,7 +209,9 @@ void Domain_d::InitValues(){
 
     //InitElemValuesKernel<<<1,1>>>(this,sigma_y, 300.0e6); //Another approach
     parallel::for_each(this->u, this->u + m_dim*m_node_count, AssignValueFunctor(0.0));
-    InitElemValuesKernel<<<1,1>>>(this,this->v, 0.0);
+    parallel::for_each(this->v, this->v + m_dim*m_node_count, AssignValueFunctor(0.0));
+    
+    //InitElemValuesKernel<<<1,1>>>(this,this->v, 0.0);
     
     InitStressesFromMatKernel<<<1,1>>>(this);
   #else
@@ -221,12 +223,14 @@ void Domain_d::InitValues(){
   #endif
 }
 
+//Serial in order to be called as <<<1,1>>>
 dev_t void Domain_d::InitStressesFromMat(){
-    par_loop(e,m_elem_count){
-      
+    //par_loop(e,m_elem_count){
+  //NOT PARALLEL
+  for (int e=0;e<m_elem_count;e++)    
       sigma_y[e] = mat[e]->sy0;      
       
-  }
+  //}
   
 }
 

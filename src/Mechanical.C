@@ -351,10 +351,10 @@ dev_t void Domain_d::calcElemForces(){
       // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
       // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       // !!!!! 
-      for (int i=0;i<3;i++)
-        for (int j=0;j<3;j++){
+      //for (int i=0;i<3;i++)
+      //  for (int j=0;j<3;j++){
           //printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
-        }
+      //  }
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){
           m_f_elem[offset + n*m_dim + d] += getDerivative(e,gp,d,n) * getSigma(e,gp,d,d);
@@ -364,7 +364,7 @@ dev_t void Domain_d::calcElemForces(){
           if (m_domtype != _Axi_Symm_){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
-          } else {
+          } else {//2D AXISYMM
 //              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
 //              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
  //             !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
@@ -384,7 +384,7 @@ dev_t void Domain_d::calcElemForces(){
 //                                                     elem%sigma (e,gp, 1,2) * fa       
             
           }
-        } else {
+        } else { //3D
           //printf("offset %d\n", offset + n*m_dim    );
           //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) +
@@ -411,9 +411,9 @@ dev_t void Domain_d::calcElemForces(){
     
     //TO CHECK
     
-    for (int n=0; n<m_nodxelem;n++) {
-      printf("Element %d Node %d forces %.3e %.3e %.3e\n",e, n, m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
-    } 
+    //for (int n=0; n<m_nodxelem;n++) {
+    //  printf("Element %d Node %d forces %.3e %.3e %.3e\n",e, n, m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
+    //} 
      
     
   }//if e<elem_count
