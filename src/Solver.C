@@ -90,9 +90,8 @@ namespace MetFEM{
 	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
     
   #else
-  printf("calc deriv\n");
   calcElemJAndDerivatives();
-  printf("calc Vol\n");
+
   CalcElemInitialVol(); //ALSO CALC VOL
 
   CalcElemVol();
@@ -145,10 +144,8 @@ namespace MetFEM{
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   #endif
   #if CUDA_BUILD
-  printf("Prediction ----------------\n");
   UpdatePredictionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-  printf("Done\n");
   #else
   UpdatePrediction();  
   #endif
@@ -181,7 +178,6 @@ namespace MetFEM{
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   
-  cout << "calc deriv"<<endl;
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   
@@ -426,8 +422,8 @@ namespace MetFEM{
   
   #ifndef CUDA_BUILD
   //cout << "Writing output"<<endl;
-  //VTKWriter writer2(this, "out.vtk");
-  //writer2.writeFile();
+  VTKWriter writer2(this, "out.vtk");
+  writer2.writeFile();
   #endif
   cout << "Done."<<endl;
   

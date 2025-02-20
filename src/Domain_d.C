@@ -1582,8 +1582,8 @@ dev_t void Domain_d::calcMinEdgeLength(){
     }
     
   }
-  //printf("Min Edge length %lf\n", min_len);
   m_min_length = sqrt(min_len);
+  printf("Min Edge length %lf\n", m_min_length);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
@@ -1627,6 +1627,10 @@ __global__ void calcMinEdgeLength(Domain_d *dom_d){
   dom_d->calcMinEdgeLength();
 }
 
+__global__ void calcMinEdgeLengthKernel(Domain_d *dom_d){
+  dom_d->calcMinEdgeLength();
+}
+
 __global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val){
   dom_d->InitElemValues(arr, val);
 }
@@ -1635,6 +1639,10 @@ __global__ void InitStressesFromMatKernel(Domain_d *dom_d){
   dom_d->InitStressesFromMat();
  }
 
+  // Kernel to retrieve only the private value
+__global__ void getMinLengthKernel(Domain_d *dom_d, double *d_value) {
+    *d_value = dom_d->getMinLength();  // Store private value in separate memory
+}
 
 };
 	

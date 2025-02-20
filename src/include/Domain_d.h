@@ -264,7 +264,7 @@ public:
   bool isContactOn(){return contact;}
   TriMesh_d* getTriMesh(){return trimesh;}
   void InitValues();
-  double getMinLength(){return m_min_length;}
+  double dev_t getMinLength(){return m_min_length;}
 
   bool m_auto_contact; // if not define external nodes
   //--------------------------------------------------------------------------------------------------------------------------------
@@ -427,7 +427,11 @@ __global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val = 
 __global__ void InitStressesFromMatKernel(Domain_d *dom_d);
 __global__ void CalcNodalVolKernel        (Domain_d *dom_d);
 __global__ void CalcNodalMassFromVolKernel(Domain_d *dom_d);
+__global__ void calcMinEdgeLengthKernel(Domain_d *dom_d);
+__global__ void getMinLengthKernel(Domain_d *dom_d, double *d);
 
+// Kernel to retrieve only the private value
+__global__ void getMinLengthKernel(Domain_d *dom_d,  double *d_value);
 #endif
 
 //i: dim, j: node
