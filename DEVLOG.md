@@ -252,3 +252,5 @@ F90 PREVIOUS VERSION
          - Begining to add new parallel format
 20250219 - Fixed several paralllel things. GPU RESULTS ARE GIVING OK.
          - Fixed & simplified prediction and correction displacements, vels, and accels for cuda.
+20250220 - Fixed several element displacements. Working ok BUT NOT FOR ALL THE PROBLEM.
+         - Added openmp cores to json

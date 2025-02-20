@@ -42,7 +42,9 @@ int main(int argc, char **argv) {
   #ifdef CUDA_BUILD
   
   #else
-  omp_set_num_threads(8);
+  int np = 1;
+  readValue(config["Nproc"], np);   
+  omp_set_num_threads(np);
   #endif
   
   int dim = 3;
