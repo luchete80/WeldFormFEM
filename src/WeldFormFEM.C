@@ -39,13 +39,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
-  #ifdef CUDA_BUILD
-  
-  #else
-  int np = 1;
-  readValue(config["Nproc"], np);   
-  omp_set_num_threads(np);
-  #endif
   
   int dim = 3;
 	if (argc > 1){
@@ -101,6 +94,13 @@ int main(int argc, char **argv) {
     readValue(config["simTime"], sim_time);
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
+    #ifdef CUDA_BUILD
+    
+    #else
+    int np = 1;
+    readValue(config["Nproc"], np);   
+    omp_set_num_threads(np);
+    #endif
 
   /////////////-/////////////////////////////////////////////////////////////////////////////////
   // DOMAIN //
