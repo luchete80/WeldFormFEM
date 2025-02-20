@@ -75,9 +75,20 @@ namespace MetFEM{
   calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();
   
-  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();
-
+  //assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	//cudaDeviceSynchronize();
+  
+  N = this->m_node_count;
+	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+  
+  CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  
+  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  N = this->getElemCount();
+	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+    
   #else
   printf("calc deriv\n");
   calcElemJAndDerivatives();
@@ -370,6 +381,10 @@ namespace MetFEM{
 
   printf("VELOCITIES\n");
   printVecKernel<<<1,1 >>>(this, this->v);
+	cudaDeviceSynchronize(); 
+
+  printf("ACCEL\n");
+  printVecKernel<<<1,1 >>>(this, this->a);
 	cudaDeviceSynchronize(); 
 
   printf("FORCES\n");

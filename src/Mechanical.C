@@ -847,5 +847,12 @@ dev_t void Domain_d:: calcElemHourglassForces()
 		dom_d->calcAccel();
   }
 
+__global__ void CalcNodalVolKernel        (Domain_d *dom_d){
+  dom_d->CalcNodalVol();
+  }
+__global__ void CalcNodalMassFromVolKernel(Domain_d *dom_d){
+    dom_d->CalcNodalMassFromVol();
+  }
+
  
 }; //Namespace MetFEM

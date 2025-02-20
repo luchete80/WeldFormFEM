@@ -425,6 +425,8 @@ __global__ void calcMinEdgeLength(Domain_d *dom_d);
 
 __global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val = 0.0);
 __global__ void InitStressesFromMatKernel(Domain_d *dom_d);
+__global__ void CalcNodalVolKernel        (Domain_d *dom_d);
+__global__ void CalcNodalMassFromVolKernel(Domain_d *dom_d);
 
 #endif
 
