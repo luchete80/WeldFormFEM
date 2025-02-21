@@ -187,18 +187,62 @@ dev_t void Domain_d::SearchExtNodes() {
     printf("Ext face count %d\n\n",ext_faces);
 }
 
+struct AssignValue {
+    __device__ void operator()(double& x) const {
+        x = 300.0e6;
+    }
+};
+
+///// FUNCTOR SHOULD BE DEVICE
+struct AssignVal {
+    __device__ void operator()(double& x) const {
+        x = 300.0e6;
+        printf("VAL %.6e\n",x);
+    }
+};
+
+dev_t void Domain_d::InitElemValues(double *arr, double val){
+  
+  par_loop(i, m_elem_count)
+    arr[i] = val;
+  
+}
+
 //THIS ASSUMES 
 void Domain_d::InitValues(){
+
+
   
   #ifdef CUDA_BUILD
-  
+    //AssignValueFunctor assignValueFunctor(1.0e10);
+    //parallel::for_each(sigma_y, sigma_y + m_elem_count, assignValueFunctor);
+
+
+    //InitElemValuesKernel<<<1,1>>>(this,sigma_y, 300.0e6); //Another approach
+    parallel::for_each(this->u, this->u + m_dim*m_node_count, AssignValueFunctor(0.0));
+    parallel::for_each(this->v, this->v + m_dim*m_node_count, AssignValueFunctor(0.0));
+    
+    //InitElemValuesKernel<<<1,1>>>(this,this->v, 0.0);
+    
+    InitStressesFromMatKernel<<<1,1>>>(this);
   #else
-    initNodalArrayCPU(this,pl_strain,1,0.0)
+    initElemArrayCPU(this,pl_strain,1,0.0)
     //initElemArrayCPU (this,sigma_y,1,1.0e10)  
     for (int e=0;e<m_elem_count;e++){
       sigma_y[e] = mat[e]->sy0;      
     }
   #endif
+}
+
+//Serial in order to be called as <<<1,1>>>
+dev_t void Domain_d::InitStressesFromMat(){
+    //par_loop(e,m_elem_count){
+  //NOT PARALLEL
+  for (int e=0;e<m_elem_count;e++)    
+      sigma_y[e] = mat[e]->sy0;      
+      
+  //}
+  
 }
 
 
@@ -296,8 +340,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	report_gpu_mem_();
   #endif
 
-  malloc_t (x_h,      double,node_count*m_dim);
-  //malloc_t (u_h,      double,node_count*3);
+  x_h = new double [m_dim*m_node_count];
   u_h = new double [m_dim*m_node_count];
   
   ////// CONTACT//////////////////////////////////////////////
@@ -371,31 +414,18 @@ void Domain_d::setDensity(const double &r){
 }
 
 dev_t void Domain_d::UpdatePrediction(){
-  par_loop (n,m_node_count){
+  par_loop (i,m_node_count){
+      for (int j = 0; j < m_dim; j++) {
+          //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
+          //NEW; global
+          int ig = i*m_dim + j; //BY NOW is 2D
+          
+          u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
+          v   [ig] += (1.0 - m_gamma) * dt * prev_a[ig];    
 
-
+          //printf("v %e",v[m_dim*i+j] );
+      }
   }
-
-    for (int i = 0; i < m_node_count; i++) {
-        for (int j = 0; j < m_dim; j++) {
-            //u_[i][j] = dt * (v_[i][j] + (0.5 - m_beta) * dt * prev_a_[i][j]);
-            //NEW; global
-            int ig = i*m_dim + j; //BY NOW is 2D
-            
-            u_dt[ig] = dt * (v[ig] + (0.5 - m_beta) * dt * prev_a[ig]);
-        }
-    }
-
-    for (int i = 0; i < m_node_count; i++) {
-        for (int j = 0; j < m_dim; j++) {
-            
-            v[m_dim*i+j] += (1.0 - m_gamma) * dt * prev_a[m_dim*i+j];    
-
-            //printf("v %e",v[m_dim*i+j] );
-        }
-    }
-
-
 }
 
 //////////////////////////////////////
@@ -405,8 +435,9 @@ dev_t void Domain_d::UpdatePrediction(){
 
 dev_t void Domain_d::UpdateCorrectionAccVel(){
   double f = 1.0/(1.0-m_alpha);
-
-    for (int i = 0; i < m_node_count; i++) {
+  
+    //for (int i = 0; i < m_node_count; i++) {
+    par_loop (i,m_node_count) {
         for (int j = 0; j < m_dim; j++) {
             int ig = i*m_dim + j;
 
@@ -427,36 +458,25 @@ dev_t void Domain_d::UpdateCorrectionAccVel(){
   // nod%x = nod%x + u
 
 dev_t void Domain_d   ::UpdateCorrectionPos(){
+  
   double f = 1.0/(1.0-m_alpha);
 
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-              // u_[i][j] += m_beta * dt * dt * a_[i][j];
-              // x_[i][j] += u_[i][j];
+//      for (int i = 0; i < m_node_count; i++) {
+  par_loop (i,m_node_count) {
+    for (int j = 0; j < m_dim; j++) {
+        // u_[i][j] += m_beta * dt * dt * a_[i][j];
+        // x_[i][j] += u_[i][j];
 
-              int ig = i*m_dim + j;
+        int ig = i*m_dim + j;
 
-              //printf("GLOBAL IND %d\n", ig);
-              u_dt[ig] += m_beta * dt * dt * a[ig];
-              x[ig] += u_dt[ig];
-          }
-      }
-
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-
-              prev_a[m_dim*i+j] = a[m_dim*i+j];
-          }
-      }
-
-      for (int i = 0; i < m_node_count; i++) {
-          for (int j = 0; j < m_dim; j++) {
-              u[m_dim*i+j] += u_dt[m_dim*i+j];
-              
-              //printf ("U %.6e \n", u[m_dim*i+j] );
-          }
-      }
-        
+        //printf("GLOBAL IND %d\n", ig);
+        u_dt[ig] += m_beta * dt * dt * a[ig];
+        x[ig] += u_dt[ig];
+        prev_a[m_dim*i+j] = a[m_dim*i+j];
+        u[m_dim*i+j] += u_dt[m_dim*i+j];         
+    }
+    //printf ("U Node %d %.6e %.6e %.6e\n", i, u[m_dim*i],u[m_dim*i+1],u[m_dim*i+2] );     
+  }      
 }
 
 host_ void Domain_d::ImposeBCAAllDim()//ALL DIM
@@ -632,8 +652,6 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   cout << "Dimension is: "<<m_dim<<endl;
   //SPH::Domain	dom;
 	//vector_t *x =  (vector_t *)malloc(dom.Particles.size());
-	double *x_H =  new double [m_dim*m_node_count];
-
 
 	//int size = dom.Particles.size() * sizeof(vector_t);
 	cout << "Copying to device..."<<endl;
@@ -648,9 +666,9 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
       Xp.x = V.x;
       for (int i = 0; i < (nel[0] +1);i++){
         //m_node.push_back(new Node(Xp));
-        x_H[m_dim*p  ] = Xp.x;  
-        x_H[m_dim*p+1] = Xp.y;
-        if (m_dim == 3) x_H[m_dim*p+2] = Xp.z;
+        x_h[m_dim*p  ] = Xp.x;  
+        x_h[m_dim*p+1] = Xp.y;
+        if (m_dim == 3) x_h[m_dim*p+2] = Xp.z;
         //nod%x(p,:) = Xp(:);
         cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
         p++;
@@ -662,11 +680,11 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 
   //cout <<"m_node size"<<m_node.size()<<endl;
   } 
-		memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
+		memcpy_t(this->x,   x_h, m_dim*sizeof(double) * m_node_count);    
     printf("X\n");
     //printVec(this->x);
-    //printf("X_h\n");
-    //printVec(x_H);
+    //printf("x_h\n");
+    //printVec(x_h);
     // !! ALLOCATE ELEMENTS
     // !! DIMENSION = 2
     int gp = 1;
@@ -1573,8 +1591,8 @@ dev_t void Domain_d::calcMinEdgeLength(){
     }
     
   }
-  //printf("Min Edge length %lf\n", min_len);
   m_min_length = sqrt(min_len);
+  printf("Min Edge length %lf\n", m_min_length);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){
@@ -1618,6 +1636,22 @@ __global__ void calcMinEdgeLength(Domain_d *dom_d){
   dom_d->calcMinEdgeLength();
 }
 
+__global__ void calcMinEdgeLengthKernel(Domain_d *dom_d){
+  dom_d->calcMinEdgeLength();
+}
+
+__global__ void InitElemValuesKernel(Domain_d *dom_d, double *arr, double val){
+  dom_d->InitElemValues(arr, val);
+}
+
+__global__ void InitStressesFromMatKernel(Domain_d *dom_d){
+  dom_d->InitStressesFromMat();
+ }
+
+  // Kernel to retrieve only the private value
+__global__ void getMinLengthKernel(Domain_d *dom_d, double *d_value) {
+    *d_value = dom_d->getMinLength();  // Store private value in separate memory
+}
 
 };
 	

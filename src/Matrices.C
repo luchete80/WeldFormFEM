@@ -22,15 +22,12 @@ namespace MetFEM {
 ///////HERE THE LOOP IS PER NODE INSTEAD THAN PER ELEMENT
 
   dev_t void Domain_d::assemblyForces(){
-  //todo Make this also parallel
-  for (int n=0; n<m_node_count;n++) {
-        for (int d=0;d<m_dim;d++)
-          m_fi[n*m_dim + d] = 0.0;
-      }
 
     //if ()
-  par_loop(n, m_node_count){
-
+  //par_loop(n, m_node_count){
+  for (int n=0;n<m_node_count;n++){
+    for (int d=0;d<m_dim;d++)
+      m_fi[n*m_dim + d] = 0.0;
       
       //printf("--------\n");    
       for (int e=0; e<m_nodel_count[n];e++) {

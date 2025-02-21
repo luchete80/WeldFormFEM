@@ -3,11 +3,14 @@
 #include "VTKWriter.h"
 
 #include "Mesh.h"
+#include "WallTimer.h"
+
 using namespace std;
 
 namespace MetFEM{
 
-	void host_ Domain_d::SolveChungHulbert(){
+void host_ Domain_d::SolveChungHulbert(){
+  WallTimer timer;
 
   int N;
 	N = getElemCount();
@@ -75,13 +78,23 @@ namespace MetFEM{
   calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();
   
-  assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();
-
+  //assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	//cudaDeviceSynchronize();
+  
+  N = this->m_node_count;
+	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+  
+  CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  
+  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  N = this->getElemCount();
+	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+    
   #else
-  printf("calc deriv\n");
   calcElemJAndDerivatives();
-  printf("calc Vol\n");
+
   CalcElemInitialVol(); //ALSO CALC VOL
 
   CalcElemVol();
@@ -134,10 +147,8 @@ namespace MetFEM{
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   #endif
   #if CUDA_BUILD
-  printf("Prediction ----------------\n");
   UpdatePredictionKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-  printf("Done\n");
   #else
   UpdatePrediction();  
   #endif
@@ -170,7 +181,6 @@ namespace MetFEM{
   N = getElemCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
   
-  cout << "calc deriv"<<endl;
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
   
@@ -342,6 +352,10 @@ namespace MetFEM{
   
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
+    timer.click();
+    std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
+    
     #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
     writer2.writeFile();
@@ -356,6 +370,7 @@ namespace MetFEM{
   
   }// WHILE LOOP
 
+
   
   
   #ifdef CUDA_BUILD
@@ -365,10 +380,24 @@ namespace MetFEM{
 
 
   printf("DISPLACEMENTS\n");
-  printVecKernel<<<1,1 >>>(this, this->x);
+  printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
 
+  printf("VELOCITIES\n");
+  printVecKernel<<<1,1 >>>(this, this->v);
+	cudaDeviceSynchronize(); 
+
+  printf("ACCEL\n");
+  printVecKernel<<<1,1 >>>(this, this->a);
+	cudaDeviceSynchronize(); 
+
+  printf("FORCES\n");
+  printVecKernel<<<1,1 >>>(this, this->m_fi);
+	cudaDeviceSynchronize(); 
+
+
   #else
+    /*
   calcElemStrainRates();
   
    printf("DISPLACEMENTS\n");
@@ -382,7 +411,7 @@ namespace MetFEM{
   
   printf("FORCES\n");
   printVec(this->m_fi);
-
+*/
   // printf("STRESSES\n");
   // printSymmTens(this->m_sigma);
 
@@ -402,11 +431,13 @@ namespace MetFEM{
   
   #ifndef CUDA_BUILD
   //cout << "Writing output"<<endl;
-  //VTKWriter writer2(this, "out.vtk");
-  //writer2.writeFile();
+  VTKWriter writer2(this, "out.vtk");
+  writer2.writeFile();
   #endif
   cout << "Done."<<endl;
-  
+
+  timer.stop();
+  std::cout << "Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   
   }//SOLVE
     

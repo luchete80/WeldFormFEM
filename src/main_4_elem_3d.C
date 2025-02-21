@@ -134,12 +134,13 @@ int main(){
 	//double dt = 0.7 * dx/(mat_cs);
   double dt = 0.800e-5/4.0;
   dom_d->SetDT(dt); 
-  //dom_d->SetEndTime (1.0e-3);
-  dom_d->SetEndTime (2.0*dt);
+  dom_d->SetEndTime (1.0e-3);
+  dom_d->SetEndTime (dt);
   if (dim == 3){
   //// ORIGINAL
   cout << "Node Count "<<dom_d->getNodeCount()<<endl;
   for (int i=0;i<dom_d->getNodeCount();i++){
+    dom_d->getNodePos3(0);
     cout <<" z "<<dom_d->getNodePos3(i).z<< "dx/2 " <<dx/2.0<<endl;
     if (dom_d->getNodePos3(i).z<dx/4.0){
       dom_d->AddBCVelNode(i,2,0.0);

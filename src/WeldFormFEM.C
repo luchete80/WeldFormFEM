@@ -60,11 +60,6 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
-  #ifdef CUDA_BUILD
-  
-  #else
-  omp_set_num_threads(8);
-  #endif
   
   int dim = 3;
 	if (argc > 1){
@@ -120,6 +115,19 @@ int main(int argc, char **argv) {
     readValue(config["simTime"], sim_time);
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
+    #ifdef CUDA_BUILD
+    
+    #else
+    int np = 1;
+    readValue(config["Nproc"], np);   
+    omp_set_num_threads(np);
+    omp_set_dynamic(0);
+    cout << "Number of threads used: "<<omp_get_num_threads()<<", "<<np<<endl;
+    #pragma omp parallel 
+    {
+       cout << "Thread "<<endl;
+    }
+    #endif
 
   /////////////-/////////////////////////////////////////////////////////////////////////////////
   // DOMAIN //
@@ -305,20 +313,29 @@ int main(int argc, char **argv) {
   }
   cout << "Calulating min element size ..."<<endl;
   #ifdef CUDA_BUILD
+  calcMinEdgeLengthKernel<<<1,1>>>(dom_d); //TODO: PARALLELIZE
+  cudaDeviceSynchronize();
+  double *d_value;
+  cudaMalloc((void**)&d_value, sizeof(double));
 
+  getMinLengthKernel<<<1,1>>>(dom_d, d_value);
+  cudaDeviceSynchronize(); 
+  cudaMemcpy(&dx, d_value, sizeof(double), cudaMemcpyDeviceToHost);
   #else
   dom_d->calcMinEdgeLength();
-  #endif
   dx = dom_d->getMinLength();
+  #endif
+  
 
   cout<< "Min length: "<<dx<<endl;
 	double dt = cflFactor * dx/(mat_cs);
   //double dt = 0.800e-5;
+  cout << "Time Step "<<dt<<endl;
   dom_d->SetDT(dt); 
   cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
   dom_d->setdtOut(out_time);
-  //dom_d->SetEndTime (1000.0*dt);
+  //dom_d->SetEndTime (10.0*dt);
   
   //////////////////// BOUNDARY CONDITIONS
     int bc_count = 0;
@@ -369,16 +386,17 @@ int main(int argc, char **argv) {
     #endif
     
 
-    #ifdef CUDA_BUILD
-    #else    
-    if (dom_d->getPosVec3(i).z > 0.616-0.025 ) {
+    //#ifdef CUDA_BUILD
+    //#else    
+    if (dom_d->getPosVec3_h(i).z > 0.616-0.025 ) {
+    //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);
       dom_d->AddBCVelNode(i,2,-10.0);
       //cout << "Node "<<i <<" vel "<<endl;
       velcount++;
     }     
-    #endif
+    //#endif
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  

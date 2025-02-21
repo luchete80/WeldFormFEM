@@ -351,10 +351,10 @@ dev_t void Domain_d::calcElemForces(){
       // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
       // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
       // !!!!! 
-      for (int i=0;i<3;i++)
-        for (int j=0;j<3;j++){
+      //for (int i=0;i<3;i++)
+      //  for (int j=0;j<3;j++){
           //printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
-        }
+      //  }
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){
           m_f_elem[offset + n*m_dim + d] += getDerivative(e,gp,d,n) * getSigma(e,gp,d,d);
@@ -364,7 +364,7 @@ dev_t void Domain_d::calcElemForces(){
           if (m_domtype != _Axi_Symm_){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
-          } else {
+          } else {//2D AXISYMM
 //              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
 //              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
  //             !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
@@ -384,7 +384,7 @@ dev_t void Domain_d::calcElemForces(){
 //                                                     elem%sigma (e,gp, 1,2) * fa       
             
           }
-        } else {
+        } else { //3D
           //printf("offset %d\n", offset + n*m_dim    );
           //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) +
@@ -410,12 +410,11 @@ dev_t void Domain_d::calcElemForces(){
     }  
     
     //TO CHECK
-    /*
-    for (int n=0; n<m_nodxelem;n++) {
-      printf("Element %d forces\n",e);
-      printf("%.3e %.3e %.3e\n",m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
-    } 
-    */ 
+    
+    //for (int n=0; n<m_nodxelem;n++) {
+    //  printf("Element %d Node %d forces %.3e %.3e %.3e\n",e, n, m_f_elem[offset + n*m_dim ],m_f_elem[offset + n*m_dim + 1] ,m_f_elem[offset + n*m_dim + 2] );
+    //} 
+     
     
   }//if e<elem_count
 }
@@ -507,7 +506,7 @@ dev_t void Domain_d::CalcNodalVol(){
     //printf("Node %d vol %f ne count %d\n",n,m_voln[n],m_nodel_count[n]);
     tot_vol+=m_voln[n];
   } //NODE LOOP
-  printf("Total vol %f\n",tot_vol);
+  //printf("Total vol %f\n",tot_vol);
 }
 
 //Assuming constant material
@@ -526,7 +525,7 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
     //printf("Node %d mass %f rho %f vol %f\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
     
   } //NODE LOOP
-  printf("Tot mass: %f\n",tot_mass);
+  //printf("Tot mass: %f\n",tot_mass);
   delete rhon;
 }
 
@@ -683,8 +682,8 @@ double f = dep/Sigmay;
       // printf("STR RATE\n");
       // print(StrRate);
       
-      printf("ELEMENT SIGMA\n");
-      print(Sigma);
+      //printf("ELEMENT SIGMA\n");
+      //print(Sigma);
       double Ep = 0;
 			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;
@@ -796,7 +795,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.1 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.06 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       //printf("c_h %.6e\n", c_h);
 
 
@@ -846,6 +845,13 @@ dev_t void Domain_d:: calcElemHourglassForces()
   __global__ void calcAccelKernel(Domain_d *dom_d){
 		
 		dom_d->calcAccel();
+  }
+
+__global__ void CalcNodalVolKernel        (Domain_d *dom_d){
+  dom_d->CalcNodalVol();
+  }
+__global__ void CalcNodalMassFromVolKernel(Domain_d *dom_d){
+    dom_d->CalcNodalMassFromVol();
   }
 
  
