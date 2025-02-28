@@ -378,7 +378,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   //printf("X %.6e\n", x_h[0]); //CRASHES
 
-
+/*
   printf("DISPLACEMENTS\n");
   printVecKernel<<<1,1 >>>(this, this->u);
 	cudaDeviceSynchronize(); 
@@ -394,10 +394,10 @@ void host_ Domain_d::SolveChungHulbert(){
   printf("FORCES\n");
   printVecKernel<<<1,1 >>>(this, this->m_fi);
 	cudaDeviceSynchronize(); 
-
+*/
 
   #else
-    
+    /*
   calcElemStrainRates();
   
    printf("DISPLACEMENTS\n");
@@ -411,7 +411,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   printf("FORCES\n");
   printVec(this->m_fi);
-
+*/
   // printf("STRESSES\n");
   // printSymmTens(this->m_sigma);
 
