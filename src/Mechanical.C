@@ -238,7 +238,7 @@ dev_t void Domain_d::calcElemDensity(){
     for (int gp=0;gp<m_gp_count;gp++){
       int offset = e * m_gp_count ;
       rho[offset + gp] = rho_0[offset + gp] * vol_0[e] / vol[e];
-      //printf("rho %.6e", rho[offset + gp]);    
+      printf("rho %.6e", rho[offset + gp]);    
     }
 
   // do e = 1, elem_count
@@ -430,7 +430,7 @@ dev_t void Domain_d::calcElemPressure(){
     for (int gp=0;gp<m_gp_count;gp++){
       trace = 0.0;
       tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-      //printf("str inc, dt %f\n", dt);print(str_inc);
+      printf("str inc, dt %f\n", dt);print(str_inc);
       press_inc += Trace(str_inc);
     }//gauss point
     press_inc = -press_inc/m_gp_count;
@@ -442,7 +442,7 @@ dev_t void Domain_d::calcElemPressure(){
       for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
       
       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      //printf("pressure %f\n",p[offset + gp]);
+      printf("pressure %f\n",p[offset + gp]);
     }
 
   } // e< elem_count
@@ -676,14 +676,14 @@ double f = dep/Sigmay;
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      //printf("SHEAR STRESS\n");
-      //print(ShearStress);
+      printf("SHEAR STRESS\n");
+      print(ShearStress);
 
       // printf("STR RATE\n");
       // print(StrRate);
       
-      //printf("ELEMENT SIGMA\n");
-      //print(Sigma);
+      printf("ELEMENT SIGMA\n");
+      print(Sigma);
       double Ep = 0;
 			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;
@@ -795,7 +795,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.06 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = 0.0 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       //printf("c_h %.6e\n", c_h);
 
 

@@ -397,7 +397,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   #else
-    /*
+    
   calcElemStrainRates();
   
    printf("DISPLACEMENTS\n");
@@ -411,7 +411,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   printf("FORCES\n");
   printVec(this->m_fi);
-*/
+
   // printf("STRESSES\n");
   // printSymmTens(this->m_sigma);
 
