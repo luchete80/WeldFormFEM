@@ -262,3 +262,4 @@ F90 PREVIOUS VERSION
          - BEGINING WITH ADAPT BUT STILL NEEDS TO CORRECT METRIC
          - cylinder_adapt_test.cpp
          - r3d_test.cpp to pass mesh
+         - FIXED PARALEL LOOP PRAGMA IN MSVC

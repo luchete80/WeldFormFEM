@@ -21,11 +21,8 @@ set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this pa
 link_directories(${OMEGA_H_DIR})
 
 set(CMAKE_PREFIX_PATH "/path/to/omega_h")
-  include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
+include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
 
-if(NOT OMEGA_H_LIB)
-    message(FATAL_ERROR "Omega_h library not found!")
-endif()
 
 # --fmad=true and --fmad=false enables and disables the contraction respectively. 
  # This switch is supported only when the --gpu-architecture option is set with     

@@ -25,7 +25,7 @@ ENDIF()
 
 if (NOT DEFINED BUILD_GPU)
 SET (BUILD_GPU OFF)
-SET (BUILD_LAGRANGIAN ON)
+SET (BUILD_REMESH ON)
 SET (BUID_OMEGA_H OFF) #SET OFF IFALREADY BUILT ANDYOURE TESTING
 endif (NOT DEFINED BUILD_GPU)
 
@@ -39,13 +39,12 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 
-
-
-add_subdirectory (src)
-
-if (BUILD_LAGRANGIAN)
+MESSAGE ("CHECKING REMESH")
+if (BUILD_REMESH)
+    MESSAGE ("ADDING OMEGA_H")
   if (BUILD_OMEGA_H)
     set (Omega_h_USE_ZLIB OFF)
+    MESSAGE ("ADDING OMEGA_H")
     add_subdirectory("lib/omega_h-9.34.13")
     if (BUILD_GPU)
     set (Omega_h_USE_CUDA ON)
@@ -61,7 +60,10 @@ if (BUILD_LAGRANGIAN)
 #                  ${EXECUTABLE_OUTPUT_PATH})
   include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
   #add_subdirectory("examples/remesh")
-endif (BUILD_LAGRANGIAN)
+endif (BUILD_REMESH)
+
+#AFTER REMESH
+add_subdirectory (src)
 
 if (BUILD_GPU)
 project (WeldFormFEM LANGUAGES CXX CUDA)

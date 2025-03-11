@@ -86,10 +86,16 @@ __device__ inline void device_memcpy(void* dest, const void* src, size_t size) {
 
 //#define par_loop(n,upto)   OMP_PARA_INTERNAL\
 //                            for(int n=0;n<upto;n++)
-#define par_loop(n, upto) \
-    _Pragma("omp parallel for") \
-    for (int n = 0; n < upto; ++n)
-//#define par_loop(n,upto)  for(int n=0;n<upto;n++)
+#if defined(_MSC_VER)  // If compiling with MSVC
+    #define par_loop(n, upto) \
+        __pragma(omp parallel for) \
+        for (int n = 0; n < upto; ++n)
+#else  // For GCC, Clang, etc.
+    #define par_loop(n, upto) \
+        _Pragma("omp parallel for") \
+        for (int n = 0; n < upto; ++n)
+#endif
+
 #endif
 
 
