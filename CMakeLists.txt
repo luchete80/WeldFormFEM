@@ -44,7 +44,7 @@ include_directories(${PROJECT_SOURCE_DIR}/src/include)
 add_subdirectory (src)
 
 if (BUILD_LAGRANGIAN)
-  if (BUID_OMEGA_H)
+  if (BUILD_OMEGA_H)
     set (Omega_h_USE_ZLIB OFF)
     add_subdirectory("lib/omega_h-9.34.13")
     if (BUILD_GPU)
@@ -60,7 +60,7 @@ if (BUILD_LAGRANGIAN)
 #                  ${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src/Omega_h_config.h
 #                  ${EXECUTABLE_OUTPUT_PATH})
   include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
-  add_subdirectory("examples/remesh")
+  #add_subdirectory("examples/remesh")
 endif (BUILD_LAGRANGIAN)
 
 if (BUILD_GPU)

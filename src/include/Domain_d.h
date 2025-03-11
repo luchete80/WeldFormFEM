@@ -86,9 +86,11 @@ class TriMesh_d;
 class VTKWriter;
 class VTUWriter;
 class ReMesher;
+class ReMesher;
 class Domain_d {
   friend class VTKWriter;
   friend class VTUWriter;
+  friend class ReMesher;
 public:
   Domain_d (std::string);
   Domain_d (){

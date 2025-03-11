@@ -6,6 +6,7 @@ namespace MetFEM{
 class Domain_d;
 
 class ReMesher{
+  public:
   ReMesher(){}
   ReMesher(Domain_d *);
   

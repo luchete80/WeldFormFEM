@@ -15,10 +15,17 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 include_directories(../lib/LSDynaReader/src/)
 
+include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
 
-link_directories(${CUNSEARCH_LIB_DIR})
-link_directories(${cuNSearch_BINARY_DIR})
+set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
+link_directories(${OMEGA_H_DIR})
 
+set(CMAKE_PREFIX_PATH "/path/to/omega_h")
+  include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
+
+if(NOT OMEGA_H_LIB)
+    message(FATAL_ERROR "Omega_h library not found!")
+endif()
 
 # --fmad=true and --fmad=false enables and disables the contraction respectively. 
  # This switch is supported only when the --gpu-architecture option is set with     
@@ -91,82 +98,7 @@ ENDIF()
 #               )
 
 
- add_executable(1elem
-                         main_1_elem_3d.C
-                         Contact.C
-                         Domain_d.C
-                         Matrices.C
-                         Mechanical.C
-                         Matrices.C
-                         Solver.C
-#
-                         VTKWriter.C
-
-               )
-
- add_executable(4elem
-                         main_4_elem_3d.C
-                         Contact.C
-                         Domain_d.C
-                         Matrices.C
-                         Mechanical.C
-                         Matrices.C
-                         Solver.C
-                         VTKWriter.C
-
-               )
-               
-#add_executable(4elem
-#                       main_4_elem_3d.C
-#                       Domain_d.C
-#                       Matrices.C
-#                       Mechanical.C
-#                       Matrices.C
-#                       Solver.C
-#                       VTKWriter.C
-#             )             
-
-# add_executable(1elem_tetra
-#                        main_1_elem_3d_tetra.C
-#                        Contact.C
-#                        Domain_d.C
-#                        Matrices.C
-#                        Mechanical.C
-#                        Matrices.C
-#                        Solver.C
-#
-#                        VTKWriter.C
-
-#              )
-
-
-#add_executable(beam
-#                       main_beam.C
-#                       Contact.C
-#                       Domain_d.C
-#                       Matrices.C
-#                       Mechanical.C
-#                       Matrices.C
-#                       Solver.C
-#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-#                       VTKWriter.C
-#             )
-
-#add_executable(beam_contact
-#                       main_beam_contact.C
-#                       Contact.C
-#                       Domain_d.C
-#                       Matrices.C
-#                       Mechanical.C
-#                       Mesh.C
-#                       Matrices.C
-#                       Solver.C
-#                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-#                       VTKWriter.C
-#             )
-              
-add_executable(WeldFormFEM
-                         WeldFormFEM.C
+set (SOURCES                          
                         Contact.C
                          Domain_d.C
                          Matrices.C
@@ -177,8 +109,34 @@ add_executable(WeldFormFEM
                          input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          VTKWriter.C
+                         ReMesher.C
+                   )
+
+if (BUILD_REMESH)
+ set (SOURCES "${SOURCES}" ReMesher.C)
+endif()
+
+ add_executable(1elem
+                         main_1_elem_3d.C
+                         "${SOURCES}"
+
                )
 
+ add_executable(4elem
+                         main_4_elem_3d.C
+                         "${SOURCES}"
+
+               )
+
+
+                   
+add_executable(WeldFormFEM WeldFormFEM.C
+                         "${SOURCES}"
+               )
+
+if (BUILD_OMEGA_H)
+  add_executable (test_omega_h test_omega_h.cpp)
+endif()
 #
 #add_executable(axisymm
 #                         main_axisymm.C
@@ -272,6 +230,16 @@ TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
+if (BUILD_REMESH)
+  TARGET_LINK_LIBRARIES (1elem omega_h)
+  TARGET_LINK_LIBRARIES (4elem omega_h)
+  TARGET_LINK_LIBRARIES (WeldFormFEM omega_h)
+endif()
+
+endif()
+
+if (BUILD_OMEGA_H)
+  TARGET_LINK_LIBRARIES (test_omega_h omega_h)
 endif()
 
 #FOREACH(var ${EXES})

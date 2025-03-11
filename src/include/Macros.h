@@ -33,9 +33,9 @@ struct Tensor2Index
  * Predefined constants
  */
 // If PI is not defined on this system the we define it
-#ifndef PI
-#define PI 3.14159265358979324 // Numerical value of the constant \f$ \pi \f$ if not already defined on the system
-#endif
+//#ifndef PI
+//#define PI 3.14159265358979324 
+//#endif
 
 // Usefull constants to be defined
 #define dnl2PI 6.28318530717958648        // Numerical value of the constant \f$ 2\pi \f$

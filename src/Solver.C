@@ -4,6 +4,7 @@
 
 #include "Mesh.h"
 #include "WallTimer.h"
+#include "ReMesher.h"
 
 using namespace std;
 
@@ -370,8 +371,8 @@ void host_ Domain_d::SolveChungHulbert(){
   
   }// WHILE LOOP
 
-
-  
+  ReMesher remesh(this);
+    
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
