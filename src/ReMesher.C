@@ -326,6 +326,27 @@ void refine_mesh_quality(Omega_h::Mesh &mesh){
     std::cout << "Mesh refinement based on quality completed.\n";
 }
 
+
+/// TEST THIS TO REPLACE METRIC
+/*
+   // Define aspect ratio as a metric source
+    auto aspect_ratio_source = Omega_h::MetricSource(Omega_h::OMEGA_H_ASPECT_RATIO);
+    aspect_ratio_metric_input.sources.push_back(aspect_ratio_source);
+
+    // Add metric tags and generate the target metric tag for elements
+    Omega_h::add_implied_metric_tag(&mesh);
+    auto target_metrics_w = Omega_h::Write<Omega_h::Real>(mesh.nelems() * 6); // 6 for tetrahedral elements
+    Omega_h::generate_target_metric_tag(&mesh, aspect_ratio_metric_input);
+
+    // Set the tag for ELEMENT to store the metric values
+    mesh.set_tag(Omega_h::ELEMENT, "target_metric", target_metrics_w);
+
+    // Perform mesh adaptation based on the chosen metric
+    while (Omega_h::approach_metric(&mesh, opts)) {
+        Omega_h::adapt(&mesh, opts);
+    }
+*/
+
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
     m_dom = d;

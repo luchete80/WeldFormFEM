@@ -259,5 +259,6 @@ F90 PREVIOUS VERSION
          - Added Clock Wall time.
 --------------------------------------------------------------------------------------
 20250311 - Added mesh refinement built in examples amr_test2.cpp
+         - BEGINING WITH ADAPT BUT STILL NEEDS TO CORRECT METRIC
          - cylinder_adapt_test.cpp
          - r3d_test.cpp to pass mesh
