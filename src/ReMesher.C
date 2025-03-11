@@ -394,8 +394,9 @@ namespace MetFEM{
     // CPU case
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
 #endif
-    
+    std::cout << "Generating remeshing"<<std::endl;
     refine_mesh_quality(mesh);
+    std::cout << "Refine done "<<std::endl;
     // Save mesh
     //Omega_h::write_mesh("output.osh", &mesh);
     //Omega_h::vtk_export_mesh("output.vtk", &mesh);
