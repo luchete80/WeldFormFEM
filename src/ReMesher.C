@@ -391,10 +391,12 @@ namespace MetFEM{
     cudaFree(d_node_data);
     cudaFree(d_connectivity_data);
 #else
+  std::cout << "Creating mesh"<<std::endl;
     // CPU case
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
 #endif
-    std::cout << "Generating remeshing"<<std::endl;
+    
+  
     refine_mesh_quality(mesh);
     std::cout << "Refine done "<<std::endl;
     // Save mesh
