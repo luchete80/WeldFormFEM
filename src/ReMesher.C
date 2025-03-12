@@ -3,15 +3,138 @@
 
 //#include <Omega_h.hpp>
 #include <Omega_h_adapt.hpp>
+#include <Omega_h_amr.hpp>
+#include <Omega_h_array_ops.hpp>
 #include <Omega_h_build.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_quality.hpp>
+#include <Omega_h_map.hpp> //colloect matrked
 #include <Omega_h_metric.hpp>
 #include <Omega_h_timer.hpp>
+#include <Omega_h_coarsen.hpp>
+#include "Omega_h_refine_qualities.hpp"
+#include "Omega_h_array_ops.hpp"      /// ARE CLOSE
+#include "Omega_h_class.hpp"
+
 #ifdef CUDA_BUILD
 #include <cuda_runtime.h>
 #endif
+
+void classify_vertices(Omega_h::Mesh* mesh) {
+    // Assume all vertices are in the interior (volume = 3)
+    Omega_h::Write<Omega_h::I8> class_dim(mesh->nverts(), 3);
+
+    // If you have known boundary conditions, modify class_dim accordingly
+    // Example: If you have a function that detects surface nodes, set them to 2
+
+    // Attach classification data to mesh
+    mesh->add_tag(Omega_h::VERT, "class_dim", 1, Omega_h::Read<Omega_h::I8>(class_dim));
+}
+
+/*
+void classify_vertices(Omega_h::Mesh* mesh) {
+    // Assume all vertices are in the interior (volume = 3)
+    Omega_h::Write<Omega_h::I8> class_dim(mesh->nverts(), 3); 
+
+    // Example: Classify boundary vertices
+    auto coords = mesh->coords();
+    auto f = OMEGA_H_LAMBDA(Omega_h::LO v) {
+        auto x = get_vector<3>(coords, v);
+        // Check if the vertex is near the boundary (e.g., within a small tolerance)
+        if (x[0] < 0.01 || x[1] < 0.01 || x[2] < 0.01) {
+            class_dim[v] = 2; // Boundary classification
+        } else {
+            class_dim[v] = 3; // Interior classification
+        }
+    };
+    parallel_for(mesh->nverts(), f);
+
+    // Attach classification to the mesh
+    mesh->add_tag(Omega_h::VERT, "class_dim", 1, Omega_h::Read<Omega_h::I8>(class_dim));
+}
+*/
+
+using namespace Omega_h;
+template <Int dim>
+void create_class_dim(Mesh* mesh) {
+    // Number of vertices in the mesh
+    auto nverts = mesh->nverts();
+    
+    // Retrieve the coordinates of the vertices
+    auto coords = mesh->coords();
+    
+    // Create a Write<Byte> container for storing the classification results
+    auto class_dims = Write<Byte>(nverts);
+
+    // Define some boundary criteria (for example, 0.5 could represent a boundary threshold)
+    Real boundary_threshold = 0.5;
+
+    // Loop over all the vertices to classify them
+    auto f = OMEGA_H_LAMBDA(LO v) {
+        // Get the coordinates of the current vertex (assuming 3D mesh here)
+        auto x = get_vector<dim>(coords, v);
+        
+        // Simple classification logic based on some threshold (e.g., x[0] > boundary_threshold)
+        Byte class_dim = 0; // Initially set to "interior"
+        
+        // For example, if the vertex is close to the boundary, we classify it as boundary
+        if (x[0] > boundary_threshold) {
+            class_dim = 1;  // "boundary"
+        }
+        
+        // Store the classification result in the Write<Byte> container
+        class_dims[v] = class_dim;
+    };
+
+    // Run the classification function in parallel
+    parallel_for(nverts, f, "classify_vertices");
+
+    // Add the class_dim tag to the mesh
+    mesh->add_tag<Byte>(VERT, "class_dim", 1, class_dims);
+}
+
+
+template <Int dim>
+void classify_faces(Mesh* mesh) {
+    // Number of faces in the mesh
+    auto nfaces = mesh->nfaces();
+
+    // Retrieve the coordinates of the faces or the centroids of faces
+    //auto centroids = mesh->centroids();
+
+    // Create a Write<Byte> container to store the classification results
+    auto class_dims = Write<Byte>(nfaces,0);
+
+    // Define some classification logic, for example, boundary faces are classified as 1
+    Real boundary_threshold = 0.5;
+    /*
+    // Loop over all the faces (triangles, quadrilaterals, etc.)
+    auto f = OMEGA_H_LAMBDA(LO f) {
+        // Get the centroid of the current face (assuming 3D mesh here)
+        auto x = get_vector<dim>(centroids, f);
+        
+        // Initialize classification to interior (0)
+        Byte class_dim = 0;
+
+        // Example condition: If the centroid is close to the boundary, classify it as boundary (1)
+        if (x[0] > boundary_threshold) {
+            class_dim = 1; // Boundary
+        }
+
+        // Store the classification result in the Write<Byte> container
+        class_dims[f] = class_dim;
+    };
+    */
+
+    // Run the classification function in parallel
+    //parallel_for(nfaces, f, "classify_faces");
+
+    // Add the class_dim tag to the mesh for faces
+    mesh->add_tag<Byte>(FACE, "class_dim", 1, class_dims);
+}
+
 
 void create_mesh(Omega_h::Mesh& mesh, 
 #ifdef CUDA_BUILD
@@ -43,8 +166,19 @@ void create_mesh(Omega_h::Mesh& mesh,
     // Build mesh (works on both CPU and GPU)
     build_from_elems_and_coords(&mesh,OMEGA_H_SIMPLEX, 3, device_tets, device_coords); // Correct method
 
+  if (!mesh.has_tag(Omega_h::VERT, "coordinates")) {
+      std::cerr << "Error: Mesh does not have 'coordinates' tag!" << std::endl;
+  }
+  classify_elements(&mesh);
+  classify_faces<3>(&mesh);
+  classify_vertices(&mesh);
+  create_class_dim<3>(&mesh);
+  
+if (!mesh.has_tag(Omega_h::VERT, "class_dim")) {
+    std::cerr << "Error: Mesh does not have 'class_dim' tag!" << std::endl;
+}
     // Step 2: Add the node coordinates as a tag (e.g., "coords")
-    mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(device_coords));
+    //mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(device_coords));
 
     // Step 3: Add element connectivity as a tag (e.g., "conn")
     //mesh.set_tag(Omega_h::CELL, "conn", Omega_h::Reals(device_tets));
@@ -287,46 +421,40 @@ void refine_mesh_quality(Omega_h::Mesh* mesh, double quality_threshold) {
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
 }
 */
+//// GIVES assertion false failed at /home/weldform-pc/Numerico/WeldFormFEM/lib/omega_h-9.34.13/src/Omega_h_refine_qualities.cpp +106
 
-/////// FROM CYLINDER ADAPT_TEST
+/////// FROM UNIT_MESH (several tests)
 void refine_mesh_quality(Omega_h::Mesh &mesh){
-    // Step 1: Set up adaptation options
-    auto opts = Omega_h::AdaptOpts(&mesh);
-    opts.verbosity = Omega_h::EXTRA_STATS;  // Optional: set verbosity for more detailed output
-
-    // Step 2: Set up the metric input (mesh quality control)
-    auto metric_input = Omega_h::MetricInput();
-    metric_input.should_limit_lengths = true;
-    metric_input.max_length = 0.5;  // Maximum length for the elements
-    metric_input.min_length = 0.0;  // Minimum length for the elements
-    metric_input.should_limit_gradation = true;
-    metric_input.max_gradation_rate = 1.0;  // Max allowed gradation rate for element sizes
-
-    // Step 3: Set up curvature as a metric source
-    //auto curvature_source = Omega_h::MetricSource(OMEGA_H_CURVATURE, Omega_h::PI / 16.0);  // Curvature source with angle tolerance
-    //metric_input.sources.push_back(curvature_source);
-    //auto solid_angle_source = Omega_h::MetricSource(Omega_h::OMEGA_H_MIN_SOLID_ANGLE);
-    //solid_angle_metric_input.sources.push_back(solid_angle_source);
-
-
-    mesh.set_parting(OMEGA_H_ELEM_BASED);
-    mesh.ask_lengths();
-    mesh.ask_qualities();
-
-    // Step 4: Generate target metric tag for the mesh
-    Omega_h::add_implied_metric_tag(&mesh);  // Add implied metric tag
-    Omega_h::generate_target_metric_tag(&mesh, metric_input);  // Generate target metric for mesh
-
-    // Step 5: Approach the metric (ensure mesh adapts to the desired quality)
-    while (Omega_h::approach_metric(&mesh, opts)) {
-        // Step 6: Adapt the mesh using the metric
-        Omega_h::adapt(&mesh, opts);
-    }
-    
-    std::cout << "Mesh refinement based on quality completed.\n";
+  //build_box_internal(&mesh, OMEGA_H_SIMPLEX, 1., 1., 0., 1, 1, 0);
+  LOs candidates(mesh.nedges(), 0, 1);
+  mesh.add_tag(VERT, "metric", symm_ncomps(2),
+      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
+  auto quals = refine_qualities(&mesh, candidates);
+  OMEGA_H_CHECK(are_close(
+      quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
 }
-
-
+/*
+void adapt (Omega_h::Mesh &mesh) {
+  
+  auto opts = AdaptOpts(&mesh);
+  mesh.add_tag<Real>(VERT, "metric", 1);
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.3)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.6)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(1.0)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
+  mesh.ask_qualities();
+  bool ok = check_regression("gold_coarsen", &mesh);  
+  
+}
+*/
 /// TEST THIS TO REPLACE METRIC
 /*
    // Define aspect ratio as a metric source
@@ -346,6 +474,228 @@ void refine_mesh_quality(Omega_h::Mesh &mesh){
         Omega_h::adapt(&mesh, opts);
     }
 */
+
+
+//////////////////////////// FROM UGAWG LINEAR
+
+
+template <Int dim>
+static void set_target_metric(Mesh* mesh) {
+  auto coords = mesh->coords();
+  auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO v) {
+    auto z = coords[v * dim + (dim - 1)];
+    auto h = Vector<dim>();
+    for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
+    h[dim - 1] = 0.001 + 0.198 * std::abs(z - 0.5);
+    auto m = diagonal(metric_eigenvalues_from_lengths(h));
+    set_symm(target_metrics_w, v, m);
+  };
+  parallel_for(mesh->nverts(), f);
+  mesh->set_tag(VERT, "target_metric", Reals(target_metrics_w));
+}
+
+template <Int dim>
+void run_case(Mesh* mesh, char const* vtk_path) {
+  auto world = mesh->comm();
+  mesh->set_parting(OMEGA_H_GHOSTED);
+  auto implied_metrics = get_implied_metrics(mesh);
+  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  std::cout << "symm_ncomps(" << dim << ") = " << symm_ncomps(dim) << std::endl;
+  mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
+  set_target_metric<dim>(mesh);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->ask_lengths();
+  mesh->ask_qualities();
+  vtk::FullWriter writer;
+  if (vtk_path) {
+    writer = vtk::FullWriter(vtk_path, mesh);
+    writer.write();
+  }
+  auto opts = AdaptOpts(mesh);
+  opts.verbosity = EXTRA_STATS;
+  opts.length_histogram_max = 2.0;
+  opts.max_length_allowed = opts.max_length_desired * 2.0;
+  Now t0 = now();
+  std::cout << "Adapting "<<std::endl; 
+  while (approach_metric(mesh, opts)) {
+    std::cout << "Step "<<std::endl;
+    adapt(mesh, opts);
+    std::cout << "DONE"<<std::endl;
+    //if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
+    //else      std::cerr << "Error: target_metric tag was not properly set!" << std::endl;
+    //if (vtk_path) writer.write();
+  }
+  Now t1 = now();
+  std::cout << "total time: " << (t1 - t0) << " seconds\n";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/// FROM AMR_TEST2
+
+template <int dim>
+OMEGA_H_INLINE double eval_rc(Omega_h::Vector<dim> c);
+
+template <>
+OMEGA_H_INLINE double eval_rc<2>(Omega_h::Vector<2> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5);
+  return std::sqrt(rc2);
+}
+
+template <>
+OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5) +
+             (c[2] - 0.5) * (c[2] - 0.5);
+  return std::sqrt(rc2);
+}
+
+
+template <int dim>
+Omega_h::Bytes mark(Omega_h::Mesh* m, int level) {
+  auto coords = m->coords();
+  auto mids = Omega_h::average_field(m, dim, dim, coords);
+  auto is_leaf = m->ask_leaves(dim);
+  auto leaf_elems = Omega_h::collect_marked(is_leaf);
+  Omega_h::Write<Omega_h::Byte> marks(m->nelems(), 0);
+  auto f = OMEGA_H_LAMBDA(Omega_h::LO e) {
+    auto elem = leaf_elems[e];
+    auto c = Omega_h::get_vector<dim, Omega_h::Reals>(mids, elem);
+    auto rc = eval_rc<dim>(c);
+    auto r = 0.25;
+    auto tol = 0.314 / static_cast<double>(level);
+    if (std::abs(rc - r) < tol) marks[elem] = 1;
+  };
+  Omega_h::parallel_for(leaf_elems.size(), f);
+  return Omega_h::amr::enforce_2to1_refine(m, dim - 1, marks);
+}
+
+
+void refine(Mesh* mesh){
+  Omega_h::vtk::Writer writer("out_amr_3D", mesh);
+  writer.write();
+  for (int i = 1; i < 5; ++i) {
+    auto xfer_opts = Omega_h::TransferOpts();
+    auto marks = mark<3>(mesh, i);
+    Omega_h::amr::refine(mesh, marks, xfer_opts);
+    writer.write();
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// FOM WARP
+
+using namespace Omega_h;
+
+void add_dye(Mesh* mesh) {
+  auto dye_w = Write<Real>(mesh->nverts());
+  auto coords = mesh->coords();
+  auto dye_fun = OMEGA_H_LAMBDA(LO vert) {
+    auto x = get_vector<3>(coords, vert);
+    auto left_cen = vector_3(.25, .5, .5);
+    auto right_cen = vector_3(.75, .5, .5);
+    auto left_dist = norm(x - left_cen);
+    auto right_dist = norm(x - right_cen);
+    auto dist = min2(left_dist, right_dist);
+    if (dist < .25) {
+      auto dir = sign(left_dist - right_dist);
+      dye_w[vert] = 4.0 * dir * (.25 - dist);
+    } else {
+      dye_w[vert] = 0;
+    }
+  };
+  parallel_for(mesh->nverts(), dye_fun);
+  mesh->add_tag(VERT, "dye", 1, Reals(dye_w));
+}
+
+Reals form_pointwise(Mesh* mesh) {
+  auto dim = mesh->dim();
+  auto ecoords =
+      average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
+  auto pw_w = Write<Real>(mesh->nelems());
+  auto pw_fun = OMEGA_H_LAMBDA(LO elem) { pw_w[elem] = ecoords[elem * dim]; };
+  parallel_for(mesh->nelems(), pw_fun);
+  return pw_w;
+}
+
+static void add_pointwise(Mesh* mesh) {
+  auto data = form_pointwise(mesh);
+  mesh->add_tag(mesh->dim(), "pointwise", 1, data);
+}
+
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  Reals masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
+}
+
+static void postprocess_pointwise(Mesh* mesh) {
+  auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
+  auto expected = form_pointwise(mesh);
+  auto diff = subtract_each(data, expected);
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1, diff);
+}
+
+template <int dim>
+void adapt_warp(Mesh &mesh){
+
+ mesh.set_parting(OMEGA_H_GHOSTED);
+  auto metrics = get_implied_isos(&mesh);
+  mesh.add_tag(VERT, "metric", 1, metrics);
+  add_dye(&mesh);
+  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
+  add_pointwise(&mesh);
+  auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.integral_map["density"] = "mass";
+  opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+  opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+  opts.verbosity = EXTRA_STATS;
+  auto mid = zero_vector<dim>();
+  mid[0] = mid[1] = .5;
+  Now t0 = now();
+  for (Int i = 0; i < 8; ++i) {
+    auto coords = mesh.coords();
+    Write<Real> warp_w(mesh.nverts() * dim);
+    auto warp_fun = OMEGA_H_LAMBDA(LO vert) {
+      auto x0 = get_vector<3>(coords, vert);
+      auto x1 = zero_vector<3>();
+      x1[0] = x0[0];
+      x1[1] = x0[1];
+      auto x2 = x1 - mid;
+      auto polar_a = std::atan2(x2[1], x2[0]);
+      auto polar_r = norm(x2);
+      Real rot_a = 0;
+      if (polar_r < 0.5) {
+        rot_a = (PI / 8) * (2.0 * (0.5 - polar_r));
+        if (i >= 4) rot_a = -rot_a;
+      }
+      auto dest_a = polar_a + rot_a;
+      auto dst = x0;
+      dst[0] = std::cos(dest_a) * polar_r;
+      dst[1] = std::sin(dest_a) * polar_r;
+      dst = dst + mid;
+      auto w = dst - x0;
+      set_vector<3>(warp_w, vert, w);
+    };
+    parallel_for(mesh.nverts(), warp_fun);
+    mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
+    while (warp_to_limit(&mesh, opts)) {
+      adapt(&mesh, opts);
+    }
+  }
+  Now t1 = now();
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
+  if (mesh.comm()->rank() == 0) {
+    std::cout << "test took " << (t1 - t0) << " seconds\n";
+  }
+  check_total_mass(&mesh);
+  postprocess_pointwise(&mesh);
+  bool ok = check_regression("gold_warp", &mesh);  
+}
 
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
@@ -386,6 +736,10 @@ namespace MetFEM{
 
     // Create mesh using GPU data
     create_mesh(mesh, d_node_data, num_nodes, d_connectivity_data, num_elements);
+    
+    //vtk::Reader vtk_reader("piece_0.vtu");
+    //classify_vertices(&mesh);
+    //vtk_reader.read(mesh);
 
     // Free GPU memory
     cudaFree(d_node_data);
@@ -397,7 +751,7 @@ namespace MetFEM{
 #endif
     
   
-    refine_mesh_quality(mesh);
+    //refine_mesh_quality(mesh);
     std::cout << "Refine done "<<std::endl;
     // Save mesh
     //Omega_h::write_mesh("output.osh", &mesh);
@@ -407,6 +761,9 @@ namespace MetFEM{
     writer.write();
     
     
+    //run_case<3>(&mesh, "test");
+    //refine(&mesh);
+    adapt_warp<3>(mesh);
 
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
