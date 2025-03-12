@@ -263,3 +263,5 @@ F90 PREVIOUS VERSION
          - cylinder_adapt_test.cpp
          - r3d_test.cpp to pass mesh
          - FIXED PARALEL LOOP PRAGMA IN MSVC
+20250312 - ADDED SEVERAL MESH ADAPTING METHODS (Warp and now angle and length)
+         - Fixed compiling for mingw

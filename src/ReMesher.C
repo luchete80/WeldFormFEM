@@ -151,18 +151,21 @@ void create_mesh(Omega_h::Mesh& mesh,
     Omega_h::Write<Omega_h::Real> device_coords(d_node_coords, num_nodes * 3);
     Omega_h::Write<Omega_h::LO> device_tets(d_element_conn, num_elements * 4);
 #else
+    std::cout << "Creating nodes "<<std::endl;
     // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
     Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
     Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
 
+    std::cout << "Done "<<std::endl;    
     for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
     for (int i = 0; i < num_elements * 4; ++i) tets[i] = h_element_conn[i];
 
+    std::cout << "Convert to write "<<std::endl;    
     // Convert HostWrite to Write<> for Omega_h
     Omega_h::Write<Omega_h::Real> device_coords(coords);
     Omega_h::Write<Omega_h::LO> device_tets(tets);
 #endif
-
+    std::cout << "Building from elements "<<std::endl;
     // Build mesh (works on both CPU and GPU)
     build_from_elems_and_coords(&mesh,OMEGA_H_SIMPLEX, 3, device_tets, device_coords); // Correct method
 
@@ -697,6 +700,93 @@ void adapt_warp(Mesh &mesh){
   bool ok = check_regression("gold_warp", &mesh);  
 }
 
+template <int dim>
+void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_threshold) {
+    mesh.set_parting(OMEGA_H_GHOSTED);
+    auto metrics = get_implied_isos(&mesh);
+    mesh.add_tag(VERT, "metric", 1, metrics);
+    add_dye(&mesh);
+    mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
+    add_pointwise(&mesh);
+    auto opts = AdaptOpts(&mesh);
+    opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+    opts.xfer_opts.integral_map["density"] = "mass";
+    opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+    opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+    opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+    opts.verbosity = EXTRA_STATS;
+
+    auto mid = zero_vector<dim>();
+    mid[0] = mid[1] = .5;
+    Now t0 = now();
+
+    for (Int i = 0; i < 8; ++i) {
+        auto coords = mesh.coords();
+        Write<Real> warp_w(mesh.nverts() * dim);
+        auto warp_fun = OMEGA_H_LAMBDA(LO vert) {
+            auto x0 = get_vector<3>(coords, vert);
+            auto x1 = zero_vector<3>();
+            x1[0] = x0[0];
+            x1[1] = x0[1];
+            auto x2 = x1 - mid;
+            auto polar_a = std::atan2(x2[1], x2[0]);
+            auto polar_r = norm(x2);
+            Real rot_a = 0;
+            if (polar_r < 0.5) {
+                rot_a = (PI / 8) * (2.0 * (0.5 - polar_r));
+                if (i >= 4) rot_a = -rot_a;
+            }
+            auto dest_a = polar_a + rot_a;
+            auto dst = x0;
+            dst[0] = std::cos(dest_a) * polar_r;
+            dst[1] = std::sin(dest_a) * polar_r;
+            dst = dst + mid;
+            auto w = dst - x0;
+            set_vector<3>(warp_w, vert, w);
+        };
+        parallel_for(mesh.nverts(), warp_fun);
+        mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
+
+        // Compute element edge lengths
+        auto elems2verts = mesh.ask_down(dim, VERT);
+        auto vert_coords = mesh.coords();
+        bool refine_needed = false;
+        
+        for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
+                    auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                    auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                    auto pj = get_vector<dim>(vert_coords, vj);
+                    auto pk = get_vector<dim>(vert_coords, vk);
+                    auto edge_length = norm(pk - pj);
+                    if (edge_length > length_threshold) {
+                        refine_needed = true;
+                        break;
+                    }
+                }
+                if (refine_needed) break;
+            }
+            if (refine_needed) break;
+        }
+        
+        if (refine_needed) {
+            while (warp_to_limit(&mesh, opts)) {
+                adapt(&mesh, opts);
+            }
+        }
+    }
+    Now t1 = now();
+    mesh.set_parting(OMEGA_H_ELEM_BASED);
+    if (mesh.comm()->rank() == 0) {
+        std::cout << "test took " << (t1 - t0) << " seconds\n";
+    }
+    check_total_mass(&mesh);
+    postprocess_pointwise(&mesh);
+    bool ok = check_regression("gold_warp", &mesh);
+}
+
+
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
     m_dom = d;
@@ -760,11 +850,15 @@ namespace MetFEM{
     auto w = lib.world();
     writer.write();
     
-    
+    double length_tres = 0.005;
+    double ang_tres = 0.1;
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
     adapt_warp<3>(mesh);
-
+    writer.write();    
+    
+    adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
+    writer.write();
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 

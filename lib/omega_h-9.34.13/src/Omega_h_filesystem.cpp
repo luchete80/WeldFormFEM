@@ -14,6 +14,11 @@
 #include <unistd.h>
 #endif
 
+
+#ifndef S_IFLNK
+#define S_IFLNK 0  // Windows (MSVC & MinGW) does not support symlinks in this way
+#endif
+
 namespace Omega_h {
 
 namespace filesystem {
@@ -129,7 +134,11 @@ file_status status(path const& p) {
 bool create_directory(path const& p) {
   ::mode_t const mode = S_IRWXU | S_IRWXG | S_IRWXO;
   errno = 0;
+  #ifdef __MINGW32__
+  int err = ::mkdir(p.c_str());
+  #else
   int err = ::mkdir(p.c_str(), mode);
+  #endif
   if (err != 0) {
     if (errno != EEXIST) {
       throw filesystem_error(errno, "create_directory");
