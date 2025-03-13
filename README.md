@@ -90,3 +90,12 @@ if Area weight
               ! print *, "term 2 ", elem%sigma (e,gp, 1,2) * fa    
               
 '''
+
+| Feature         | **Density**                                             | **Pointwise**                                       |
+|-----------------|---------------------------------------------------------|----------------------------------------------------|
+| **Purpose**     | Controls the global mesh density, used for element size adjustment across the entire mesh. | Defines a more localized mesh refinement, typically used for adapting based on certain criteria (e.g., features or user-defined conditions). |
+| **Usage**       | Typically used to control mesh coarseness or refinement globally, usually through tags like "density" to apply a global criterion for mesh density. | Used for more detailed control, typically in localized regions or based on features in the mesh, allowing for finer resolution in specific areas. |
+| **Method**      | A global parameter that can influence the entire mesh structure based on a density tag. | Localized refinements applied to the mesh based on specific criteria (e.g., pointwise data). |
+| **Application** | Mesh refinement across the entire mesh; can be used to prevent overly large elements and ensure smoother transitions. | Localized refinement; commonly used to refine areas of interest such as regions with high gradients, features, or areas requiring higher accuracy. |
+| **Example**     | "mesh.add_tag(VERT, 'density', 1, Reals(mesh.nelems(), 1.0));" | "mesh.add_tag(VERT, 'pointwise', 1, Reals(mesh.nverts(), some_local_condition));" |
+| **Effect**      | Affects mesh element size globally (entire mesh can get finer or coarser depending on density values). | Affects only specified points or elements based on conditions, like features, threshold values, or other user-defined criteria. |

@@ -752,6 +752,7 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
     opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
     opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+    //opts.xfer_opts.max_edge_length = length_threshold;
     opts.verbosity = EXTRA_STATS;
 
     auto mid = zero_vector<dim>();
@@ -791,6 +792,7 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
         bool refine_needed = false;
         
         for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+            std::cout << "ELEMENT "<<elem<<std::endl; 
             for (int j = 0; j < dim + 1; ++j) {
                 for (int k = j + 1; k < dim + 1; ++k) {
                     auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
@@ -798,6 +800,7 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
                     auto pj = get_vector<dim>(vert_coords, vj);
                     auto pk = get_vector<dim>(vert_coords, vk);
                     auto edge_length = norm(pk - pj);
+                    std::cout << "Edge Length"<<edge_length<<std::endl;
                     if (edge_length > length_threshold) {
                         refine_needed = true;
                         break;
@@ -806,12 +809,17 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
                 if (refine_needed) break;
             }
             if (refine_needed) break;
-        }
+            if (refine_needed) std::cout << "REFINE "<<std::endl;
+        }//Elem
         
         if (refine_needed) {
+          std::cout << "Adapting: adapt(&mesh, opts);"<<std::endl;
+          adapt(&mesh, opts);
+          /*
             while (warp_to_limit(&mesh, opts)) {
                 adapt(&mesh, opts);
             }
+        */
         }
     }
     Now t1 = now();
@@ -824,6 +832,111 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     bool ok = check_regression("gold_warp", &mesh);
 }
 
+void adapt_mesh_based_on_temperature(Mesh& mesh) {
+  
+    add_pointwise(&mesh);
+    // Assume we have temperature values calculated somewhere
+    // Here, we'll just generate a dummy temperature field for the example
+    auto vert_coords = mesh.coords();
+    auto elems2verts = mesh.ask_down(3, VERT);
+        
+    Write<Real> temperature_field(mesh.nverts(), 0.01);
+    for (LO i = 0; i < mesh.nverts(); ++i) {
+        auto pj = get_vector<3>(vert_coords, 0);
+        auto pk = get_vector<3>(vert_coords, 1);
+        auto edge_length = norm(pj);
+        temperature_field[i] = 0.05; // Dummy temperature variation
+    }
+
+/*
+      for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+        std::cout << "ELEMENT "<<elem<<std::endl; 
+                auto vj = elems2verts.ab2b[elem * (3 + 1) + 0];
+                auto vk = elems2verts.ab2b[elem * (3 + 1) + 1];
+                auto pj = get_vector<3>(vert_coords, vj);
+                auto pk = get_vector<3>(vert_coords, vk);
+                auto edge_length = norm(pk - pj);
+                temperature_field[vj] = edge_length; // Dummy temperature variation                   
+      }//Elem
+*/
+
+    
+    // Step 2: Calculate mesh density (refinement level) based on temperature gradient
+    Write<Real> density_field(mesh.nverts(), 1.0);  // Initialize with a default value (coarse mesh)
+    for (LO i = 1; i < mesh.nverts() - 1; ++i) {
+        density_field[i] = temperature_field[i];
+        std::cout << "MESH DENSTITY "<<density_field[i]<<std::endl;
+        /*
+        // Calculate the temperature gradient between neighboring vertices
+        Real grad_temp = std::abs(temperature_field[i + 1] - temperature_field[i - 1]);
+        // Increase density where the temperature gradient is large
+        if (grad_temp > 0.1) {
+            density_field[i] = 0.5;  // Refinement (smaller elements in regions with larger gradients)
+        }
+        */
+    }
+
+    // Step 4: Perform mesh adaptation
+    AdaptOpts opts(&mesh);
+
+/*
+    // Step 1: Set the pointwise data (temperature values at each vertex)
+    mesh.add_tag(VERT, "pointwise", 1, Reals(temperature_field));
+    
+    // Step 3: Set the density tag (guide mesh adaptation)
+    mesh.add_tag(VERT, "density", 1, Reals(density_field));
+    // Transfer options for the adaptation
+    //opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;  // Conserve density during adaptation
+    opts.xfer_opts.type_map["density"] = OMEGA_H_LINEAR_INTERP;  // Interpolate pointwise data during adaptation
+
+    opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;  // Use pointwise data to guide adaptation
+    
+    
+    //opts.xfer_opts.type_map["mesh_density"] = OMEGA_H_LINEAR_INTERP;  // Interpolate mesh density data
+    opts.xfer_opts.integral_map["density"] = "mass";  // Set the integral map to "mass"    
+
+
+  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+*/
+
+    //opts.verbosity = Omega_h::AdaptOpts::EXTRA_STATS; // Optional: to get more information during remeshing
+
+
+    // Set mesh density for the adaptation
+
+
+
+    // Perform mesh adaptation based on the set density and temperature
+    //adapt(&mesh, opts);
+    // Apply the remeshing process
+
+   // Omega_h::AmrOpts refine_opts(&mesh);
+
+    // Set criteria for refinement (e.g., refine by element size)
+    //refine_opts.criteria = Omega_h::AmrOpts::REFINE_BY_SIZE;
+    
+    //Omega_h::amr::refine(&mesh, refine_opts);
+    Real  desired_size = 0.8;
+    
+    //Omega_h::Write<Real> size_values(mesh.nelems(), 1.0);  // Example size values (can be based on density)
+    //mesh.add_tag(Omega_h::CELL, "size", 1, size_values);  // Attach size field to mesh
+
+    //opts.xfer_opts.type_map["size"] = OMEGA_H_LINEAR_INTERP;  // Ensure size field is interpolated
+    //opts.min_quality_allowed = 0.3;  // Prevent bad-quality elements
+    opts.should_refine = true;  // Allow refinement
+    opts.should_coarsen = false;  // Allow coarsening
+    opts.max_length_desired = 1.2 * desired_size;  // If an element is too big, split it
+    //opts.min_length_desired = 0.75 * desired_size;  // If an element is too small, collaps
+
+//while (warp_to_limit(&mesh, opts)) {
+    adapt(&mesh, opts);  // Adapt the mesh based on the defined metric (density, pointwise)
+
+//}
+    //postprocess_pointwise(&mesh);    
+    std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
+    std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
+    std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
+}
 
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
@@ -888,7 +1001,7 @@ namespace MetFEM{
     auto w = lib.world();
     writer.write();
     
-    double length_tres = 0.005;
+    double length_tres = 0.02;
     double ang_tres = 0.1;
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
@@ -899,6 +1012,12 @@ namespace MetFEM{
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
     adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
     writer2.write();
+
+    std::cout<<"FIELD REMESH"<<std::endl;
+    Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
+    adapt_mesh_based_on_temperature(mesh);
+    writer3.write();
+        
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 
