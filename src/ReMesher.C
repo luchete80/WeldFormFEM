@@ -884,7 +884,7 @@ namespace MetFEM{
     // Save mesh
     //Omega_h::write_mesh("output.osh", &mesh);
     //Omega_h::vtk_export_mesh("output.vtk", &mesh);
-    Omega_h::vtk::Writer writer("out_amr_3D", &mesh);
+    Omega_h::vtk::Writer writer("out_amr_warp_3D", &mesh);
     auto w = lib.world();
     writer.write();
     
@@ -896,8 +896,9 @@ namespace MetFEM{
     writer.write();    
     
     std::cout << "------Refine by quality"<<std::endl;
+    Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
     adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
-    writer.write();
+    writer2.write();
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 
