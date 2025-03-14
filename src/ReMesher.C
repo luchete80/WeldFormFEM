@@ -759,6 +759,11 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     mid[0] = mid[1] = .5;
     Now t0 = now();
 
+
+    opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
+    opts.should_refine = true;  // Allow refinement
+    opts.should_coarsen = false;  // Allow coarsening
+    
     for (Int i = 0; i < 8; ++i) {
         auto coords = mesh.coords();
         Write<Real> warp_w(mesh.nverts() * dim);
@@ -790,7 +795,15 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
         auto elems2verts = mesh.ask_down(dim, VERT);
         auto vert_coords = mesh.coords();
         bool refine_needed = false;
-        
+    
+    std::string name = "out_amr_length_3D_STEP_"+std::to_string(i);
+    Omega_h::vtk::Writer writer2(name.c_str(), &mesh);
+    writer2.write();
+
+    std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
+    std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
+    //opts.max_length_desired = 0.8;  // If an element is too big, split it
+                    
         for (LO elem = 0; elem < mesh.nelems(); ++elem) {
             std::cout << "ELEMENT "<<elem<<std::endl; 
             for (int j = 0; j < dim + 1; ++j) {
@@ -830,6 +843,9 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     //check_total_mass(&mesh);
     postprocess_pointwise(&mesh);
     bool ok = check_regression("gold_warp", &mesh);
+    std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
+    std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
+    std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
 }
 
 void adapt_mesh_based_on_temperature(Mesh& mesh) {
@@ -845,7 +861,7 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
         auto pj = get_vector<3>(vert_coords, 0);
         auto pk = get_vector<3>(vert_coords, 1);
         auto edge_length = norm(pj);
-        temperature_field[i] = 0.05; // Dummy temperature variation
+        temperature_field[i] = 0.01; // Dummy temperature variation
     }
 
 /*
@@ -879,7 +895,7 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
     // Step 4: Perform mesh adaptation
     AdaptOpts opts(&mesh);
 
-/*
+
     // Step 1: Set the pointwise data (temperature values at each vertex)
     mesh.add_tag(VERT, "pointwise", 1, Reals(temperature_field));
     
@@ -897,7 +913,7 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
 
 
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
-*/
+
 
     //opts.verbosity = Omega_h::AdaptOpts::EXTRA_STATS; // Optional: to get more information during remeshing
 
@@ -916,16 +932,16 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
     //refine_opts.criteria = Omega_h::AmrOpts::REFINE_BY_SIZE;
     
     //Omega_h::amr::refine(&mesh, refine_opts);
-    Real  desired_size = 0.8;
+    //Real  desired_size = 0.8;
     
     //Omega_h::Write<Real> size_values(mesh.nelems(), 1.0);  // Example size values (can be based on density)
     //mesh.add_tag(Omega_h::CELL, "size", 1, size_values);  // Attach size field to mesh
 
     //opts.xfer_opts.type_map["size"] = OMEGA_H_LINEAR_INTERP;  // Ensure size field is interpolated
-    //opts.min_quality_allowed = 0.3;  // Prevent bad-quality elements
+    opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
     opts.should_refine = true;  // Allow refinement
     opts.should_coarsen = false;  // Allow coarsening
-    opts.max_length_desired = 1.2 * desired_size;  // If an element is too big, split it
+    //opts.max_length_desired = 1.2 * desired_size;  // If an element is too big, split it
     //opts.min_length_desired = 0.75 * desired_size;  // If an element is too small, collaps
 
 //while (warp_to_limit(&mesh, opts)) {
@@ -1003,21 +1019,22 @@ namespace MetFEM{
     
     double length_tres = 0.02;
     double ang_tres = 0.1;
+/*
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
     adapt_warp<3>(mesh);
     writer.write();    
-    
+*/    
     std::cout << "------Refine by quality"<<std::endl;
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
     adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
     writer2.write();
-
+/*
     std::cout<<"FIELD REMESH"<<std::endl;
     Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
     adapt_mesh_based_on_temperature(mesh);
     writer3.write();
-        
+   */     
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 
