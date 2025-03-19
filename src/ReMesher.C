@@ -1246,9 +1246,9 @@ namespace MetFEM{
     
     }
   
-void ReMesher::Map(){
+void ReMesher::Map(Mesh &mesh){
      
-     /* 
+  int np = mesh-> ;
       ///////////////////////////////// MAPPING
   std::vector<NodalField> fnew(np);  // Interpolated results for the new mesh
   std::vector<NodalField> fcur(np);  // Current results (if needed for further use)
@@ -1261,6 +1261,7 @@ void ReMesher::Map(){
 
   // Loop over the target points (new mesh nodes)
   for (int n = 0; n < np; n++) {
+/*
       bool found = false;  // Flag to indicate whether the node has been found in an element
       
       int i = 0;
