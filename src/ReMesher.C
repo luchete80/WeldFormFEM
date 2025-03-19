@@ -1103,4 +1103,211 @@ namespace MetFEM{
 
   }
   
+  void ReMesher::MeshMMG(){
+    
+    int np, nt, na, nquad, nreq, ref, nr, nc, *corner, *required, *ridge;
+    MMG5_int Tetra[4], Edge[2], k;
+    double Point[3];
+  
+    MMG5_pMesh mmgMesh;
+    MMG5_pSol mmgSol;
+
+    mmgMesh = NULL;
+    mmgSol = NULL;
+
+    MMG3D_Init_mesh(MMG5_ARG_start,
+                    MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol,
+                    MMG5_ARG_end);
+
+    np = this->getNodesNumber();
+
+    nt = nquad = 0;
+    na = 0;
+    for (int e = 0; e < this->getElementsNumber(); e++) {
+        if (this->getElement(e)->getNumberOfNodes() == 4)
+            nt++;  // Tetrahedra
+        else
+            nquad++;
+    }
+    nt += 2 * nquad; // Splits
+    cout << "Number of tetras: " << nt << ", quads: " << nquad << endl;
+
+    cout << "Structure Node count " << endl;
+
+    if (MMG3D_Set_meshSize(mmgMesh, np, nt, na) != 1)
+        cout << "ERROR ALLOCATING MESH" << endl;
+    else
+        cout << "MESH CREATED OK" << endl;
+    cout << "Number of points: " << mmgMesh->na << endl;
+
+    if (MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1)
+        exit(EXIT_FAILURE);
+    else
+        cout << "Initial Mesh check succeeded" << endl;
+
+    int *edges = new int[2 * na];
+
+    // Set vertices (nodes)
+    for (int n = 0; n < np; n++) {
+        if (!MMG3D_Set_vertex(mmgMesh, Global_Structure->getNode(n)->coords(0), 
+                                      Global_Structure->getNode(n)->coords(1), 
+                                      Global_Structure->getNode(n)->coords(2), 
+                                      NULL, n + 1))
+            cout << "ERROR ALLOCATING NODE " << n << endl;
+    }
+    cout << "Vertices allocated" << endl;
+
+    // Set tetrahedra (elements)
+    for (int e = 0; e < this->getElementsNumber(); e++) {
+        if (this->getElement(e)->getNumberOfNodes() == 4) {
+            MMG3D_Set_tetrahedron(mmgMesh,
+                                   Global_Structure->getElement(e)->nodes(0)->Id + 1,
+                                   Global_Structure->getElement(e)->nodes(1)->Id + 1,
+                                   Global_Structure->getElement(e)->nodes(2)->Id + 1,
+                                   Global_Structure->getElement(e)->nodes(3)->Id + 1,
+                                   NULL, 2 * e + 1);
+        }
+    }
+
+    // Set solution (e.g., plastic strain) for each node
+    if (MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar) != 1)
+        exit(EXIT_FAILURE);
+    
+    for (int k = 1; k <= np; k++) {
+        if (MMG3D_Set_scalarSol(mmgSol, 0.8 - Global_Structure->getNode(k - 1)->getNodalValue("plasticStrain", 0), k) != 1)
+            exit(EXIT_FAILURE);
+    }
+
+    // Set parameters (e.g., edge size)
+    MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmax, 0.1);
+
+    // Perform remeshing
+    int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+
+    // Get the new mesh size after remeshing
+    if (MMG3D_Get_meshSize(mmgMesh, &np, &nt, NULL, &na) != 1)
+        exit(EXIT_FAILURE);
+    cout << "New node count: " << np << endl;
+
+    // Retrieve new vertex positions after remeshing
+    corner = (int*)calloc(np + 1, sizeof(int));
+    if (!corner) {
+        perror("  ## Memory problem: calloc");
+        exit(EXIT_FAILURE);
+    }
+
+    required = (int*)calloc(MAX4(np, 0, nt, na) + 1, sizeof(int));
+    if (!required) {
+        perror("  ## Memory problem: calloc");
+        exit(EXIT_FAILURE);
+    }
+
+    ridge = (int*)calloc(na + 1, sizeof(int));
+    if (!ridge) {
+        perror("  ## Memory problem: calloc");
+        exit(EXIT_FAILURE);
+    }
+
+    std::vector<std::array<double, 3>> tgt_nodes(np);
+    std::vector<std::array<int, 4>> tgt_tetras(nt);
+    std::vector<double> tgt_scalar(np);
+
+    nreq = 0;
+    nc = 0;
+
+    // Recover vertices and store their data
+    for (k = 1; k <= np; k++) {
+        if (MMG3D_Get_vertex(mmgMesh, &(Point[0]), &(Point[1]), &(Point[2]), &ref, &(corner[k]), &(required[k])) != 1)
+            exit(EXIT_FAILURE);
+
+        std::array<double, 3> p0 = {Point[0], Point[1], Point[2]};
+        tgt_nodes[k - 1] = p0;
+
+        if (corner[k]) nc++;
+        if (required[k]) nreq++;
+    }
+
+    // Recover tetrahedra (elements) and store them
+    for (int tri = 0; tri < mmgMesh->nt; tri++) {
+        MMG5_int Tetra[4];
+        int ref;
+
+        MMG3D_Get_tetrahedron(mmgMesh, &(Tetra[0]), &(Tetra[1]), &(Tetra[2]), &(Tetra[3]), &ref, &(required[tri + 1]));
+
+        std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
+        tgt_tetras[tri] = ta;
+    }
+
+    cout << "New mesh processed" << endl;
+
+
+    
+    
+    
+    }
+  
+void ReMesher::Map(){
+     
+     /* 
+      ///////////////////////////////// MAPPING
+  std::vector<NodalField> fnew(np);  // Interpolated results for the new mesh
+  std::vector<NodalField> fcur(np);  // Current results (if needed for further use)
+
+  // Compute element edge lengths
+  auto elems2verts = mesh.ask_down(dim, VERT);
+  auto vert_coords = mesh.coords();
+  
+  int nf_nodes = 0;  // Counter for nodes
+
+  // Loop over the target points (new mesh nodes)
+  for (int n = 0; n < np; n++) {
+      bool found = false;  // Flag to indicate whether the node has been found in an element
+      
+      int i = 0;
+      // Loop through elements to find the one containing the target node
+      while (i < Global_Structure->getElementsNumber() && !found) {
+          // Connectivity for the tetrahedral element (or triangular if needed)
+          std::vector<std::array<int, 3>> conn = {{0, 1, 2}, {0, 2, 3}};
+          int pass = (Global_Structure->getElement(i)->getNumberOfNodes() > 3) ? 2 : 1;  // Tetrahedral or triangular
+          
+          // Loop through the connectivity passes (tetrahedral elements may require 2 passes)
+          for (int cp = 0; cp < pass; cp++) {
+              Node* nnpoint[3];  // Array to hold nodes of the element
+              std::vector<std::array<double, 2>> pp(3);  // Node coordinates
+
+              // Extract the coordinates of the element's nodes
+              for (int p = 0; p < 3; p++) {
+                  nnpoint[p] = Global_Structure->getElement(i)->nodes(conn[cp][p]);  // Nodes from the original mesh
+                  pp[p] = {nnpoint[p]->coords(0), nnpoint[p]->coords(1)};  // Coordinates of the nodes
+              }
+
+              // Compute barycentric coordinates of the target node in the element
+              std::array<double, 3> lambdas = barycentric_coordinates(tgt_nodes[n], pp[0], pp[1], pp[2]);
+
+              // Check if the target node is inside the element (lambdas should all be >= -5.0e-2)
+              if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2) {
+                  // Interpolate scalar values at the element's nodes
+                  double scalar0 = nnpoint[0]->New->disp(1);
+                  double scalar1 = nnpoint[1]->New->disp(1);
+                  double scalar2 = nnpoint[2]->New->disp(1);
+                  tgt_scalar[n] = interpolate_scalar(tgt_nodes[n], pp[0], pp[1], pp[2], scalar0, scalar1, scalar2);    
+
+                  // Interpolate vector values for displacement (if needed)
+                  fnew[n].disp = interp_vector(lambdas, nnpoint[0]->New->disp, 
+                                                nnpoint[1]->New->disp, nnpoint[2]->New->disp);  
+
+                  // Interpolate other nodal fields (like current values, etc.)
+                  Interp_NodalField(&fnew[n], lambdas, nnpoint[0]->New, nnpoint[1]->New, nnpoint[2]->New);
+                  Interp_NodalField(&fcur[n], lambdas, nnpoint[0]->Current, nnpoint[1]->Current, nnpoint[2]->Current);
+
+                  found = true;  // Mark that the node has been mapped
+              } // End of lambdas check
+          }  // End of connectivity pass
+          
+            i++;  // Move to the next element
+        }  // End of element loop
+    }  // End of target node loop
+    
+  }
+  
 };
