@@ -378,7 +378,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<dom_d->getNodeCount();i++){
     #ifdef CUDA_BUILD
     #else
-    if (dom_d->getPosVec3(i).z <0.025) {
+    if (dom_d->getPosVec3(i).z <0.002) {
       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
       fixcount++;
       //cout << "node "<< i<<" fixed "<<endl;
@@ -388,7 +388,7 @@ int main(int argc, char **argv) {
 
     //#ifdef CUDA_BUILD
     //#else    
-    if (dom_d->getPosVec3_h(i).z > 0.616-0.025 ) {
+    if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
     //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
       dom_d->AddBCVelNode(i,0,-0.0);
       dom_d->AddBCVelNode(i,1,-0.0);

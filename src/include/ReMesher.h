@@ -10,6 +10,8 @@ class ReMesher{
   ReMesher(){}
   ReMesher(Domain_d *);
   
+  void Map();
+  
   void ReMesh();
 
   protected:
