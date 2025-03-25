@@ -15,6 +15,11 @@ endif()
 include(cmake/bob.cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
+if (MINGW)
+  MESSAGE("MINGW DETECTED: SET FLAGS TO fPERSMISSIVE")
+  add_compile_options(-fpermissive)
+endif()
+    
 bob_begin_package()
 
 bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
