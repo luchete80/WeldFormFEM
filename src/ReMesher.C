@@ -187,10 +187,13 @@ void create_mesh(Omega_h::Mesh& mesh,
     Omega_h::Write<Omega_h::Real> device_coords(d_node_coords, num_nodes * 3);
     Omega_h::Write<Omega_h::LO> device_tets(d_element_conn, num_elements * 4);
 #else
-    std::cout << "Creating nodes "<<std::endl;
+    std::cout << "Creating "<< num_nodes<< " nodes "<<std::endl;
     // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
-    Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
-    Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
+    //Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
+    //Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
+
+    Omega_h::Write<Omega_h::Real> coords(num_nodes * 3);
+    Omega_h::Write<Omega_h::LO> tets(num_elements * 4);
 
     std::cout << "Done "<<std::endl;    
     for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
@@ -954,6 +957,26 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
     std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
 }
 
+
+
+static void run_2D_adapt(Omega_h::Library* lib) {
+  auto w = lib->world();
+  auto f = OMEGA_H_HYPERCUBE;
+  auto m = Omega_h::build_box(w, f, 1.0, 1.0, 0.0, 2, 2, 0);
+  Omega_h::vtk::FullWriter writer("out_amr_2D", &m);
+  writer.write();
+  // refine
+  Omega_h::Write<Omega_h::Byte> refine_marks(m.nelems(), 1);
+  auto xfer_opts = Omega_h::TransferOpts();
+  Omega_h::amr::refine(&m, refine_marks, xfer_opts);
+  writer.write();
+  // de-refine
+  Omega_h::Write<Omega_h::Byte> derefine_marks(m.nelems(), 0);
+  derefine_marks.set(0, 1);
+  Omega_h::amr::derefine(&m, derefine_marks, xfer_opts);
+  writer.write();
+}
+
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
     m_dom = d;
@@ -979,6 +1002,9 @@ namespace MetFEM{
     };
     
     */
+    std::cout << "Runing adapt test"<<std::endl;
+    run_2D_adapt(&lib);
+    std::cout<<"Done "<<std::endl;
 
 #ifdef CUDA_BUILD
     // Allocate GPU memory
@@ -1103,6 +1129,8 @@ namespace MetFEM{
 
   }
   
+  
+  /*
   void ReMesher::MeshMMG(){
     
     int np, nt, na, nquad, nreq, ref, nr, nc, *corner, *required, *ridge;
@@ -1310,5 +1338,5 @@ void ReMesher::Map(Mesh &mesh){
     }  // End of target node loop
     
   }
-  
+  */
 };

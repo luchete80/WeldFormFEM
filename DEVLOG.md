@@ -265,3 +265,4 @@ F90 PREVIOUS VERSION
          - FIXED PARALEL LOOP PRAGMA IN MSVC
 20250312 - ADDED SEVERAL MESH ADAPTING METHODS (Warp and now angle and length)
          - Fixed compiling for mingw
+20250326 - Added 2d test. Runs ok but fails inside WF code.

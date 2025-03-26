@@ -47,6 +47,7 @@ ELSE ()
   INCLUDE      (FindOpenMP)
   message ("BUILD GPU set to OFF")
   if (OPENMP_FOUND)
+      message ("OPENMP FOUND!!!")
       set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
       set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
@@ -59,7 +60,7 @@ set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             main_4_elem_3d.C
                             PROPERTIES LANGUAGE CXX)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
@@ -230,7 +231,7 @@ else()
 if (BUILD_REMESH)
   TARGET_LINK_LIBRARIES (1elem omega_h)
   TARGET_LINK_LIBRARIES (4elem omega_h)
-  TARGET_LINK_LIBRARIES (WeldFormFEM omega_h)
+  TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h)
 endif()
 
 endif()

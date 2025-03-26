@@ -14,9 +14,13 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=fa
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-fast-math -std=c++17 -O3")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CXX)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
+# if (MSVC)
+    # # MSVC equivalent optimizations
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /std:c++17 /fp:precise")
+# elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # # GCC, Clang, and MinGW
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -std=c++17 -ffp-contract=off -fno-finite-math-only")
+# endif()
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
@@ -62,7 +66,7 @@ if (BUILD_REMESH)
 #                  ${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src/Omega_h_config.h
 #                  ${EXECUTABLE_OUTPUT_PATH})
   include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
-  #add_subdirectory("examples/remesh")
+  add_subdirectory("examples/remesh")
 endif (BUILD_REMESH)
 
 #AFTER REMESH
@@ -77,43 +81,4 @@ endif (BUILD_GPU)
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
-
-
-
-link_directories(${CUNSEARCH_LIB_DIR})
-link_directories(${cuNSearch_BINARY_DIR})
-# --fmad=true and --fmad=false enables and disables the contraction respectively. 
- # This switch is supported only when the --gpu-architecture option is set with     
- # compute_20, sm_20, or higher. For other architecture classes, the contraction is     
-  # always enabled. 
- # The --use_fast_math option implies --fmad=true, and enables the contraction.
-if (BUILD_GPU)
-set(CMAKE_CXX_STANDARD 11) #LIKE IN CUNSearch, this allows to include string (conflicts with CXX17)!!!
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=false --prec-div=true")
-set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-ELSE ()
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --fmad=false -std=c++17 -O3 -fno-finite-math-only")
-ENDIF() 
-# set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
-
-# FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
-# https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
-
-
-
-              
-# add_executable(WeldFormFEM
-                        # WeldForm.C
-                        # Domain_d.C
-                        # Matrices.C
-                        # Mechanical.C
-                        # Matrices.C
-                        # Solver.C
-
-              # )
-
-
 
