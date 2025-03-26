@@ -13,6 +13,7 @@
 #include <Omega_h_map.hpp> //colloect matrked
 #include <Omega_h_metric.hpp>
 #include <Omega_h_timer.hpp>
+#include <Omega_h_timer.hpp>
 #include <Omega_h_coarsen.hpp>
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_array_ops.hpp"      /// ARE CLOSE
@@ -21,6 +22,9 @@
 #ifdef CUDA_BUILD
 #include <cuda_runtime.h>
 #endif
+
+#include <iostream>
+using namespace std;
 
 void classify_vertices(Omega_h::Mesh* mesh) {
     // Assume all vertices are in the interior (volume = 3)
@@ -189,15 +193,17 @@ void create_mesh(Omega_h::Mesh& mesh,
 #else
     std::cout << "Creating "<< num_nodes<< " nodes "<<std::endl;
     // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
-    //Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
-    //Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
+    Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
+    Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
 
-    Omega_h::Write<Omega_h::Real> coords(num_nodes * 3);
-    Omega_h::Write<Omega_h::LO> tets(num_elements * 4);
+    //Omega_h::Write<Omega_h::Real> coords(num_nodes * 3);
+    //Omega_h::Write<Omega_h::LO> tets(num_elements * 4);
 
     std::cout << "Done "<<std::endl;    
     for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
     for (int i = 0; i < num_elements * 4; ++i) tets[i] = h_element_conn[i];
+    
+    cout << "ELEM CONN "<<h_element_conn[0]<<endl;
 
     std::cout << "Convert to write "<<std::endl;    
     // Convert HostWrite to Write<> for Omega_h
@@ -522,7 +528,7 @@ void adapt (Omega_h::Mesh &mesh) {
 //////////////////////////// FROM UGAWG LINEAR
 
 
-template <Int dim>
+template <int dim>
 static void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
@@ -851,6 +857,171 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
 }
 
+/*
+void refine_mesh_quality(Omega_h::Mesh* mesh, double quality_threshold) {
+  int dim = 3;
+  auto world = mesh->comm();
+  mesh->set_parting(OMEGA_H_GHOSTED);
+  auto implied_metrics = get_implied_metrics(mesh);
+  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
+  set_target_metric<dim>(mesh);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->ask_lengths();
+  mesh->ask_qualities();
+  vtk::FullWriter writer;
+  if (vtk_path) {
+    writer = vtk::FullWriter(vtk_path, mesh);
+    writer.write();
+  }
+  auto opts = AdaptOpts(mesh);
+  opts.verbosity = EXTRA_STATS;
+  opts.length_histogram_max = 2.0;
+  opts.max_length_allowed = opts.max_length_desired * 2.0;
+  Now t0 = now();
+  while (approach_metric(mesh, opts)) {
+    adapt(mesh, opts);
+    if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
+    if (vtk_path) writer.write();
+  }
+  Now t1 = now();
+  std::cout << "total time: " << (t1 - t0) << " seconds\n";
+}
+*/
+
+template <int dim>
+Real dot(const Omega_h::Vector<dim>& a, const Omega_h::Vector<dim>& b) {
+    Real result = 0.0;
+    for (int i = 0; i < dim; ++i) {
+        result += a[i] * b[i];
+    }
+    return result;
+}
+
+#include <algorithm>  // For std::clamp
+template <typename T>
+T clamp(const T& value, const T& low, const T& high) {
+    return (value < low) ? low : (value > high) ? high : value;
+}
+using namespace std;
+
+template <int dim>
+void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_threshold) {
+    cout <<"Initializig "<<endl;
+        auto elems2verts = mesh.ask_down(dim, VERT);
+        auto vert_coords = mesh.coords();
+
+        cout << "Element conn size "<< elems2verts.ab2b.size()<<endl;
+    //CHECK FOR DEGENERATE ANGLES
+    for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+        //cout << "Element "<<elem<<endl;
+
+        auto v1 = elems2verts.ab2b[elem * (dim + 1) ];
+        auto v2 = elems2verts.ab2b[elem * (dim + 1) + 1];
+        //cout << "v1 "<<v1<<endl;
+
+        auto p1 = get_vector<dim>(vert_coords, v1);
+        auto p2 = get_vector<dim>(vert_coords, v2);
+        cout << "p1 "<<p1[0]<<endl;            
+        //auto v1 = elems2verts.ab2b[elem * (dim + 1) + j];
+        //auto v2 = elems2verts.ab2b[elem * (dim + 1) + k];
+        
+        auto edge_length = norm(p2 - p1);
+        //cout << "Edge length "<<edge_length<<endl;
+        if (edge_length <= 0.0) {
+            std::cerr << "Degenerate element found: element " << elem << std::endl;
+        }
+    }    
+    mesh.set_parting(OMEGA_H_GHOSTED);
+    auto metrics = get_implied_isos(&mesh);
+    mesh.add_tag(VERT, "metric", 1, metrics);
+    add_dye(&mesh);
+    
+   
+    mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
+    add_pointwise(&mesh);
+    
+    auto opts = AdaptOpts(&mesh);
+    opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+    opts.xfer_opts.integral_map["density"] = "mass";
+    opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+    opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+    opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+    opts.verbosity = EXTRA_STATS;
+
+    opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
+    opts.should_refine = true;  // Allow refinement
+    opts.should_coarsen = false;  // Allow coarsening
+    
+    cout << "Done "<<endl;
+    
+    for (Int i = 0; i < 8; ++i) {
+        cout <<"Pass "<<i<<endl;
+        auto coords = mesh.coords();
+        Write<Real> warp_w(mesh.nverts() * dim);
+
+        auto elems2verts = mesh.ask_down(dim, VERT);
+        auto vert_coords = mesh.coords();
+        bool refine_needed = false;
+
+        for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
+                  
+                    auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                    auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                    auto pj = get_vector<dim>(vert_coords, vj);
+                    auto pk = get_vector<dim>(vert_coords, vk);
+                    auto edge_vector = pk - pj;
+                    auto edge_length = norm(edge_vector);
+
+                    if (edge_length > length_threshold) {
+                        refine_needed = true;
+                        break;
+                    }
+                
+                }
+            }
+
+            // Compute angles between all edge pairs
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
+                    for (int l = k + 1; l < dim + 1; ++l) {
+                      
+                        auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                        auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                        auto vl = elems2verts.ab2b[elem * (dim + 1) + l];
+
+                        auto pj = get_vector<dim>(vert_coords, vj);
+                        auto pk = get_vector<dim>(vert_coords, vk);
+                        auto pl = get_vector<dim>(vert_coords, vl);
+
+                        auto edge1 = normalize(pk - pj);
+                        auto edge2 = normalize(pl - pj);
+
+                        Real dot_product = dot(edge1, edge2);
+                        Real angle = acos(clamp(dot_product, -1.0, 1.0)) * (180.0 / PI);
+
+                        if (angle < angle_threshold || angle > (180.0 - angle_threshold)) {
+                            refine_needed = true;
+                            break;
+                        }
+                      
+                    }
+                    if (refine_needed) break;
+                }
+                if (refine_needed) break;
+            }
+            if (refine_needed) break;
+        }
+
+        if (refine_needed) {
+            adapt(&mesh, opts);
+        }
+    } //i to 8
+    mesh.set_parting(OMEGA_H_ELEM_BASED);
+}
+
 void adapt_mesh_based_on_temperature(Mesh& mesh) {
   
     add_pointwise(&mesh);
@@ -1045,22 +1216,27 @@ namespace MetFEM{
     
     double length_tres = 0.02;
     double ang_tres = 0.1;
-/*
+
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
-    adapt_warp<3>(mesh);
-    writer.write();    
-*/    
+    //adapt_warp<3>(mesh);
+    //writer.write();    
+    
+    // std::cout << "------Refine by quality"<<std::endl;
+    // Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
+    // adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
+    // writer2.write();
+    
     std::cout << "------Refine by quality"<<std::endl;
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
-    adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
+    adapt_with_thresholds<3>(mesh,length_tres, ang_tres);
     writer2.write();
-/*
-    std::cout<<"FIELD REMESH"<<std::endl;
-    Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
-    adapt_mesh_based_on_temperature(mesh);
-    writer3.write();
-   */     
+    
+    // std::cout<<"FIELD REMESH"<<std::endl;
+    // Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
+    // adapt_mesh_based_on_temperature(mesh);
+    // writer3.write();
+     
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 

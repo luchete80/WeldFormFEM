@@ -1,5 +1,7 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
+set (BUILD_EXAMPLES OFF)
+
 
 if (BUILD_GPU)
 project (WeldFormFEM LANGUAGES CXX CUDA )
@@ -44,16 +46,16 @@ set_source_files_properties(Contact.C Domain_d.C Matrices.C Mechanical.C input.C
                             PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
-  # INCLUDE      (FindOpenMP)
-  # message ("BUILD GPU set to OFF")
-  # if (OPENMP_FOUND)
-      # message ("OPENMP FOUND!!!")
-      # set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-      # set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-      # set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-  # else()
-  # message ("OPENMP NOT FOUND")
-  # endif()
+  INCLUDE      (FindOpenMP)
+  message ("BUILD GPU set to OFF")
+  if (OPENMP_FOUND)
+      message ("OPENMP FOUND!!!")
+      set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+      set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else()
+  message ("OPENMP NOT FOUND")
+  endif()
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
                             ReMesher.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
@@ -107,12 +109,13 @@ set (SOURCES
                          input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          VTKWriter.C
-                         ReMesher.C
                    )
 
 if (BUILD_REMESH)
  set (SOURCES "${SOURCES}" ReMesher.C)
 endif()
+
+if (BUILD_EXAMPLES)
 
  add_executable(1elem
                          main_1_elem_3d.C
@@ -126,7 +129,7 @@ endif()
 
                )
 
-
+endif()
                    
 add_executable(WeldFormFEM WeldFormFEM.C
                          "${SOURCES}"
@@ -220,21 +223,25 @@ set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
 set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
 
-
+if (BUILD_EXAMPLES)
 #TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
 TARGET_LINK_LIBRARIES (1elem   cuda cudart cudadevrt)
 TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
+endif()
 
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 if (BUILD_REMESH)
+if (BUILD_EXAMPLES)
   TARGET_LINK_LIBRARIES (1elem omega_h)
   TARGET_LINK_LIBRARIES (4elem omega_h)
+endif()
   TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h)
 endif()
 
 endif()
+
 
 if (BUILD_OMEGA_H)
   if (MSVC)
