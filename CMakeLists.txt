@@ -30,7 +30,7 @@ ENDIF()
 if (NOT DEFINED BUILD_GPU)
 SET (BUILD_GPU OFF)
 SET (BUILD_REMESH ON)
-SET (BUID_OMEGA_H OFF) #SET OFF IFALREADY BUILT ANDYOURE TESTING
+SET (BUILD_OMEGA_H ON) #SET OFF IFALREADY BUILT ANDYOURE TESTING
 endif (NOT DEFINED BUILD_GPU)
 
 if (BUILD_GPU)
@@ -47,18 +47,23 @@ MESSAGE ("CHECKING REMESH")
 if (BUILD_REMESH)
     MESSAGE ("ADDING OMEGA_H")
   if (BUILD_OMEGA_H)
-    if (MINGW)
-      add_compile_options(-fpermissive)
-    endif()
     set (Omega_h_USE_ZLIB OFF)
     MESSAGE ("ADDING OMEGA_H")
-    add_subdirectory("lib/omega_h-9.34.13")
+    if ((CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    message("OMEGA_H FORCED TO BUILD AS DEBUG")
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
+    else()
+    message("OMEGA_H FORCED TO BUILD AS RELEASE")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+    endif()
+    
     if (BUILD_GPU)
     set (Omega_h_USE_CUDA ON)
     else()
       set (Omega_h_USE_OpenMP ON)
     #default is CPU
     endif() 
+    add_subdirectory("lib/omega_h-9.34.13")
   endif()
 #  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
 #                  POST_BUILD

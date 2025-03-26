@@ -133,7 +133,7 @@ add_executable(WeldFormFEM WeldFormFEM.C
                )
 
 if (BUILD_OMEGA_H)
-  add_executable (test_omega_h test_omega_h.cpp)
+  #add_executable (test_omega_h test_omega_h.cpp)
 endif()
 #
 #add_executable(axisymm
@@ -237,7 +237,10 @@ endif()
 endif()
 
 if (BUILD_OMEGA_H)
-  TARGET_LINK_LIBRARIES (test_omega_h omega_h)
+  if (MSVC)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")  # Use the same runtime library as Omega_h
+  endif()
+  #TARGET_LINK_LIBRARIES (test_omega_h omega_h)
 endif()
 
 #FOREACH(var ${EXES})
