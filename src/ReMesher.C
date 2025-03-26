@@ -934,6 +934,8 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
         }
     }   
 */    
+
+    
     mesh.set_parting(OMEGA_H_GHOSTED);
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
@@ -954,8 +956,14 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
     opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
     opts.should_refine = true;  // Allow refinement
     opts.should_coarsen = false;  // Allow coarsening
+
+    opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
+    opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
     
     cout << "Done "<<endl;
+
+    Omega_h::vtk::Writer writer2("before", &mesh);
+    writer2.write();
     
     for (Int i = 0; i < 8; ++i) {
         cout <<"Pass "<<i<<endl;
@@ -968,25 +976,27 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
         // Compute angles between all edge pairs
         Real max_angle,min_angle;
         max_angle = 0.0;min_angle = 180.0;
+        Real max_length = 0.0;
         
         for (LO elem = 0; elem < mesh.nelems(); ++elem) {
-            // for (int j = 0; j < dim + 1; ++j) {
-                // for (int k = j + 1; k < dim + 1; ++k) {
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
                   
-                    // auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
-                    // auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
-                    // auto pj = get_vector<dim>(vert_coords, vj);
-                    // auto pk = get_vector<dim>(vert_coords, vk);
-                    // auto edge_vector = pk - pj;
-                    // auto edge_length = norm(edge_vector);
-
-                    // if (edge_length > length_threshold) {
-                        // refine_needed = true;
-                        // break;
-                    // }
+                    auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                    auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                    auto pj = get_vector<dim>(vert_coords, vj);
+                    auto pk = get_vector<dim>(vert_coords, vk);
+                    auto edge_vector = pk - pj;
+                    auto edge_length = norm(edge_vector);
+                    if (edge_length>max_length)
+                      max_length = edge_length;
+                    if (edge_length > length_threshold) {
+                        refine_needed = true;
+                        break;
+                    }
                 
-                // }
-            // }
+                }
+            }
 
 
             for (int j = 0; j < dim + 1; ++j) {
@@ -1022,6 +1032,7 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
             }
             if (refine_needed) break;
         }
+        cout << "Max edge length: "<<max_length<<endl;
         cout << "Initial angles Min: "<<min_angle<<", max: "<<max_angle<<endl;
         if (refine_needed) {
             adapt(&mesh, opts);
@@ -1222,8 +1233,8 @@ namespace MetFEM{
     auto w = lib.world();
     writer.write();
     
-    double length_tres = 0.02;
-    double ang_tres = 30.0;
+    double length_tres = 0.85;
+    double ang_tres = 40.0;
 
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
@@ -1458,9 +1469,10 @@ namespace MetFEM{
     
     }
   
+  */
 void ReMesher::Map(Mesh &mesh){
      
-  int np = mesh-> ;
+  int np = mesh->;
       ///////////////////////////////// MAPPING
   std::vector<NodalField> fnew(np);  // Interpolated results for the new mesh
   std::vector<NodalField> fcur(np);  // Current results (if needed for further use)
@@ -1522,5 +1534,5 @@ void ReMesher::Map(Mesh &mesh){
     }  // End of target node loop
     
   }
-  */
+  
 };
