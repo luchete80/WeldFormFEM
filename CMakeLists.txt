@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
 
 # --fmad=true and --fmad=false enables and disables the contraction respectively. 
@@ -72,11 +72,11 @@ endif (BUILD_REMESH)
 #AFTER REMESH
 add_subdirectory (src)
 
-if (BUILD_GPU)
-project (WeldFormFEM LANGUAGES CXX CUDA)
-else ()
-project (WeldFormFEM LANGUAGES CXX)
-endif (BUILD_GPU)
+# if (BUILD_GPU)
+# project (WeldFormFEM LANGUAGES CXX CUDA)
+# else ()
+# project (WeldFormFEM LANGUAGES CXX)
+# endif (BUILD_GPU)
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/src/cuda)
