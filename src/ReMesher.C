@@ -913,6 +913,7 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
 
         cout << "Element conn size "<< elems2verts.ab2b.size()<<endl;
     //CHECK FOR DEGENERATE ANGLES
+    /*
     for (LO elem = 0; elem < mesh.nelems(); ++elem) {
         //cout << "Element "<<elem<<endl;
 
@@ -931,7 +932,8 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
         if (edge_length <= 0.0) {
             std::cerr << "Degenerate element found: element " << elem << std::endl;
         }
-    }    
+    }   
+*/    
     mesh.set_parting(OMEGA_H_GHOSTED);
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
@@ -963,27 +965,30 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
         auto elems2verts = mesh.ask_down(dim, VERT);
         auto vert_coords = mesh.coords();
         bool refine_needed = false;
-
+        // Compute angles between all edge pairs
+        Real max_angle,min_angle;
+        max_angle = 0.0;min_angle = 180.0;
+        
         for (LO elem = 0; elem < mesh.nelems(); ++elem) {
-            for (int j = 0; j < dim + 1; ++j) {
-                for (int k = j + 1; k < dim + 1; ++k) {
+            // for (int j = 0; j < dim + 1; ++j) {
+                // for (int k = j + 1; k < dim + 1; ++k) {
                   
-                    auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
-                    auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
-                    auto pj = get_vector<dim>(vert_coords, vj);
-                    auto pk = get_vector<dim>(vert_coords, vk);
-                    auto edge_vector = pk - pj;
-                    auto edge_length = norm(edge_vector);
+                    // auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                    // auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                    // auto pj = get_vector<dim>(vert_coords, vj);
+                    // auto pk = get_vector<dim>(vert_coords, vk);
+                    // auto edge_vector = pk - pj;
+                    // auto edge_length = norm(edge_vector);
 
-                    if (edge_length > length_threshold) {
-                        refine_needed = true;
-                        break;
-                    }
+                    // if (edge_length > length_threshold) {
+                        // refine_needed = true;
+                        // break;
+                    // }
                 
-                }
-            }
+                // }
+            // }
 
-            // Compute angles between all edge pairs
+
             for (int j = 0; j < dim + 1; ++j) {
                 for (int k = j + 1; k < dim + 1; ++k) {
                     for (int l = k + 1; l < dim + 1; ++l) {
@@ -1001,8 +1006,11 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
 
                         Real dot_product = dot(edge1, edge2);
                         Real angle = acos(clamp(dot_product, -1.0, 1.0)) * (180.0 / PI);
-
+                        cout << "angle "<<angle<<endl;
+                        if (angle>max_angle )angle=max_angle;
+                        else if (angle<min_angle )angle=min_angle;
                         if (angle < angle_threshold || angle > (180.0 - angle_threshold)) {
+                            cout << "ANGLE THRESHOLD!"<<angle_threshold <<" REFINE"<<endl;
                             refine_needed = true;
                             break;
                         }
@@ -1014,7 +1022,7 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
             }
             if (refine_needed) break;
         }
-
+        cout << "Initial angles Min: "<<min_angle<<", max: "<<max_angle<<endl;
         if (refine_needed) {
             adapt(&mesh, opts);
         }
@@ -1215,7 +1223,7 @@ namespace MetFEM{
     writer.write();
     
     double length_tres = 0.02;
-    double ang_tres = 0.1;
+    double ang_tres = 30.0;
 
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
