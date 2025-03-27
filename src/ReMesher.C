@@ -900,8 +900,6 @@ Real dot(const Omega_h::Vector<dim>& a, const Omega_h::Vector<dim>& b) {
     return result;
 }
 
-template <int dim>
-void adapt_angle_with_threshold(Mesh &mesh, Real length_threshold, Real angle_threshold) {
 
 #include <algorithm>  // For std::clamp
 template <typename T>
