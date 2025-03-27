@@ -1469,7 +1469,21 @@ void ReMesher::WriteDomain(){
     //n++;
   };//NODE LOOP
   parallel_for(m_mesh.nverts(), f); 
-  
+
+  auto elems2verts = m_mesh.ask_down(3, VERT);
+        
+  auto fe = OMEGA_H_LAMBDA(LO elem) {
+
+    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+    std::cout<< "ELEM "<<std::endl;
+    for (int ve=0;ve<4;ve++){
+      auto v = elems2verts.ab2b[elem * 4 + ve];
+      
+      }
+
+  };//NODE LOOP  
+  parallel_for(m_mesh.nelems(), fe); 
+    
 
   memcpy_t(m_dom->x,  x_h, 3*sizeof(double) * m_dom->m_node_count);       
 
