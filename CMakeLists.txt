@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
+if (NOT DEFINED BUILD_GPU)
+SET (BUILD_GPU OFF)
+endif (NOT DEFINED BUILD_GPU)
 
 # --fmad=true and --fmad=false enables and disables the contraction respectively. 
  # This switch is supported only when the --gpu-architecture option is set with     
@@ -27,11 +30,20 @@ ENDIF()
 # FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
 # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
 
-if (NOT DEFINED BUILD_GPU)
-SET (BUILD_GPU OFF)
-SET (BUILD_REMESH OFF)
-SET (BUILD_OMEGA_H OFF) #SET OFF IFALREADY BUILT ANDYOURE TESTING
-endif (NOT DEFINED BUILD_GPU)
+
+SET (BUILD_REMESH ON)
+if (BUILD_OMEGA_H STREQUAL(ON))
+message("SETTING OMEGA_H TO ON, FORCED REMESH TO ON")
+else()
+message("SETTING OMEGA_H TO OFF")
+endif()
+
+
+if (NOT DEFINED BUILD_OMEGA_H)
+  set (BUILD_OMEGA_H OFF)
+endif()
+
+
 
 if (BUILD_GPU)
   add_compile_definitions(CUDA_BUILD)
@@ -71,7 +83,7 @@ if (BUILD_REMESH)
 #                  ${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src/Omega_h_config.h
 #                  ${EXECUTABLE_OUTPUT_PATH})
   include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
-  add_subdirectory("examples/remesh")
+  #add_subdirectory("examples/remesh")
 endif (BUILD_REMESH)
 
 #AFTER REMESH

@@ -971,8 +971,6 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
     //mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
 
     // Compute element edge lengths
-    auto elems2verts = mesh.ask_down(dim, VERT);
-    auto vert_coords = mesh.coords();
     bool refine_needed = false;
   
     opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
@@ -1375,6 +1373,7 @@ std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
         return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
     }
 
+}
 
 // Function to interpolate scalar values at the nodes of a tetrahedron
 double interpolate_scalar(const std::array<double, 3>& p,
