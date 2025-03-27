@@ -27,13 +27,13 @@ Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
   auto f = OMEGA_H_LAMBDA(LO vm) {
     auto v = verts_that_matter[vm];
     auto N_c = zero_vector<dim>();
-    #if defined(_MSC_VER)
+    //#if defined(_MSC_VER)
     constexpr auto max_adj_sides =
         SimplexAvgDegree<side_dim, VERT, side_dim>::value * 4;
-    #elif defined(__MINGW32__) || defined(__MINGW64__)
-    auto max_adj_sides =
-        SimplexAvgDegree<side_dim, VERT, side_dim>::value * 4;
-    #endif
+    //#elif defined(__MINGW32__) || defined(__MINGW64__)
+    //auto max_adj_sides =
+    //    SimplexAvgDegree<side_dim, VERT, side_dim>::value * 4;
+    //#endif
     Few<Vector<dim>, max_adj_sides> N;
     auto n = 0;
     for (auto vs = v2s.a2ab[v]; vs < v2s.a2ab[v + 1]; ++vs) {
