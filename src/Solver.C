@@ -436,6 +436,12 @@ void host_ Domain_d::SolveChungHulbert(){
   writer2.writeFile();
   #endif
   cout << "Done."<<endl;
+  remesh.WriteDomain();
+
+  VTKWriter writer3(this, "out_remesh.vtk");
+  writer3.writeFile();
+  
+  //AFTER WRITE
 
   timer.stop();
   std::cout << "Overall elapsed time: " << timer.elapsed() << " seconds\n";  

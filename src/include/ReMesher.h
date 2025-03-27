@@ -10,17 +10,21 @@ class Domain_d;
 
 class ReMesher{
   public:
-  ReMesher(){}
+  ReMesher()//:dim(3)
+  {}
   ReMesher(Domain_d *);
   
 
   template <int dim>
-  void Map(Omega_h::Mesh &mesh);
-  
+  void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
+
+  void WriteDomain();
+      
   void MeshMMG(); 
   void ReMesh();
 
   protected:
+
   Domain_d *m_dom;
   Omega_h::Mesh m_mesh;
 };

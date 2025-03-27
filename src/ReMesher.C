@@ -23,6 +23,8 @@
 #include <cuda_runtime.h>
 #endif
 
+#include "defs.h"
+
 #include <iostream>
 using namespace std;
 
@@ -939,42 +941,29 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
 */    
 
     
-
     mesh.set_parting(OMEGA_H_GHOSTED);
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
     add_dye(&mesh);
-
+    
+   
     mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
     add_pointwise(&mesh);
     
-   
     auto opts = AdaptOpts(&mesh);
     opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
     opts.xfer_opts.integral_map["density"] = "mass";
     opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
     opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
     opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
-
-    //opts.xfer_opts.max_edge_length = length_threshold;
     opts.verbosity = EXTRA_STATS;
-
-    auto mid = zero_vector<dim>();
-    mid[0] = mid[1] = .5;
-    Now t0 = now();
 
     opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
     opts.should_refine = true;  // Allow refinement
     opts.should_coarsen = false;  // Allow coarsening
 
-
-    //mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
-
-    // Compute element edge lengths
-    bool refine_needed = false;
-  
-    opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
-    opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
+    //opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
+    //opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
     
     cout << "Done "<<endl;
 
@@ -1055,8 +1044,8 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
         }
     } //i to 8
     mesh.set_parting(OMEGA_H_ELEM_BASED);
-
 }
+
 
 void adapt_mesh_based_on_temperature(Mesh& mesh) {
   
@@ -1185,7 +1174,10 @@ static void run_2D_adapt(Omega_h::Library* lib) {
 }
 
 namespace MetFEM{
-  ReMesher::ReMesher(Domain_d *d){
+  ReMesher::ReMesher(Domain_d *d)
+  //:dim(d->m_dim)
+  {
+
     m_dom = d;
 
 
@@ -1344,10 +1336,15 @@ namespace MetFEM{
     // }
 
   // }
+  
+    m_mesh = mesh;
+    
+    double *vec;
+    
 
     Mesh new_mesh;
-    std::cout<<"MAPPING"<<std::endl; 
-    this->Map<3>(mesh);
+    //std::cout<<"MAPPING"<<std::endl; 
+    //this->Map<3>(mesh);
   }
  
 #include <array>
@@ -1373,6 +1370,37 @@ std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
         return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
     }
 
+
+ if (std::abs(detT) < 1e-12) {  // Tolerance to avoid floating-point issues
+        std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
+        return {-1.0, -1.0, -1.0, -1.0}; // Invalid coordinates
+    }
+
+    // Compute the barycentric coordinates
+    std::array<double, 3> vp = {p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]};
+
+    double d0 = vp[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+              - vp[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+              + vp[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    double d1 = v0[0] * (vp[1] * v2[2] - vp[2] * v2[1])
+              - v0[1] * (vp[0] * v2[2] - vp[2] * v2[0])
+              + v0[2] * (vp[0] * v2[1] - vp[1] * v2[0]);
+
+    double d2 = v0[0] * (v1[1] * vp[2] - v1[2] * vp[1])
+              - v0[1] * (v1[0] * vp[2] - v1[2] * vp[0])
+              + v0[2] * (v1[0] * vp[1] - v1[1] * vp[0]);
+
+    double d3 = v0[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+              - v0[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+              + v0[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    double w0 = d0 / detT;
+    double w1 = d1 / detT;
+    double w2 = d2 / detT;
+    double w3 = 1.0 - (w0 + w1 + w2);  // Enforce sum-to-one constraint
+
+    return {w0, w1, w2, w3};
 }
 
 // Function to interpolate scalar values at the nodes of a tetrahedron
@@ -1398,28 +1426,81 @@ std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
     };
 }
 
+void ReMesher::WriteDomain(){
+    //const int dim = m_dom->m_dim;
+    
+
+  //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
+  double *vfield = new double [3*m_mesh.nverts()];    
+  cout << "MAPPING"<<endl;
+  MapNodalVector<3>(m_mesh, vfield,  m_dom->u);
+
+
+  //// WRITE
+  m_dom->m_node_count = m_mesh.nverts();
+  m_dom->m_elem_count = m_mesh.nelems();
+  
+  m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
+
+  malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
+
+  cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
+  memcpy_t(m_dom->u, vfield, sizeof(double) * m_dom->m_node_count * 3);    
+
+
+  double *x_h = new double [3*m_mesh.nverts()];
+  int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
+
+  cout << "CONVERTING MESH"<<endl;
+  auto coords = m_mesh.coords();
+    
+  auto f = OMEGA_H_LAMBDA(LO vert) {
+    auto x = get_vector<3>(coords, vert); //dim crashes
+    std::cout<< "VERT "<<vert<<std::endl;
+  //for (int n = 0; n < mesh.nverts(); n++) {
+    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+    std::cout<< "NODES "<<std::endl;
+    std::cout << m_mesh.coords()[vert]<<std::endl;
+    
+      // Get coordinates for the node in the new mesh
+      std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+      for (int d=0;d<3;d++)x_h[3*vert+d] = x[d];
+
+    //n++;
+  };//NODE LOOP
+  parallel_for(m_mesh.nverts(), f); 
+  
+
+  memcpy_t(m_dom->x,  x_h, 3*sizeof(double) * m_dom->m_node_count);       
+
+  //free_t (m_dom->x);
+}
+
+//USES DOMAIN TO INTERPOLATE VARS
+//HOST MAP
 template <int dim>
-void ReMesher::Map(Mesh& mesh) {
+void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     auto coords = mesh.coords();
     
     double *scalar= new double[mesh.nverts()];
+    double *vector= new double[mesh.nverts()*3];
+
+    //free_t (vfield);
+    //vfield = new double [3*mesh.nverts()];    
     
+    //malloc_t(vfield_h,double,mesh.nverts()*3);
+        
     //COMPY OLD MESH TO NEW 
-    
-    
     
     auto f = OMEGA_H_LAMBDA(LO vert) {
       auto x = get_vector<3>(coords, vert);
-      std::cout<< "VERT "<<vert<<std::endl;
     //for (int n = 0; n < mesh.nverts(); n++) {
         bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-        std::cout<< "NODES "<<std::endl;
         //std::cout << mesh.coords()[n]<<std::endl;
         
         // Get coordinates for the node in the new mesh
         std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
-
         
         // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
         for (int i = 0; i < m_dom->m_elem_count; i++) {
@@ -1448,10 +1529,11 @@ void ReMesher::Map(Mesh& mesh) {
                 std::array<double, 3> disp[4];
                 for (int n=0;n<4;n++)
                   for (int d=0;d<3;d++)
-                    disp[n][d] = m_dom->u[3*m_dom->m_elnod[4*i+n]+d];
+                    disp[n][d] = o_field[3*m_dom->m_elnod[4*i+n]+d];
                 
+                cout << "Interp disp"<<endl;
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
-
+                //for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
 
                 std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
@@ -1469,6 +1551,7 @@ void ReMesher::Map(Mesh& mesh) {
       //n++;
     };//NODE LOOP
     parallel_for(mesh.nverts(), f);
-  }
+
+}//MAP
   
 };
