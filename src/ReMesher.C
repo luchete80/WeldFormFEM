@@ -13,6 +13,7 @@
 #include <Omega_h_map.hpp> //colloect matrked
 #include <Omega_h_metric.hpp>
 #include <Omega_h_timer.hpp>
+#include <Omega_h_timer.hpp>
 #include <Omega_h_coarsen.hpp>
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_array_ops.hpp"      /// ARE CLOSE
@@ -21,6 +22,9 @@
 #ifdef CUDA_BUILD
 #include <cuda_runtime.h>
 #endif
+
+#include <iostream>
+using namespace std;
 
 void classify_vertices(Omega_h::Mesh* mesh) {
     // Assume all vertices are in the interior (volume = 3)
@@ -187,14 +191,19 @@ void create_mesh(Omega_h::Mesh& mesh,
     Omega_h::Write<Omega_h::Real> device_coords(d_node_coords, num_nodes * 3);
     Omega_h::Write<Omega_h::LO> device_tets(d_element_conn, num_elements * 4);
 #else
-    std::cout << "Creating nodes "<<std::endl;
+    std::cout << "Creating "<< num_nodes<< " nodes "<<std::endl;
     // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
     Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
     Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
 
+    //Omega_h::Write<Omega_h::Real> coords(num_nodes * 3);
+    //Omega_h::Write<Omega_h::LO> tets(num_elements * 4);
+
     std::cout << "Done "<<std::endl;    
     for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
     for (int i = 0; i < num_elements * 4; ++i) tets[i] = h_element_conn[i];
+    
+    cout << "ELEM CONN "<<h_element_conn[0]<<endl;
 
     std::cout << "Convert to write "<<std::endl;    
     // Convert HostWrite to Write<> for Omega_h
@@ -519,7 +528,7 @@ void adapt (Omega_h::Mesh &mesh) {
 //////////////////////////// FROM UGAWG LINEAR
 
 
-template <Int dim>
+template <int dim>
 static void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
@@ -848,8 +857,42 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
 }
 
+
+/*
+void refine_mesh_quality(Omega_h::Mesh* mesh, double quality_threshold) {
+  int dim = 3;
+  auto world = mesh->comm();
+  mesh->set_parting(OMEGA_H_GHOSTED);
+  auto implied_metrics = get_implied_metrics(mesh);
+  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
+  set_target_metric<dim>(mesh);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->ask_lengths();
+  mesh->ask_qualities();
+  vtk::FullWriter writer;
+  if (vtk_path) {
+    writer = vtk::FullWriter(vtk_path, mesh);
+    writer.write();
+  }
+  auto opts = AdaptOpts(mesh);
+  opts.verbosity = EXTRA_STATS;
+  opts.length_histogram_max = 2.0;
+  opts.max_length_allowed = opts.max_length_desired * 2.0;
+  Now t0 = now();
+  while (approach_metric(mesh, opts)) {
+    adapt(mesh, opts);
+    if (mesh->has_tag(VERT, "target_metric")) set_target_metric<dim>(mesh);
+    if (vtk_path) writer.write();
+  }
+  Now t1 = now();
+  std::cout << "total time: " << (t1 - t0) << " seconds\n";
+}
+*/
+
 template <int dim>
-Real dot_(Vector<dim> a, Vector<dim> b) {
+Real dot(const Omega_h::Vector<dim>& a, const Omega_h::Vector<dim>& b) {
+
     Real result = 0.0;
     for (int i = 0; i < dim; ++i) {
         result += a[i] * b[i];
@@ -859,18 +902,62 @@ Real dot_(Vector<dim> a, Vector<dim> b) {
 
 template <int dim>
 void adapt_angle_with_threshold(Mesh &mesh, Real length_threshold, Real angle_threshold) {
+
+#include <algorithm>  // For std::clamp
+template <typename T>
+T clamp(const T& value, const T& low, const T& high) {
+    return (value < low) ? low : (value > high) ? high : value;
+}
+using namespace std;
+
+template <int dim>
+void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_threshold) {
+    cout <<"Initializig "<<endl;
+        auto elems2verts = mesh.ask_down(dim, VERT);
+        auto vert_coords = mesh.coords();
+
+        cout << "Element conn size "<< elems2verts.ab2b.size()<<endl;
+    //CHECK FOR DEGENERATE ANGLES
+    /*
+    for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+        //cout << "Element "<<elem<<endl;
+
+        auto v1 = elems2verts.ab2b[elem * (dim + 1) ];
+        auto v2 = elems2verts.ab2b[elem * (dim + 1) + 1];
+        //cout << "v1 "<<v1<<endl;
+
+        auto p1 = get_vector<dim>(vert_coords, v1);
+        auto p2 = get_vector<dim>(vert_coords, v2);
+        cout << "p1 "<<p1[0]<<endl;            
+        //auto v1 = elems2verts.ab2b[elem * (dim + 1) + j];
+        //auto v2 = elems2verts.ab2b[elem * (dim + 1) + k];
+        
+        auto edge_length = norm(p2 - p1);
+        //cout << "Edge length "<<edge_length<<endl;
+        if (edge_length <= 0.0) {
+            std::cerr << "Degenerate element found: element " << elem << std::endl;
+        }
+    }   
+*/    
+
+    
+
     mesh.set_parting(OMEGA_H_GHOSTED);
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
     add_dye(&mesh);
+
     mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
     add_pointwise(&mesh);
+    
+   
     auto opts = AdaptOpts(&mesh);
     opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
     opts.xfer_opts.integral_map["density"] = "mass";
     opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
     opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
     opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+
     //opts.xfer_opts.max_edge_length = length_threshold;
     opts.verbosity = EXTRA_STATS;
 
@@ -878,10 +965,10 @@ void adapt_angle_with_threshold(Mesh &mesh, Real length_threshold, Real angle_th
     mid[0] = mid[1] = .5;
     Now t0 = now();
 
-
     opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
     opts.should_refine = true;  // Allow refinement
     opts.should_coarsen = false;  // Allow coarsening
+
 
     //mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
 
@@ -889,70 +976,90 @@ void adapt_angle_with_threshold(Mesh &mesh, Real length_threshold, Real angle_th
     auto elems2verts = mesh.ask_down(dim, VERT);
     auto vert_coords = mesh.coords();
     bool refine_needed = false;
-    
-    //std::string name = "out_amr_length_3D_STEP_"+std::to_string(i);
-    //Omega_h::vtk::Writer writer2(name.c_str(), &mesh);
-    //writer2.write();
-    
-
-  for (LO elem = 0; elem < mesh.nelems(); ++elem) {
-      for (int j = 0; j < dim + 1; ++j) {
-          for (int k = j + 1; k < dim + 1; ++k) {
-              auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
-              auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
-              auto pj = get_vector<dim>(vert_coords, vj);
-              auto pk = get_vector<dim>(vert_coords, vk);
-
-              auto edge_vector = pk - pj;
-              auto edge_length = norm(edge_vector);
-              
-              // Check if length exceeds threshold
-              if (edge_length > length_threshold) {
-                  refine_needed = true;
-                  break;
-              }
-
-              // Check angles between edges
-              for (int l = k + 1; l < dim + 1; ++l) {
-                  auto vl = elems2verts.ab2b[elem * (dim + 1) + l];
-                  auto pl = get_vector<dim>(vert_coords, vl);
-
-                  auto edge_vector2 = pl - pj;
-                  auto dot_product = dot_(edge_vector, edge_vector2);
-                  auto norm_product = Omega_h::norm(edge_vector) * norm(edge_vector2);
-
-                  if (norm_product > 0) { // Avoid division by zero
-                      Real angle = std::acos(dot_product / norm_product);
-
-                      // Convert angle from radians to degrees if needed
-                      angle = angle * (180.0 / M_PI);
-                      
-                      if (angle > angle_threshold) {
-                          refine_needed = true;
-                          break;
-                      }
-                  }
-              }
-              if (refine_needed) break;
-          }
-          if (refine_needed) break;
-      }
-      if (refine_needed) {
-          std::cout << "Refining due to high angle." << std::endl;
-          break;
-      }
-  }//elem
   
-      if (refine_needed) {
-      std::cout << "Adapting: adapt(&mesh, opts);"<<std::endl;
-      adapt(&mesh, opts);
-      /*
-        while (warp_to_limit(&mesh, opts)) {
+    opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
+    opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
+    
+    cout << "Done "<<endl;
+
+    Omega_h::vtk::Writer writer2("before", &mesh);
+    writer2.write();
+    
+    for (Int i = 0; i < 8; ++i) {
+        cout <<"Pass "<<i<<endl;
+        auto coords = mesh.coords();
+        Write<Real> warp_w(mesh.nverts() * dim);
+
+        auto elems2verts = mesh.ask_down(dim, VERT);
+        auto vert_coords = mesh.coords();
+        bool refine_needed = false;
+        // Compute angles between all edge pairs
+        Real max_angle,min_angle;
+        max_angle = 0.0;min_angle = 180.0;
+        Real max_length = 0.0;
+        
+        for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
+                  
+                    auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                    auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                    auto pj = get_vector<dim>(vert_coords, vj);
+                    auto pk = get_vector<dim>(vert_coords, vk);
+                    auto edge_vector = pk - pj;
+                    auto edge_length = norm(edge_vector);
+                    if (edge_length>max_length)
+                      max_length = edge_length;
+                    if (edge_length > length_threshold) {
+                        refine_needed = true;
+                        break;
+                    }
+                
+                }
+            }
+
+
+            for (int j = 0; j < dim + 1; ++j) {
+                for (int k = j + 1; k < dim + 1; ++k) {
+                    for (int l = k + 1; l < dim + 1; ++l) {
+                      
+                        auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+                        auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+                        auto vl = elems2verts.ab2b[elem * (dim + 1) + l];
+
+                        auto pj = get_vector<dim>(vert_coords, vj);
+                        auto pk = get_vector<dim>(vert_coords, vk);
+                        auto pl = get_vector<dim>(vert_coords, vl);
+
+                        auto edge1 = normalize(pk - pj);
+                        auto edge2 = normalize(pl - pj);
+
+                        Real dot_product = dot(edge1, edge2);
+                        Real angle = acos(clamp(dot_product, -1.0, 1.0)) * (180.0 / PI);
+                        cout << "angle "<<angle<<endl;
+                        if (angle>max_angle )angle=max_angle;
+                        else if (angle<min_angle )angle=min_angle;
+                        if (angle < angle_threshold || angle > (180.0 - angle_threshold)) {
+                            cout << "ANGLE THRESHOLD!"<<angle_threshold <<" REFINE"<<endl;
+                            refine_needed = true;
+                            break;
+                        }
+                      
+                    }
+                    if (refine_needed) break;
+                }
+                if (refine_needed) break;
+            }
+            if (refine_needed) break;
+        }
+        cout << "Max edge length: "<<max_length<<endl;
+        cout << "Initial angles Min: "<<min_angle<<", max: "<<max_angle<<endl;
+        if (refine_needed) {
             adapt(&mesh, opts);
         }
-    */
-    }
-    
+    } //i to 8
+    mesh.set_parting(OMEGA_H_ELEM_BASED);
+
 }
 
 void adapt_mesh_based_on_temperature(Mesh& mesh) {
@@ -1061,6 +1168,26 @@ void adapt_mesh_based_on_temperature(Mesh& mesh) {
     std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
 }
 
+
+
+static void run_2D_adapt(Omega_h::Library* lib) {
+  auto w = lib->world();
+  auto f = OMEGA_H_HYPERCUBE;
+  auto m = Omega_h::build_box(w, f, 1.0, 1.0, 0.0, 2, 2, 0);
+  Omega_h::vtk::FullWriter writer("out_amr_2D", &m);
+  writer.write();
+  // refine
+  Omega_h::Write<Omega_h::Byte> refine_marks(m.nelems(), 1);
+  auto xfer_opts = Omega_h::TransferOpts();
+  Omega_h::amr::refine(&m, refine_marks, xfer_opts);
+  writer.write();
+  // de-refine
+  Omega_h::Write<Omega_h::Byte> derefine_marks(m.nelems(), 0);
+  derefine_marks.set(0, 1);
+  Omega_h::amr::derefine(&m, derefine_marks, xfer_opts);
+  writer.write();
+}
+
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d){
     m_dom = d;
@@ -1086,6 +1213,9 @@ namespace MetFEM{
     };
     
     */
+    std::cout << "Runing adapt test"<<std::endl;
+    run_2D_adapt(&lib);
+    std::cout<<"Done "<<std::endl;
 
 #ifdef CUDA_BUILD
     // Allocate GPU memory
@@ -1125,26 +1255,35 @@ namespace MetFEM{
     auto w = lib.world();
     writer.write();
     
-    double length_tres = 0.02;
-    double ang_tres = 0.1;
-/*
+    double length_tres = 0.85;
+    double ang_tres = 40.0;
+
     //run_case<3>(&mesh, "test");
     //refine(&mesh);
-    adapt_warp<3>(mesh);
-    writer.write();    
-*/    
+    //adapt_warp<3>(mesh);
+    //writer.write();    
+    
+    // std::cout << "------Refine by quality"<<std::endl;
+    // Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
+    // adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
+    // writer2.write();
+    
     std::cout << "------Refine by quality"<<std::endl;
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
+
     //adapt_angle_with_threshold
     //adapt_warp_with_threshold
-    adapt_angle_with_threshold<3>(mesh,length_tres, ang_tres);
+    //adapt_angle_with_threshold<3>(mesh,length_tres, ang_tres);
+
+    adapt_with_thresholds<3>(mesh,length_tres, ang_tres);
+
     writer2.write();
-/*
-    std::cout<<"FIELD REMESH"<<std::endl;
-    Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
-    adapt_mesh_based_on_temperature(mesh);
-    writer3.write();
-   */     
+    
+    // std::cout<<"FIELD REMESH"<<std::endl;
+    // Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
+    // adapt_mesh_based_on_temperature(mesh);
+    // writer3.write();
+     
   // auto lib_osh = Omega_h::Library(&argc, &argv);
   // auto comm_osh = lib_osh.world();
 
@@ -1214,184 +1353,7 @@ namespace MetFEM{
     std::cout<<"MAPPING"<<std::endl; 
     this->Map<3>(mesh);
   }
-  
-  /*
-  void ReMesher::MeshMMG(){
-    
-    int np, nt, na, nquad, nreq, ref, nr, nc, *corner, *required, *ridge;
-    MMG5_int Tetra[4], Edge[2], k;
-    double Point[3];
-  
-    MMG5_pMesh mmgMesh;
-    MMG5_pSol mmgSol;
-
-    mmgMesh = NULL;
-    mmgSol = NULL;
-
-    MMG3D_Init_mesh(MMG5_ARG_start,
-                    MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol,
-                    MMG5_ARG_end);
-
-    np = this->getNodesNumber();
-
-    nt = nquad = 0;
-    na = 0;
-    /*
-    for (int e = 0; e < this->getElementsNumber(); e++) {
-        if (this->getElement(e)->getNumberOfNodes() == 4)
-            nt++;  // Tetrahedra
-        else
-            nquad++;
-    }
-    nt += 2 * nquad; // Splits
-    cout << "Number of tetras: " << nt << ", quads: " << nquad << endl;
-
-    cout << "Structure Node count " << endl;
-
-    if (MMG3D_Set_meshSize(mmgMesh, np, nt, na) != 1)
-        cout << "ERROR ALLOCATING MESH" << endl;
-    else
-        cout << "MESH CREATED OK" << endl;
-    cout << "Number of points: " << mmgMesh->na << endl;
-
-    if (MMG3D_Chk_meshData(mmgMesh, mmgSol) != 1)
-        exit(EXIT_FAILURE);
-    else
-        cout << "Initial Mesh check succeeded" << endl;
-
-    int *edges = new int[2 * na];
-
-    // Set vertices (nodes)
-    for (int n = 0; n < np; n++) {
-        if (!MMG3D_Set_vertex(mmgMesh, Global_Structure->getNode(n)->coords(0), 
-                                      Global_Structure->getNode(n)->coords(1), 
-                                      Global_Structure->getNode(n)->coords(2), 
-                                      NULL, n + 1))
-            cout << "ERROR ALLOCATING NODE " << n << endl;
-    }
-    cout << "Vertices allocated" << endl;
-
-    // Set tetrahedra (elements)
-    for (int e = 0; e < this->getElementsNumber(); e++) {
-        if (this->getElement(e)->getNumberOfNodes() == 4) {
-            MMG3D_Set_tetrahedron(mmgMesh,
-                                   Global_Structure->getElement(e)->nodes(0)->Id + 1,
-                                   Global_Structure->getElement(e)->nodes(1)->Id + 1,
-                                   Global_Structure->getElement(e)->nodes(2)->Id + 1,
-                                   Global_Structure->getElement(e)->nodes(3)->Id + 1,
-                                   NULL, 2 * e + 1);
-        }
-    }
-
-    // Set solution (e.g., plastic strain) for each node
-    if (MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar) != 1)
-        exit(EXIT_FAILURE);
-    
-    for (int k = 1; k <= np; k++) {
-        if (MMG3D_Set_scalarSol(mmgSol, 0.8 - Global_Structure->getNode(k - 1)->getNodalValue("plasticStrain", 0), k) != 1)
-            exit(EXIT_FAILURE);
-    }
-
-    // Set parameters (e.g., edge size)
-    MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmax, 0.1);
-
-    // Perform remeshing
-    int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
-
-    // Get the new mesh size after remeshing
-    if (MMG3D_Get_meshSize(mmgMesh, &np, &nt, NULL, &na) != 1)
-        exit(EXIT_FAILURE);
-    cout << "New node count: " << np << endl;
-
-    // Retrieve new vertex positions after remeshing
-    corner = (int*)calloc(np + 1, sizeof(int));
-    if (!corner) {
-        perror("  ## Memory problem: calloc");
-        exit(EXIT_FAILURE);
-    }
-
-    required = (int*)calloc(MAX4(np, 0, nt, na) + 1, sizeof(int));
-    if (!required) {
-        perror("  ## Memory problem: calloc");
-        exit(EXIT_FAILURE);
-    }
-
-    ridge = (int*)calloc(na + 1, sizeof(int));
-    if (!ridge) {
-        perror("  ## Memory problem: calloc");
-        exit(EXIT_FAILURE);
-    }
-
-    std::vector<std::array<double, 3>> tgt_nodes(np);
-    std::vector<std::array<int, 4>> tgt_tetras(nt);
-    std::vector<double> tgt_scalar(np);
-
-    nreq = 0;
-    nc = 0;
-
-    // Recover vertices and store their data
-    for (k = 1; k <= np; k++) {
-        if (MMG3D_Get_vertex(mmgMesh, &(Point[0]), &(Point[1]), &(Point[2]), &ref, &(corner[k]), &(required[k])) != 1)
-            exit(EXIT_FAILURE);
-
-        std::array<double, 3> p0 = {Point[0], Point[1], Point[2]};
-        tgt_nodes[k - 1] = p0;
-
-        if (corner[k]) nc++;
-        if (required[k]) nreq++;
-    }
-
-    // Recover tetrahedra (elements) and store them
-    for (int tri = 0; tri < mmgMesh->nt; tri++) {
-        MMG5_int Tetra[4];
-        int ref;
-
-        MMG3D_Get_tetrahedron(mmgMesh, &(Tetra[0]), &(Tetra[1]), &(Tetra[2]), &(Tetra[3]), &ref, &(required[tri + 1]));
-
-        std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
-        tgt_tetras[tri] = ta;
-    }
-
-    cout << "New mesh processed" << endl;
-
-
-  
-    
-} //MMG
-  */
-  /*
-// Function to compute barycentric coordinates for a 2D triangle (example for 2D mesh)
-std::array<double, 3> barycentric_coordinates(const std::array<double, 2>& p,
-                                              const std::array<double, 2>& p0,
-                                              const std::array<double, 2>& p1,
-                                              const std::array<double, 2>& p2) {
-    double denominator = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
-    double lambda1 = ((p1[0] - p[0]) * (p2[1] - p[1]) - (p2[0] - p[0]) * (p1[1] - p[1])) / denominator;
-    double lambda2 = ((p2[0] - p[0]) * (p0[1] - p[1]) - (p0[0] - p[0]) * (p2[1] - p[1])) / denominator;
-    double lambda3 = 1.0 - lambda1 - lambda2;
-    return {lambda1, lambda2, lambda3};
-}
-
-// Function to interpolate scalar values at the nodes
-double interpolate_scalar(const std::array<double, 2>& p,
-                          const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
-                          double scalar0, double scalar1, double scalar2) {
-    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
-    return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2;
-}
-
-// Function to interpolate vector values at the nodes (e.g., displacement)
-std::array<double, 3> interpolate_vector(const std::array<double, 2>& p,
-                                         const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
-                                         std::array<double, 3> v0, std::array<double, 3> v1, std::array<double, 3> v2) {
-    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
-    return {
-        lambdas[0] * v0[0] + lambdas[1] * v1[0] + lambdas[2] * v2[0],
-        lambdas[0] * v0[1] + lambdas[1] * v1[1] + lambdas[2] * v2[1],
-        lambdas[0] * v0[2] + lambdas[1] * v1[2] + lambdas[2] * v2[2]
-    };
-}
-*/
+ 
 #include <array>
 #include <iostream>
 
@@ -1415,25 +1377,6 @@ std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
         return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
     }
 
-    // Compute barycentric coordinates
-    std::array<double, 3> vp = {p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]};
-
-    double lambda0 = ((vp[0] * (v1[1] * v2[2] - v1[2] * v2[1]))
-                    - (vp[1] * (v1[0] * v2[2] - v1[2] * v2[0]))
-                    + (vp[2] * (v1[0] * v2[1] - v1[1] * v2[0]))) / detT;
-
-    double lambda1 = ((v0[0] * (vp[1] * v2[2] - vp[2] * v2[1]))
-                    - (v0[1] * (vp[0] * v2[2] - vp[2] * v2[0]))
-                    + (v0[2] * (vp[0] * v2[1] - vp[1] * v2[0]))) / detT;
-
-    double lambda2 = ((v0[0] * (v1[1] * vp[2] - v1[2] * vp[1]))
-                    - (v0[1] * (v1[0] * vp[2] - v1[2] * vp[0]))
-                    + (v0[2] * (v1[0] * vp[1] - v1[1] * vp[0]))) / detT;
-
-    double lambda3 = 1.0 - lambda0 - lambda1 - lambda2;
-
-    return {lambda0, lambda1, lambda2, lambda3};
-}
 
 // Function to interpolate scalar values at the nodes of a tetrahedron
 double interpolate_scalar(const std::array<double, 3>& p,

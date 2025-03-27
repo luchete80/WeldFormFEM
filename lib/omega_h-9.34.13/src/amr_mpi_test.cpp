@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace Omega_h {
-
+ 
 static void test_2D_case1(CommPtr comm) {
   auto mesh = build_box(comm, OMEGA_H_HYPERCUBE,
       2, 1., 0., 2, 1, 0); 

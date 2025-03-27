@@ -2,7 +2,7 @@
 #define _REMESHER_
 
 #include <Omega_h_mesh.hpp>
-//using namespace Omega_h;
+
 
 namespace MetFEM{
 
@@ -13,15 +13,16 @@ class ReMesher{
   ReMesher(){}
   ReMesher(Domain_d *);
   
+
   template <int dim>
   void Map(Omega_h::Mesh &mesh);
   
-  void MeshMMG();
-  
+  void MeshMMG(); 
   void ReMesh();
 
   protected:
   Domain_d *m_dom;
+  Omega_h::Mesh m_mesh;
 };
 
 }; //MetFEM

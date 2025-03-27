@@ -1,10 +1,12 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
+set (BUILD_EXAMPLES OFF)
+
 
 if (BUILD_GPU)
 project (WeldFormFEM LANGUAGES CXX CUDA )
 else ()
-project (MetFEMGPU LANGUAGES CXX)
+project (WeldFormFEM LANGUAGES CXX CUDA )
 project (1el_3d LANGUAGES CXX)
 project (WeldFormFEM LANGUAGES CXX)
 endif (BUILD_GPU)
@@ -47,6 +49,7 @@ ELSE ()
   INCLUDE      (FindOpenMP)
   message ("BUILD GPU set to OFF")
   if (OPENMP_FOUND)
+      message ("OPENMP FOUND!!!")
       set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
       set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
@@ -59,7 +62,7 @@ set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             main_4_elem_3d.C
                             PROPERTIES LANGUAGE CXX)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
 # set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --use_fast_math=false")
 
@@ -106,12 +109,13 @@ set (SOURCES
                          input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          VTKWriter.C
-                         ReMesher.C
                    )
 
 if (BUILD_REMESH)
  set (SOURCES "${SOURCES}" ReMesher.C)
 endif()
+
+if (BUILD_EXAMPLES)
 
  add_executable(1elem
                          main_1_elem_3d.C
@@ -125,14 +129,14 @@ endif()
 
                )
 
-
+endif()
                    
 add_executable(WeldFormFEM WeldFormFEM.C
                          "${SOURCES}"
                )
 
 if (BUILD_OMEGA_H)
-  add_executable (test_omega_h test_omega_h.cpp)
+  #add_executable (test_omega_h test_omega_h.cpp)
 endif()
 #
 #add_executable(axisymm
@@ -219,24 +223,31 @@ set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
 set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
 
-
+if (BUILD_EXAMPLES)
 #TARGET_LINK_LIBRARIES (1elem  cuda cudadevrt)
 TARGET_LINK_LIBRARIES (1elem   cuda cudart cudadevrt)
 TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
+endif()
 
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
 else()
 # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
 if (BUILD_REMESH)
+if (BUILD_EXAMPLES)
   TARGET_LINK_LIBRARIES (1elem omega_h)
   TARGET_LINK_LIBRARIES (4elem omega_h)
-  TARGET_LINK_LIBRARIES (WeldFormFEM omega_h)
+endif()
+  TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h)
 endif()
 
 endif()
+
 
 if (BUILD_OMEGA_H)
-  TARGET_LINK_LIBRARIES (test_omega_h omega_h)
+  if (MSVC)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MD")  # Use the same runtime library as Omega_h
+  endif()
+  #TARGET_LINK_LIBRARIES (test_omega_h omega_h)
 endif()
 
 #FOREACH(var ${EXES})
