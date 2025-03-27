@@ -799,9 +799,9 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     std::string name = "out_amr_length_3D_STEP_"+std::to_string(i);
     Omega_h::vtk::Writer writer2(name.c_str(), &mesh);
     writer2.write();
-
-    std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
-    std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
+    
+    //std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
+    //std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
     //opts.max_length_desired = 0.8;  // If an element is too big, split it
                     
         for (LO elem = 0; elem < mesh.nelems(); ++elem) {
@@ -846,6 +846,113 @@ void adapt_warp_with_threshold(Mesh &mesh, Real length_threshold, Real angle_thr
     std::cout << "New mesh verts : "<<mesh.nverts()<<std::endl;
     std::cout << "New mesh elems ; "<<mesh.nelems()<<std::endl;
     std::cout << "Mesh adaptation complete based on temperature gradient and mesh density." << std::endl;
+}
+
+template <int dim>
+Real dot_(Vector<dim> a, Vector<dim> b) {
+    Real result = 0.0;
+    for (int i = 0; i < dim; ++i) {
+        result += a[i] * b[i];
+    }
+    return result;
+}
+
+template <int dim>
+void adapt_angle_with_threshold(Mesh &mesh, Real length_threshold, Real angle_threshold) {
+    mesh.set_parting(OMEGA_H_GHOSTED);
+    auto metrics = get_implied_isos(&mesh);
+    mesh.add_tag(VERT, "metric", 1, metrics);
+    add_dye(&mesh);
+    mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
+    add_pointwise(&mesh);
+    auto opts = AdaptOpts(&mesh);
+    opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+    opts.xfer_opts.integral_map["density"] = "mass";
+    opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+    opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+    opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+    //opts.xfer_opts.max_edge_length = length_threshold;
+    opts.verbosity = EXTRA_STATS;
+
+    auto mid = zero_vector<dim>();
+    mid[0] = mid[1] = .5;
+    Now t0 = now();
+
+
+    opts.min_quality_allowed = 1.0e-3;  // Prevent bad-quality elements
+    opts.should_refine = true;  // Allow refinement
+    opts.should_coarsen = false;  // Allow coarsening
+
+    //mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
+
+    // Compute element edge lengths
+    auto elems2verts = mesh.ask_down(dim, VERT);
+    auto vert_coords = mesh.coords();
+    bool refine_needed = false;
+    
+    //std::string name = "out_amr_length_3D_STEP_"+std::to_string(i);
+    //Omega_h::vtk::Writer writer2(name.c_str(), &mesh);
+    //writer2.write();
+    
+
+  for (LO elem = 0; elem < mesh.nelems(); ++elem) {
+      for (int j = 0; j < dim + 1; ++j) {
+          for (int k = j + 1; k < dim + 1; ++k) {
+              auto vj = elems2verts.ab2b[elem * (dim + 1) + j];
+              auto vk = elems2verts.ab2b[elem * (dim + 1) + k];
+              auto pj = get_vector<dim>(vert_coords, vj);
+              auto pk = get_vector<dim>(vert_coords, vk);
+
+              auto edge_vector = pk - pj;
+              auto edge_length = norm(edge_vector);
+              
+              // Check if length exceeds threshold
+              if (edge_length > length_threshold) {
+                  refine_needed = true;
+                  break;
+              }
+
+              // Check angles between edges
+              for (int l = k + 1; l < dim + 1; ++l) {
+                  auto vl = elems2verts.ab2b[elem * (dim + 1) + l];
+                  auto pl = get_vector<dim>(vert_coords, vl);
+
+                  auto edge_vector2 = pl - pj;
+                  auto dot_product = dot_(edge_vector, edge_vector2);
+                  auto norm_product = Omega_h::norm(edge_vector) * norm(edge_vector2);
+
+                  if (norm_product > 0) { // Avoid division by zero
+                      Real angle = std::acos(dot_product / norm_product);
+
+                      // Convert angle from radians to degrees if needed
+                      angle = angle * (180.0 / M_PI);
+                      
+                      if (angle > angle_threshold) {
+                          refine_needed = true;
+                          break;
+                      }
+                  }
+              }
+              if (refine_needed) break;
+          }
+          if (refine_needed) break;
+      }
+      if (refine_needed) {
+          std::cout << "Refining due to high angle." << std::endl;
+          break;
+      }
+  }//elem
+  
+      if (refine_needed) {
+      std::cout << "Adapting: adapt(&mesh, opts);"<<std::endl;
+      adapt(&mesh, opts);
+      /*
+        while (warp_to_limit(&mesh, opts)) {
+            adapt(&mesh, opts);
+        }
+    */
+    }
+    
 }
 
 void adapt_mesh_based_on_temperature(Mesh& mesh) {
@@ -988,6 +1095,7 @@ namespace MetFEM{
     cudaMalloc((void**)&d_connectivity_data, num_elements * 4 * sizeof(int));
 
     // Copy from host to GPU
+    std::cout << "Old Mesh verts : "<<m_dom->m_node_count<<std::endl;
     cudaMemcpy(d_node_data, x, num_nodes * 3 * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(d_connectivity_data, h_connectivity_data, num_elements * 4 * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -1027,7 +1135,9 @@ namespace MetFEM{
 */    
     std::cout << "------Refine by quality"<<std::endl;
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
-    adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
+    //adapt_angle_with_threshold
+    //adapt_warp_with_threshold
+    adapt_angle_with_threshold<3>(mesh,length_tres, ang_tres);
     writer2.write();
 /*
     std::cout<<"FIELD REMESH"<<std::endl;
@@ -1100,9 +1210,12 @@ namespace MetFEM{
 
   // }
 
-
+    Mesh new_mesh;
+    std::cout<<"MAPPING"<<std::endl; 
+    this->Map<3>(mesh);
   }
   
+  /*
   void ReMesher::MeshMMG(){
     
     int np, nt, na, nquad, nreq, ref, nr, nc, *corner, *required, *ridge;
@@ -1123,6 +1236,7 @@ namespace MetFEM{
 
     nt = nquad = 0;
     na = 0;
+    /*
     for (int e = 0; e < this->getElementsNumber(); e++) {
         if (this->getElement(e)->getNumberOfNodes() == 4)
             nt++;  // Tetrahedra
@@ -1241,74 +1355,180 @@ namespace MetFEM{
     cout << "New mesh processed" << endl;
 
 
+  
     
+} //MMG
+  */
+  /*
+// Function to compute barycentric coordinates for a 2D triangle (example for 2D mesh)
+std::array<double, 3> barycentric_coordinates(const std::array<double, 2>& p,
+                                              const std::array<double, 2>& p0,
+                                              const std::array<double, 2>& p1,
+                                              const std::array<double, 2>& p2) {
+    double denominator = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
+    double lambda1 = ((p1[0] - p[0]) * (p2[1] - p[1]) - (p2[0] - p[0]) * (p1[1] - p[1])) / denominator;
+    double lambda2 = ((p2[0] - p[0]) * (p0[1] - p[1]) - (p0[0] - p[0]) * (p2[1] - p[1])) / denominator;
+    double lambda3 = 1.0 - lambda1 - lambda2;
+    return {lambda1, lambda2, lambda3};
+}
+
+// Function to interpolate scalar values at the nodes
+double interpolate_scalar(const std::array<double, 2>& p,
+                          const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
+                          double scalar0, double scalar1, double scalar2) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
+    return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2;
+}
+
+// Function to interpolate vector values at the nodes (e.g., displacement)
+std::array<double, 3> interpolate_vector(const std::array<double, 2>& p,
+                                         const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
+                                         std::array<double, 3> v0, std::array<double, 3> v1, std::array<double, 3> v2) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
+    return {
+        lambdas[0] * v0[0] + lambdas[1] * v1[0] + lambdas[2] * v2[0],
+        lambdas[0] * v0[1] + lambdas[1] * v1[1] + lambdas[2] * v2[1],
+        lambdas[0] * v0[2] + lambdas[1] * v1[2] + lambdas[2] * v2[2]
+    };
+}
+*/
+#include <array>
+#include <iostream>
+
+// Function to compute barycentric coordinates for a 3D tetrahedron
+std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
+                                              const std::array<double, 3>& p0,
+                                              const std::array<double, 3>& p1,
+                                              const std::array<double, 3>& p2,
+                                              const std::array<double, 3>& p3) {
+    // Compute volume of the tetrahedron
+    std::array<double, 3> v0 = {p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]};
+    std::array<double, 3> v1 = {p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]};
+    std::array<double, 3> v2 = {p3[0] - p0[0], p3[1] - p0[1], p3[2] - p0[2]};
     
-    
+    double detT = v0[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+                - v0[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+                + v0[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    if (detT == 0.0) {
+        std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
+        return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
     }
-  
-void ReMesher::Map(Mesh &mesh){
-     
-  int np = mesh-> ;
-      ///////////////////////////////// MAPPING
-  std::vector<NodalField> fnew(np);  // Interpolated results for the new mesh
-  std::vector<NodalField> fcur(np);  // Current results (if needed for further use)
 
-  // Compute element edge lengths
-  auto elems2verts = mesh.ask_down(dim, VERT);
-  auto vert_coords = mesh.coords();
-  
-  int nf_nodes = 0;  // Counter for nodes
+    // Compute barycentric coordinates
+    std::array<double, 3> vp = {p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]};
 
-  // Loop over the target points (new mesh nodes)
-  for (int n = 0; n < np; n++) {
-/*
-      bool found = false;  // Flag to indicate whether the node has been found in an element
-      
-      int i = 0;
-      // Loop through elements to find the one containing the target node
-      while (i < Global_Structure->getElementsNumber() && !found) {
-          // Connectivity for the tetrahedral element (or triangular if needed)
-          std::vector<std::array<int, 3>> conn = {{0, 1, 2}, {0, 2, 3}};
-          int pass = (Global_Structure->getElement(i)->getNumberOfNodes() > 3) ? 2 : 1;  // Tetrahedral or triangular
-          
-          // Loop through the connectivity passes (tetrahedral elements may require 2 passes)
-          for (int cp = 0; cp < pass; cp++) {
-              Node* nnpoint[3];  // Array to hold nodes of the element
-              std::vector<std::array<double, 2>> pp(3);  // Node coordinates
+    double lambda0 = ((vp[0] * (v1[1] * v2[2] - v1[2] * v2[1]))
+                    - (vp[1] * (v1[0] * v2[2] - v1[2] * v2[0]))
+                    + (vp[2] * (v1[0] * v2[1] - v1[1] * v2[0]))) / detT;
 
-              // Extract the coordinates of the element's nodes
-              for (int p = 0; p < 3; p++) {
-                  nnpoint[p] = Global_Structure->getElement(i)->nodes(conn[cp][p]);  // Nodes from the original mesh
-                  pp[p] = {nnpoint[p]->coords(0), nnpoint[p]->coords(1)};  // Coordinates of the nodes
-              }
+    double lambda1 = ((v0[0] * (vp[1] * v2[2] - vp[2] * v2[1]))
+                    - (v0[1] * (vp[0] * v2[2] - vp[2] * v2[0]))
+                    + (v0[2] * (vp[0] * v2[1] - vp[1] * v2[0]))) / detT;
 
-              // Compute barycentric coordinates of the target node in the element
-              std::array<double, 3> lambdas = barycentric_coordinates(tgt_nodes[n], pp[0], pp[1], pp[2]);
+    double lambda2 = ((v0[0] * (v1[1] * vp[2] - v1[2] * vp[1]))
+                    - (v0[1] * (v1[0] * vp[2] - v1[2] * vp[0]))
+                    + (v0[2] * (v1[0] * vp[1] - v1[1] * vp[0]))) / detT;
 
-              // Check if the target node is inside the element (lambdas should all be >= -5.0e-2)
-              if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2) {
-                  // Interpolate scalar values at the element's nodes
-                  double scalar0 = nnpoint[0]->New->disp(1);
-                  double scalar1 = nnpoint[1]->New->disp(1);
-                  double scalar2 = nnpoint[2]->New->disp(1);
-                  tgt_scalar[n] = interpolate_scalar(tgt_nodes[n], pp[0], pp[1], pp[2], scalar0, scalar1, scalar2);    
+    double lambda3 = 1.0 - lambda0 - lambda1 - lambda2;
 
-                  // Interpolate vector values for displacement (if needed)
-                  fnew[n].disp = interp_vector(lambdas, nnpoint[0]->New->disp, 
-                                                nnpoint[1]->New->disp, nnpoint[2]->New->disp);  
+    return {lambda0, lambda1, lambda2, lambda3};
+}
 
-                  // Interpolate other nodal fields (like current values, etc.)
-                  Interp_NodalField(&fnew[n], lambdas, nnpoint[0]->New, nnpoint[1]->New, nnpoint[2]->New);
-                  Interp_NodalField(&fcur[n], lambdas, nnpoint[0]->Current, nnpoint[1]->Current, nnpoint[2]->Current);
+// Function to interpolate scalar values at the nodes of a tetrahedron
+double interpolate_scalar(const std::array<double, 3>& p,
+                          const std::array<double, 3>& p0, const std::array<double, 3>& p1, 
+                          const std::array<double, 3>& p2, const std::array<double, 3>& p3,
+                          double scalar0, double scalar1, double scalar2, double scalar3) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2, p3);
+    return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2 + lambdas[3] * scalar3;
+}
 
-                  found = true;  // Mark that the node has been mapped
-              } // End of lambdas check
-          }  // End of connectivity pass
-          
-            i++;  // Move to the next element
-        }  // End of element loop
-    }  // End of target node loop
+// Function to interpolate vector values at the nodes of a tetrahedron
+std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
+                                         const std::array<double, 3>& p0, const std::array<double, 3>& p1,
+                                         const std::array<double, 3>& p2, const std::array<double, 3>& p3,
+                                         std::array<double, 3> v0, std::array<double, 3> v1,
+                                         std::array<double, 3> v2, std::array<double, 3> v3) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2, p3);
+    return {
+        lambdas[0] * v0[0] + lambdas[1] * v1[0] + lambdas[2] * v2[0] + lambdas[3] * v3[0],
+        lambdas[0] * v0[1] + lambdas[1] * v1[1] + lambdas[2] * v2[1] + lambdas[3] * v3[1],
+        lambdas[0] * v0[2] + lambdas[1] * v1[2] + lambdas[2] * v2[2] + lambdas[3] * v3[2]
+    };
+}
+
+template <int dim>
+void ReMesher::Map(Mesh& mesh) {
+    // Loop over the target nodes in the new mesh
+    auto coords = mesh.coords();
     
+    double *scalar= new double[mesh.nverts()];
+    
+    //COMPY OLD MESH TO NEW 
+    
+    
+    
+    auto f = OMEGA_H_LAMBDA(LO vert) {
+      auto x = get_vector<3>(coords, vert);
+      std::cout<< "VERT "<<vert<<std::endl;
+    //for (int n = 0; n < mesh.nverts(); n++) {
+        bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+        std::cout<< "NODES "<<std::endl;
+        //std::cout << mesh.coords()[n]<<std::endl;
+        
+        // Get coordinates for the node in the new mesh
+        std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+
+        
+        // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // Connectivity for the tetrahedral element (assumed to have 4 nodes per element in the old mesh)
+            int n0 = m_dom->m_elnod[4*i];   // Node 0 in the element
+            int n1 = m_dom->m_elnod[4*i+1]; // Node 1 in the element
+            int n2 = m_dom->m_elnod[4*i+2]; // Node 2 in the element
+            int n3 = m_dom->m_elnod[4*i+3]; // Node 3 in the element
+
+            std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+            std::array<double, 4> lambdas = barycentric_coordinates(target_node, p0, p1, p2, p3);
+
+            if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2 && lambdas[3] >= -5.0e-2) { 
+                std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+                double scalar[4];
+                //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
+
+                double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
+
+
+                // Interpolate vector values for displacement (if needed)
+                std::array<double, 3> disp[4];
+                for (int n=0;n<4;n++)
+                  for (int d=0;d<3;d++)
+                    disp[n][d] = m_dom->u[3*m_dom->m_elnod[4*i+n]+d];
+                
+                std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
+
+                // Optionally, interpolate other scalar/vector fields for the new mesh node here
+
+                std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
+                std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+
+                found = true;
+                break;  // Exit the element loop once the element is found
+            }//lambdas
+          }//elem
+
+        if (!found) {
+            std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+        }
+      //n++;
+    };//NODE LOOP
+    parallel_for(mesh.nverts(), f);
   }
   
 };
