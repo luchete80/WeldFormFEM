@@ -1468,10 +1468,10 @@ void ReMesher::WriteDomain(){
     
   auto f = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert); //dim crashes
-    std::cout<< "VERT "<<vert<<std::endl;
+    //std::cout<< "VERT "<<vert<<std::endl;
   //for (int n = 0; n < mesh.nverts(); n++) {
     bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-    std::cout<< "NODES "<<std::endl;
+    //std::cout<< "NODES "<<std::endl;
     std::cout << m_mesh.coords()[vert]<<std::endl;
     
       // Get coordinates for the node in the new mesh
@@ -1491,9 +1491,9 @@ void ReMesher::WriteDomain(){
     for (int ve=0;ve<4;ve++){
       auto v = elems2verts.ab2b[elem * 4 + ve];
       elnod_h[4*elem+ve] = v;
-      cout << v <<" ";
+      //cout << v <<" ";
       }
-    cout <<endl;
+    //cout <<endl;
   };//NODE LOOP  
   parallel_for(m_mesh.nelems(), fe); 
   
@@ -1566,7 +1566,7 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
             std::array<double, 4> lambdas = barycentric_coordinates(target_node, p0, p1, p2, p3);
 
             if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2 && lambdas[3] >= -5.0e-2) { 
-                std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+                //std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
                 double scalar[4];
                 //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
 
@@ -1579,14 +1579,14 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
                   for (int d=0;d<3;d++)
                     disp[n][d] = o_field[3*m_dom->m_elnod[4*i+n]+d];
                 
-                cout << "Interp disp"<<endl;
+                //cout << "Interp disp"<<endl;
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
                 for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
 
-                std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
-                std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
-                std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+                //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
+                //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                //std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
 
                 found = true;
                 break;  // Exit the element loop once the element is found
@@ -1663,7 +1663,8 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
                 found = true;
             }
         }//elem
-        for (int d=0;d<field_dim;d++) vfield[closest_elem*field_dim+d] = o_field[elem*field_dim+d];
+        cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        for (int d=0;d<field_dim;d++) vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
         
         if (found) {
             std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
