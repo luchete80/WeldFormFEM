@@ -1431,13 +1431,20 @@ void ReMesher::WriteDomain(){
     
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
-  double *vfield  = new double [3*m_mesh.nverts()];    
+  double *ufield  = new double [3*m_mesh.nverts()];    
+  
+  double *vfield  = new double [3*m_mesh.nverts()]; 
   double *esfield = new double [m_mesh.nelems()]; 
   cout << "MAPPING"<<endl;
-  MapNodalVector<3>(m_mesh, vfield,  m_dom->u);
-
+  ///// BEFORE REDIMENSION!
+  MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
+  MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
   MapElemVector<3>(m_mesh, esfield,  m_dom->pl_strain, 1);
 
+
+  
+  
+  ////BEFORE REWRITE
   //// WRITE
   
   m_dom->m_node_count = m_mesh.nverts();
@@ -1448,8 +1455,10 @@ void ReMesher::WriteDomain(){
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
 
   cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u, vfield, sizeof(double) * m_dom->m_node_count * 3);    
-
+  memcpy_t(m_dom->u, ufield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->v, vfield, sizeof(double) * m_dom->m_node_count * 3);    
+ 
+  memcpy_t(m_dom->pl_strain, esfield, sizeof(double) * m_dom->m_elem_count ); 
 
   double *x_h = new double [3*m_mesh.nverts()];
   int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
@@ -1595,7 +1604,7 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
 }//MAP
 
 template <int dim>
-void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int &field_dim) {
+void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int field_dim) {
     auto coords = mesh.coords();
     double *scalar = new double[mesh.nverts()];
     double *vector = new double[mesh.nverts() * 3];
@@ -1653,8 +1662,9 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int &f
                 closest_elem = i;
                 found = true;
             }
-        }
-
+        }//elem
+        for (int d=0;d<field_dim;d++) vfield[closest_elem*field_dim+d] = o_field[elem*field_dim+d];
+        
         if (found) {
             std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
         } else {

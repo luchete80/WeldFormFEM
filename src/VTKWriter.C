@@ -368,10 +368,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
 
-/*
-  
+  /*
   m_oss<<"SCALARS stress float 1"<<endl;
   m_oss<<"LOOKUP_TABLE default"<<endl;
+  
   
   double *a = new double[dom->m_node_count*6];
   
@@ -420,7 +420,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     m_oss <<dom->p[n]<<endl;  
 
   printDummyElem(dom,m_oss);
-      
+*/      
   //ADD ALSO DU;;Y pressure CONTACT PARTICLES
 
   m_oss << "SCALARS pl_strain float 1"<<endl;
@@ -430,7 +430,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   printDummyElem(dom,m_oss);
   //cout << "Dummy done "<<endl;
-*/
+
   
 }
 
