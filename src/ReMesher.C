@@ -1432,11 +1432,11 @@ void ReMesher::WriteDomain(){
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   double *vfield  = new double [3*m_mesh.nverts()];    
-  double *esfield = new double [3*m_mesh.nverts()]; 
+  double *esfield = new double [m_mesh.nelems()]; 
   cout << "MAPPING"<<endl;
   MapNodalVector<3>(m_mesh, vfield,  m_dom->u);
 
-  MapElemVector<3>(m_mesh, vfield,  m_dom->pl_strain, 1);
+  MapElemVector<3>(m_mesh, esfield,  m_dom->pl_strain, 1);
 
   //// WRITE
   
