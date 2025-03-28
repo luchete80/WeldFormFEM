@@ -17,7 +17,9 @@ class ReMesher{
 
   template <int dim>
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
-
+  template <int dim>
+  void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
+  
   void WriteDomain();
       
   void MeshMMG(); 

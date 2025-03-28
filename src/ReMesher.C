@@ -962,8 +962,8 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
     opts.should_refine = true;  // Allow refinement
     opts.should_coarsen = false;  // Allow coarsening
 
-    //opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
-    //opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
+    opts.max_length_desired = 1.2 * length_threshold;  // If an element is too big, split it
+    opts.min_length_desired = 0.75 * length_threshold;  // If an element is too small, collaps
     
     cout << "Done "<<endl;
 
@@ -1431,12 +1431,15 @@ void ReMesher::WriteDomain(){
     
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
-  double *vfield = new double [3*m_mesh.nverts()];    
+  double *vfield  = new double [3*m_mesh.nverts()];    
+  double *esfield = new double [3*m_mesh.nverts()]; 
   cout << "MAPPING"<<endl;
   MapNodalVector<3>(m_mesh, vfield,  m_dom->u);
 
+  MapElemVector<3>(m_mesh, vfield,  m_dom->pl_strain, 1);
 
   //// WRITE
+  
   m_dom->m_node_count = m_mesh.nverts();
   m_dom->m_elem_count = m_mesh.nelems();
   
@@ -1475,23 +1478,27 @@ void ReMesher::WriteDomain(){
   auto fe = OMEGA_H_LAMBDA(LO elem) {
 
     bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-    std::cout<< "ELEM "<<std::endl;
+    //std::cout<< "ELEM "<<std::endl;
     for (int ve=0;ve<4;ve++){
       auto v = elems2verts.ab2b[elem * 4 + ve];
-      
+      elnod_h[4*elem+ve] = v;
+      cout << v <<" ";
       }
-
+    cout <<endl;
   };//NODE LOOP  
   parallel_for(m_mesh.nelems(), fe); 
+  
+  cout << "Done mapping "<<endl;
+
+  memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
+  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);   
     
-
-  memcpy_t(m_dom->x,  x_h, 3*sizeof(double) * m_dom->m_node_count);       
-
   //free_t (m_dom->x);
 }
 
 //USES DOMAIN TO INTERPOLATE VARS
 //HOST MAP
+//Args: mesh, dest field, original field
 template <int dim>
 void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
@@ -1509,6 +1516,24 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
     
     auto f = OMEGA_H_LAMBDA(LO vert) {
       auto x = get_vector<3>(coords, vert);
+      
+      bool found_samenode = false;
+      double tol = 1.0e-3;
+      //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
+      for (int v = 0; v < m_dom->m_node_count; v++){
+        //If new node dist <tol, map new node = old node
+        std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
+        double distance = 0.0;
+        for (int i = 0; i < 3; ++i) {
+            distance += (x[i] - p0[i]) * (x[i] - p0[i]);
+        }
+        if (distance<tol){
+          found_samenode = true;
+          for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
+        }                
+      }//node
+      
+      if (!found_samenode){
     //for (int n = 0; n < mesh.nverts(); n++) {
         bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
         //std::cout << mesh.coords()[n]<<std::endl;
@@ -1547,7 +1572,7 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
                 
                 cout << "Interp disp"<<endl;
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
-                //for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
+                for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
 
                 std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
@@ -1558,14 +1583,86 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
                 break;  // Exit the element loop once the element is found
             }//lambdas
           }//elem
+          if (!found) {
+              std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+          }
+        }//found same node
 
-        if (!found) {
-            std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
-        }
       //n++;
     };//NODE LOOP
     parallel_for(mesh.nverts(), f);
 
 }//MAP
+
+template <int dim>
+void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int &field_dim) {
+    auto coords = mesh.coords();
+    double *scalar = new double[mesh.nverts()];
+    double *vector = new double[mesh.nverts() * 3];
+
+    auto elems2verts = m_mesh.ask_down(3, VERT);
+
+    auto f = OMEGA_H_LAMBDA(LO elem) {
+        bool found = false;
+        std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+        // Calculate barycenter of the current new element
+        for (int en = 0; en < 4; en++) {
+            auto v = elems2verts.ab2b[elem * 4 + en];
+            auto x = get_vector<3>(coords, v);
+            barycenter[0] += x[0];
+            barycenter[1] += x[1];
+            barycenter[2] += x[2];
+        }
+        barycenter[0] /= 4.0;
+        barycenter[1] /= 4.0;
+        barycenter[2] /= 4.0;
+
+        // Search for the closest old element by distance
+        double min_distance = std::numeric_limits<double>::max();
+        int closest_elem = -1;
+
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            int n0 = m_dom->m_elnod[4 * i];
+            int n1 = m_dom->m_elnod[4 * i + 1];
+            int n2 = m_dom->m_elnod[4 * i + 2];
+            int n3 = m_dom->m_elnod[4 * i + 3];
+
+            std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // Calculate the barycenter of the old element
+            std::array<double, 3> old_barycenter = {
+                (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            };
+
+            double distance = 
+            //std::sqrt(
+                std::pow(barycenter[0] - old_barycenter[0], 2) +
+                std::pow(barycenter[1] - old_barycenter[1], 2) +
+                std::pow(barycenter[2] - old_barycenter[2], 2)
+            ;
+            //);
+
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_elem = i;
+                found = true;
+            }
+        }
+
+        if (found) {
+            std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
+        } else {
+            std::cout << "No matching element found for element " << elem << std::endl;
+        }
+    };
+
+    parallel_for(mesh.nelems(), f);
+}
   
 };
