@@ -368,7 +368,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
 
-  /*
+  
   m_oss<<"SCALARS stress float 1"<<endl;
   m_oss<<"LOOKUP_TABLE default"<<endl;
   
@@ -376,8 +376,9 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   double *a = new double[dom->m_node_count*6];
   
   //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
-  //cout << "Avg Scalar" <<endl;
+  cout << "Avg Scalar" <<endl;
   avgScalar(dom->m_sigma,a,6)
+  cout << "Done "<<endl;
   
   double seq;
   //cout <<  "Averaging node count "<<endl;
@@ -420,7 +421,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     m_oss <<dom->p[n]<<endl;  
 
   printDummyElem(dom,m_oss);
-*/      
+     
   //ADD ALSO DU;;Y pressure CONTACT PARTICLES
 
   m_oss << "SCALARS pl_strain float 1"<<endl;

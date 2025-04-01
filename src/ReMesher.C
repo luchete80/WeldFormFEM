@@ -1179,6 +1179,7 @@ namespace MetFEM{
   {
 
     m_dom = d;
+    m_dom->m_dim = 3;
 
 
     Omega_h::Library lib;
@@ -1433,14 +1434,17 @@ void ReMesher::WriteDomain(){
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   double *ufield  = new double [3*m_mesh.nverts()];    
   
-  double *vfield  = new double [3*m_mesh.nverts()]; 
-  double *esfield = new double [m_mesh.nelems()]; 
+  double *vfield   = new double [3*m_mesh.nverts()]; 
+  double *esfield  = new double [m_mesh.nelems()]; 
+  double *pfield   = new double [m_mesh.nelems()]; 
+  double *sigfield = new double [6*m_mesh.nelems()]; 
   cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
-  MapElemVector<3>(m_mesh, esfield,  m_dom->pl_strain, 1);
-
+  MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
+  MapElemVector<3>(m_mesh, pfield,    m_dom->p);
+  MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma  , 6);
 
   
   
@@ -1458,12 +1462,13 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->u, ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v, vfield, sizeof(double) * m_dom->m_node_count * 3);    
  
-  memcpy_t(m_dom->pl_strain, esfield, sizeof(double) * m_dom->m_elem_count ); 
-
+  memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
+  memcpy_t(m_dom->m_sigma  , sigfield, sizeof(double) * m_dom->m_elem_count *6); 
+  
   double *x_h = new double [3*m_mesh.nverts()];
   int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
 
-  cout << "CONVERTING MESH"<<endl;
+  //cout << "CONVERTING MESH"<<endl;
   auto coords = m_mesh.coords();
     
   auto f = OMEGA_H_LAMBDA(LO vert) {
@@ -1472,7 +1477,7 @@ void ReMesher::WriteDomain(){
   //for (int n = 0; n < mesh.nverts(); n++) {
     bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
     //std::cout<< "NODES "<<std::endl;
-    std::cout << m_mesh.coords()[vert]<<std::endl;
+    //std::cout << m_mesh.coords()[vert]<<std::endl;
     
       // Get coordinates for the node in the new mesh
       std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
@@ -1500,7 +1505,8 @@ void ReMesher::WriteDomain(){
   cout << "Done mapping "<<endl;
 
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
-  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);   
+  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+  m_dom->setNodElem(elnod_h); 
     
   //free_t (m_dom->x);
 }
@@ -1610,10 +1616,14 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
     double *vector = new double[mesh.nverts() * 3];
 
     auto elems2verts = m_mesh.ask_down(3, VERT);
+    double max_field_val = 0.;
 
+    
     auto f = OMEGA_H_LAMBDA(LO elem) {
         bool found = false;
         std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+        std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
 
         // Calculate barycenter of the current new element
         for (int en = 0; en < 4; en++) {
@@ -1661,19 +1671,31 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
                 min_distance = distance;
                 closest_elem = i;
                 found = true;
+                barycenter_old_clos = old_barycenter;
             }
         }//elem
         cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
-        for (int d=0;d<field_dim;d++) vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
+        //cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
+        //cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
+        //cout << "Min dist "<<sqrt(min_distance)<<endl;
+        for (int d=0;d<field_dim;d++) {
+          vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
+          cout << vfield[elem*field_dim+d]<< " ";
+        }
+        cout <<endl;
+        //if (vfield[elem*field_dim] > max_field_val)
+        //  max_field_val = vfield[elem*field_dim];
         
         if (found) {
             std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
         } else {
             std::cout << "No matching element found for element " << elem << std::endl;
         }
-    };
+    }; //LAMBDA
 
     parallel_for(mesh.nelems(), f);
+    
+    //cout << "MAX FIELD VALUE: "<<max_field_val<<endl;
 }
   
 };
