@@ -1427,6 +1427,13 @@ std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
     };
 }
 
+void setVec (double *vec, int size, int dim, double val = 0.0){
+
+for (int v=0;v<size;v++)
+    vec[v] = val;
+  
+}
+
 void ReMesher::WriteDomain(){
     //const int dim = m_dom->m_dim;
     
@@ -1442,6 +1449,14 @@ void ReMesher::WriteDomain(){
   double *sigfield = new double [6*m_mesh.nelems()]; 
   double *syfield  = new double [m_mesh.nelems()]; 
 
+  
+  
+  double *str_rate = new double [6*m_mesh.nelems()]; 
+  double *rot_rate = new double [6*m_mesh.nelems()];  
+  double *tau      = new double [6*m_mesh.nelems()];   
+  
+  
+
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
@@ -1450,10 +1465,13 @@ void ReMesher::WriteDomain(){
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
-  MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma  , 6);
-
-  //MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
   
+  MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
+  MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
+  MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
+  MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
+  
+    //MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
   
   ////BEFORE REWRITE
   //// WRITE
@@ -1474,11 +1492,22 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->a, afield, sizeof(double) * m_dom->m_node_count * 3);    
    
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
-  memcpy_t(m_dom->m_sigma  , sigfield, sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_str_rate,   str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_rot_rate,   rot_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_tau,        tau,        sizeof(double) * m_dom->m_elem_count *6); 
+  
   memcpy_t(m_dom->sigma_y,   syfield,  sizeof(double) * m_dom->m_elem_count ); 
-    
+
+  memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
+   
+  m_dom->AssignMatAddress();
+  const Material_ *matt  = &m_dom->materials[0];
+  cout << "G "<<matt->Elastic().G()<<endl;
+  
   double *x_h = new double [3*m_mesh.nverts()];
   int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
+  
 
   //cout << "CONVERTING MESH"<<endl;
   auto coords = m_mesh.coords();
@@ -1703,17 +1732,89 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
         //cout <<endl;
         //if (vfield[elem*field_dim] > max_field_val)
         //  max_field_val = vfield[elem*field_dim];
-/*        
+       
         if (found) {
-            std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
+            //std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
         } else {
-            std::cout << "No matching element found for element " << elem << std::endl;
-        }*/
+            std::cout << "ERROR: No matching element found for element " << elem << std::endl;
+        }
     }; //LAMBDA
 
     parallel_for(mesh.nelems(), f);
     
     //cout << "MAX FIELD VALUE: "<<max_field_val<<endl;
+}
+
+template <int dim, typename T>
+void ReMesher::MapElemPtrVector(Mesh& mesh, T* vfield, T* o_field) {
+    auto coords = mesh.coords();
+    T* scalar = new T[mesh.nverts()];
+    T* vector = new T[mesh.nverts() * 3];
+
+    auto elems2verts = m_mesh.ask_down(3, VERT);
+    T max_field_val = static_cast<T>(0);
+
+    auto f = OMEGA_H_LAMBDA(LO elem) {
+        bool found = false;
+        std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+        std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
+
+        // Calculate barycenter of the current new element
+        for (int en = 0; en < 4; en++) {
+            auto v = elems2verts.ab2b[elem * 4 + en];
+            auto x = get_vector<3>(coords, v);
+            barycenter[0] += x[0];
+            barycenter[1] += x[1];
+            barycenter[2] += x[2];
+        }
+        barycenter[0] /= 4.0;
+        barycenter[1] /= 4.0;
+        barycenter[2] /= 4.0;
+
+        // Search for the closest old element by distance
+        double min_distance = std::numeric_limits<double>::max();
+        int closest_elem = -1;
+
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            int n0 = m_dom->m_elnod[4 * i];
+            int n1 = m_dom->m_elnod[4 * i + 1];
+            int n2 = m_dom->m_elnod[4 * i + 2];
+            int n3 = m_dom->m_elnod[4 * i + 3];
+
+            std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // Calculate the barycenter of the old element
+            std::array<double, 3> old_barycenter = {
+                (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            };
+
+            double distance = 
+                std::pow(barycenter[0] - old_barycenter[0], 2) +
+                std::pow(barycenter[1] - old_barycenter[1], 2) +
+                std::pow(barycenter[2] - old_barycenter[2], 2);
+
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_elem = i;
+                found = true;
+                barycenter_old_clos = old_barycenter;
+            }
+        }
+
+
+            vfield[elem] = o_field[closest_elem];
+
+        if (!found) {
+            std::cout << "ERROR: No matching element found for element " << elem << std::endl;
+        }
+    }; // LAMBDA
+
+    parallel_for(mesh.nelems(), f);
 }
   
 };

@@ -145,8 +145,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
   if ((step_count+1) % m_remesh_interval == 0){
     //cout << "REMESHING "<<endl;
-    //ReMesher remesh(this);
-    //remesh.WriteDomain();        
+    ReMesher remesh(this);
+    remesh.WriteDomain(); 
+    std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+    VTKWriter writer3(this, s.c_str());
+    writer3.writeFile();
+         
   }
   
   //printf("Prediction ----------------\n");
@@ -246,7 +250,6 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   //SECOND TIME
     //STRESSES CALC
-  //cout << "calc deriv"<<endl;
   calcElemJAndDerivatives();
   CalcElemVol();
   calcElemStrainRates();
@@ -256,8 +259,9 @@ void host_ Domain_d::SolveChungHulbert(){
   }else
     calcElemPressure();
   //calcElemPressureFromJ();
-  
+  cout << "elem stress"<<endl;
   CalcStressStrain(dt);
+  cout << "stress end"<<endl;
   calcElemForces();
   calcElemHourglassForces();
   
@@ -280,7 +284,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   
-  //cout << "Assemblying"<<endl;
+  cout << "Assemblying"<<endl;
   assemblyForces(); 
 
   calcAccel();
