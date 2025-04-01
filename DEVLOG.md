@@ -270,3 +270,5 @@ F90 PREVIOUS VERSION
          - Added example flag.
 ---------------------------------------------------------------------------------------
 20250401 - Added Domain::Free() for remesh old fields (mem leak)
+         - Mapped materials, and shear stresses and strain rates.
+         - REMESH IN Solver type works
