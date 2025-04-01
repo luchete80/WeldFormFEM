@@ -99,6 +99,7 @@ public:
     bc_count[0]=bc_count[1]=bc_count[2]=0;
     contact = false;
     m_thermal = false;
+    m_remesh_interval = 1e10;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
@@ -269,6 +270,8 @@ public:
   double dev_t getMinLength(){return m_min_length;}
 
   bool m_auto_contact; // if not define external nodes
+  void setRemeshInterval(int i) {m_remesh_interval = i;}
+  void Free();
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
@@ -297,7 +300,7 @@ protected:
   double *T;   /// temperature
   double *m_dTedt; //elem node
   double m_min_length;
-
+  int             m_remesh_interval;
 
   double          *pl_strain, *sigma_y;
   

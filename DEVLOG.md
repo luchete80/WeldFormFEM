@@ -268,3 +268,5 @@ F90 PREVIOUS VERSION
 20250326 - Added 2d test. Runs ok but fails inside WF code.
          - Fixed Omega_h on MSVC.
          - Added example flag.
+---------------------------------------------------------------------------------------
+20250401 - Added Domain::Free() for remesh old fields (mem leak)

@@ -142,6 +142,13 @@ void host_ Domain_d::SolveChungHulbert(){
       
   if (step_count % 100 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
+
+  if ((step_count+1) % m_remesh_interval == 0){
+    //cout << "REMESHING "<<endl;
+    //ReMesher remesh(this);
+    //remesh.WriteDomain();        
+  }
+  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
@@ -367,8 +374,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
   Time += dt;
   step_count++;
-  
-  
+    
   }// WHILE LOOP
 
 

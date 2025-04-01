@@ -354,6 +354,74 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (sigma_y, double, m_elem_count * m_gp_count);  
 }
 
+void Domain_d::Free(){
+  free_t (x);
+  free_t (v);
+  free_t (a);
+  free_t (u);
+  free_t (u_dt);
+  
+  free_t (prev_a);  
+	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
+  free_t (m_fi); //Internal forces
+  free_t (m_fe);
+  
+  free_t (m_mdiag);
+  free_t (m_mglob); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+
+  free_t (T);
+  free_t( m_dTedt);
+
+ 
+  free_t (m_H);
+
+  free_t (m_dH_detJ_dx);
+  free_t (m_dH_detJ_dy);
+  free_t (m_dH_detJ_dz);
+  
+
+  free_t(m_detJ );    
+  
+  free_t(m_nodxelem_e);
+  
+  free_t(m_ematm); //Elemental mas matrices
+
+  free_t(m_str_rate);   
+  free_t(m_rot_rate );     
+  free_t(m_sigma);   
+  free_t(m_tau );   
+  
+
+  free_t(p); 
+  free_t(rho);   
+  free_t(rho_0); 
+  
+  free_t(vol); 
+  free_t(vol_0); 
+
+  free_t(m_voln); 
+  free_t(m_vol_0n); 
+
+  free_t(m_f_elem);   
+  free_t(m_f_elem_hg);   
+
+  free_t(mat);   
+
+  // AXISYMM
+  free_t (m_radius);
+
+  free_t(m_jacob);
+    
+
+  free_t(ext_nodes);
+  free_t(contforce);
+
+  free_t (pl_strain);
+  free_t (sigma_y);  
+  
+  
+}
+
 
 void Domain_d::AssignMaterial (Material_ *material_h) {
 //    cudaMalloc((void**)&materials, 1 * sizeof(Material_ )); //

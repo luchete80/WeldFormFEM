@@ -111,8 +111,12 @@ int main(int argc, char **argv) {
 		nlohmann::json ics 			= j["InitialConditions"];    
 
     double out_time,sim_time;
+    int remesh_interval = -1;
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
+    readValue(config["reMeshStepInterval"], remesh_interval);
+    
+
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
     #ifdef CUDA_BUILD
@@ -335,6 +339,9 @@ int main(int argc, char **argv) {
   cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
   dom_d->setdtOut(out_time);
+  
+  if (remesh_interval != -1)
+    dom_d->setRemeshInterval(remesh_interval); 
   //dom_d->SetEndTime (10.0*dt);
   
   //////////////////// BOUNDARY CONDITIONS

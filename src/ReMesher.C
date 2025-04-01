@@ -1430,29 +1430,39 @@ std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
 void ReMesher::WriteDomain(){
     //const int dim = m_dom->m_dim;
     
-
+  if (m_mesh.nelems() != m_dom->m_elem_count ||
+      m_mesh.nverts() != m_dom->m_node_count) {
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
-  double *ufield  = new double [3*m_mesh.nverts()];    
-  
+  double *ufield  = new double [3*m_mesh.nverts()];      
   double *vfield   = new double [3*m_mesh.nverts()]; 
+  double *afield   = new double [3*m_mesh.nverts()]; 
+  
   double *esfield  = new double [m_mesh.nelems()]; 
   double *pfield   = new double [m_mesh.nelems()]; 
   double *sigfield = new double [6*m_mesh.nelems()]; 
-  cout << "MAPPING"<<endl;
+  double *syfield  = new double [m_mesh.nelems()]; 
+
+//  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
+  MapNodalVector<3>(m_mesh, afield,  m_dom->a);
+    
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
   MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma  , 6);
 
+  //MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
   
   
   ////BEFORE REWRITE
   //// WRITE
+  m_dom->Free();
   
   m_dom->m_node_count = m_mesh.nverts();
   m_dom->m_elem_count = m_mesh.nelems();
+  
+  
   
   m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
 
@@ -1461,10 +1471,12 @@ void ReMesher::WriteDomain(){
   cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u, ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v, vfield, sizeof(double) * m_dom->m_node_count * 3);    
- 
+  memcpy_t(m_dom->a, afield, sizeof(double) * m_dom->m_node_count * 3);    
+   
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->m_sigma  , sigfield, sizeof(double) * m_dom->m_elem_count *6); 
-  
+  memcpy_t(m_dom->sigma_y,   syfield,  sizeof(double) * m_dom->m_elem_count ); 
+    
   double *x_h = new double [3*m_mesh.nverts()];
   int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
 
@@ -1507,8 +1519,14 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
   m_dom->setNodElem(elnod_h); 
-    
-  //free_t (m_dom->x);
+
+
+  delete [] vfield, esfield,pfield,sigfield, syfield;
+  
+  } else {
+      std::cout << "Mesh is the same "<<endl;
+  }
+  cout << "Done"<<endl;
 }
 
 //USES DOMAIN TO INTERPOLATE VARS
@@ -1674,23 +1692,23 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
                 barycenter_old_clos = old_barycenter;
             }
         }//elem
-        cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        //cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
         //cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
         //cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
         //cout << "Min dist "<<sqrt(min_distance)<<endl;
         for (int d=0;d<field_dim;d++) {
           vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
-          cout << vfield[elem*field_dim+d]<< " ";
+          //cout << vfield[elem*field_dim+d]<< " ";
         }
-        cout <<endl;
+        //cout <<endl;
         //if (vfield[elem*field_dim] > max_field_val)
         //  max_field_val = vfield[elem*field_dim];
-        
+/*        
         if (found) {
             std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
         } else {
             std::cout << "No matching element found for element " << elem << std::endl;
-        }
+        }*/
     }; //LAMBDA
 
     parallel_for(mesh.nelems(), f);
