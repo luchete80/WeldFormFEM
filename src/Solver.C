@@ -143,16 +143,7 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count % 100 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
 
-  if ((step_count+1) % m_remesh_interval == 0){
-    //cout << "REMESHING "<<endl;
-    ReMesher remesh(this);
-    remesh.WriteDomain(); 
-    std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-    VTKWriter writer3(this, s.c_str());
-    writer3.writeFile();
-         
-  }
-  
+ 
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
@@ -195,7 +186,41 @@ void host_ Domain_d::SolveChungHulbert(){
   
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
+
+  /////AFTER J AND DERIVATIVES
+  if ((step_count+1) % m_remesh_interval == 0){
+    //cout << "REMESHING "<<endl;
+    ReMesher remesh(this);
+    remesh.WriteDomain(); 
+    std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+    VTKWriter writer3(this, s.c_str());
+    writer3.writeFile();
+
+	#if CUDA_BUILD
+
+  calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+	cudaDeviceSynchronize();   
+
+  CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
   
+  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  N = this->getElemCount();
+	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+  
+  #else
+  calcElemJAndDerivatives();
+
+  CalcElemInitialVol(); //ALSO CALC VOL
+  CalcElemVol();
+  calcElemDensity();
+  CalcNodalVol(); //To calc nodal mass
+  CalcNodalMassFromVol(); //Repla
+      
+  #endif
+         
+  }  
   
 	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   

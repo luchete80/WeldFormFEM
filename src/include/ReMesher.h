@@ -19,6 +19,10 @@ class ReMesher{
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   template <int dim>
   void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
+
+  template <int dim>
+  void MapElemVectors ();
+  
   template <int dim, typename T>
   void MapElemPtrVector(Omega_h::Mesh& mesh, T* vfield, T* o_field);
   
@@ -30,6 +34,7 @@ class ReMesher{
   protected:
 
   Domain_d *m_dom;
+  int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
   Omega_h::Mesh m_mesh;
 };
 

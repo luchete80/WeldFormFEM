@@ -272,3 +272,6 @@ F90 PREVIOUS VERSION
 20250401 - Added Domain::Free() for remesh old fields (mem leak)
          - Mapped materials, and shear stresses and strain rates.
          - REMESH IN Solver type works
+         - FIXED REMESHGING: ELEMENT SAVED vars
+         - FIXED: Calculate cacobian BEFORE Vol and dens and nodal mass.
+         - REMESHING SEEMS TO BE WORKING

@@ -1454,7 +1454,12 @@ void ReMesher::WriteDomain(){
   double *str_rate = new double [6*m_mesh.nelems()]; 
   double *rot_rate = new double [6*m_mesh.nelems()];  
   double *tau      = new double [6*m_mesh.nelems()];   
-  
+
+
+  double *vol   = new double [m_mesh.nelems()]; 
+  double *vol_0 = new double [m_mesh.nelems()];  
+  double *rho   = new double [m_mesh.nelems()];   
+  double *rho_0 = new double [m_mesh.nelems()];    
   
 
 //  cout << "MAPPING"<<endl;
@@ -1465,7 +1470,13 @@ void ReMesher::WriteDomain(){
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
-  
+
+  MapElemVector<3>(m_mesh, vol,       m_dom->vol);
+  MapElemVector<3>(m_mesh, vol_0,     m_dom->vol_0);
+  MapElemVector<3>(m_mesh, rho,       m_dom->rho);
+  MapElemVector<3>(m_mesh, rho_0,     m_dom->rho_0);
+    
+    
   MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
   MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
   MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
@@ -1743,6 +1754,88 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
     parallel_for(mesh.nelems(), f);
     
     //cout << "MAX FIELD VALUE: "<<max_field_val<<endl;
+}
+
+
+template <int dim>
+void ReMesher::MapElemVectors() {
+  
+    auto coords = m_mesh.coords();
+    double *scalar = new double[m_mesh.nverts()];
+    double *vector = new double[m_mesh.nverts() * 3];
+
+    auto elems2verts = m_mesh.ask_down(3, VERT);
+    double max_field_val = 0.;
+
+    
+    auto f = OMEGA_H_LAMBDA(LO elem) {
+        bool found = false;
+        std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+        std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
+
+        // Calculate barycenter of the current new element
+        for (int en = 0; en < 4; en++) {
+            auto v = elems2verts.ab2b[elem * 4 + en];
+            auto x = get_vector<3>(coords, v);
+            barycenter[0] += x[0];
+            barycenter[1] += x[1];
+            barycenter[2] += x[2];
+        }
+        barycenter[0] /= 4.0;
+        barycenter[1] /= 4.0;
+        barycenter[2] /= 4.0;
+
+        // Search for the closest old element by distance
+        double min_distance = std::numeric_limits<double>::max();
+        int closest_elem = -1;
+
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            int n0 = m_dom->m_elnod[4 * i];
+            int n1 = m_dom->m_elnod[4 * i + 1];
+            int n2 = m_dom->m_elnod[4 * i + 2];
+            int n3 = m_dom->m_elnod[4 * i + 3];
+
+            std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // Calculate the barycenter of the old element
+            std::array<double, 3> old_barycenter = {
+                (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            };
+
+            double distance = 
+            //std::sqrt(
+                std::pow(barycenter[0] - old_barycenter[0], 2) +
+                std::pow(barycenter[1] - old_barycenter[1], 2) +
+                std::pow(barycenter[2] - old_barycenter[2], 2)
+            ;
+            //);
+
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_elem = i;
+                found = true;
+                barycenter_old_clos = old_barycenter;
+            }
+        }//elem
+
+/*
+        for (int d=0;d<field_dim;d++) {
+          vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
+
+        }
+*/
+       
+    }; //LAMBDA
+
+    parallel_for(m_mesh.nelems(), f);
+    
+
 }
 
 template <int dim, typename T>
