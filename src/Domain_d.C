@@ -1374,6 +1374,15 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       
       m_detJ[offset] = jacob.calcDet();
       //printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
+      //if (m_detJ[offset]>1.0 || m_detJ[offset]<1.0e-3){
+        //printf("--------------------- WARNGIN JACOBIAN\n");
+        
+        //if (e<10){
+        ///printf("ELNODES %d %d %d %d \n",m_elnod[nind],m_elnod[nind+1],m_elnod[nind+2],m_elnod[nind+3]);
+        //printf("det J %f allocated, offset %d\n",m_detJ[offset],offset);
+        //}
+        
+      //}
       // elem%detJ(e,gp) = det(elem%jacob(e,gp,:,:))
     } else { //!!!!! GP > 1
 			
@@ -1632,6 +1641,7 @@ dev_t void Domain_d::printSymmTens(double *v){
     }
   }
 }
+/*
 //ATTENTION  WITH PARALELIZ
 //SHOULD BE ATOMIC
 dev_t void Domain_d::calcMinEdgeLength(){
@@ -1661,6 +1671,60 @@ dev_t void Domain_d::calcMinEdgeLength(){
   }
   m_min_length = sqrt(min_len);
   printf("Min Edge length %lf\n", m_min_length);
+}
+*/
+// Calculate min edge length and height
+dev_t void Domain_d::calcMinEdgeLength(){
+    double min_len = 1.0e6;
+    double min_height = 1.0e6;
+    
+    for (int e = 0; e < m_elem_count; e++) {
+        int off = m_nodxelem * e;
+
+        if (m_dim == 3) {  // Tetrahedron case
+            // Loop through all 4 faces of the tetrahedron
+            for (int i = 0; i < 4; i++) {
+                int a = m_elnod[off + ((i + 1) % 4)];
+                int b = m_elnod[off + ((i + 2) % 4)];
+                int c = m_elnod[off + ((i + 3) % 4)];
+                int d = m_elnod[off + i]; // Opposite node
+
+                // Get positions of the vertices
+                double3 A = getPosVec3(a);
+                double3 B = getPosVec3(b);
+                double3 C = getPosVec3(c);
+                double3 D = getPosVec3(d);
+
+                // Calculate edge lengths
+                double3 x1 = B - A;
+                double3 x2 = C - A;
+                double3 x3 = C - B;
+                double d1 = sqlength(x1);
+                double d2 = sqlength(x2);
+                double d3 = sqlength(x3);
+
+                // Update minimum edge length
+                if (d1 < min_len) min_len = d1;
+                if (d2 < min_len) min_len = d2;
+                if (d3 < min_len) min_len = d3;
+
+                // Calculate face normal
+                double3 normal = cross(x1, x2);
+                double area = length(normal);
+                if (area > 0) normal= normal/area;
+
+                // Height from opposite node to the face
+                double3 vec = D - A;
+                double height = fabs(dot(vec, normal));
+
+                // Update minimum height
+                if (height < min_height) min_height = height;
+            }
+        }
+    }
+    m_min_length = sqrt(min_len);
+    m_min_height = min_height;
+    //printf("Min Edge length: %lf, Min Height: %lf\n", m_min_length, m_min_height);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){

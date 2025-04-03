@@ -221,9 +221,10 @@ dev_t void Domain_d::CalcElemVol(){
     vol[e] = 0.0;
     for (int gp=0;gp<m_gp_count;gp++){
       vol[e] += m_detJ[offset] * w;
-      //printf("Element %d Vol %f\n",e,vol[e]);
-    }    
-  }
+    }  
+    //if (e<10)
+    //printf("Element %d Vol %f, det %f\n",e,vol[e],m_detJ[offset]);  
+  }//el
 }
 
 dev_t void Domain_d::calcElemDensity(){ 

@@ -4,11 +4,13 @@
 	"particleRadius": 0.0075, 
 	"hFactor": 1.2,
   "cflMethod": 1,
-  "cflFactor": 0.7,
   "autoTS": [false,false,false],
-  "simTime": 0.01,
+  "kernelGradCorr": true,  
+  "simTime": 0.02,
   "outTime": 1.0e-4,
-  "solver": "Mech-LeapFrog"
+  "cflFactor": 0.05,
+  "solver": "Mech-LeapFrog",
+  "reMeshStepInterval": 5 
 }
 ,
 "Materials":[ 

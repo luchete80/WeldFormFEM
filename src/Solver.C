@@ -133,7 +133,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int step_count = 0;
   double tout = 0;
   
-  
+  bool remesh_ = false;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -143,6 +143,30 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count % 100 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
 
+  /////AFTER J AND DERIVATIVES
+  if ((step_count+1) % m_remesh_interval == 0)
+  //if (0) //debug
+  {
+    //cout << "REMESHING "<<endl;
+    ReMesher remesh(this);
+    remesh.WriteDomain(); 
+    cout << "Step "<<step_count<<endl;
+    calcMinEdgeLength();
+    //TO MODIFY
+    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      
+    //double dt = /*cflFactor*/ 0.03 * m_min_height/(mat_cs);
+    //double dt = 0.800e-5;
+    cout << "New Time Step "<<dt<<endl;
+    //SetDT(dt); 
+    //getMinLength();
+    
+    //cout << "DONE REMESH"<<endl;
+    //std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+    //VTKWriter writer3(this, s.c_str());
+    //writer3.writeFile();
+    remesh_ = true;
+  }
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -186,45 +210,53 @@ void host_ Domain_d::SolveChungHulbert(){
   
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
-
-  /////AFTER J AND DERIVATIVES
-  if ((step_count+1) % m_remesh_interval == 0){
-    //cout << "REMESHING "<<endl;
-    ReMesher remesh(this);
-    remesh.WriteDomain(); 
-    std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-    VTKWriter writer3(this, s.c_str());
-    writer3.writeFile();
-
-	#if CUDA_BUILD
-
-  calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
-
-  CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  
-  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  N = this->getElemCount();
-	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
-  
-  #else
-  calcElemJAndDerivatives();
-
-  CalcElemInitialVol(); //ALSO CALC VOL
-  CalcElemVol();
-  calcElemDensity();
-  CalcNodalVol(); //To calc nodal mass
-  CalcNodalMassFromVol(); //Repla
-      
-  #endif
-         
-  }  
   
 	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
+  #else
+  calcElemJAndDerivatives();
+  CalcElemVol();  
+  
+  #endif
+   
+  
+  /////AFTER J AND DERIVATIVES
+  if (remesh_){
+    //cout << "REMESHING "<<endl;
+    //ReMesher remesh(this);
+    //remesh.WriteDomain(); 
 
+
+    #if CUDA_BUILD
+
+    calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
+    cudaDeviceSynchronize();   
+
+    CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
+    cudaDeviceSynchronize();
+    
+    CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+    cudaDeviceSynchronize();
+    N = this->getElemCount();
+    blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
+    
+    #else
+    calcElemJAndDerivatives();
+
+    CalcElemInitialVol(); //ALSO CALC VOL
+    CalcElemVol();
+    calcElemDensity();
+    CalcNodalVol(); //To calc nodal mass
+    CalcNodalMassFromVol(); //Repla
+        
+    #endif
+         
+  }  
+  
+  //////// END REMESH 
+  ////////////////////////////////////////////
+  
+  #if CUDA_BUILD    
   calcElemStrainRatesKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize(); 
 
@@ -275,8 +307,6 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   //SECOND TIME
     //STRESSES CALC
-  calcElemJAndDerivatives();
-  CalcElemVol();
   calcElemStrainRates();
   calcElemDensity();
   if (m_dim == 3 && m_nodxelem ==4){
@@ -284,9 +314,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }else
     calcElemPressure();
   //calcElemPressureFromJ();
-  cout << "elem stress"<<endl;
   CalcStressStrain(dt);
-  cout << "stress end"<<endl;
   calcElemForces();
   calcElemHourglassForces();
   
@@ -309,7 +337,6 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemMassMat(); 
   //assemblyMassMatrix();  
   
-  cout << "Assemblying"<<endl;
   assemblyForces(); 
 
   calcAccel();
@@ -375,6 +402,11 @@ void host_ Domain_d::SolveChungHulbert(){
     trimesh->UpdatePlaneCoeff();
   #endif
   }
+  if (remesh_){
+   //printf("DISPLACEMENTS\n");
+   //printVec(this->u);       
+    
+    }
 
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
@@ -386,7 +418,7 @@ void host_ Domain_d::SolveChungHulbert(){
   // !call AverageData(elem%rho(:,1),nod%rho(:))  
   // prev_a = nod%a
   // time = time + dt
-  
+ 
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
     timer.click();
@@ -403,6 +435,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
   Time += dt;
   step_count++;
+  remesh_ = false;
     
   }// WHILE LOOP
 

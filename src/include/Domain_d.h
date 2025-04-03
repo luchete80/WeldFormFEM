@@ -268,6 +268,7 @@ public:
   TriMesh_d* getTriMesh(){return trimesh;}
   void InitValues();
   double dev_t getMinLength(){return m_min_length;}
+  
 
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
@@ -300,6 +301,8 @@ protected:
   double *T;   /// temperature
   double *m_dTedt; //elem node
   double m_min_length;
+  double m_min_height;
+  double m_cfl_factor;
   int             m_remesh_interval;
 
   double          *pl_strain, *sigma_y;
