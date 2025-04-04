@@ -1148,7 +1148,7 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
   //opts.min_quality_allowed = 1.0e-3;
   opts.should_refine = true;
   opts.should_coarsen = true;  // Changed to allow coarsening based on metric
-  opts.verbosity = Omega_h::SILENT;  // Suppress all non-critical outp
+  //opts.verbosity = Omega_h::SILENT;  // Suppress all non-critical outp
   
   // Step 1: Create a vertex-based metric array
   Omega_h::Write<Omega_h::Real> vertex_metric(mesh.nverts(), 1.0);
@@ -1717,7 +1717,7 @@ void ReMesher::WriteDomain(){
   parallel_for(m_mesh.nelems(), fe); 
   
   cout << "NEW MESH. Done mapping "<<endl;
-
+  cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
   m_dom->setNodElem(elnod_h); 
