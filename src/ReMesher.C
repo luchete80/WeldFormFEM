@@ -1183,13 +1183,13 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
   mesh.add_tag<Omega_h::Real>(Omega_h::VERT, "metric", 1);
   mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
   
-  bool remesh = false;
-  for (LO v=0;v<mesh.nelems();v++){
-    if (vertex_metric[v]<0.5) remesh = true;
+  //bool remesh = false;
+  //for (LO v=0;v<mesh.nelems();v++){
+  //  if (vertex_metric[v]<0.5) remesh = true;
     
-  }
+  //}
   // Adapt mesh
-  if (remesh)
+  //if (remesh)
     Omega_h::adapt(&mesh, opts);
   
 }
