@@ -1133,9 +1133,9 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
               if (elems2verts[e * 4 + j] == v) {
                   // Use your angle-based metric calculation here
                   if (min_angles[e] < 40.0 || min_angles[e] > 140.0) {
-                      sum_metric += 0.3; // Refine bad-angle elements
+                      sum_metric += 50.0; // Refine bad-angle elements
                   } else {
-                      sum_metric += 1.0; // Coarsen good-angle elements
+                      sum_metric += 500.0; // Coarsen good-angle elements
                   }
                   count++;
               }
@@ -1148,10 +1148,10 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
 
   // Step 4: Add the metric tag to vertices
   //mesh.add_tag<Omega_h::Real>(Omega_h::VERT, "metric", 1);
-  //mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
+  mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
   
-  auto metrics = get_implied_isos(&mesh);
-  mesh.set_tag(Omega_h::VERT, "metric", metrics);  
+  //auto metrics = get_implied_isos(&mesh);
+  //mesh.set_tag(Omega_h::VERT, "metric", metrics);  
 
   //Omega_h::Write<Omega_h::Real> uniform_metric(mesh.nverts(), 0.1);
   //mesh.add_tag(Omega_h::VERT, "metric", 1, Omega_h::Reals(uniform_metric));
@@ -1393,6 +1393,9 @@ namespace MetFEM{
 
   // Compute angle-based metric
 
+    Omega_h::vtk::Writer writer2("before", &mesh);
+    writer2.write();
+    
   compute_angle_metric(mesh);
   Omega_h::vtk::Writer writer3("out_amr_angle_3D", &mesh);
 
