@@ -432,6 +432,12 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   printDummyElem(dom,m_oss);
   //cout << "Dummy done "<<endl;
 
+  m_oss << "SCALARS detJ float 1"<<endl;
+  m_oss << "LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss <<dom->m_detJ[n]<<endl;  
+
+  printDummyElem(dom,m_oss);
   
 }
 

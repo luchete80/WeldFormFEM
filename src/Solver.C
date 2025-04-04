@@ -144,28 +144,42 @@ void host_ Domain_d::SolveChungHulbert(){
     printf("Step %d, Time %f\n",step_count, Time);  
 
   /////AFTER J AND DERIVATIVES
-  if ((step_count+1) % m_remesh_interval == 0)
+  if ((step_count+1) % m_remesh_interval == 0 /*&& step_count <=10*/)
   //if (0) //debug
   {
-    //cout << "REMESHING "<<endl;
-    ReMesher remesh(this);
-    remesh.WriteDomain(); 
-    cout << "Step "<<step_count<<endl;
-    calcMinEdgeLength();
-    //TO MODIFY
-    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      
-    //double dt = /*cflFactor*/ 0.03 * m_min_height/(mat_cs);
-    //double dt = 0.800e-5;
-    cout << "New Time Step "<<dt<<endl;
-    //SetDT(dt); 
-    //getMinLength();
+    double min_detJ=1.0;
+    int emin;
+    for (int e=0;e<m_elem_count;e++)
+      if (m_detJ[e]<min_detJ){
+        min_detJ = m_detJ[e];
+        emin = e;
+      }
     
-    //cout << "DONE REMESH"<<endl;
-    //std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-    //VTKWriter writer3(this, s.c_str());
-    //writer3.writeFile();
-    remesh_ = true;
+    //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
+    //if (min_detJ<1.0e-5){
+      //cout << "REMESHING "<<endl;
+      ReMesher remesh(this);
+      remesh.WriteDomain(); 
+      //cout << "Step "<<step_count<<endl;
+      calcMinEdgeLength();
+      //parallel_for ()
+
+      //TO MODIFY
+      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+        
+      //double dt = /*cflFactor*/ 0.03 * m_min_height/(mat_cs);
+      //double dt = 0.800e-5;
+      //cout << "New Time Step "<<dt<<endl;
+      //SetDT(dt); 
+      //getMinLength();
+      
+      //cout << "DONE REMESH"<<endl;
+      //std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+      //VTKWriter writer3(this, s.c_str());
+      //writer3.writeFile();
+      remesh_ = true;
+      
+      //}
   }
  
   //printf("Prediction ----------------\n");
@@ -243,7 +257,7 @@ void host_ Domain_d::SolveChungHulbert(){
     #else
     calcElemJAndDerivatives();
 
-    CalcElemInitialVol(); //ALSO CALC VOL
+    //CalcElemInitialVol(); //ALSO CALC VOL
     CalcElemVol();
     calcElemDensity();
     CalcNodalVol(); //To calc nodal mass

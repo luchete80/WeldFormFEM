@@ -1,6 +1,8 @@
 #include "ReMesher.h"
 #include "Domain_d.h"
 
+//#define DEBUG_MODE 0
+
 //#include <Omega_h.hpp>
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_amr.hpp>
@@ -193,7 +195,9 @@ void create_mesh(Omega_h::Mesh& mesh,
     Omega_h::Write<Omega_h::Real> device_coords(d_node_coords, num_nodes * 3);
     Omega_h::Write<Omega_h::LO> device_tets(d_element_conn, num_elements * 4);
 #else
+    #ifdef DEBUG_MODE
     std::cout << "Creating "<< num_nodes<< " nodes "<<std::endl;
+    #endif
     // CPU Case: Copy raw pointer data to Omega_h::HostWrite<>
     Omega_h::HostWrite<Omega_h::Real> coords(num_nodes * 3);
     Omega_h::HostWrite<Omega_h::LO> tets(num_elements * 4);
@@ -201,18 +205,20 @@ void create_mesh(Omega_h::Mesh& mesh,
     //Omega_h::Write<Omega_h::Real> coords(num_nodes * 3);
     //Omega_h::Write<Omega_h::LO> tets(num_elements * 4);
 
-    std::cout << "Done "<<std::endl;    
+    //std::cout << "Done "<<std::endl;    
     for (int i = 0; i < num_nodes * 3; ++i) coords[i] = h_node_coords[i];
     for (int i = 0; i < num_elements * 4; ++i) tets[i] = h_element_conn[i];
     
-    cout << "ELEM CONN "<<h_element_conn[0]<<endl;
+    //cout << "ELEM CONN "<<h_element_conn[0]<<endl;
 
-    std::cout << "Convert to write "<<std::endl;    
+    //std::cout << "Convert to write "<<std::endl;    
     // Convert HostWrite to Write<> for Omega_h
     Omega_h::Write<Omega_h::Real> device_coords(coords);
     Omega_h::Write<Omega_h::LO> device_tets(tets);
 #endif
+    #ifdef DEBUG_MODE
     std::cout << "Building from elements "<<std::endl;
+    #endif
     // Build mesh (works on both CPU and GPU)
     build_from_elems_and_coords(&mesh,OMEGA_H_SIMPLEX, 3, device_tets, device_coords); // Correct method
 
@@ -1159,7 +1165,7 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
           for (int j = 0; j < 4; ++j) {  // Tetrahedron has 4 vertices
               if (elems2verts[e * 4 + j] == v) {
                   // Use your angle-based metric calculation here
-                  if (min_angles[e] < 30.0 || min_angles[e] > 150.0) {
+                  if (min_angles[e] < 40.0 || min_angles[e] > 140.0) {
                       sum_metric += 0.5; // Refine bad-angle elements
                   } else {
                       sum_metric += 1.0; // Coarsen good-angle elements
@@ -1344,9 +1350,9 @@ namespace MetFEM{
     };
     
     */
-    std::cout << "Runing adapt test"<<std::endl;
-    run_2D_adapt(&lib);
-    std::cout<<"Done "<<std::endl;
+    //std::cout << "Runing adapt test"<<std::endl;
+    //run_2D_adapt(&lib);
+    //std::cout<<"Done "<<std::endl;
 
 #ifdef CUDA_BUILD
     // Allocate GPU memory
@@ -1356,7 +1362,7 @@ namespace MetFEM{
     cudaMalloc((void**)&d_connectivity_data, num_elements * 4 * sizeof(int));
 
     // Copy from host to GPU
-    std::cout << "Old Mesh verts : "<<m_dom->m_node_count<<std::endl;
+    //std::cout << "Old Mesh verts : "<<m_dom->m_node_count<<std::endl;
     cudaMemcpy(d_node_data, x, num_nodes * 3 * sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(d_connectivity_data, h_connectivity_data, num_elements * 4 * sizeof(int), cudaMemcpyHostToDevice);
 
@@ -1371,14 +1377,16 @@ namespace MetFEM{
     cudaFree(d_node_data);
     cudaFree(d_connectivity_data);
 #else
-  std::cout << "Creating mesh"<<std::endl;
+    #ifdef DEBUG_MODE
+    std::cout << "Creating mesh"<<std::endl;
+    #endif
     // CPU case
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
 #endif
     
   
     //refine_mesh_quality(mesh);
-    std::cout << "Refine done "<<std::endl;
+    //std::cout << "Refine done "<<std::endl;
     // Save mesh
     //Omega_h::write_mesh("output.osh", &mesh);
     //Omega_h::vtk_export_mesh("output.vtk", &mesh);
@@ -1630,6 +1638,10 @@ void ReMesher::WriteDomain(){
   MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
   MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
   
+  /////////////////////// BOUNDARY CONDITIONS
+  //m_dom->bc_count[0] = m_dom->bc_count[1] = m_dom->bc_count[2] = 0;
+  
+  
     //MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
   
   ////BEFORE REWRITE
@@ -1702,7 +1714,7 @@ void ReMesher::WriteDomain(){
   };//NODE LOOP  
   parallel_for(m_mesh.nelems(), fe); 
   
-  cout << "Done mapping "<<endl;
+  cout << "NEW MESH. Done mapping "<<endl;
 
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
@@ -1710,11 +1722,11 @@ void ReMesher::WriteDomain(){
 
 
   delete [] vfield, esfield,pfield,sigfield, syfield;
-  
+    cout << "MESH CHANGED"<<endl;
   } else {
-      std::cout << "Mesh is the same "<<endl;
+      //std::cout << "Mesh is the same "<<endl;
   }
-  cout << "Done"<<endl;
+  //cout << "Done"<<endl;
 }
 
 //USES DOMAIN TO INTERPOLATE VARS
