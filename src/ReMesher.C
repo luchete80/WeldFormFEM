@@ -1593,8 +1593,10 @@ for (int v=0;v<size;v++)
 void ReMesher::WriteDomain(){
     //const int dim = m_dom->m_dim;
     
-  if (m_mesh.nelems() != m_dom->m_elem_count ||
-      m_mesh.nverts() != m_dom->m_node_count) {
+  //if (m_mesh.nelems() != m_dom->m_elem_count ||
+  //    m_mesh.nverts() != m_dom->m_node_count) {
+  
+  
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   double *ufield  = new double [3*m_mesh.nverts()];      
   double *vfield   = new double [3*m_mesh.nverts()]; 
@@ -1723,9 +1725,9 @@ void ReMesher::WriteDomain(){
 
   delete [] vfield, esfield,pfield,sigfield, syfield;
     cout << "MESH CHANGED"<<endl;
-  } else {
+  //} else {
       //std::cout << "Mesh is the same "<<endl;
-  }
+  //}
   //cout << "Done"<<endl;
 }
 
