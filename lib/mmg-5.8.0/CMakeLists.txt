@@ -174,8 +174,10 @@ endif()
 #####         Choose executable target to compile
 #####
 ###############################################################################
-SET ( BUILD "MMG" CACHE STRING
-  "\"MMG3D\", \"MMGS\",\"MMG2D\", or \"MMG\" to compile both MMGS, MMG3D and MMG2D" )
+#SET ( BUILD "MMG" CACHE STRING
+#  "\"MMG3D\", \"MMGS\",\"MMG2D\", or \"MMG\" to compile both MMGS, MMG3D and MMG2D" )
+
+SET ( BUILD "MMG" CACHE STRING "MMG3D")
 
 IF ( BUILD MATCHES "MMGS" )
   SET(BUILD_MMG        OFF )

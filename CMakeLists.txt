@@ -43,7 +43,13 @@ if (NOT DEFINED BUILD_OMEGA_H)
   set (BUILD_OMEGA_H OFF)
 endif()
 
+if (NOT DEFINED BUILD_MMG)
+  set (BUILD_MMG OFF)
+endif()
 
+if (BUILD_MMG)
+  add_compile_definitions(MMG_BUILD)
+endif()
 
 if (BUILD_GPU)
   add_compile_definitions(CUDA_BUILD)
@@ -76,6 +82,10 @@ if (BUILD_REMESH)
     #default is CPU
     endif() 
     add_subdirectory("lib/omega_h-9.34.13")
+  endif()
+
+  if (BUILD_MMG)
+    add_subdirectory("lib/mmg-5.8.0")    
   endif()
 #  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
 #                  POST_BUILD

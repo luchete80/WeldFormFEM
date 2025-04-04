@@ -1080,7 +1080,7 @@ Omega_h::Reals compute_min_angles(Omega_h::Mesh& mesh) {
       Omega_h::Real norm_a = Omega_h::norm(a);
       Omega_h::Real norm_b = Omega_h::norm(b);
       Omega_h::Real cos_angle = Omega_h::clamp(dot / (norm_a * norm_b), -1.0, 1.0);
-      return std::acos(cos_angle) * 180.0 / M_PI;
+      return std::acos(cos_angle) * 180.0 / PI;
     };
 
     // Calculate angles between edge vectors
@@ -1103,11 +1103,17 @@ Omega_h::Reals compute_min_angles(Omega_h::Mesh& mesh) {
   return Omega_h::Reals(min_angles);
 }
 
+
 Omega_h::Reals compute_angle_metric_ELEM_DONT_WORK(
-    Omega_h::Mesh& mesh, Omega_h::Real min_threshold = 30.0, 
-    Omega_h::Real max_threshold = 150.0) {
+
+  Omega_h::Mesh& mesh, Omega_h::Real min_threshold = 30.0, 
+  Omega_h::Real max_threshold = 150.0) {
 
   auto opts = Omega_h::AdaptOpts(&mesh);
+
+  opts.max_length_desired = 1.5 ;  // If an element is too big, split it
+  opts.min_length_desired = 0.3 ;  // If an element is too small, collaps
+
   opts.verbosity = Omega_h::EXTRA_STATS;
   opts.min_quality_allowed = 1.0e-3;
   opts.should_refine = true;
@@ -1144,6 +1150,10 @@ Omega_h::Reals compute_angle_metric_ELEM_DONT_WORK(
 void compute_angle_metric(Omega_h::Mesh& mesh){
 
   auto opts = Omega_h::AdaptOpts(&mesh);
+
+  opts.max_length_desired = 1.5 ;  // If an element is too big, split it
+  opts.min_length_desired = 0.5 ;  // If an element is too small, collaps
+  
   opts.verbosity = Omega_h::EXTRA_STATS;
   //opts.min_quality_allowed = 1.0e-3;
   opts.should_refine = true;
