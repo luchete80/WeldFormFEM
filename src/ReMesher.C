@@ -2050,5 +2050,41 @@ void ReMesher::MapElemPtrVector(Mesh& mesh, T* vfield, T* o_field) {
 
     parallel_for(mesh.nelems(), f);
 }
+
+
+
+// 1. Using the keep_classification Option
+// The simplest way to preserve certain entities is during adaptation setup:
+
+// cpp
+// Copy
+// Omega_h::AdaptOpts opts(&mesh);
+// opts.keep_classification = true; // Preserves classification tags
+// opts.verbosity = Omega_h::EXTRA_STATS;
+// Omega_h::adapt(&mesh, opts);
+// 2. Explicit Mapping with TransferPair
+// For precise tracking of unchanged entities:
+
+// cpp
+// Copy
+// // Before adaptation
+// Omega_h::LOs old_verts = mesh.ask_verts_of_dim(mesh.dim());
+// Omega_h::LOs old_elems = mesh.ask_elements_of_dim(mesh.dim());
+
+// // Perform adaptation
+// Omega_h::adapt(&mesh, opts);
+
+// // Get mapping after adaptation
+// auto verts_transfer = mesh.get_transfer_map(Omega_h::VERT);
+// auto elems_transfer = mesh.get_transfer_map(Omega_h::REGION);
+
+// // Identify unchanged vertices
+// Omega_h::Write<Omega_h::LO> unchanged_verts(old_verts.size(), 0);
+// Omega_h::parallel_for(old_verts.size(), OMEGA_H_LAMBDA(Omega_h::LO v) {
+    // if (verts_transfer[v] != Omega_h::LO(-1)) {
+        // unchanged_verts[v] = 1; // Mark as unchanged
+    // }
+// });
+
   
 };
