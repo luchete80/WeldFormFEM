@@ -7,6 +7,8 @@ The idea is to work via 2 different solvers:
 WeldFormFEM works both on Ubuntu and Windows.
 you can select to build it to CPU and GPU only by changing a single CMAKE var.
 
+
+
 ## Features
 - Structure Of Arrays (SOA) data arrangement which allows fast CUDA accesing
 - Explicit time integration
@@ -45,7 +47,9 @@ To update libraries (LSDynaReader and Math)
 
 git submodule update --init --recursive
 
+TO BUILD MMG AVOID USING VTK 
 
+cmake PATH_DIR -DBUILD_MMG=ON -DUSE_VTK=OFF 
 
 Link here #https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/ to see different architectures. 
 

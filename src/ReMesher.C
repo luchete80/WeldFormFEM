@@ -950,7 +950,7 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
     mesh.set_parting(OMEGA_H_GHOSTED);
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
-    add_dye(&mesh);
+    //add_dye(&mesh);
     
    
     mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
@@ -960,7 +960,7 @@ void adapt_with_thresholds(Mesh &mesh, Real length_threshold, Real angle_thresho
     opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
     opts.xfer_opts.integral_map["density"] = "mass";
     opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
-    opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+    //opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
     opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
     opts.verbosity = EXTRA_STATS;
 
@@ -1104,55 +1104,12 @@ Omega_h::Reals compute_min_angles(Omega_h::Mesh& mesh) {
 }
 
 
-Omega_h::Reals compute_angle_metric_ELEM_DONT_WORK(
-
-  Omega_h::Mesh& mesh, Omega_h::Real min_threshold = 30.0, 
-  Omega_h::Real max_threshold = 150.0) {
-
-  auto opts = Omega_h::AdaptOpts(&mesh);
-
-  opts.max_length_desired = 1.5 ;  // If an element is too big, split it
-  opts.min_length_desired = 0.3 ;  // If an element is too small, collaps
-
-  opts.verbosity = Omega_h::EXTRA_STATS;
-  opts.min_quality_allowed = 1.0e-3;
-  opts.should_refine = true;
-  opts.should_coarsen = true;  // Changed to allow coarsening based on metric
-
-  // Get minimum angles per element
-  auto min_angles = compute_min_angles(mesh);
-  Omega_h::Write<Omega_h::Real> metric(mesh.nelems());
-
-  // Parallel computation of metrics
-  Omega_h::parallel_for(mesh.nelems(), OMEGA_H_LAMBDA(Omega_h::LO e) {
-    if (min_angles[e] < min_threshold || min_angles[e] > max_threshold) {
-      metric[e] = 0.5; // Mark for refinement
-    } else {
-      metric[e] = 1.0; // Keep as is
-    }
-  });
-
-  // Convert Write array to Reals for storage
-  auto metric_reals = Omega_h::Reals(metric);
-
-  // Set the metric as an element tag
-  if (!mesh.has_tag(Omega_h::REGION, "metric")) {
-    mesh.add_tag<Omega_h::Real>(Omega_h::REGION, "metric", 1);
-  }
-  mesh.set_tag(Omega_h::REGION, "metric", metric_reals);
-
-  // Adapt mesh
-  Omega_h::adapt(&mesh, opts);
-
-  return metric_reals;
-}
-
 void compute_angle_metric(Omega_h::Mesh& mesh){
 
   auto opts = Omega_h::AdaptOpts(&mesh);
 
   opts.max_length_desired = 1.5 ;  // If an element is too big, split it
-  opts.min_length_desired = 0.5 ;  // If an element is too small, collaps
+  opts.min_length_desired = 0.2 ;  // If an element is too small, collaps
   
   opts.verbosity = Omega_h::EXTRA_STATS;
   //opts.min_quality_allowed = 1.0e-3;
@@ -1176,7 +1133,7 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
               if (elems2verts[e * 4 + j] == v) {
                   // Use your angle-based metric calculation here
                   if (min_angles[e] < 40.0 || min_angles[e] > 140.0) {
-                      sum_metric += 0.5; // Refine bad-angle elements
+                      sum_metric += 0.3; // Refine bad-angle elements
                   } else {
                       sum_metric += 1.0; // Coarsen good-angle elements
                   }
@@ -1190,9 +1147,16 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
   });
 
   // Step 4: Add the metric tag to vertices
-  mesh.add_tag<Omega_h::Real>(Omega_h::VERT, "metric", 1);
-  mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
+  //mesh.add_tag<Omega_h::Real>(Omega_h::VERT, "metric", 1);
+  //mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
   
+  auto metrics = get_implied_isos(&mesh);
+  mesh.set_tag(Omega_h::VERT, "metric", metrics);  
+
+  //Omega_h::Write<Omega_h::Real> uniform_metric(mesh.nverts(), 0.1);
+  //mesh.add_tag(Omega_h::VERT, "metric", 1, Omega_h::Reals(uniform_metric));
+  
+
   //bool remesh = false;
   //for (LO v=0;v<mesh.nelems();v++){
   //  if (vertex_metric[v]<0.5) remesh = true;
@@ -1416,8 +1380,9 @@ namespace MetFEM{
     // Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
     // adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
     // writer2.write();
-    /*
+    
     //std::cout << "------Refine by quality"<<std::endl;
+    /*
     Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
 
     adapt_with_thresholds<3>(mesh,length_tres, ang_tres);
@@ -1427,6 +1392,7 @@ namespace MetFEM{
 
 
   // Compute angle-based metric
+
   compute_angle_metric(mesh);
   Omega_h::vtk::Writer writer3("out_amr_angle_3D", &mesh);
 
