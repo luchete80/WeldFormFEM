@@ -8,6 +8,8 @@
 #include <array>
 #include <Vec3D.h>
 
+#include "mmg/mmg2d/libmmg3d.h"
+
 // Function to compute barycentric coordinates
 std::array<double, 3> barycentric_coordinates(const std::array<double, 2>& p,
                                               const std::array<double, 2>& p0,
@@ -86,7 +88,7 @@ inline void Interp_NodalField(NodalField *fnew,
 }
 
 
-void ReMesh::Generate_MMG(){
+void ReMesher::Generate_mmg(){
 
 
   int nreq, ref, nr, nc, *corner, *required, *ridge;  

@@ -16,6 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(../lib/LSDynaReader/src/)
 
 include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
+include_directories(../lib/mmg-5.8.0/src/mmg3d) #FOR: Omega_h_config.h
 
 set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
 link_directories(${OMEGA_H_DIR})
@@ -55,7 +56,7 @@ ELSE ()
   message ("OPENMP NOT FOUND")
   endif()
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
-                            ReMesher.C
+                            ReMesher.C ReMesher_mmg.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             main_4_elem_3d.C
@@ -110,7 +111,8 @@ set (SOURCES
                    )
 
 if (BUILD_REMESH)
- set (SOURCES "${SOURCES}" ReMesher.C)
+ set (SOURCES "${SOURCES}" ReMesher.C
+                           ReMesher_mmg.C)
 endif()
 
 if (BUILD_EXAMPLES)
