@@ -16,7 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(../lib/LSDynaReader/src/)
 
 include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
-include_directories(../lib/mmg-5.8.0/src/mmg3d) #FOR: Omega_h_config.h
+include_directories("${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/include") #FOR: Omega_h_config.h
 
 set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
 link_directories(${OMEGA_H_DIR})

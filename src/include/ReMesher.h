@@ -14,7 +14,7 @@ class ReMesher{
   {}
   ReMesher(Domain_d *);
   
-  Generate_mmg();
+  void Generate_mmg();
   template <int dim>
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   template <int dim>

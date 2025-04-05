@@ -8,7 +8,13 @@
 #include <array>
 #include <Vec3D.h>
 
-#include "mmg/mmg2d/libmmg3d.h"
+#include "mmg/mmg3d/libmmg3d.h"
+
+#include "Remesher.h"
+#include "Domain_d.h"
+#include <iostream>
+
+using namespace std;
 
 // Function to compute barycentric coordinates
 std::array<double, 3> barycentric_coordinates(const std::array<double, 2>& p,
@@ -63,6 +69,7 @@ inline Vec3D interp_vector (std::array<double, 3> &lambdas, //3 coordinates
                                                                                 nnpoint[2]->New->VAR);    
 
 
+/*
 inline void Interp_NodalField(NodalField *fnew,
                               std::array<double, 3> &lambdas,
                               NodalField *o0, NodalField *o1, NodalField *o2 ){
@@ -86,8 +93,10 @@ inline void Interp_NodalField(NodalField *fnew,
   fnew->flux =   interp_vector(lambdas, o0->flux, o1->flux, o2->flux); 
   
 }
+*/
 
 
+namespace MetFEM{
 void ReMesher::Generate_mmg(){
 
 
@@ -106,32 +115,44 @@ void ReMesher::Generate_mmg(){
                   MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol,
                   MMG5_ARG_end);
 
-  np = this->getNodesNumber();
-
+  //np = this->getNodesNumber();
+  np = m_dom->m_node_count;
 
 
   // CHANGE DIM for 3D Tetra
   nt = nquad = 0;
   na = 0;
-  for (int e = 0; e < this->getElementsNumber(); e++) {
-      if (this->getElement(e)->getNumberOfNodes() == 4) 
+  for (int e = 0; e < m_dom->m_elem_count; e++) {
+      //if (this->getElement(e)->getNumberOfNodes() == 4) 
           nt++; // count tetrahedral elements
-      else 
-          nquad++;
+      //else 
+      //    nquad++;
   }
-  nt += 2 * nquad; // If needed, handle splits for other elements
-  cout << "Number of tetrahedrons: " << nt << ", quads: " << nquad << endl;
+  //nt += 2 * nquad; // If needed, handle splits for other elements
+  cout << "Number of tetrahedrons: " << nt << endl;
 
   cout << "Structure Node count " << endl;
 
-  if (MMG3D_Set_meshSize(mmgMesh, np, nt, nquad, na) != 1)
+// int MMG3D_Set_meshSize(MMG5_pMesh mesh, int np, int nt, int nprisms, int nquads, int nhexs, int nedges);
+
+// mesh	MMG5_pMesh	Pointer to your MMG mesh structure.
+// np	int32_t	Number of points (vertices) in the mesh.
+// nt	int32_t	Number of tetrahedra.
+// nprisms	int32_t	Number of prisms (wedge-shaped 3D elements).
+// nquads	int32_t	Number of quadrilateral faces (used for boundary representation).
+// nhexs	int32_t	Number of hexahedra (not often used unless you have hex meshes).
+// nedges	int32_t	Number of edges (only needed if you define edges explicitly, e.g., for BCs).
+
+
+  if (MMG3D_Set_meshSize(mmgMesh, np, nt, 0,nquad, 0,na) != 1)
       cout << "ERROR ALLOCATING MESH" << endl;
   else 
       cout << "MESH CREATED OK" << endl;
   cout << "Number of points: " << mmgMesh->na << endl;
 
   // In API_functions
-  cout << "struct nodecount " << Global_Structure->getNodesNumber() << endl;
+  //cout << "struct nodecount " << Global_Structure->getNodesNumber() << endl;
+  
   cout << "Node count " << mmgMesh->np << endl;
   cout << "Mesh node 0 " << mmgMesh->point[0].c[0] << endl;
 
@@ -145,9 +166,9 @@ void ReMesher::Generate_mmg(){
 
   // Set vertices for 3D mesh
   for (int n = 0; n < np; n++) {
-      if (!MMG3D_Set_vertex(mmgMesh, Global_Structure->getNode(n)->coords(0),
-                                          Global_Structure->getNode(n)->coords(1),
-                                          Global_Structure->getNode(n)->coords(2),
+      if (!MMG3D_Set_vertex(mmgMesh, m_dom->x[3*n],
+                                     m_dom->x[3*n+1],
+                                     m_dom->x[3*n+2],
                                           NULL, n + 1))
           cout << "ERROR ALLOCATING NODE " << n << endl;
   }
@@ -155,21 +176,28 @@ void ReMesher::Generate_mmg(){
 
   // Set tetrahedrons
   cout << "SETTING TETRAHEDRONS " << endl;
-  for (int e = 0; e < this->getElementsNumber(); e++) {
-      if (this->getElement(e)->getNumberOfNodes() == 4) {
-          MMG3D_Set_tetrahedron(mmgMesh, Global_Structure->getElement(e)->nodes(0)->Id + 1,
-                                              Global_Structure->getElement(e)->nodes(1)->Id + 1,
-                                              Global_Structure->getElement(e)->nodes(2)->Id + 1,
-                                              Global_Structure->getElement(e)->nodes(3)->Id + 1,
+  for (int e = 0; e < m_dom->m_elem_count; e++) {
+
+          // MMG3D_Set_tetrahedron(mmgMesh, Global_Structure->getElement(e)->nodes(0)->Id + 1,
+                                              // Global_Structure->getElement(e)->nodes(1)->Id + 1,//ISSUMMING 1 OR NOT?
+                                              // Global_Structure->getElement(e)->nodes(2)->Id + 1,
+                                              // Global_Structure->getElement(e)->nodes(3)->Id + 1,
+                                              // NULL, e + 1);
+
+          MMG3D_Set_tetrahedron(mmgMesh,      m_dom->m_elnod[4*e]+ 1,
+                                              m_dom->m_elnod[4*e+1] + 1,//ISSUMMING 1 OR NOT?
+                                              m_dom->m_elnod[4*e+2] + 1,
+                                              m_dom->m_elnod[4*e+3] + 1,
                                               NULL, e + 1);
-      }
+      
   }
 
   // Solution setup
   if (MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar) != 1)
       exit(EXIT_FAILURE);
+    
   for (int k = 1; k <= np; k++) {
-      if (MMG3D_Set_scalarSol(mmgSol, 0.8 - Global_Structure->getNode(k - 1)->getNodalValue("plasticStrain", 0), k) != 1) 
+      if (MMG3D_Set_scalarSol(mmgSol, 0.8 - m_dom->pl_strain[k-1], k) != 1) 
           exit(EXIT_FAILURE);
   }
 
@@ -183,7 +211,19 @@ void ReMesher::Generate_mmg(){
   int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
   // Get mesh size after remesh
-  if (MMG3D_Get_meshSize(mmgMesh, &np, &nt, NULL, &na) != 1)  
+// int MMG3D_Get_meshSize(MMG5_pMesh mesh,
+                       // int32_t* np,
+                       // int32_t* nt,
+                       // int32_t* nprisms,// int32_t* nquads,// int32_t* nhexs,// int32_t* nedges);
+
+// mesh	MMG5_pMesh	Pointer to the MMG mesh structure.
+// np	int32_t*	Pointer to store number of points (nodes).
+// nt	int32_t*	Pointer to store number of tetrahedra.
+// nprisms	int32_t*	Pointer to store number of prisms (wedge elements).
+// nquads	int32_t*	Pointer to store number of quadrilateral faces (typically for BCs).
+// nhexs	int32_t*	Pointer to store number of hexahedra.
+// nedges	int32_t*	Pointer to store number of edges (optional).
+  if (MMG3D_Get_meshSize(mmgMesh, &np, &nt, NULL, NULL, NULL, &na) != 1)  
       exit(EXIT_FAILURE); 
   cout << "New node count " << np << endl;
 
@@ -194,6 +234,8 @@ void ReMesher::Generate_mmg(){
       exit(EXIT_FAILURE);
   }
 
+  //CORRECT FROM HERE
+  /*
   required = (int*)calloc(MAX4(np, 0, nt, na) + 1, sizeof(int));
   if (!required) {
       perror("  ## Memory problem: calloc");
@@ -294,6 +336,8 @@ void ReMesher::Generate_mmg(){
           i++;
       }
   }
+  
+  */
 
   delete[] corner;
   delete[] required;
@@ -482,3 +526,5 @@ std::array<double, 3> interpolate_vector(const std::array<double, 2>& p,
     };
 }
 */
+
+};
