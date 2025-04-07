@@ -277,3 +277,4 @@ F90 PREVIOUS VERSION
          - REMESHING SEEMS TO BE WORKING
 20250404 - Added mmg.
          - Added selective angle. 
+         - FIXED Initial and Volumes, Volumes. Now are calculating via detF. 

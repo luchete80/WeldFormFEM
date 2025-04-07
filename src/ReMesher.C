@@ -1690,7 +1690,7 @@ void ReMesher::WriteDomain(){
 
   for (int e=0;e<m_dom->m_elem_count;e++){
     m_dom->vol_0[e] *= volumes[e];
-    m_dom->vol  [e] *= volumes[e];
+    m_dom->vol  [e] = volumes[e];
   }
     
   MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
