@@ -1012,7 +1012,7 @@ void Domain_d::setNodElem(int *elnod_h){
           //cout << "Node 3 shared element "<< e<<endl;
         nodel_count_h[elnod_h[offset+ne]]++;
       }else 
-        cout << "ERROR, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<endl;
+        cout << "ERROR setting node element, element "<<e <<", node "<<ne<<", global "<<elnod_h[offset+ne]<<"> Node Count "<<endl;
     }
     offset+=m_nodxelem;
   }

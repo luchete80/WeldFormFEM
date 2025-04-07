@@ -237,37 +237,18 @@ void host_ Domain_d::SolveChungHulbert(){
    
   
   /////AFTER J AND DERIVATIVES
-  if (remesh_){
-    //cout << "REMESHING "<<endl;
-    //ReMesher remesh(this);
-    //remesh.WriteDomain(); 
+  //if (remesh_){
 
+    //#if CUDA_BUILD
 
-    #if CUDA_BUILD
-
-    calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-    cudaDeviceSynchronize();   
-
-    CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-    cudaDeviceSynchronize();
-    
-    CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
-    cudaDeviceSynchronize();
-    N = this->getElemCount();
-    blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
-    
-    #else
-    calcElemJAndDerivatives();
-
-    //CalcElemInitialVol(); //ALSO CALC VOL
-    CalcElemVol();
-    calcElemDensity();
-    CalcNodalVol(); //To calc nodal mass
-    CalcNodalMassFromVol(); //Repla
+    //CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+    //cudaDeviceSynchronize();
+    //#else
+    //CalcNodalMassFromVol(); //Repla
         
-    #endif
+    //#endif
          
-  }  
+  //}  
   
   //////// END REMESH 
   ////////////////////////////////////////////
@@ -458,7 +439,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   ReMesher remesh(this);
   
-  remesh.Generate_mmg();
+  //remesh.Generate_mmg();
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		

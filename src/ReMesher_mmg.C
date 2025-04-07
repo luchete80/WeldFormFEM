@@ -252,8 +252,14 @@ void ReMesher::Generate_mmg(){
           exit(EXIT_FAILURE);
   }
 
+    
+  for (int k = 1; k <= np; k++) {
+      if (MMG3D_Set_scalarSol(mmgSol, 0.5, k) != 1) 
+          exit(EXIT_FAILURE);
+  }
+
   // Set parameters (e.g., max edge size)
-  MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmax, 0.1);
+  MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmax, 0.5);
 
   // Higher verbosity level
   // MMG3D_Set_iparameter(mmgMesh, mmgSol, MMG3D_IPARAM_verbose, 5);
@@ -293,6 +299,9 @@ void ReMesher::Generate_mmg(){
       exit(EXIT_FAILURE);
   }
 
+int *required_nodes = (int*)calloc(np + 1, sizeof(int));
+int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
+
   ridge = (int*)calloc(na + 1, sizeof(int));
   if (!ridge) {
       perror("  ## Memory problem: calloc");
@@ -305,17 +314,28 @@ void ReMesher::Generate_mmg(){
   std::vector<std::array<int, 4>> tgt_tetras(nt);
   std::vector<double> tgt_scalar(np);
 
+
+  m_dom->Free();
+  
+  m_dom->m_node_count = np;
+  m_dom->m_elem_count = nt;
+  
+
+  m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
+  double *x_h = new double [3*np];
+    
   nreq = 0;
   nc = 0;
-  cout << "Getting vertices "<<endl;
+  //cout << "Getting vertices "<<endl;
   for (k = 1; k <= np; k++) {
-      cout << "Vertex "<<k<<endl;
+      //cout << "Vertex "<<k<<endl;
       if (MMG3D_Get_vertex(mmgMesh, &(Point[0]), &(Point[1]), &(Point[2]),
                           &ref, &(corner[k]), &(required[k])) != 1)
           exit(EXIT_FAILURE);
 
       std::array<double, 3> p0 = {Point[0], Point[1], Point[2]};
       tgt_nodes[k - 1] = p0;
+      for (int d=0;d<3;d++) x_h[3*(k-1)+d] = Point[d];
       
       if (corner[k])  
           nc++;
@@ -336,17 +356,9 @@ void ReMesher::Generate_mmg(){
 
   //cout << "NODE NUMBER " << Global_Structure->getNodesNumber() << endl;
 
-  m_dom->Free();
-  
-  m_dom->m_node_count = np;
-  m_dom->m_elem_count = nt;
-  
-
-  m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
 
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
   
-  double *x_h = new double [3*m_mesh.nverts()];
   int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened  
   
   cout << "OVERALL tetrahedron count " << nt << endl;
@@ -359,7 +371,7 @@ void ReMesher::Generate_mmg(){
           MMG5_int Tetra[4];
           int ref;
 
-          MMG3D_Get_tetrahedron(mmgMesh, &(Tetra[0]), &(Tetra[1]), &(Tetra[2]), &(Tetra[3]), &ref, &(required[tetra + 1]));
+          MMG3D_Get_tetrahedron(mmgMesh, &(Tetra[0]), &(Tetra[1]), &(Tetra[2]), &(Tetra[3]), &ref, &(required_tets[tetra + 1]));
 
           std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
           tgt_tetras[tetra] = ta;                                    
@@ -375,6 +387,7 @@ void ReMesher::Generate_mmg(){
   cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+  
   m_dom->setNodElem(elnod_h); 
 
   ////////////////////////////////////////////////// MAPPING //////////////////////////////////////////////////
@@ -420,7 +433,7 @@ void ReMesher::Generate_mmg(){
   */
 
   delete[] corner;
-  delete[] required;
+  delete[] required,required_tets;
   delete[] ridge;
   delete[] edges;
 
