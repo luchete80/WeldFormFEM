@@ -144,9 +144,11 @@ void host_ Domain_d::SolveChungHulbert(){
     printf("Step %d, Time %f\n",step_count, Time);  
 
   /////AFTER J AND DERIVATIVES
-  if ((step_count+1) % m_remesh_interval == 0 /*&& step_count <=10*/)
+  if ( step_count % m_remesh_interval == 0 && step_count  >0 )
   //if (0) //debug
   {
+    cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
+    cout << "step_count "<<step_count<<endl;
     double min_detJ=1.0;
     int emin;
     for (int e=0;e<m_elem_count;e++)
@@ -174,9 +176,9 @@ void host_ Domain_d::SolveChungHulbert(){
       //getMinLength();
       
       //cout << "DONE REMESH"<<endl;
-      //std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      //VTKWriter writer3(this, s.c_str());
-      //writer3.writeFile();
+      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
       remesh_ = true;
       
       //}
@@ -455,7 +457,6 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   ReMesher remesh(this);
-    
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
@@ -519,8 +520,10 @@ void host_ Domain_d::SolveChungHulbert(){
   writer2.writeFile();
   #endif
   cout << "Done."<<endl;
-  remesh.WriteDomain();
 
+  remesh.WriteDomain();
+  calcElemJAndDerivatives();    
+  
   VTKWriter writer3(this, "out_remesh.vtk");
   writer3.writeFile();
   

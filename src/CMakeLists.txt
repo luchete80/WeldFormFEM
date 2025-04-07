@@ -112,8 +112,7 @@ set (SOURCES
 
 if (BUILD_REMESH)
  set (SOURCES "${SOURCES}" ReMesher.C
-                           #ReMesher_mmg.C
-                           )
+                           ReMesher_mmg.C)
 endif()
 
 if (BUILD_EXAMPLES)
@@ -238,7 +237,16 @@ if (BUILD_EXAMPLES)
   TARGET_LINK_LIBRARIES (1elem omega_h)
   TARGET_LINK_LIBRARIES (4elem omega_h)
 endif()
-  TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h)
+if(UNIX)
+    set(MMG3D_LIB "libmmg3d.so")
+
+# Windows
+elseif(WIN32)
+    set(MMG3D_LIB "${MMG_ROOT}/lib/libmmg3d.dll.a")
+    set(MMG_LIB "${MMG_ROOT}/lib/libmmg.dll.a")
+endif()
+
+  TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB} )
 endif()
 
 endif()

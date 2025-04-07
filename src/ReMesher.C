@@ -20,6 +20,8 @@
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_array_ops.hpp"      /// ARE CLOSE
 #include "Omega_h_class.hpp"
+#include "Omega_h_quality.hpp"
+#include "Omega_h_vector.hpp"
 
 #ifdef CUDA_BUILD
 #include <cuda_runtime.h>
@@ -1176,6 +1178,8 @@ void compute_angle_metric_selective(Omega_h::Mesh& mesh) {
   opts.should_refine = true;
   opts.should_coarsen = true;
   opts.verbosity = Omega_h::EXTRA_STATS;
+  
+  double orig_len = 0.15;
 
   // Step 1: Get baseline scalar metric using implied isos
   auto implied_metric = get_implied_isos(&mesh);  // scalar field, size = nverts()
@@ -1204,7 +1208,7 @@ void compute_angle_metric_selective(Omega_h::Mesh& mesh) {
 
     if (refine_this) {
       // Set refined metric: M = 1 / h^2, e.g., h = 0.2
-      Omega_h::Real h_refined = 0.2;
+      Omega_h::Real h_refined = 0.4 * orig_len;
       Omega_h::Real refined_metric = 1.0 / (h_refined * h_refined);
 
       // Take the more refined one (i.e., larger metric value = smaller h)
@@ -1218,6 +1222,12 @@ void compute_angle_metric_selective(Omega_h::Mesh& mesh) {
 
   // Step 4: Assign updated metric to mesh
   mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
+
+  auto met2 = get_implied_isos(&mesh);
+  mesh.set_tag(Omega_h::VERT, "metric_imp", met2);  
+
+  //auto quality = measure_element_quality(mesh)
+  //mesh.add_tag("quality", omega_h.Region, 1, quality)
 
   // Step 5: Run mesh adaptation
   Omega_h::adapt(&mesh, opts);
@@ -1650,25 +1660,38 @@ void ReMesher::WriteDomain(){
 
 
   double *vol   = new double [m_mesh.nelems()]; 
-  double *vol_0 = new double [m_mesh.nelems()];  
   double *rho   = new double [m_mesh.nelems()];   
   double *rho_0 = new double [m_mesh.nelems()];    
+
+  double *idetF   = new double [m_mesh.nelems()];  //Inverse Deformation gradient
   
+  for (int e=0;e<m_dom->m_elem_count;e++)
+    idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
 
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
   MapNodalVector<3>(m_mesh, afield,  m_dom->a);
+
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
 
-  MapElemVector<3>(m_mesh, vol,       m_dom->vol);
-  MapElemVector<3>(m_mesh, vol_0,     m_dom->vol_0);
   MapElemVector<3>(m_mesh, rho,       m_dom->rho);
   MapElemVector<3>(m_mesh, rho_0,     m_dom->rho_0);
-    
+  
+  MapElemVector<3>(m_mesh, idetF,     m_dom->vol_0); //Map the inverse and then multiply by the original
+
+  auto volumes = Omega_h::measure_elements_real(&m_mesh);  // One value per element
+  double total_volume = Omega_h::get_sum(m_mesh.comm(), volumes);
+  
+  cout << "New mesh volume "<<total_volume<<endl;
+
+  for (int e=0;e<m_dom->m_elem_count;e++){
+    m_dom->vol_0[e] *= volumes[e];
+    m_dom->vol  [e] *= volumes[e];
+  }
     
   MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
   MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
@@ -1694,11 +1717,12 @@ void ReMesher::WriteDomain(){
 
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
 
-  cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u, ufield, sizeof(double) * m_dom->m_node_count * 3);    
-  memcpy_t(m_dom->v, vfield, sizeof(double) * m_dom->m_node_count * 3);    
-  memcpy_t(m_dom->a, afield, sizeof(double) * m_dom->m_node_count * 3);    
-   
+  //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
+  memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->v,       vfield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->a,       afield, sizeof(double) * m_dom->m_node_count * 3);   
+  
+     
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
   memcpy_t(m_dom->m_str_rate,   str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
@@ -1708,6 +1732,10 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->sigma_y,   syfield,  sizeof(double) * m_dom->m_elem_count ); 
 
   memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
+    
+  memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
+
+  memcpy_t(m_dom->rho_0,          rho_0,  sizeof(double) * m_dom->m_elem_count ); 
    
   m_dom->AssignMatAddress();
   const Material_ *matt  = &m_dom->materials[0];
@@ -1757,6 +1785,19 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
   m_dom->setNodElem(elnod_h); 
 
+  //AFTER SETTING NOD ELEMENT 
+  //MAP NODAL MASS FROM DENSITY
+  for (int n=0;n<m_dom->m_node_count;n++)
+    m_dom->m_mdiag[n] = 0.0;
+  
+  par_loop(n, m_dom->m_node_count){
+    for (int e=0; e<m_dom->m_nodel_count[n];e++) {    
+      int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[n]+e]; //Element
+      //cout << "eglob"<<eglob<<endl;
+      //cout << "COUNT "<<m_dom->m_nodel_count[eglob]<<endl;
+      m_dom->m_mdiag[n] += rho[eglob] * vol[eglob]/m_dom->m_nodel_count[n];
+    }
+  } //NODE LOOP
 
   delete [] vfield, esfield,pfield,sigfield, syfield;
     cout << "MESH CHANGED"<<endl;

@@ -10,42 +10,90 @@
 
 #include "mmg/mmg3d/libmmg3d.h"
 
-#include "Remesher.h"
+#include "ReMesher.h"
 #include "Domain_d.h"
 #include <iostream>
 
 using namespace std;
 
 // Function to compute barycentric coordinates
-std::array<double, 3> barycentric_coordinates(const std::array<double, 2>& p,
-                                              const std::array<double, 2>& p0,
-                                              const std::array<double, 2>& p1,
-                                              const std::array<double, 2>& p2) {
-    double denominator = (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
-    double lambda1 = ((p1[0] - p[0]) * (p2[1] - p[1]) - (p2[0] - p[0]) * (p1[1] - p[1])) / denominator;
-    double lambda2 = ((p2[0] - p[0]) * (p0[1] - p[1]) - (p0[0] - p[0]) * (p2[1] - p[1])) / denominator;
-    double lambda3 = 1.0 - lambda1 - lambda2;
-    return {lambda1, lambda2, lambda3};
-}
 
-// Function to interpolate scalar values
-double interpolate_scalar(const std::array<double, 2>& p,
-                          const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
-                          double scalar0, double scalar1, double scalar2) {
-    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
-    return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2;
-}
-
-// Function to interpolate scalar values
-Vec3D interpolate_vector (const std::array<double, 2>& p,
-                          const std::array<double, 2>& p0, const std::array<double, 2>& p1, const std::array<double, 2>& p2,
-                          Vec3D v0, Vec3D v1, Vec3D v2 ) {
-    auto lambdas = barycentric_coordinates(p, p0, p1, p2);
+// Function to compute barycentric coordinates for a 3D tetrahedron
+std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
+                                              const std::array<double, 3>& p0,
+                                              const std::array<double, 3>& p1,
+                                              const std::array<double, 3>& p2,
+                                              const std::array<double, 3>& p3) {
+    // Compute volume of the tetrahedron
+    std::array<double, 3> v0 = {p1[0] - p0[0], p1[1] - p0[1], p1[2] - p0[2]};
+    std::array<double, 3> v1 = {p2[0] - p0[0], p2[1] - p0[1], p2[2] - p0[2]};
+    std::array<double, 3> v2 = {p3[0] - p0[0], p3[1] - p0[1], p3[2] - p0[2]};
     
-    Vec3D ret = lambdas[0]*v0 + lambdas[1]*v1 + lambdas[2]*v2;
-    return ret;
-    //return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2;
+    double detT = v0[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+                - v0[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+                + v0[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    if (detT == 0.0) {
+        std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
+        return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
+    }
+
+
+ if (std::abs(detT) < 1e-12) {  // Tolerance to avoid floating-point issues
+        std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
+        return {-1.0, -1.0, -1.0, -1.0}; // Invalid coordinates
+    }
+
+    // Compute the barycentric coordinates
+    std::array<double, 3> vp = {p[0] - p0[0], p[1] - p0[1], p[2] - p0[2]};
+
+    double d0 = vp[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+              - vp[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+              + vp[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    double d1 = v0[0] * (vp[1] * v2[2] - vp[2] * v2[1])
+              - v0[1] * (vp[0] * v2[2] - vp[2] * v2[0])
+              + v0[2] * (vp[0] * v2[1] - vp[1] * v2[0]);
+
+    double d2 = v0[0] * (v1[1] * vp[2] - v1[2] * vp[1])
+              - v0[1] * (v1[0] * vp[2] - v1[2] * vp[0])
+              + v0[2] * (v1[0] * vp[1] - v1[1] * vp[0]);
+
+    double d3 = v0[0] * (v1[1] * v2[2] - v1[2] * v2[1])
+              - v0[1] * (v1[0] * v2[2] - v1[2] * v2[0])
+              + v0[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
+
+    double w0 = d0 / detT;
+    double w1 = d1 / detT;
+    double w2 = d2 / detT;
+    double w3 = 1.0 - (w0 + w1 + w2);  // Enforce sum-to-one constraint
+
+    return {w0, w1, w2, w3};
 }
+
+// Function to interpolate scalar values at the nodes of a tetrahedron
+double interpolate_scalar(const std::array<double, 3>& p,
+                          const std::array<double, 3>& p0, const std::array<double, 3>& p1, 
+                          const std::array<double, 3>& p2, const std::array<double, 3>& p3,
+                          double scalar0, double scalar1, double scalar2, double scalar3) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2, p3);
+    return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2 + lambdas[3] * scalar3;
+}
+// Function to interpolate scalar values
+std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
+                                         const std::array<double, 3>& p0, const std::array<double, 3>& p1,
+                                         const std::array<double, 3>& p2, const std::array<double, 3>& p3,
+                                         std::array<double, 3> v0, std::array<double, 3> v1,
+                                         std::array<double, 3> v2, std::array<double, 3> v3) {
+    auto lambdas = barycentric_coordinates(p, p0, p1, p2, p3);
+    return {
+        lambdas[0] * v0[0] + lambdas[1] * v1[0] + lambdas[2] * v2[0] + lambdas[3] * v3[0],
+        lambdas[0] * v0[1] + lambdas[1] * v1[1] + lambdas[2] * v2[1] + lambdas[3] * v3[1],
+        lambdas[0] * v0[2] + lambdas[1] * v1[2] + lambdas[2] * v2[2] + lambdas[3] * v3[2]
+    };
+}
+
+/*
 
 //WITHOUT CALCULATING AGAIN INTERNAL COORDS
 double interp_scalar(std::array<double, 3> &lambdas,
@@ -61,7 +109,7 @@ inline Vec3D interp_vector (std::array<double, 3> &lambdas, //3 coordinates
     //return lambdas[0] * scalar0 + lambdas[1] * scalar1 + lambdas[2] * scalar2;
 }
 
-
+*/
 
 #define COPY_NEW (VAR, n)     fnew[n].VAR = interpolate_vector(tgt_nodes[n], pp[0], pp[1], pp[2], \
                                                                                 nnpoint[2]->New->VAR,\ 
@@ -344,6 +392,54 @@ void ReMesher::Generate_mmg(){
   delete[] ridge;
   delete[] edges;
 
+}
+
+
+double tet_volume(const double v0[3], const double v1[3], const double v2[3], const double v3[3]) {
+    double a[3], b[3], c[3];
+    for (int i = 0; i < 3; ++i) {
+        a[i] = v1[i] - v0[i];
+        b[i] = v2[i] - v0[i];
+        c[i] = v3[i] - v0[i];
+    }
+    double volume = (a[0]*(b[1]*c[2] - b[2]*c[1])
+                   - a[1]*(b[0]*c[2] - b[2]*c[0])
+                   + a[2]*(b[0]*c[1] - b[1]*c[0])) / 6.0;
+    return std::abs(volume);
+}
+
+void calcVol(){
+    
+  int nelts;
+  MMG5_pMesh mmgMesh;
+  MMG5_pSol mmgSol;
+/*
+
+  MMG3D_Get_numberOfElements(mmgMesh, &nelts);
+
+  // Then loop over elements:
+  for (int i = 1; i <= nelts; ++i) {
+      int verts[4]; // tetrahedron
+      double coords[4][3];
+
+      MMG3D_Get_tetrahedron(mmgMesh, &verts[0], &verts[1], &verts[2], &verts[3], NULL);
+
+      for (int j = 0; j < 4; ++j) {
+          MMG3D_Get_vertex(mmgMesh, &coords[j][0], &coords[j][1], &coords[j][2], NULL, NULL, verts[j]);
+      }
+      
+      double[3] p1,p2,p3,p4;
+      // Compute volume of this tetrahedron
+      double v = std::abs(
+          Omega_h::tet_volume(
+          p1,p2,p3,p4
+          
+          
+          )
+    );
+  } 
+  */ 
+  
 }
 
 
