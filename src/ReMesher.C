@@ -1133,9 +1133,9 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
               if (elems2verts[e * 4 + j] == v) {
                   // Use your angle-based metric calculation here
                   if (min_angles[e] < 40.0 || min_angles[e] > 140.0) {
-                      sum_metric += 50.0; // Refine bad-angle elements
+                      sum_metric += 0.5; // Refine bad-angle elements
                   } else {
-                      sum_metric += 500.0; // Coarsen good-angle elements
+                      sum_metric += 1.0; // Coarsen good-angle elements
                   }
                   count++;
               }
@@ -1166,6 +1166,61 @@ void compute_angle_metric(Omega_h::Mesh& mesh){
   //if (remesh)
     Omega_h::adapt(&mesh, opts);
   
+}
+
+void compute_angle_metric_selective(Omega_h::Mesh& mesh) {
+  // Set up adapt options
+  auto opts = Omega_h::AdaptOpts(&mesh);
+  opts.max_length_desired = 1.5;
+  opts.min_length_desired = 0.2;
+  opts.should_refine = true;
+  opts.should_coarsen = true;
+  opts.verbosity = Omega_h::EXTRA_STATS;
+
+  // Step 1: Get baseline scalar metric using implied isos
+  auto implied_metric = get_implied_isos(&mesh);  // scalar field, size = nverts()
+
+  // Step 2: Compute min angles per element
+  auto min_angles = compute_min_angles(mesh);
+
+  // Step 3: Build modified vertex metrics using angle-based refinement
+  auto elems2verts = mesh.ask_elem_verts();
+  auto vertex_metric = Omega_h::Write<Omega_h::Real>(mesh.nverts());
+
+  Omega_h::parallel_for(mesh.nverts(), OMEGA_H_LAMBDA(Omega_h::LO v) {
+    Omega_h::Real modified_metric = implied_metric[v];  // Default: keep original
+
+    // Loop over connected elements to check their min angle
+    bool refine_this = false;
+    for (int e = 0; e < mesh.nelems(); ++e) {
+      for (int j = 0; j < 4; ++j) {
+        if (elems2verts[e * 4 + j] == v) {
+          if (min_angles[e] < 40.0 || min_angles[e] > 140.0) {
+            refine_this = true;
+          }
+        }
+      }
+    }
+
+    if (refine_this) {
+      // Set refined metric: M = 1 / h^2, e.g., h = 0.2
+      Omega_h::Real h_refined = 0.2;
+      Omega_h::Real refined_metric = 1.0 / (h_refined * h_refined);
+
+      // Take the more refined one (i.e., larger metric value = smaller h)
+      //modified_metric = Omega_h::max(modified_metric, refined_metric);
+      modified_metric = std::max(modified_metric, refined_metric);
+    }
+
+    vertex_metric[v] = modified_metric;
+  }
+  ); //VERTICES
+
+  // Step 4: Assign updated metric to mesh
+  mesh.set_tag(Omega_h::VERT, "metric", Omega_h::Reals(vertex_metric));
+
+  // Step 5: Run mesh adaptation
+  Omega_h::adapt(&mesh, opts);
 }
 
 
@@ -1396,7 +1451,8 @@ namespace MetFEM{
     Omega_h::vtk::Writer writer2("before", &mesh);
     writer2.write();
     
-  compute_angle_metric(mesh);
+  //compute_angle_metric(mesh);
+  compute_angle_metric_selective(mesh);
   Omega_h::vtk::Writer writer3("out_amr_angle_3D", &mesh);
 
     writer3.write();

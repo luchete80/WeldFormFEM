@@ -112,7 +112,8 @@ set (SOURCES
 
 if (BUILD_REMESH)
  set (SOURCES "${SOURCES}" ReMesher.C
-                           ReMesher_mmg.C)
+                           #ReMesher_mmg.C
+                           )
 endif()
 
 if (BUILD_EXAMPLES)
