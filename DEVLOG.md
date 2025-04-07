@@ -278,3 +278,4 @@ F90 PREVIOUS VERSION
 20250404 - Added mmg.
          - Added selective angle. 
          - FIXED Initial and Volumes, Volumes. Now are calculating via detF. 
+         - FIXED mmg Remeshing generation. Working but still have to pass nodes and element vals.  

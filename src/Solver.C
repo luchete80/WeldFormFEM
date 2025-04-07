@@ -458,6 +458,8 @@ void host_ Domain_d::SolveChungHulbert(){
 
   ReMesher remesh(this);
   
+  remesh.Generate_mmg();
+  
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
   

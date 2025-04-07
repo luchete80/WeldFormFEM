@@ -143,11 +143,14 @@ inline void Interp_NodalField(NodalField *fnew,
 }
 */
 
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MAX4(a,b,c,d) (MAX(MAX(a,b), MAX(c,d)))
 
 namespace MetFEM{
 void ReMesher::Generate_mmg(){
 
-
+  cout << "Generate mmg"<<endl;
+  
   int nreq, ref, nr, nc, *corner, *required, *ridge;  
   MMG5_int Tetra[4], Edge[6], k;
   double Point[3];
@@ -283,7 +286,7 @@ void ReMesher::Generate_mmg(){
   }
 
   //CORRECT FROM HERE
-  /*
+  
   required = (int*)calloc(MAX4(np, 0, nt, na) + 1, sizeof(int));
   if (!required) {
       perror("  ## Memory problem: calloc");
@@ -296,6 +299,7 @@ void ReMesher::Generate_mmg(){
       exit(EXIT_FAILURE);
   }
 
+
   // Copy to destination
   std::vector<std::array<double, 3>> tgt_nodes(np);
   std::vector<std::array<int, 4>> tgt_tetras(nt);
@@ -303,8 +307,9 @@ void ReMesher::Generate_mmg(){
 
   nreq = 0;
   nc = 0;
-
+  cout << "Getting vertices "<<endl;
   for (k = 1; k <= np; k++) {
+      cout << "Vertex "<<k<<endl;
       if (MMG3D_Get_vertex(mmgMesh, &(Point[0]), &(Point[1]), &(Point[2]),
                           &ref, &(corner[k]), &(required[k])) != 1)
           exit(EXIT_FAILURE);
@@ -317,7 +322,7 @@ void ReMesher::Generate_mmg(){
       if (required[k])  
           nreq++;
   }
-
+  cout << "Done. "<<endl;
   // Set up for tetrahedron data
   corner = (int*)calloc(np + 1, sizeof(int));
   if (!corner) {
@@ -325,11 +330,25 @@ void ReMesher::Generate_mmg(){
       exit(EXIT_FAILURE);
   }
 
-  Element* el4 = new ElTetra4n3D();
-  Global_Structure->setDefaultElement(el4);
 
-  cout << "NODE NUMBER " << Global_Structure->getNodesNumber() << endl;
+  //Element* el4 = new ElTetra4n3D();
+  //Global_Structure->setDefaultElement(el4);
 
+  //cout << "NODE NUMBER " << Global_Structure->getNodesNumber() << endl;
+
+  m_dom->Free();
+  
+  m_dom->m_node_count = np;
+  m_dom->m_elem_count = nt;
+  
+
+  m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
+
+  malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
+  
+  double *x_h = new double [3*m_mesh.nverts()];
+  int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened  
+  
   cout << "OVERALL tetrahedron count " << nt << endl;
   int nt_corr = 0;
   for (int tetra = 0; tetra < mmgMesh->nt; tetra++) {
@@ -344,11 +363,24 @@ void ReMesher::Generate_mmg(){
 
           std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
           tgt_tetras[tetra] = ta;                                    
-
+          for (int en=0;en<4;en++) elnod_h[tetra*4+en] = ta[en];
+          cout << ta[0]<<", "<<ta[1]<<"; "<<ta[2]<<", "<<ta[3]<<endl;
           nt_corr++;
       }
   }
 
+
+  
+  cout << "NEW MESH. Done mapping "<<endl;
+  cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
+  memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
+  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+  m_dom->setNodElem(elnod_h); 
+
+  ////////////////////////////////////////////////// MAPPING //////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*
   // Mapping step
   std::vector<NodalField> fnew(np);
   std::vector<NodalField> fcur(np);
