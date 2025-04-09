@@ -1749,15 +1749,6 @@ void ReMesher::WriteDomain(){
     //m_dom->vol  [e] = volumes[e];
     cout << "VOL "<<e<<", "<<m_dom->vol_0[e]<<"VOLUME 0 " << volumes[e]<< ", detF" <<idetF[e]<<endl;
   }
-  m_dom->vol_0[0] = (double)volumes[0];
-    cout << "VOL 0 "<<m_dom->vol_0[0]<<"VOLUME 0 " << volumes[0]<< ", detF" <<idetF[0]<<endl;
-  double min = 1.0e10;
-
-  for (int e=0;e<m_dom->m_elem_count;e++)
-    if (m_dom->vol_0[e]<min)
-      min = m_dom->vol_0[e];
-      
-  cout << "MIN VOL "<< min<<endl;
   
   //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
@@ -1826,7 +1817,7 @@ void ReMesher::WriteDomain(){
   m_dom->setNodElem(elnod_h); 
 
 
-  delete [] vfield, esfield,pfield,sigfield, syfield;
+  delete [] vfield, esfield,pfield,sigfield, syfield, vol_0;
     cout << "MESH CHANGED"<<endl;
   //} else {
       //std::cout << "Mesh is the same "<<endl;
@@ -2005,8 +1996,6 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
           vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
           //cout << vfield[elem*field_dim+d]<< " ";
         }
-        if (elem == 0)
-          cout << "Elem 0 CLOSEST ELEMENT "<<closest_elem<<", value "<<o_field[closest_elem*field_dim]<<endl;
         //cout <<endl;
         //if (vfield[elem*field_dim] > max_field_val)
         //  max_field_val = vfield[elem*field_dim];
