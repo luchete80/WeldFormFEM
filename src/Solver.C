@@ -232,7 +232,10 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   calcElemJAndDerivatives();
   CalcElemVol();  
-  
+  if (remesh_) {
+    CalcNodalVol();
+    CalcNodalMassFromVol();
+  }
   #endif
    
   
@@ -429,7 +432,10 @@ void host_ Domain_d::SolveChungHulbert(){
     tout +=m_dtout;
   }
   
-    
+      std::string s = "out_step_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
+          
   Time += dt;
   step_count++;
   remesh_ = false;

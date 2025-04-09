@@ -419,7 +419,9 @@ void Domain_d::Free(){
   free_t (pl_strain);
   free_t (sigma_y);  
   
-  
+  //free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
+  //free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);
+  bc_count[0] = bc_count[1] = bc_count[2] = 0;
 }
 
 

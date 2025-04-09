@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
   
 
   cout << "Setting density"<<endl;
-  dom_d->setDensity(rho);
+  dom_d->setDensity(rho); //rho_0
   cout <<"Done."<<endl;
   cout << "Creating Material..:"<<endl;
   Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 

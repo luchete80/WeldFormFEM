@@ -36,6 +36,7 @@ class ReMesher{
   Domain_d *m_dom;
   int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
   Omega_h::Mesh m_mesh;
+  Omega_h::Mesh m_old_mesh;
 };
 
 }; //MetFEM

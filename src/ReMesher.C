@@ -22,6 +22,7 @@
 #include "Omega_h_class.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_vector.hpp"
+#include <Omega_h_transfer.hpp>
 
 #ifdef CUDA_BUILD
 #include <cuda_runtime.h>
@@ -1407,6 +1408,8 @@ namespace MetFEM{
 
     // Create mesh using GPU data
     create_mesh(mesh, d_node_data, num_nodes, d_connectivity_data, num_elements);
+
+    m_old_mesh = mesh; 
     
     //vtk::Reader vtk_reader("piece_0.vtu");
     //classify_vertices(&mesh);
@@ -1659,15 +1662,19 @@ void ReMesher::WriteDomain(){
   double *tau      = new double [6*m_mesh.nelems()];   
 
 
-  double *vol   = new double [m_mesh.nelems()]; 
   double *rho   = new double [m_mesh.nelems()];   
-  double *rho_0 = new double [m_mesh.nelems()];    
 
-  double *idetF   = new double [m_mesh.nelems()];  //Inverse Deformation gradient
+  double *vol_0 = new double [m_mesh.nelems()];    
+
+  double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
   
   for (int e=0;e<m_dom->m_elem_count;e++)
     idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
+  
+  cout << "Mapping detF"<<endl;
 
+  MapElemVector<3>(m_mesh, vol_0, idetF); //Map the inverse and then multiply by the original
+  cout << "vol_0 elem 0 "<<vol_0[0]<<endl;
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
@@ -1678,20 +1685,33 @@ void ReMesher::WriteDomain(){
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
 
+////////
+/*
+  //1., GET TAGS
+  auto old_tag = m_mesh.get_tag<Real>(Omega_h::REGION, "plastic_strain");
+  auto old_data = old_tag.array(); // Reals
+
+  // Get the mapping from old elements to new elements
+  auto elem_map = m_mesh.get_transfer_map(Omega_h::REGION); // LOs
+  //3. REMAP
+  Omega_h::Reals new_data = Omega_h::map_data(1, old_data, elem_map);
+
+  //
+*/  
+
   MapElemVector<3>(m_mesh, rho,       m_dom->rho);
-  MapElemVector<3>(m_mesh, rho_0,     m_dom->rho_0);
   
-  MapElemVector<3>(m_mesh, idetF,     m_dom->vol_0); //Map the inverse and then multiply by the original
+  
+  //MapElemVector<3>(m_mesh, rho_0,     m_dom->rho_0);
+  double rho_0 = m_dom->rho_0[0];
+  
+
 
   auto volumes = Omega_h::measure_elements_real(&m_mesh);  // One value per element
   double total_volume = Omega_h::get_sum(m_mesh.comm(), volumes);
   
   cout << "New mesh volume "<<total_volume<<endl;
-
-  for (int e=0;e<m_dom->m_elem_count;e++){
-    m_dom->vol_0[e] *= volumes[e];
-    m_dom->vol  [e] = volumes[e];
-  }
+  
     
   MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
   MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
@@ -1717,6 +1737,28 @@ void ReMesher::WriteDomain(){
 
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
 
+  
+  cout << "SETTING DENSITY TO "<<rho_0<<endl;
+  ///// TO MODIFY, SAVE AS THE MATERIAL
+  m_dom->setDensity(rho_0);
+
+  // ATENTION:
+  //Volumes could also be calculated with Jacobian
+  for (int e=0;e<m_dom->m_elem_count;e++){
+    m_dom->vol_0[e] = vol_0[e]*volumes[e];
+    //m_dom->vol  [e] = volumes[e];
+    cout << "VOL "<<e<<", "<<m_dom->vol_0[e]<<"VOLUME 0 " << volumes[e]<< ", detF" <<idetF[e]<<endl;
+  }
+  m_dom->vol_0[0] = (double)volumes[0];
+    cout << "VOL 0 "<<m_dom->vol_0[0]<<"VOLUME 0 " << volumes[0]<< ", detF" <<idetF[0]<<endl;
+  double min = 1.0e10;
+
+  for (int e=0;e<m_dom->m_elem_count;e++)
+    if (m_dom->vol_0[e]<min)
+      min = m_dom->vol_0[e];
+      
+  cout << "MIN VOL "<< min<<endl;
+  
   //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v,       vfield, sizeof(double) * m_dom->m_node_count * 3);    
@@ -1734,8 +1776,6 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
     
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
-
-  memcpy_t(m_dom->rho_0,          rho_0,  sizeof(double) * m_dom->m_elem_count ); 
    
   m_dom->AssignMatAddress();
   const Material_ *matt  = &m_dom->materials[0];
@@ -1785,19 +1825,6 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
   m_dom->setNodElem(elnod_h); 
 
-  //AFTER SETTING NOD ELEMENT 
-  //MAP NODAL MASS FROM DENSITY
-  for (int n=0;n<m_dom->m_node_count;n++)
-    m_dom->m_mdiag[n] = 0.0;
-  
-  par_loop(n, m_dom->m_node_count){
-    for (int e=0; e<m_dom->m_nodel_count[n];e++) {    
-      int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[n]+e]; //Element
-      //cout << "eglob"<<eglob<<endl;
-      //cout << "COUNT "<<m_dom->m_nodel_count[eglob]<<endl;
-      m_dom->m_mdiag[n] += rho[eglob] * vol[eglob]/m_dom->m_nodel_count[n];
-    }
-  } //NODE LOOP
 
   delete [] vfield, esfield,pfield,sigfield, syfield;
     cout << "MESH CHANGED"<<endl;
@@ -1978,6 +2005,8 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
           vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
           //cout << vfield[elem*field_dim+d]<< " ";
         }
+        if (elem == 0)
+          cout << "Elem 0 CLOSEST ELEMENT "<<closest_elem<<", value "<<o_field[closest_elem*field_dim]<<endl;
         //cout <<endl;
         //if (vfield[elem*field_dim] > max_field_val)
         //  max_field_val = vfield[elem*field_dim];
