@@ -1649,6 +1649,7 @@ void ReMesher::WriteDomain(){
   double *ufield  = new double [3*m_mesh.nverts()];      
   double *vfield   = new double [3*m_mesh.nverts()]; 
   double *afield   = new double [3*m_mesh.nverts()]; 
+  double *pafield   = new double [3*m_mesh.nverts()];  //prev_a
   
   double *esfield  = new double [m_mesh.nelems()]; 
   double *pfield   = new double [m_mesh.nelems()]; 
@@ -1680,7 +1681,7 @@ void ReMesher::WriteDomain(){
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
   MapNodalVector<3>(m_mesh, afield,  m_dom->a);
-
+  MapNodalVector<3>(m_mesh, pafield,  m_dom->prev_a);
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
@@ -1754,7 +1755,8 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v,       vfield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->a,       afield, sizeof(double) * m_dom->m_node_count * 3);   
-  
+  memcpy_t(m_dom->prev_a, pafield, sizeof(double) * m_dom->m_node_count * 3);   
+    
      
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
@@ -1817,7 +1819,7 @@ void ReMesher::WriteDomain(){
   m_dom->setNodElem(elnod_h); 
 
 
-  delete [] vfield, esfield,pfield,sigfield, syfield, vol_0;
+  delete [] vfield, afield, pafield, vfield,esfield,pfield,sigfield, syfield, vol_0;
     cout << "MESH CHANGED"<<endl;
   //} else {
       //std::cout << "Mesh is the same "<<endl;
