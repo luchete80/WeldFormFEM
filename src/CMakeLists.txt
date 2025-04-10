@@ -16,6 +16,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 include_directories(../lib/LSDynaReader/src/)
 
 include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
+set (MMG_ROOT "${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/")
 include_directories("${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/include") #FOR: Omega_h_config.h
 
 set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
@@ -242,7 +243,7 @@ if(UNIX)
 
 # Windows
 elseif(WIN32)
-    set(MMG3D_LIB "${MMG_ROOT}/lib/libmmg3d.dll")
+    set(MMG3D_LIB "${MMG_ROOT}/lib/mmg3d.dll")
 endif()
 
   TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB} )
