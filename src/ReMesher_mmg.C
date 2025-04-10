@@ -111,38 +111,6 @@ inline Vec3D interp_vector (std::array<double, 3> &lambdas, //3 coordinates
 
 */
 
-#define COPY_NEW (VAR, n)     fnew[n].VAR = interpolate_vector(tgt_nodes[n], pp[0], pp[1], pp[2], \
-                                                                                nnpoint[2]->New->VAR,\ 
-                                                                                nnpoint[1]->New->VAR, \
-                                                                                nnpoint[2]->New->VAR);    
-
-
-/*
-inline void Interp_NodalField(NodalField *fnew,
-                              std::array<double, 3> &lambdas,
-                              NodalField *o0, NodalField *o1, NodalField *o2 ){
-  
-  
-  fnew->disp = interp_vector(lambdas, o0->disp, o1->disp, o2->disp);    
-  fnew->delta_disp = interp_vector(lambdas, o0->delta_disp, o1->delta_disp, o2->delta_disp);    
-  
-  fnew->ro =   interp_scalar(lambdas, o0->ro, o1->ro, o2->ro);   
-  fnew->dro =   interp_scalar(lambdas, o0->dro, o1->ro, o2->dro);   
-  
-  fnew->mat_speed =   interp_vector(lambdas, o0->mat_speed, o1->mat_speed, o2->mat_speed);   
-  
-  fnew->dmat_speed = interp_vector(lambdas, o0->dmat_speed, o1->dmat_speed, o2->dmat_speed);  
-  fnew->fe = interp_vector(lambdas, o0->fe, o1->fe, o2->fe);  
-  
-  fnew->e  =   interp_scalar(lambdas, o0->e, o1->e, o2->e);  
-  fnew->de =   interp_scalar(lambdas, o0->de, o1->de, o2->de);  
-  
-  fnew->T    =   interp_scalar(lambdas, o0->T, o1->T, o2->T); 
-  fnew->flux =   interp_vector(lambdas, o0->flux, o1->flux, o2->flux); 
-  
-}
-*/
-
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MAX4(a,b,c,d) (MAX(MAX(a,b), MAX(c,d)))
 

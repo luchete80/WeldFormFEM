@@ -242,8 +242,7 @@ if(UNIX)
 
 # Windows
 elseif(WIN32)
-    set(MMG3D_LIB "${MMG_ROOT}/lib/libmmg3d.dll.a")
-    set(MMG_LIB "${MMG_ROOT}/lib/libmmg.dll.a")
+    set(MMG3D_LIB "${MMG_ROOT}/lib/libmmg3d.dll")
 endif()
 
   TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB} )

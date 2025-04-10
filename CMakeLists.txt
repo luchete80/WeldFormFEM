@@ -85,6 +85,7 @@ if (BUILD_REMESH)
   endif()
 
   if (BUILD_MMG)
+    MESSAGE ("ADDING MMG")
     add_subdirectory("lib/mmg-5.8.0")    
   endif()
 #  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
