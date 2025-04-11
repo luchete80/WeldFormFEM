@@ -163,7 +163,9 @@ void host_ Domain_d::SolveChungHulbert(){
     //if (min_detJ<1.0e-5){
       //cout << "REMESHING "<<endl;
       ReMesher remesh(this);
-      remesh.Generate_omegah();
+      remesh.type = MMG;
+      //remesh.Generate_omegah();
+      remesh.Generate_mmg();
       remesh.WriteDomain(); 
       //cout << "Step "<<step_count<<endl;
       calcMinEdgeLength();
