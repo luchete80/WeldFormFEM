@@ -1638,6 +1638,7 @@ void ReMesher::WriteDomain(){
   double *volumes=new double[m_elem_count];
   
   MapElem(esfield,   m_dom->pl_strain);
+  cout << "map pressure"<<endl;
   MapElem(pfield,    m_dom->p);
 
   // //cout << "mapping press"<<endl;
@@ -2019,6 +2020,7 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
                 barycenter_old_clos = old_barycenter;
             }
         }//elem
+
         //cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
         //cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
         //cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
@@ -2046,17 +2048,20 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
 //// THIS NOT USES MESH AS OUTPUT; USES 
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
 
-    bool found = false;
+
     std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
 
     std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
 
     for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+    bool found = false;
         // Calculate barycenter of the current new element
         for (int en = 0; en < 4; en++) {
             //auto v = elems2verts.ab2b[elem * 4 + en];
             //auto x = get_vector<3>(coords, v);
             int v = m_elnod[elem * 4 + en];
+        if (elem==1380)
+            cout <<"ELEM 1380 nodes "<<v<<" "<<endl;
             double x[3];
             for (int d=0;d<3;d++)x[d]=m_x[3*v+d]; //X: NEW MESH NODE COORDS
             
@@ -2067,6 +2072,8 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
         barycenter[0] /= 4.0;
         barycenter[1] /= 4.0;
         barycenter[2] /= 4.0;
+        if (elem==1380)
+          cout <<"ELEM 1380 baricenter "<<barycenter[0]<<", "<<barycenter[1]<<", "<<barycenter[2]<<endl;
 
         // Search for the closest old element by distance
         double min_distance = std::numeric_limits<double>::max();
@@ -2105,10 +2112,13 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
                 barycenter_old_clos = old_barycenter;
             }
         }//elem
-        //cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
-        //cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
-        //cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
-        //cout << "Min dist "<<sqrt(min_distance)<<endl;
+        if (elem==1380){
+        cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
+        cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
+        cout << "Min dist "<<sqrt(min_distance)<<endl;
+        cout <<"val "<<o_field[closest_elem*field_dim]<<endl;
+        }
         for (int d=0;d<field_dim;d++) {
           vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
           //cout << vfield[elem*field_dim+d]<< " ";
