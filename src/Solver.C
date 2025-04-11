@@ -451,6 +451,7 @@ void host_ Domain_d::SolveChungHulbert(){
   ReMesher remesh(this);
   
   remesh.Generate_mmg();
+  remesh.m_type = MMG;
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
@@ -515,8 +516,8 @@ void host_ Domain_d::SolveChungHulbert(){
   #endif
   cout << "Done."<<endl;
 
-  //remesh.WriteDomain();
-  calcElemJAndDerivatives();    
+  remesh.WriteDomain();
+  //calcElemJAndDerivatives();    
   
   VTKWriter writer3(this, "out_remesh.vtk");
   writer3.writeFile();

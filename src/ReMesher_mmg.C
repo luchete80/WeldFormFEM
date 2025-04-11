@@ -290,7 +290,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
 
   //m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
   
-  double *x_h = new double [3*np];
+  m_x = new double [3*np];
     
   nreq = 0;
   nc = 0;
@@ -303,7 +303,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
 
       std::array<double, 3> p0 = {Point[0], Point[1], Point[2]};
       tgt_nodes[k - 1] = p0;
-      for (int d=0;d<3;d++) x_h[3*(k-1)+d] = Point[d];
+      for (int d=0;d<3;d++) m_x[3*(k-1)+d] = Point[d];
       
       if (corner[k])  
           nc++;
@@ -347,7 +347,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   
   cout << "NEW MESH. Done mapping "<<endl;
   cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
-  //memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
+  //memcpy_t(m_dom->x,      m_x , 3*sizeof(double) * m_dom->m_node_count);       
   //memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
   
   //m_dom->setNodElem(m_elnod); 
@@ -366,6 +366,8 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   
 
 
+  m_node_count = np;
+  m_elem_count = nt;
   cout << "MESH CREATED."<<endl;
  
 

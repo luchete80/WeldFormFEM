@@ -33,7 +33,13 @@ class ReMesher{
   template <int dim>
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   
-  void MapNodalVector_Raw(double *vfield, double *o_field); //THIS WORKS FROM
+  //dest,origin,switches between mesher
+  void MapNodal(double *vfield, double *o_field);
+  void MapElem(double *vfield, double *o_field, int field_dim=1);
+  
+  //THIS USES m_x,m_elnod,m_xx_count as output mesh data
+  void MapNodalVectorRaw(double *vfield, double *o_field); //
+  void MapElemVectorRaw  (double *vfield, double *o_field, int field_dim); ///
   
   
   template <int dim>

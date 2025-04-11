@@ -1449,14 +1449,47 @@ void ReMesher::Generate_omegah(){
 
     writer3.write();
   
-    //m_mesh = mesh;
-    
-    double *vec;
-    
 
-    Mesh new_mesh;
-    //std::cout<<"MAPPING"<<std::endl; 
-    //this->Map<3>(mesh);  
+
+  
+  m_x = new double [3*m_mesh.nverts()];
+  m_elnod = new int [m_mesh.nelems() * 4]; //Flattened
+  
+
+  //cout << "CONVERTING MESH"<<endl;
+  auto coords = m_mesh.coords();
+     cout << "Setting conn"<<endl; 
+  auto f = OMEGA_H_LAMBDA(LO vert) {
+    auto x = get_vector<3>(coords, vert); //dim crashes
+    //std::cout<< "VERT "<<vert<<std::endl;
+  //for (int n = 0; n < mesh.nverts(); n++) {
+    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+    //std::cout<< "NODES "<<std::endl;
+    //std::cout << m_mesh.coords()[vert]<<std::endl;
+    
+      // Get coordinates for the node in the new mesh
+      std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+      for (int d=0;d<3;d++)m_x[3*vert+d] = x[d];
+
+    //n++;
+  };//NODE LOOP
+  parallel_for(m_mesh.nverts(), f); 
+
+  auto elems2verts = m_mesh.ask_down(3, VERT);
+        
+  auto fe = OMEGA_H_LAMBDA(LO elem) {
+
+    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+    //std::cout<< "ELEM "<<std::endl;
+    for (int ve=0;ve<4;ve++){
+      auto v = elems2verts.ab2b[elem * 4 + ve];
+      m_elnod[4*elem+ve] = v;
+      //cout << v <<" ";
+      }
+    //cout <<endl;
+  };//NODE LOOP  
+  parallel_for(m_mesh.nelems(), fe); 
+
   
   
 }
@@ -1547,121 +1580,133 @@ for (int v=0;v<size;v++)
   
 }
 
+void ReMesher::MapNodal(double *vfield, double *o_field){
+  if(m_type == MMG) MapNodalVectorRaw        (vfield, o_field);
+  else              MapNodalVector<3> (m_mesh, vfield, o_field); 
+ 
+  
+}
+
+void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
+  if(m_type == MMG) MapElemVectorRaw        (vfield, o_field,field_dim);
+  else              MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
+ 
+  
+}
+
+
 void ReMesher::WriteDomain(){
-    //const int dim = m_dom->m_dim;
-    
-  //if (m_mesh.nelems() != m_dom->m_elem_count ||
-  //    m_mesh.nverts() != m_dom->m_node_count) {
-  
-  
+
+  cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
+  if(m_type==OMG_H) {
+    m_node_count = m_mesh.nverts();
+    m_elem_count = m_mesh.nelems();
+  }
+
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
-  double *ufield  = new double [3*m_mesh.nverts()];      
-  double *vfield   = new double [3*m_mesh.nverts()]; 
-  double *afield   = new double [3*m_mesh.nverts()]; 
-  double *pafield   = new double [3*m_mesh.nverts()];  //prev_a
+  double *ufield  = new double [3*m_node_count];   
+  //std::vector<double> ufield(3*m_node_count, 0.0);  
+  double *vfield   = new double [3*m_node_count]; 
+  double *afield   = new double [3*m_node_count]; 
+  double *pafield   = new double [3*m_node_count];  //prev_a
   
-  double *esfield  = new double [m_mesh.nelems()]; 
-  double *pfield   = new double [m_mesh.nelems()]; 
-  double *sigfield = new double [6*m_mesh.nelems()]; 
-  double *syfield  = new double [m_mesh.nelems()]; 
-  double *psfield  = new double [m_mesh.nelems()]; 
-  
-  
-  
-  double *str_rate = new double [6*m_mesh.nelems()]; 
-  double *rot_rate = new double [6*m_mesh.nelems()];  
-  double *tau      = new double [6*m_mesh.nelems()];   
-
-
-  double *rho   = new double [m_mesh.nelems()];   
-
-  double *vol_0 = new double [m_mesh.nelems()];    
-
+  double *esfield  = new double [m_elem_count]; 
+  double *pfield   = new double [m_elem_count]; 
+  double *sigfield = new double [6*m_elem_count]; 
+  double *syfield  = new double [m_elem_count]; 
+  double *psfield  = new double [m_elem_count];  
+  double *str_rate = new double [6*m_elem_count]; 
+  double *rot_rate = new double [6*m_elem_count];  
+  double *tau      = new double [6*m_elem_count];   
+  double *rho   = new double [m_elem_count];   
+  double *vol_0 = new double [m_elem_count];    
   double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
   
-  for (int e=0;e<m_dom->m_elem_count;e++)
-    idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
-  
-  cout << "Mapping detF"<<endl;
-
-  MapElemVector<3>(m_mesh, vol_0, idetF); //Map the inverse and then multiply by the original
-  cout << "vol_0 elem 0 "<<vol_0[0]<<endl;
-//  cout << "MAPPING"<<endl;
-  ///// BEFORE REDIMENSION!
-  MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
-  
-  MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
-  MapNodalVector<3>(m_mesh, afield,  m_dom->a);
-  MapNodalVector<3>(m_mesh, pafield,  m_dom->prev_a);
-    
-  MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
-  MapElemVector<3>(m_mesh, pfield,    m_dom->p);
-  //cout << "mapping press"<<endl;
-  //HybridProjectionElemToElem<3>(m_mesh, pfield,    m_dom->p);
-
-////////
-/*
-  //1., GET TAGS
-  auto old_tag = m_mesh.get_tag<Real>(Omega_h::REGION, "plastic_strain");
-  auto old_data = old_tag.array(); // Reals
-
-  // Get the mapping from old elements to new elements
-  auto elem_map = m_mesh.get_transfer_map(Omega_h::REGION); // LOs
-  //3. REMAP
-  Omega_h::Reals new_data = Omega_h::map_data(1, old_data, elem_map);
-
-  //
-*/  
-
-  MapElemVector<3>(m_mesh, rho,       m_dom->rho);
-  
-  
-  //MapElemVector<3>(m_mesh, rho_0,     m_dom->rho_0);
   double rho_0 = m_dom->rho_0[0];
   
-
-
-  auto volumes = Omega_h::measure_elements_real(&m_mesh);  // One value per element
-  double total_volume = Omega_h::get_sum(m_mesh.comm(), volumes);
+//  cout << "MAPPING"<<endl;
+  ///// BEFORE REDIMENSION!
+  //MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
+  cout <<"MAP NODAL"<<endl;
+  //MapNodal(ufield,  m_dom->u);
+  MapNodal(ufield,   m_dom->u);
+  MapNodal(vfield,   m_dom->v);
+  MapNodal(afield,   m_dom->a);
+  MapNodal(pafield,  m_dom->prev_a);
   
-  cout << "New mesh volume "<<total_volume<<endl;
+  cout <<"DONE"<<endl;
+  double *volumes=new double[m_elem_count];
   
-    
-  MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
-  MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
-  MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
-  MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
+  MapElem(esfield,   m_dom->pl_strain);
+  MapElem(pfield,    m_dom->p);
 
-  MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
-  MapElemVector<3>(m_mesh, psfield,  m_dom->pl_strain  , 1);
+  // //cout << "mapping press"<<endl;
+  // //HybridProjectionElemToElem<3>(m_mesh, pfield,    m_dom->p);
+
+   MapElem(rho,    m_dom->rho);
+   
+  for (int e=0;e<m_dom->m_elem_count;e++)
+    idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
+  MapElem(vol_0,    idetF);
+  
+  
+  // cout << "vol_0 elem 0 "<<vol_0[0]<<endl;
+  
+  // double rho_0 = m_dom->rho_0[0];
+  
+
+
+  // auto volumes = Omega_h::measure_elements_real(&m_mesh);  // One value per element
+  // double total_volume = Omega_h::get_sum(m_mesh.comm(), volumes);
+  
+  // cout << "New mesh volume "<<total_volume<<endl;
+  
+   MapElem(sigfield,  m_dom->m_sigma         , 6);
+   MapElem(str_rate,  m_dom->m_str_rate      , 6);
+   MapElem(rot_rate,  m_dom->m_rot_rate      , 6);
+   MapElem(tau,       m_dom->m_tau           , 6);
+   
+  // MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
+  // MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
+  // MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
+  // MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
+
+  // MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
+  // MapElemVector<3>(m_mesh, psfield,  m_dom->pl_strain  , 1);
     
-  /////////////////////// BOUNDARY CONDITIONS
+    
+  
+  
+  // /////////////////////// BOUNDARY CONDITIONS
   int bccount[3];
-  int    *bcx_nod,*bcy_nod,*bcz_nod;
-  double *bcx_val,*bcy_val,*bcz_val;
-  for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+  //int    *bcx_nod,*bcy_nod,*bcz_nod;
+  //double *bcx_val,*bcy_val,*bcz_val;
+  // for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
     
-  bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
-  bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
-  bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
+  // bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
+  // bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
+  // bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
   
   
     
-  for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
-  for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
-  for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
+  // for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
+  // for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
+  // for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
     
-  //m_dom->bc_count[0] = m_dom->bc_count[1] = m_dom->bc_count[2] = 0;
-  
-  
+
   
   ////BEFORE REWRITE
   //// WRITE
   m_dom->Free();
   
-  m_dom->m_node_count = m_mesh.nverts();
-  m_dom->m_elem_count = m_mesh.nelems();
-  
+  if (m_type==OMG_H){
+    m_dom->m_node_count = m_mesh.nverts();
+    m_dom->m_elem_count = m_mesh.nelems();
+  } else{
+    
+    m_dom->m_node_count = m_node_count;
+    m_dom->m_elem_count = m_elem_count;    
+  }
   
   
   m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
@@ -1670,18 +1715,17 @@ void ReMesher::WriteDomain(){
 
   
   cout << "SETTING DENSITY TO "<<rho_0<<endl;
-  ///// TO MODIFY, SAVE AS THE MATERIAL
   m_dom->setDensity(rho_0);
 
-  // ATENTION:
-  //Volumes could also be calculated with Jacobian
-  for (int e=0;e<m_dom->m_elem_count;e++){
-    m_dom->vol_0[e] = vol_0[e]*volumes[e];
-    //m_dom->vol  [e] = volumes[e];
-    //cout << "VOL "<<e<<", "<<m_dom->vol_0[e]<<"VOLUME 0 " << volumes[e]<< ", detF" <<idetF[e]<<endl;
-  }
+
+  // // ATENTION:
+  // //Volumes could also be calculated with Jacobian
+  // for (int e=0;e<m_dom->m_elem_count;e++){
+    // m_dom->vol_0[e] = vol_0[e]*volumes[e];
+
+  // }
   
-  //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
+  // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v,       vfield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->a,       afield, sizeof(double) * m_dom->m_node_count * 3);   
@@ -1701,69 +1745,29 @@ void ReMesher::WriteDomain(){
     
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
    
-  m_dom->AssignMatAddress();
-  const Material_ *matt  = &m_dom->materials[0];
-  cout << "G "<<matt->Elastic().G()<<endl;
+  // m_dom->AssignMatAddress();
+  // const Material_ *matt  = &m_dom->materials[0];
+  // cout << "G "<<matt->Elastic().G()<<endl;
   
-  double *x_h = new double [3*m_mesh.nverts()];
-  int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened
-  
-
-  //cout << "CONVERTING MESH"<<endl;
-  auto coords = m_mesh.coords();
-     cout << "Setting conn"<<endl; 
-  auto f = OMEGA_H_LAMBDA(LO vert) {
-    auto x = get_vector<3>(coords, vert); //dim crashes
-    //std::cout<< "VERT "<<vert<<std::endl;
-  //for (int n = 0; n < mesh.nverts(); n++) {
-    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-    //std::cout<< "NODES "<<std::endl;
-    //std::cout << m_mesh.coords()[vert]<<std::endl;
-    
-      // Get coordinates for the node in the new mesh
-      std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
-      for (int d=0;d<3;d++)x_h[3*vert+d] = x[d];
-
-    //n++;
-  };//NODE LOOP
-  parallel_for(m_mesh.nverts(), f); 
-
-  auto elems2verts = m_mesh.ask_down(3, VERT);
-        
-  auto fe = OMEGA_H_LAMBDA(LO elem) {
-
-    bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-    //std::cout<< "ELEM "<<std::endl;
-    for (int ve=0;ve<4;ve++){
-      auto v = elems2verts.ab2b[elem * 4 + ve];
-      elnod_h[4*elem+ve] = v;
-      //cout << v <<" ";
-      }
-    //cout <<endl;
-  };//NODE LOOP  
-  parallel_for(m_mesh.nelems(), fe); 
-  
-  cout << "NEW MESH. Done mapping "<<endl;
-  cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
-  memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
-  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+  ////// AFTER ALL COPIES //////
+  cout << "copying"<<endl;
+  memcpy_t(m_dom->x,      m_x, 3*sizeof(double) * m_dom->m_node_count);       
+  memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
     cout << "Setting conn"<<endl;
-  m_dom->setNodElem(elnod_h); 
-
+  m_dom->setNodElem(m_elnod);     
+      
+    
   
-  ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
-  ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
-  ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
+  // ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
+  // ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
+  // ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
 
   
   //cout << "deleting "<<endl;
-  delete [] vfield, afield, pafield, esfield,pfield,sigfield, syfield, vol_0;
-  delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
-    cout << "MESH CHANGED"<<endl;
-  //} else {
-      //std::cout << "Mesh is the same "<<endl;
-  //}
-  //cout << "Done"<<endl;
+  // delete [] vfield, afield, pafield, esfield,pfield,sigfield, syfield, vol_0;
+  // delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
+    // cout << "MESH CHANGED"<<endl;
+
 }
 
 //USES DOMAIN TO INTERPOLATE VARS
@@ -1858,9 +1862,9 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
 }//MAP
 
 //WITH THE RAW ELEM AND CONNECT
-void ReMesher::MapNodalVector_Raw(double *vfield, double *o_field) {
+void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
-    
+    cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
     for (int vert=0;vert<m_node_count;vert++){
 
 
@@ -2039,6 +2043,85 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
     //cout << "MAX FIELD VALUE: "<<max_field_val<<endl;
 }
 
+//// THIS NOT USES MESH AS OUTPUT; USES 
+void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
+
+    bool found = false;
+    std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+    std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
+
+    for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+        // Calculate barycenter of the current new element
+        for (int en = 0; en < 4; en++) {
+            //auto v = elems2verts.ab2b[elem * 4 + en];
+            //auto x = get_vector<3>(coords, v);
+            int v = m_elnod[elem * 4 + en];
+            double x[3];
+            for (int d=0;d<3;d++)x[d]=m_x[3*v+d]; //X: NEW MESH NODE COORDS
+            
+            barycenter[0] += x[0];
+            barycenter[1] += x[1];
+            barycenter[2] += x[2];
+        }
+        barycenter[0] /= 4.0;
+        barycenter[1] /= 4.0;
+        barycenter[2] /= 4.0;
+
+        // Search for the closest old element by distance
+        double min_distance = std::numeric_limits<double>::max();
+        int closest_elem = -1;
+
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            int n0 = m_dom->m_elnod[4 * i];
+            int n1 = m_dom->m_elnod[4 * i + 1];
+            int n2 = m_dom->m_elnod[4 * i + 2];
+            int n3 = m_dom->m_elnod[4 * i + 3];
+
+            std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // Calculate the barycenter of the old element
+            std::array<double, 3> old_barycenter = {
+                (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            };
+
+            double distance = 
+            //std::sqrt(
+                std::pow(barycenter[0] - old_barycenter[0], 2) +
+                std::pow(barycenter[1] - old_barycenter[1], 2) +
+                std::pow(barycenter[2] - old_barycenter[2], 2)
+            ;
+            //);
+
+            if (distance < min_distance) {
+                min_distance = distance;
+                closest_elem = i;
+                found = true;
+                barycenter_old_clos = old_barycenter;
+            }
+        }//elem
+        //cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        //cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
+        //cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
+        //cout << "Min dist "<<sqrt(min_distance)<<endl;
+        for (int d=0;d<field_dim;d++) {
+          vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
+          //cout << vfield[elem*field_dim+d]<< " ";
+        }
+
+        if (found) {
+            //std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
+        } else {
+            std::cout << "ERROR: No matching element found for element " << elem << std::endl;
+        }
+
+    }//elem
+}
 
 template <int dim>
 void ReMesher::MapElemVectors() {
