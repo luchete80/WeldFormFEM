@@ -232,6 +232,11 @@ void ReMesher::Generate_mmg(){
   // Higher verbosity level
   // MMG3D_Set_iparameter(mmgMesh, mmgSol, MMG3D_IPARAM_verbose, 5);
 
+  MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar);
+  for (int k = 1; k <= np; k++)
+      MMG3D_Set_scalarSol(mmgSol, 0.05, k);  // uniform sizing via scalar field
+      
+
   // Remesh
   int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
@@ -344,7 +349,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
           std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
           tgt_tetras[tetra] = ta;                                    
           for (int en=0;en<4;en++) elnod_h[tetra*4+en] = ta[en];
-          cout << ta[0]<<", "<<ta[1]<<"; "<<ta[2]<<", "<<ta[3]<<endl;
+          //cout << ta[0]<<", "<<ta[1]<<"; "<<ta[2]<<", "<<ta[3]<<endl;
           nt_corr++;
       }
   }
@@ -357,6 +362,8 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
   
   m_dom->setNodElem(elnod_h); 
+
+
 
   ////////////////////////////////////////////////// MAPPING //////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////

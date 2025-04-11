@@ -20,6 +20,14 @@ class ReMesher{
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   template <int dim>
   void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
+  template <int dim>
+  void ProjectElemToNodes(Omega_h::Mesh& mesh,  double* elemvals, double* nodal_vals, int field_dim);
+  template <int dim>
+  void ProjectNodesToElem(Omega_h::Mesh& mesh,  double* nodal_vals, double* elemvals, int field_dim);
+
+  template <int dim>
+  void HybridProjectionElemToElem(Omega_h::Mesh& mesh, double* new_elemvals,  double* old_elemvals, int field_dim=1);
+
 
   template <int dim>
   void MapElemVectors ();

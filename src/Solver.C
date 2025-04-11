@@ -158,7 +158,7 @@ void host_ Domain_d::SolveChungHulbert(){
       }
     
     if (max > 0.2 && !remesh_){
-      
+    //if (!remesh_) { 
     //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
     //if (min_detJ<1.0e-5){
       //cout << "REMESHING "<<endl;
@@ -449,7 +449,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   ReMesher remesh(this);
   
-  remesh.Generate_mmg();
+  //remesh.Generate_mmg();
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		

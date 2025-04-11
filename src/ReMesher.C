@@ -1680,12 +1680,15 @@ void ReMesher::WriteDomain(){
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
+  
   MapNodalVector<3>(m_mesh, vfield,  m_dom->v);
   MapNodalVector<3>(m_mesh, afield,  m_dom->a);
   MapNodalVector<3>(m_mesh, pafield,  m_dom->prev_a);
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
+  cout << "mapping press"<<endl;
+  //HybridProjectionElemToElem<3>(m_mesh, pfield,    m_dom->p);
 
 ////////
 /*
@@ -1857,13 +1860,14 @@ void ReMesher::WriteDomain(){
 //USES DOMAIN TO INTERPOLATE VARS
 //HOST MAP
 //Args: mesh, dest field, original field
+//THE ORIGINAL MESH IS m_dom->
 template <int dim>
 void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     auto coords = mesh.coords();
     
-    double *scalar= new double[mesh.nverts()];
-    double *vector= new double[mesh.nverts()*3];
+    //double *scalar= new double[mesh.nverts()];
+    //double *vector= new double[mesh.nverts()*3];
 
     //free_t (vfield);
     //vfield = new double [3*mesh.nverts()];    
@@ -1916,10 +1920,10 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
 
             if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2 && lambdas[3] >= -5.0e-2) { 
                 //std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
-                double scalar[4];
+                //double scalar[4];
                 //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
 
-                double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
+                //double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
 
 
                 // Interpolate vector values for displacement (if needed)
@@ -2284,18 +2288,112 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
 }
 
 
-/*
-// Example usage:
-std::vector<I64> bc_nod_x, bc_nod_y, bc_nod_z;
-std::vector<Real> val_x, val_y, val_z;
 
-std::vector<I64> new_bc_nod_x, new_bc_nod_y, new_bc_nod_z;
-std::vector<Real> new_val_x, new_val_y, new_val_z;
 
-remap_bc_nodes(bc_nod_x, val_x, old_mesh, new_mesh, new_bc_nod_x, new_val_x);
-remap_bc_nodes(bc_nod_y, val_y, old_mesh, new_mesh, new_bc_nod_y, new_val_y);
-remap_bc_nodes(bc_nod_z, val_z, old_mesh, new_mesh, new_bc_nod_z, new_val_z);
-  }
-*/
+
+// Type aliases for clarity
+using Vec3 = std::array<double, 3>;
+using Tetra = std::array<int, 4>;
+
+// Compute volume of tetrahedron given its 4 coordinates
+double TetraVolume(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& d) {
+    Vec3 ab = {b[0] - a[0], b[1] - a[1], b[2] - a[2]};
+    Vec3 ac = {c[0] - a[0], c[1] - a[1], c[2] - a[2]};
+    Vec3 ad = {d[0] - a[0], d[1] - a[1], d[2] - a[2]};
+
+    double vol = (ab[0] * (ac[1] * ad[2] - ac[2] * ad[1]) -
+                  ab[1] * (ac[0] * ad[2] - ac[2] * ad[0]) +
+                  ab[2] * (ac[0] * ad[1] - ac[1] * ad[0])) / 6.0;
+    return std::abs(vol);
+}
+template <int dim>
+void ReMesher::ProjectElemToNodes(Mesh& mesh,  double* elemvals, double* nodal_vals, int field_dim) {
+    auto coords = mesh.coords();
+    auto elems2verts = mesh.ask_down(3, 0);
+    int nelems = mesh.nelems();
+    int nverts = mesh.nverts();
+
+    std::vector<double> nodal_weights(nverts, 0.0);
+    std::fill(nodal_vals, nodal_vals + field_dim * nverts, 0.0);
+
+    for (int e = 0; e < nelems; ++e) {
+        std::array<int, 4> verts;
+        for (int i = 0; i < 4; ++i)
+            verts[i] = elems2verts.ab2b[e * 4 + i];
+
+        std::array<std::array<double, dim>, 4> x;
+        for (int i = 0; i < 4; ++i)
+            for (int d = 0; d < dim; ++d)
+                x[i][d] = coords[dim * verts[i] + d];
+
+        double vol = TetraVolume(x[0], x[1], x[2], x[3]); // this must support dim=3
+
+        for (int j = 0; j < 4; ++j) {
+            int node = verts[j];
+            for (int fd = 0; fd < field_dim; ++fd)
+                nodal_vals[node * field_dim + fd] += vol * elemvals[e * field_dim + fd];
+            nodal_weights[node] += vol;
+        }
+    }
+
+    for (int i = 0; i < nverts; ++i) {
+        double w = nodal_weights[i];
+        if (w < 1e-12) continue;
+        for (int fd = 0; fd < field_dim; ++fd)
+            nodal_vals[i * field_dim + fd] /= w;
+    }
+}
+
+//mesh, origin, dest
+template <int dim>
+void ReMesher::ProjectNodesToElem(Mesh& mesh,  double* nodal_vals, double* elemvals, int field_dim) {
+    auto elems2verts = mesh.ask_down(3, 0);
+    int nelems = mesh.nelems();
+
+    for (int e = 0; e < nelems; ++e) {
+        std::array<int, 4> verts;
+        for (int i = 0; i < 4; ++i)
+            verts[i] = elems2verts.ab2b[e * 4 + i];
+
+        for (int fd = 0; fd < field_dim; ++fd) {
+            double sum = 0.0;
+            for (int j = 0; j < 4; ++j)
+                sum += nodal_vals[verts[j] * field_dim + fd];
+            elemvals[e * field_dim + fd] = sum / 4.0;
+        }
+    }
+}
+
+/// 
+
+template <int dim>
+void ReMesher::HybridProjectionElemToElem(Mesh& mesh, double* new_elemvals,  double* old_elemvals, int field_dim) {
+    int nverts = mesh.nverts();
+    int nelems = mesh.nelems();
+
+    // Step 1: Project old element values to old nodal values using OLD mesh (m_dom->x)
+    //std::vector<double> nodal_vals_old(m_old_mesh.nverts() * field_dim, 0.0);
+    double *nodal_vals_old = new double [m_old_mesh.nverts() * field_dim];
+    //HERE m_old_mesh is the same mesh than m_dom->x
+    cout << "Elem to nodes, old vert count "<<m_old_mesh.nverts()<<"field dim "<<field_dim<<endl;
+    //map to nodal old data
+    //ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old.data(), field_dim);
+
+    ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old, field_dim);
+    
+    cout << "mapping nodal to neew vert count "<< nverts <<endl;
+    // Step 2: Interpolate old nodal values to new mesh  (mesh arg )nodes
+    //std::vector<double> nodal_vals_new(nverts * field_dim, 0.0);
+    double *nodal_vals_new = new double [nverts * field_dim];
+    //MapNodalVector<dim>(mesh,nodal_vals_new.data(), nodal_vals_old.data()/*, field_dim*/);  // You already implemented this
+    MapNodalVector<dim>(mesh,nodal_vals_new, nodal_vals_old/*, field_dim*/);  // You already implemented this
+    
+    cout << "projecting to elem "<<endl;
+    // Step 3: Project new nodal values to new element values using NEW mesh
+    ProjectNodesToElem<dim>(mesh, nodal_vals_new, new_elemvals, field_dim);
+    cout << "done "<<endl;
+    
+    //delete[] nodal_vals_new,nodal_vals_old; 
+}
   
 };
