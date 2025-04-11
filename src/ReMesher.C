@@ -1409,7 +1409,6 @@ namespace MetFEM{
     // Create mesh using GPU data
     create_mesh(mesh, d_node_data, num_nodes, d_connectivity_data, num_elements);
 
-    m_old_mesh = mesh; 
     
     //vtk::Reader vtk_reader("piece_0.vtu");
     //classify_vertices(&mesh);
@@ -1426,7 +1425,7 @@ namespace MetFEM{
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
 #endif
     
-  
+      m_old_mesh = mesh; 
     //refine_mesh_quality(mesh);
     //std::cout << "Refine done "<<std::endl;
     // Save mesh
@@ -1723,13 +1722,14 @@ void ReMesher::WriteDomain(){
   int bccount[3];
   int    *bcx_nod,*bcy_nod,*bcz_nod;
   double *bcx_val,*bcy_val,*bcz_val;
+  for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+    
   bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
   bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
   bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
   
   
-     
-  for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+    
   for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
   for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
   for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
@@ -1834,8 +1834,8 @@ void ReMesher::WriteDomain(){
   m_dom->setNodElem(elnod_h); 
 
   
-  //ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
-  //ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
+  ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
+  ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
   ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
 
   
@@ -2232,18 +2232,22 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
                     int bc_count) {
     
   cout << "MAPPING BCs"<<endl;
-  auto old_coords = m_old_mesh.coords();
+
+  cout << "coords"<<endl;
   auto new_coords = m_mesh.coords();
-  int dim = m_old_mesh.dim();
+  cout << "OLDCOORDS"<<endl;
+  auto old_coords = m_old_mesh.coords();
+  //int dim = m_old_mesh.dim();
   
   int new_count = 0;
   for (std::size_t i = 0; i < bc_count; ++i) {
+    cout << "vert "<<i<<endl;
     I64 old_id = old_bc_nod[i];
     Real val = old_bc_val[i];
 
     Vector<3> p_old;
-    for (int d = 0; d < dim; ++d) {
-      p_old[d] = old_coords[old_id * dim + d];
+    for (int d = 0; d < 3; ++d) {
+      p_old[d] = old_coords[old_id * 3 + d];
     }
 
     Real min_dist2 = std::numeric_limits<Real>::max();
@@ -2251,8 +2255,8 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
 
     for (I64 new_id = 0; new_id < m_mesh.nverts(); ++new_id) {
       Vector<3> p_new;
-      for (int d = 0; d < dim; ++d) {
-        p_new[d] = new_coords[new_id * dim + d];
+      for (int d = 0; d < 3; ++d) {
+        p_new[d] = new_coords[new_id * 3 + d];
       }
 
       Real dist2 = norm_squared(p_new - p_old);
@@ -2264,14 +2268,16 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
 
     if (closest_id >= 0) {
       if (closest_id != i)
-        cout << "Different Node id found "<<endl;
+        cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
       new_bc_nod[i]=closest_id;
       new_bc_val[i]=val;
+      cout << "val "<<val<<endl;
     } else {
       std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
     }
   }//bc_count
 }
+
 
 /*
 // Example usage:
