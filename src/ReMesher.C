@@ -1774,16 +1774,7 @@ template <int dim>
 void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     auto coords = mesh.coords();
-    
-    //double *scalar= new double[mesh.nverts()];
-    //double *vector= new double[mesh.nverts()*3];
 
-    //free_t (vfield);
-    //vfield = new double [3*mesh.nverts()];    
-    
-    //malloc_t(vfield_h,double,mesh.nverts()*3);
-        
-    //COMPY OLD MESH TO NEW 
     
     auto f = OMEGA_H_LAMBDA(LO vert) {
       auto x = get_vector<3>(coords, vert);
@@ -1863,6 +1854,99 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
       //n++;
     };//NODE LOOP
     parallel_for(mesh.nverts(), f);
+
+}//MAP
+
+//WITH THE RAW ELEM AND CONNECT
+void ReMesher::MapNodalVector_Raw(double *vfield, double *o_field) {
+    // Loop over the target nodes in the new mesh
+    
+    for (int vert=0;vert<m_node_count;vert++){
+
+
+   //auto coords = mesh.coords();
+
+    
+    //auto f = OMEGA_H_LAMBDA(LO vert) {
+      //auto x = get_vector<3>(coords, vert);
+      double x[3];
+      for (int d=0;d<3;d++) x[d]=m_x[3*vert+d];
+      
+      bool found_samenode = false;
+      double tol = 1.0e-3;
+      //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
+      for (int v = 0; v < m_dom->m_node_count; v++){
+        //If new node dist <tol, map new node = old node
+        std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
+        double distance = 0.0;
+        for (int i = 0; i < 3; ++i) {
+            distance += (x[i] - p0[i]) * (x[i] - p0[i]);
+        }
+        if (distance<tol){
+          found_samenode = true;
+          //cout << "FOUND " << vert << " SAME NODE "<<endl;
+          for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
+        }                
+      }//node
+      
+      if (!found_samenode){
+    //for (int n = 0; n < mesh.nverts(); n++) {
+        bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+        //std::cout << mesh.coords()[n]<<std::endl;
+        
+        // Get coordinates for the node in the new mesh
+        std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+        
+        // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // Connectivity for the tetrahedral element (assumed to have 4 nodes per element in the old mesh)
+            int n0 = m_dom->m_elnod[4*i];   // Node 0 in the element
+            int n1 = m_dom->m_elnod[4*i+1]; // Node 1 in the element
+            int n2 = m_dom->m_elnod[4*i+2]; // Node 2 in the element
+            int n3 = m_dom->m_elnod[4*i+3]; // Node 3 in the element
+
+            std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+            std::array<double, 4> lambdas = barycentric_coordinates(target_node, p0, p1, p2, p3);
+
+            if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2 && lambdas[3] >= -5.0e-2) { 
+                //std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+                //double scalar[4];
+                //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
+
+                //double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
+
+
+                // Interpolate vector values for displacement (if needed)
+                std::array<double, 3> disp[4];
+                for (int n=0;n<4;n++)
+                  for (int d=0;d<3;d++)
+                    disp[n][d] = o_field[3*m_dom->m_elnod[4*i+n]+d];
+                
+                //cout << "Interp disp"<<endl;
+                std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
+                for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
+                // Optionally, interpolate other scalar/vector fields for the new mesh node here
+
+                //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
+                //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                //std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+
+                found = true;
+                break;  // Exit the element loop once the element is found
+            }//lambdas
+          }//elem
+          if (!found) {
+              std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+          }
+        }//found same node
+
+      //n++;
+  
+    }
 
 }//MAP
 

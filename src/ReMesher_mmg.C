@@ -282,13 +282,13 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   std::vector<double> tgt_scalar(np);
 
 
-  m_dom->Free();
+  //m_dom->Free();
   
-  m_dom->m_node_count = np;
-  m_dom->m_elem_count = nt;
+  //m_dom->m_node_count = np;
+  //m_dom->m_elem_count = nt;
   
 
-  m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
+  //m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
   
   double *x_h = new double [3*np];
     
@@ -319,9 +319,9 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   }
 
 
-  malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
+  //malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
   
-  int *elnod_h = new int[nt * 4];
+  m_elnod = new int[nt * 4];
   
   cout << "OVERALL tetrahedron count " << nt << endl;
   int nt_corr = 0;
@@ -337,7 +337,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
 
           std::array<int, 4> ta = {Tetra[0] - 1, Tetra[1] - 1, Tetra[2] - 1, Tetra[3] - 1};
           tgt_tetras[tetra] = ta;                                    
-          for (int en=0;en<4;en++) elnod_h[tetra*4+en] = ta[en];
+          for (int en=0;en<4;en++) m_elnod[tetra*4+en] = ta[en];
           //cout << ta[0]<<", "<<ta[1]<<"; "<<ta[2]<<", "<<ta[3]<<endl;
           nt_corr++;
       }
@@ -347,16 +347,24 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   
   cout << "NEW MESH. Done mapping "<<endl;
   cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
-  memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
-  memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+  //memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
+  //memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
   
-  m_dom->setNodElem(elnod_h); 
+  //m_dom->setNodElem(m_elnod); 
 
   
     //NEW MESH; SO CAN BE USED OMEGA_H FUNCTIONS
     
     ///// IF USED OMEGA_H
-    //create_mesh(m_mesh, x_h, np, (int *)elnod_h, nt);
+  
+  //cout << "Creating NEW mesh "<<endl;
+  //create_mesh(m_mesh, x_h, np, (int *)m_elnod, nt);
+  //cout << "done"<<endl;
+  
+  //m_x = new double [3*np];
+  //m_elnod = new int[nt * 4];
+  
+
 
   cout << "MESH CREATED."<<endl;
  

@@ -3,6 +3,8 @@
 
 #include <Omega_h_mesh.hpp>
 
+enum Remesh_Type { MMG=0, OMG_H=1 };
+
 void create_mesh(Omega_h::Mesh& mesh, 
 #ifdef CUDA_BUILD
                  double* d_node_coords, int num_nodes, 
@@ -19,6 +21,9 @@ class Domain_d;
 
 class ReMesher{
   public:
+  
+  Remesh_Type m_type;
+  
   ReMesher()//:dim(3)
   {}
   ReMesher(Domain_d *);
@@ -27,6 +32,10 @@ class ReMesher{
   void Generate_mmg();
   template <int dim>
   void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
+  
+  void MapNodalVector_Raw(double *vfield, double *o_field); //THIS WORKS FROM
+  
+  
   template <int dim>
   void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
   template <int dim>
@@ -55,11 +64,19 @@ class ReMesher{
                     double *new_bc_val,
                     int bc_count);
   protected:
+  
+  
 
   Domain_d *m_dom;
   int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
   Omega_h::Mesh m_mesh;
   Omega_h::Mesh m_old_mesh;
+  
+  //IF OMEGA H NOT USED
+  double *m_x;
+  int    *m_elnod;
+  int     m_node_count;
+  int     m_elem_count;
 };
 
 }; //MetFEM
