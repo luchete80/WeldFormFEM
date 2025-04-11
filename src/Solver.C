@@ -431,10 +431,10 @@ void host_ Domain_d::SolveChungHulbert(){
     #endif
     tout +=m_dtout;
   }
-  
-      std::string s = "out_step_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
+      ///////DEBGUG
+      //std::string s = "out_step_"+std::to_string(step_count)+".vtk";
+      //VTKWriter writer3(this, s.c_str());
+      //writer3.writeFile();
           
   Time += dt;
   step_count++;

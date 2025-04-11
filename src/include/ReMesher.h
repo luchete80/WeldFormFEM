@@ -30,7 +30,12 @@ class ReMesher{
       
   void MeshMMG(); 
   void ReMesh();
+  void ReMapBCs(int  *old_bc_nod,
+                      double *old_bc_val,
 
+                    int  *new_bc_nod,
+                    double *new_bc_val,
+                    int bc_count);
   protected:
 
   Domain_d *m_dom;

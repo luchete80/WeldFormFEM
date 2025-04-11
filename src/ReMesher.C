@@ -1720,6 +1720,20 @@ void ReMesher::WriteDomain(){
   MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
   
   /////////////////////// BOUNDARY CONDITIONS
+  int bccount[3];
+  int    *bcx_nod,*bcy_nod,*bcz_nod;
+  double *bcx_val,*bcy_val,*bcz_val;
+  bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
+  bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
+  bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
+  
+  
+     
+  for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+  for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
+  for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
+  for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
+    
   //m_dom->bc_count[0] = m_dom->bc_count[1] = m_dom->bc_count[2] = 0;
   
   
@@ -1748,7 +1762,7 @@ void ReMesher::WriteDomain(){
   for (int e=0;e<m_dom->m_elem_count;e++){
     m_dom->vol_0[e] = vol_0[e]*volumes[e];
     //m_dom->vol  [e] = volumes[e];
-    cout << "VOL "<<e<<", "<<m_dom->vol_0[e]<<"VOLUME 0 " << volumes[e]<< ", detF" <<idetF[e]<<endl;
+    //cout << "VOL "<<e<<", "<<m_dom->vol_0[e]<<"VOLUME 0 " << volumes[e]<< ", detF" <<idetF[e]<<endl;
   }
   
   //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
@@ -1757,7 +1771,7 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->a,       afield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->prev_a, pafield, sizeof(double) * m_dom->m_node_count * 3);   
     
-     
+
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
   memcpy_t(m_dom->m_str_rate,   str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
@@ -1780,7 +1794,7 @@ void ReMesher::WriteDomain(){
 
   //cout << "CONVERTING MESH"<<endl;
   auto coords = m_mesh.coords();
-    
+     cout << "Setting conn"<<endl; 
   auto f = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert); //dim crashes
     //std::cout<< "VERT "<<vert<<std::endl;
@@ -1816,10 +1830,18 @@ void ReMesher::WriteDomain(){
   cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
   memcpy_t(m_dom->x,      x_h, 3*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  elnod_h, 4*sizeof(int) * m_dom->m_elem_count);  
+    cout << "Setting conn"<<endl;
   m_dom->setNodElem(elnod_h); 
 
+  
+  //ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
+  //ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
+  ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
 
-  delete [] vfield, afield, pafield, vfield,esfield,pfield,sigfield, syfield, vol_0;
+  
+  //cout << "deleting "<<endl;
+  delete [] vfield, afield, pafield, esfield,pfield,sigfield, syfield, vol_0;
+  delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
     cout << "MESH CHANGED"<<endl;
   //} else {
       //std::cout << "Mesh is the same "<<endl;
@@ -2202,6 +2224,67 @@ void ReMesher::MapElemPtrVector(Mesh& mesh, T* vfield, T* o_field) {
         // unchanged_verts[v] = 1; // Mark as unchanged
     // }
 // });
+void ReMesher::ReMapBCs(int  *old_bc_nod,
+                      double *old_bc_val,
 
+                    int  *new_bc_nod,
+                    double *new_bc_val,
+                    int bc_count) {
+    
+  cout << "MAPPING BCs"<<endl;
+  auto old_coords = m_old_mesh.coords();
+  auto new_coords = m_mesh.coords();
+  int dim = m_old_mesh.dim();
+  
+  int new_count = 0;
+  for (std::size_t i = 0; i < bc_count; ++i) {
+    I64 old_id = old_bc_nod[i];
+    Real val = old_bc_val[i];
+
+    Vector<3> p_old;
+    for (int d = 0; d < dim; ++d) {
+      p_old[d] = old_coords[old_id * dim + d];
+    }
+
+    Real min_dist2 = std::numeric_limits<Real>::max();
+    I64 closest_id = -1;
+
+    for (I64 new_id = 0; new_id < m_mesh.nverts(); ++new_id) {
+      Vector<3> p_new;
+      for (int d = 0; d < dim; ++d) {
+        p_new[d] = new_coords[new_id * dim + d];
+      }
+
+      Real dist2 = norm_squared(p_new - p_old);
+      if (dist2 < min_dist2) {
+        min_dist2 = dist2;
+        closest_id = new_id;
+      }
+    }
+
+    if (closest_id >= 0) {
+      if (closest_id != i)
+        cout << "Different Node id found "<<endl;
+      new_bc_nod[i]=closest_id;
+      new_bc_val[i]=val;
+    } else {
+      std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
+    }
+  }//bc_count
+}
+
+/*
+// Example usage:
+std::vector<I64> bc_nod_x, bc_nod_y, bc_nod_z;
+std::vector<Real> val_x, val_y, val_z;
+
+std::vector<I64> new_bc_nod_x, new_bc_nod_y, new_bc_nod_z;
+std::vector<Real> new_val_x, new_val_y, new_val_z;
+
+remap_bc_nodes(bc_nod_x, val_x, old_mesh, new_mesh, new_bc_nod_x, new_val_x);
+remap_bc_nodes(bc_nod_y, val_y, old_mesh, new_mesh, new_bc_nod_y, new_val_y);
+remap_bc_nodes(bc_nod_z, val_z, old_mesh, new_mesh, new_bc_nod_z, new_val_z);
+  }
+*/
   
 };
