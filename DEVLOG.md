@@ -280,3 +280,6 @@ F90 PREVIOUS VERSION
          - FIXED Initial and Volumes, Volumes. Now are calculating via detF. 
          - FIXED mmg Remeshing generation. Working but still have to pass nodes and element vals. 
 20250409 - FIXED Nodal Volume and Mass OUTSIDE Remesher
+20250411 - FIXED REMAP OF Plain Strain, and Sig yield
+         - ADDED REMAP BCs
+         - FIXED MMG remeshing errors of bad indices.

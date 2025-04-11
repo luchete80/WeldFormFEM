@@ -327,11 +327,11 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
 
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
   
-  int 		*elnod_h = new int [m_mesh.nelems() * 4]; //Flattened  
+  int *elnod_h = new int[nt * 4];
   
   cout << "OVERALL tetrahedron count " << nt << endl;
   int nt_corr = 0;
-  for (int tetra = 0; tetra < mmgMesh->nt; tetra++) {
+  for (int tetra = 0; tetra < nt; tetra++) {
       bool error = false;
       int ierror, terr;
 

@@ -1178,7 +1178,8 @@ void compute_angle_metric_selective(Omega_h::Mesh& mesh) {
   opts.min_length_desired = 0.2;
   opts.should_refine = true;
   opts.should_coarsen = true;
-  opts.verbosity = Omega_h::EXTRA_STATS;
+  //opts.verbosity = Omega_h::EXTRA_STATS;
+  opts.verbosity = Omega_h::SILENT;
   
   double orig_len = 0.15;
 
@@ -1654,7 +1655,8 @@ void ReMesher::WriteDomain(){
   double *pfield   = new double [m_mesh.nelems()]; 
   double *sigfield = new double [6*m_mesh.nelems()]; 
   double *syfield  = new double [m_mesh.nelems()]; 
-
+  double *psfield  = new double [m_mesh.nelems()]; 
+  
   
   
   double *str_rate = new double [6*m_mesh.nelems()]; 
@@ -1717,7 +1719,10 @@ void ReMesher::WriteDomain(){
   MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
   MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
   MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
-  
+
+  MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
+  MapElemVector<3>(m_mesh, psfield,  m_dom->pl_strain  , 1);
+    
   /////////////////////// BOUNDARY CONDITIONS
   int bccount[3];
   int    *bcx_nod,*bcy_nod,*bcz_nod;
@@ -1737,7 +1742,6 @@ void ReMesher::WriteDomain(){
   //m_dom->bc_count[0] = m_dom->bc_count[1] = m_dom->bc_count[2] = 0;
   
   
-    //MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
   
   ////BEFORE REWRITE
   //// WRITE
@@ -1779,6 +1783,7 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->m_tau,        tau,        sizeof(double) * m_dom->m_elem_count *6); 
   
   memcpy_t(m_dom->sigma_y,   syfield,  sizeof(double) * m_dom->m_elem_count ); 
+  memcpy_t(m_dom->pl_strain, psfield,  sizeof(double) * m_dom->m_elem_count ); 
 
   memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
     
@@ -2231,17 +2236,17 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
                     double *new_bc_val,
                     int bc_count) {
     
-  cout << "MAPPING BCs"<<endl;
+  //cout << "MAPPING BCs"<<endl;
 
-  cout << "coords"<<endl;
+  //cout << "coords"<<endl;
   auto new_coords = m_mesh.coords();
-  cout << "OLDCOORDS"<<endl;
+  //cout << "OLDCOORDS"<<endl;
   auto old_coords = m_old_mesh.coords();
   //int dim = m_old_mesh.dim();
   
   int new_count = 0;
   for (std::size_t i = 0; i < bc_count; ++i) {
-    cout << "vert "<<i<<endl;
+    //cout << "vert "<<i<<endl;
     I64 old_id = old_bc_nod[i];
     Real val = old_bc_val[i];
 
@@ -2268,10 +2273,10 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
 
     if (closest_id >= 0) {
       if (closest_id != i)
-        cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
+        //cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
       new_bc_nod[i]=closest_id;
       new_bc_val[i]=val;
-      cout << "val "<<val<<endl;
+      //cout << "val "<<val<<endl;
     } else {
       std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
     }

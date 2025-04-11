@@ -147,16 +147,18 @@ void host_ Domain_d::SolveChungHulbert(){
   if ( step_count % m_remesh_interval == 0 && step_count  >0 )
   //if (0) //debug
   {
-    cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
+    //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
     cout << "step_count "<<step_count<<endl;
-    double min_detJ=1.0;
+    double max=0.0;
     int emin;
     for (int e=0;e<m_elem_count;e++)
-      if (m_detJ[e]<min_detJ){
-        min_detJ = m_detJ[e];
+      if (pl_strain[e]>max){
+        max = pl_strain[e];
         emin = e;
       }
     
+    if (max > 0.2 && !remesh_){
+      
     //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
     //if (min_detJ<1.0e-5){
       //cout << "REMESHING "<<endl;
@@ -168,19 +170,22 @@ void host_ Domain_d::SolveChungHulbert(){
 
       //TO MODIFY
       double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-        
-      //double dt = /*cflFactor*/ 0.03 * m_min_height/(mat_cs);
+      //SetDT(0.1*dt);
+      //dt *=0.25;
+
       //double dt = 0.800e-5;
       //cout << "New Time Step "<<dt<<endl;
       //SetDT(dt); 
-      //getMinLength();
-      
+      calcMinEdgeLength();
+      double minl = getMinLength();
+      double dt = 0.05*minl/(mat_cs);
+      cout << "min length "<<minl<<", dt "<<dt<<endl;
       //cout << "DONE REMESH"<<endl;
       std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;
-      
+    }
       //}
   }
  
@@ -386,7 +391,7 @@ void host_ Domain_d::SolveChungHulbert(){
   N = getNodeCount();
   blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
   UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
+	cudaDeviceSynchronize();   psfield
   #else
   UpdateCorrectionPos();
   #endif  
@@ -432,20 +437,19 @@ void host_ Domain_d::SolveChungHulbert(){
     tout +=m_dtout;
   }
       ///////DEBGUG
-      std::string s = "out_step_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
+      //std::string s = "out_step_"+std::to_string(step_count)+".vtk";
+      //VTKWriter writer3(this, s.c_str());
+      //writer3.writeFile();
           
   Time += dt;
   step_count++;
-  remesh_ = false;
-    
+  remesh_ = false;    
   }// WHILE LOOP
 
 
   ReMesher remesh(this);
   
-  //remesh.Generate_mmg();
+  remesh.Generate_mmg();
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
