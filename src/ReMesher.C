@@ -1687,7 +1687,7 @@ void ReMesher::WriteDomain(){
     
   MapElemVector<3>(m_mesh, esfield,   m_dom->pl_strain);
   MapElemVector<3>(m_mesh, pfield,    m_dom->p);
-  cout << "mapping press"<<endl;
+  //cout << "mapping press"<<endl;
   //HybridProjectionElemToElem<3>(m_mesh, pfield,    m_dom->p);
 
 ////////
@@ -1891,6 +1891,7 @@ void ReMesher::MapNodalVector(Mesh& mesh, double *vfield, double *o_field) {
         }
         if (distance<tol){
           found_samenode = true;
+          //cout << "FOUND " << vert << " SAME NODE "<<endl;
           for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
         }                
       }//node
@@ -2344,7 +2345,7 @@ void ReMesher::ProjectElemToNodes(Mesh& mesh,  double* elemvals, double* nodal_v
     }
 }
 
-//mesh, origin, dest
+//mesh, origin(nodal), dest(elem)
 template <int dim>
 void ReMesher::ProjectNodesToElem(Mesh& mesh,  double* nodal_vals, double* elemvals, int field_dim) {
     auto elems2verts = mesh.ask_down(3, 0);
@@ -2372,28 +2373,30 @@ void ReMesher::HybridProjectionElemToElem(Mesh& mesh, double* new_elemvals,  dou
     int nelems = mesh.nelems();
 
     // Step 1: Project old element values to old nodal values using OLD mesh (m_dom->x)
-    //std::vector<double> nodal_vals_old(m_old_mesh.nverts() * field_dim, 0.0);
-    double *nodal_vals_old = new double [m_old_mesh.nverts() * field_dim];
+    std::vector<double> nodal_vals_old(3*m_old_mesh.nverts() * field_dim, 0.0);
+    //double *nodal_vals_old = new double [3*m_old_mesh.nverts() * field_dim];
     //HERE m_old_mesh is the same mesh than m_dom->x
     cout << "Elem to nodes, old vert count "<<m_old_mesh.nverts()<<"field dim "<<field_dim<<endl;
     //map to nodal old data
-    //ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old.data(), field_dim);
+    ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old.data(), field_dim);
 
-    ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old, field_dim);
+    //ProjectElemToNodes<dim>(m_old_mesh, old_elemvals, nodal_vals_old, field_dim);
     
     cout << "mapping nodal to neew vert count "<< nverts <<endl;
     // Step 2: Interpolate old nodal values to new mesh  (mesh arg )nodes
-    //std::vector<double> nodal_vals_new(nverts * field_dim, 0.0);
-    double *nodal_vals_new = new double [nverts * field_dim];
-    //MapNodalVector<dim>(mesh,nodal_vals_new.data(), nodal_vals_old.data()/*, field_dim*/);  // You already implemented this
-    MapNodalVector<dim>(mesh,nodal_vals_new, nodal_vals_old/*, field_dim*/);  // You already implemented this
+    std::vector<double> nodal_vals_new(3*nverts * field_dim, 0.0);
+    //double *nodal_vals_new = new double [3*nverts * field_dim];
+    MapNodalVector<dim>(mesh,nodal_vals_new.data(), nodal_vals_old.data()/*, field_dim*/);  // You already implemented this
+    //MapNodalVector<dim>(mesh,nodal_vals_new, nodal_vals_old/*, field_dim*/);  // You already implemented this
     
     cout << "projecting to elem "<<endl;
     // Step 3: Project new nodal values to new element values using NEW mesh
-    ProjectNodesToElem<dim>(mesh, nodal_vals_new, new_elemvals, field_dim);
+    //ProjectNodesToElem<dim>(mesh, nodal_vals_new, new_elemvals, field_dim);
+    ProjectNodesToElem<dim>(mesh, nodal_vals_new.data(), new_elemvals, field_dim);
     cout << "done "<<endl;
     
-    //delete[] nodal_vals_new,nodal_vals_old; 
+    //delete[] nodal_vals_new;
+    //delete[] nodal_vals_old; 
 }
   
 };
