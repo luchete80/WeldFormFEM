@@ -517,7 +517,7 @@ void host_ Domain_d::SolveChungHulbert(){
   cout << "Done."<<endl;
 
   remesh.WriteDomain();
-  //calcElemJAndDerivatives();    
+  calcElemJAndDerivatives();    
   
   VTKWriter writer3(this, "out_remesh.vtk");
   writer3.writeFile();

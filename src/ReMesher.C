@@ -1594,6 +1594,19 @@ void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
   
 }
 
+double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
+    double a[3], b[3], c[3];
+    for (int i = 0; i < 3; ++i) {
+        a[i] = v1[i] - v0[i];
+        b[i] = v2[i] - v0[i];
+        c[i] = v3[i] - v0[i];
+    }
+    double volume = (a[0]*(b[1]*c[2] - b[2]*c[1])
+                   - a[1]*(b[0]*c[2] - b[2]*c[0])
+                   + a[2]*(b[0]*c[1] - b[1]*c[0])) / 6.0;
+    return std::abs(volume);
+}
+
 
 void ReMesher::WriteDomain(){
 
@@ -1636,9 +1649,17 @@ void ReMesher::WriteDomain(){
   
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
-  for (int i=0;i<m_elem_count;i++)
-    volumes[i]=1.0;
-  
+  for (int i=0;i<m_elem_count;i++){
+      int n0 = m_elnod[4 * i];
+      int n1 = m_elnod[4 * i + 1];
+      int n2 = m_elnod[4 * i + 2];
+      int n3 = m_elnod[4 * i + 3];
+      double p0 []= {m_x[3*n0], m_x[3*n0+1], m_x[3*n0+2]};
+      double p1 [] = {m_x[3*n1], m_x[3*n1+1], m_x[3*n1+2]};
+      double p2 []= {m_x[3*n2], m_x[3*n2+1], m_x[3*n2+2]};
+      double p3 [] = {m_x[3*n3], m_x[3*n3+1], m_x[3*n3+2]};
+      volumes[i]=tet_volume(p0,p1,p2,p3);
+  }
   MapElem(esfield,   m_dom->pl_strain);
   cout << "map pressure"<<endl;
   MapElem(pfield,    m_dom->p);
@@ -1718,7 +1739,7 @@ void ReMesher::WriteDomain(){
   // //Volumes could also be calculated with Jacobian
   for (int e=0;e<m_dom->m_elem_count;e++){
     m_dom->vol_0[e] = vol_0[e]*volumes[e];
-
+    m_dom->vol  [e] = volumes[e];
   }
   
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
