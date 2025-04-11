@@ -1425,132 +1425,41 @@ namespace MetFEM{
     // CPU case
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
 #endif
-    
+
       m_old_mesh = mesh; 
-    //refine_mesh_quality(mesh);
-    //std::cout << "Refine done "<<std::endl;
-    // Save mesh
-    //Omega_h::write_mesh("output.osh", &mesh);
-    //Omega_h::vtk_export_mesh("output.vtk", &mesh);
-    Omega_h::vtk::Writer writer("out_amr_warp_3D", &mesh);
-    auto w = lib.world();
-    writer.write();
+      m_mesh = mesh;
+}
+
+
+void ReMesher::Generate_omegah(){
+  
+    
     
     double length_tres = 0.85;
     double ang_tres = 40.0;
 
-    //run_case<3>(&mesh, "test");
-    //refine(&mesh);
-    //adapt_warp<3>(mesh);
-    //writer.write();    
-    
-    // std::cout << "------Refine by quality"<<std::endl;
-    // Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
-    // adapt_warp_with_threshold<3>(mesh,length_tres, ang_tres);
-    // writer2.write();
-    
-    //std::cout << "------Refine by quality"<<std::endl;
-    /*
-    Omega_h::vtk::Writer writer2("out_amr_length_3D", &mesh);
-
-    adapt_with_thresholds<3>(mesh,length_tres, ang_tres);
-
-    writer2.write();
-*/
-
-
   // Compute angle-based metric
 
-    Omega_h::vtk::Writer writer2("before", &mesh);
+    Omega_h::vtk::Writer writer2("before", &m_mesh);
     writer2.write();
     
   //compute_angle_metric(mesh);
-  compute_angle_metric_selective(mesh);
-  Omega_h::vtk::Writer writer3("out_amr_angle_3D", &mesh);
+  compute_angle_metric_selective(m_mesh);
+  Omega_h::vtk::Writer writer3("out_amr_angle_3D", &m_mesh);
 
     writer3.write();
   
-
-    
-    // std::cout<<"FIELD REMESH"<<std::endl;
-    // Omega_h::vtk::Writer writer3("out_scalar", &mesh);    
-    // adapt_mesh_based_on_temperature(mesh);
-    // writer3.write();
-     
-  // auto lib_osh = Omega_h::Library(&argc, &argv);
-  // auto comm_osh = lib_osh.world();
-
-  // auto mesh_osh = Omega_h::build_box(comm_osh,
-      // OMEGA_H_SIMPLEX,
-      // 1.0, 1.0, 0.0, 32, 32, 0);
-  // mesh_osh.balance();
-  // mesh_osh.set_parting(OMEGA_H_GHOSTED);
-  // Omega_h::add_implied_metric_tag(&mesh_osh);
-  // mesh_osh.set_parting(OMEGA_H_ELEM_BASED);
-
-// #ifdef OMEGA_H_USE_MPI
-  // auto mesh_dolfin = std::make_shared<dolfin::Mesh>(comm_osh->get_impl());
-// #else
-  // auto mesh_dolfin = std::make_shared<dolfin::Mesh>();
-// #endif
-
-  // dolfin::File file_dolfin("dolfin.pvd");
-  // Omega_h::vtk::Writer file_osh("omega_h-vtk-output", &mesh_osh);
-
-  // int i = 0;
-  // int n = 3;
-  // while (true) {
-
-    // Omega_h::to_dolfin(*mesh_dolfin, &mesh_osh);
-
-    // auto V = std::make_shared<Poisson::FunctionSpace>(mesh_dolfin);
-
-    // auto u0 = std::make_shared<dolfin::Constant>(0.0);
-    // auto boundary = std::make_shared<DirichletBoundary>();
-    // dolfin::DirichletBC bc(V, u0, boundary);
-
-    // Poisson::BilinearForm a(V, V);
-    // Poisson::LinearForm L(V);
-    // auto f = std::make_shared<Source>();
-    // auto g = std::make_shared<dUdN>();
-    // L.f = f;
-    // L.g = g;
-
-    // dolfin::Function u(V);
-    // solve(a == L, u, bc);
-
-    // Omega_h::from_dolfin(&mesh_osh, u, "u");
-
-    // file_dolfin << u;
-    // file_osh.write();
-
-    // if (++i == n) break;
-
-    // mesh_osh.set_parting(OMEGA_H_GHOSTED);
-    // Omega_h::MetricInput metric_input;
-    // auto source = Omega_h::MetricSource(OMEGA_H_VARIATION, 2e-3, "u");
-    // metric_input.sources.push_back(source);
-    // metric_input.should_limit_lengths = true;
-    // metric_input.max_length = 1.0 / 2.0;
-    // metric_input.should_limit_gradation = true;
-    // Omega_h::generate_target_metric_tag(&mesh_osh, metric_input);
-    // Omega_h::AdaptOpts opts(&mesh_osh);
-    // opts.verbosity = Omega_h::EXTRA_STATS;
-    // while (Omega_h::approach_metric(&mesh_osh, opts)) {
-      // Omega_h::adapt(&mesh_osh, opts);
-    // }
-
-  // }
-  
-    m_mesh = mesh;
+    //m_mesh = mesh;
     
     double *vec;
     
 
     Mesh new_mesh;
     //std::cout<<"MAPPING"<<std::endl; 
-    //this->Map<3>(mesh);
-  }
+    //this->Map<3>(mesh);  
+  
+  
+}
  
 #include <array>
 #include <iostream>

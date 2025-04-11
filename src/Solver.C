@@ -157,12 +157,13 @@ void host_ Domain_d::SolveChungHulbert(){
         emin = e;
       }
     
-    if (max > 0.2 && !remesh_){
+    //if (max > 0.2 && !remesh_){
     //if (!remesh_) { 
     //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
     //if (min_detJ<1.0e-5){
       //cout << "REMESHING "<<endl;
       ReMesher remesh(this);
+      remesh.Generate_omegah();
       remesh.WriteDomain(); 
       //cout << "Step "<<step_count<<endl;
       calcMinEdgeLength();
@@ -171,7 +172,7 @@ void host_ Domain_d::SolveChungHulbert(){
       //TO MODIFY
       double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
       //SetDT(0.1*dt);
-      //dt *=0.25;
+      //dt *=0.4;
 
       //double dt = 0.800e-5;
       //cout << "New Time Step "<<dt<<endl;
@@ -185,7 +186,7 @@ void host_ Domain_d::SolveChungHulbert(){
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;
-    }
+   // }
       //}
   }
  
@@ -449,7 +450,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   ReMesher remesh(this);
   
-  //remesh.Generate_mmg();
+  remesh.Generate_mmg();
   
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
@@ -514,7 +515,7 @@ void host_ Domain_d::SolveChungHulbert(){
   #endif
   cout << "Done."<<endl;
 
-  remesh.WriteDomain();
+  //remesh.WriteDomain();
   calcElemJAndDerivatives();    
   
   VTKWriter writer3(this, "out_remesh.vtk");

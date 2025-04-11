@@ -3,6 +3,15 @@
 
 #include <Omega_h_mesh.hpp>
 
+void create_mesh(Omega_h::Mesh& mesh, 
+#ifdef CUDA_BUILD
+                 double* d_node_coords, int num_nodes, 
+                 int* d_element_conn, int num_elements
+#else
+                 double* h_node_coords, int num_nodes, 
+                 int* h_element_conn, int num_elements
+#endif
+                 ) ;
 
 namespace MetFEM{
 
