@@ -1636,6 +1636,8 @@ void ReMesher::WriteDomain(){
   
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
+  for (int i=0;i<m_elem_count;i++)
+    volumes[i]=1.0;
   
   MapElem(esfield,   m_dom->pl_strain);
   cout << "map pressure"<<endl;
@@ -1667,17 +1669,10 @@ void ReMesher::WriteDomain(){
    MapElem(rot_rate,  m_dom->m_rot_rate      , 6);
    MapElem(tau,       m_dom->m_tau           , 6);
    
-  // MapElemVector<3>(m_mesh, sigfield,  m_dom->m_sigma      , 6);
-  // MapElemVector<3>(m_mesh, str_rate,  m_dom->m_str_rate   , 6);
-  // MapElemVector<3>(m_mesh, rot_rate,  m_dom->m_rot_rate   , 6);
-  // MapElemVector<3>(m_mesh, tau,       m_dom->m_tau        , 6);
+   MapElem(syfield,  m_dom->sigma_y  , 1);
+   MapElem(psfield,  m_dom->pl_strain  , 1);
 
-  // MapElemVector<3>(m_mesh, syfield,  m_dom->sigma_y  , 1);
-  // MapElemVector<3>(m_mesh, psfield,  m_dom->pl_strain  , 1);
     
-    
-  
-  
   // /////////////////////// BOUNDARY CONDITIONS
   int bccount[3];
   //int    *bcx_nod,*bcy_nod,*bcz_nod;
@@ -1721,10 +1716,10 @@ void ReMesher::WriteDomain(){
 
   // // ATENTION:
   // //Volumes could also be calculated with Jacobian
-  // for (int e=0;e<m_dom->m_elem_count;e++){
-    // m_dom->vol_0[e] = vol_0[e]*volumes[e];
+  for (int e=0;e<m_dom->m_elem_count;e++){
+    m_dom->vol_0[e] = vol_0[e]*volumes[e];
 
-  // }
+  }
   
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
@@ -1746,9 +1741,9 @@ void ReMesher::WriteDomain(){
     
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
    
-  // m_dom->AssignMatAddress();
-  // const Material_ *matt  = &m_dom->materials[0];
-  // cout << "G "<<matt->Elastic().G()<<endl;
+  m_dom->AssignMatAddress();
+  const Material_ *matt  = &m_dom->materials[0];
+  cout << "G "<<matt->Elastic().G()<<endl;
   
   ////// AFTER ALL COPIES //////
   cout << "copying"<<endl;
@@ -1764,10 +1759,10 @@ void ReMesher::WriteDomain(){
   // ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
 
   
-  //cout << "deleting "<<endl;
+  cout << "deleting "<<endl;
   // delete [] vfield, afield, pafield, esfield,pfield,sigfield, syfield, vol_0;
   // delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
-    // cout << "MESH CHANGED"<<endl;
+    cout << "MESH CHANGED"<<endl;
 
 }
 
@@ -2049,22 +2044,20 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
 
 
+    for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
     std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
 
     std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
-
-    for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
     bool found = false;
         // Calculate barycenter of the current new element
         for (int en = 0; en < 4; en++) {
             //auto v = elems2verts.ab2b[elem * 4 + en];
             //auto x = get_vector<3>(coords, v);
             int v = m_elnod[elem * 4 + en];
-        if (elem==1380)
-            cout <<"ELEM 1380 nodes "<<v<<" "<<endl;
+
             double x[3];
             for (int d=0;d<3;d++)x[d]=m_x[3*v+d]; //X: NEW MESH NODE COORDS
-            
+
             barycenter[0] += x[0];
             barycenter[1] += x[1];
             barycenter[2] += x[2];
@@ -2072,8 +2065,6 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
         barycenter[0] /= 4.0;
         barycenter[1] /= 4.0;
         barycenter[2] /= 4.0;
-        if (elem==1380)
-          cout <<"ELEM 1380 baricenter "<<barycenter[0]<<", "<<barycenter[1]<<", "<<barycenter[2]<<endl;
 
         // Search for the closest old element by distance
         double min_distance = std::numeric_limits<double>::max();
@@ -2112,13 +2103,13 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
                 barycenter_old_clos = old_barycenter;
             }
         }//elem
-        if (elem==1380){
-        cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
-        cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
-        cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
-        cout << "Min dist "<<sqrt(min_distance)<<endl;
-        cout <<"val "<<o_field[closest_elem*field_dim]<<endl;
-        }
+
+        // cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        // cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
+        // cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
+        // cout << "Min dist "<<sqrt(min_distance)<<endl;
+        // cout <<"val "<<o_field[closest_elem*field_dim]<<endl;
+
         for (int d=0;d<field_dim;d++) {
           vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
           //cout << vfield[elem*field_dim+d]<< " ";
