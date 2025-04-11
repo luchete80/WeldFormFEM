@@ -157,13 +157,13 @@ void host_ Domain_d::SolveChungHulbert(){
         emin = e;
       }
     
-    //if (max > 0.2 && !remesh_){
+    if (max > 0.1 ){
     //if (!remesh_) { 
     //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
     //if (min_detJ<1.0e-5){
       //cout << "REMESHING "<<endl;
       ReMesher remesh(this);
-      remesh.type = MMG;
+      remesh.m_type = MMG;
       //remesh.Generate_omegah();
       remesh.Generate_mmg();
       remesh.WriteDomain(); 
@@ -188,7 +188,7 @@ void host_ Domain_d::SolveChungHulbert(){
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;
-   // }
+   }
       //}
   }
  
