@@ -2493,5 +2493,110 @@ void ReMesher::HybridProjectionElemToElem(Mesh& mesh, double* new_elemvals,  dou
     //delete[] nodal_vals_new;
     //delete[] nodal_vals_old; 
 }
+
+
+void ReMesher::ReMapBCsByFace(int* old_bc_nod,
+                        double* old_bc_val,
+                        int* new_bc_nod,
+                        double* new_bc_val,
+                        int bc_count) {
+  
+  // auto new_coords = m_mesh.coords();
+  // auto old_coords = m_old_mesh.coords();
+  // auto elems2verts = m_mesh.ask_down(3, 0);
+  // int nelems = m_mesh.nelems();
+
+  // // Step 1: Build surface triangle list (triangles with only one adjacent tet)
+  // std::map<std::array<int, 3>, int> face_count;
+  // for (int e = 0; e < nelems; ++e) {
+    // int n0 = elems2verts.ab[4 * e + i]
+    // int n1 = elems2verts.ab[4 * e + 1];
+    // int n2 = elems2verts.ab[4 * e + 2];
+    // int n3 = elems2verts.ab[4 * e + 3];
+    
+    // int faces[4][3] = {
+      // {n0, n1, n2}, {n0, n1, n3},
+      // {n0, n2, n3}, {n1, n2, n3}
+    // };
+    
+    // for (int f = 0; f < 4; ++f) {
+      // std::array<int, 3> tri = {faces[f][0], faces[f][1], faces[f][2]};
+      // std::sort(tri.begin(), tri.end());
+      // face_count[tri]++;
+    // }
+  // }
+
+  // std::vector<std::array<int, 3>> boundary_faces;
+  // for (auto& [face, count] : face_count) {
+    // if (count == 1) boundary_faces.push_back(face);
+  // }
+
+  // // Step 2: Map each BC point onto boundary faces
+  // for (int i = 0; i < bc_count; ++i) {
+    // int old_id = old_bc_nod[i];
+    // Real val = old_bc_val[i];
+
+    // Vector<3> p_old;
+    // for (int d = 0; d < 3; ++d) {
+      // p_old[d] = old_coords[old_id * 3 + d];
+    // }
+
+    // Real min_dist2 = std::numeric_limits<Real>::max();
+    // std::array<int, 3> best_face = {-1, -1, -1};
+    // Vector<3> best_bary = {0, 0, 0};
+
+    // for (const auto& face : boundary_faces) {
+      // Vector<3> a, b, c;
+      // for (int d = 0; d < 3; ++d) {
+        // a[d] = new_coords[face[0] * 3 + d];
+        // b[d] = new_coords[face[1] * 3 + d];
+        // c[d] = new_coords[face[2] * 3 + d];
+      // }
+
+      // // Compute normal and barycentric coordinates
+      // Vector<3> v0 = b - a;
+      // Vector<3> v1 = c - a;
+      // Vector<3> v2 = p_old - a;
+
+      // Real d00 = dot(v0, v0);
+      // Real d01 = dot(v0, v1);
+      // Real d11 = dot(v1, v1);
+      // Real d20 = dot(v2, v0);
+      // Real d21 = dot(v2, v1);
+      // Real denom = d00 * d11 - d01 * d01;
+
+      // if (std::abs(denom) < 1e-12) continue;
+
+      // Real v = (d11 * d20 - d01 * d21) / denom;
+      // Real w = (d00 * d21 - d01 * d20) / denom;
+      // Real u = 1.0 - v - w;
+
+      // if (u >= -1e-4 && v >= -1e-4 && w >= -1e-4) {
+        // Vector<3> proj = u * a + v * b + w * c;
+        // Real dist2 = norm_squared(p_old - proj);
+        // if (dist2 < min_dist2) {
+          // min_dist2 = dist2;
+          // best_face = face;
+          // best_bary = {u, v, w};
+        // }
+      // }
+    // }
+
+    // if (best_face[0] != -1) {
+      // // Here: assign value to node with max barycentric weight
+      // int max_idx = 0;
+      // if (best_bary[1] > best_bary[max_idx]) max_idx = 1;
+      // if (best_bary[2] > best_bary[max_idx]) max_idx = 2;
+
+      // int best_node = best_face[max_idx];
+      // new_bc_nod[i] = best_node;
+      // new_bc_val[i] = val;
+    // } else {
+      // std::cerr << "Warning: No triangle match found for BC node " << old_id << std::endl;
+    // }
+  // }
+  
+  
+}
   
 };

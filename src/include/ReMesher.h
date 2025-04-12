@@ -52,6 +52,11 @@ class ReMesher{
   template <int dim>
   void HybridProjectionElemToElem(Omega_h::Mesh& mesh, double* new_elemvals,  double* old_elemvals, int field_dim=1);
 
+  void ReMapBCsByFace(int* old_bc_nod,
+                        double* old_bc_val,
+                        int* new_bc_nod,
+                        double* new_bc_val,
+                        int bc_count);
 
   template <int dim>
   void MapElemVectors ();
