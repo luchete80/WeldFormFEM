@@ -1489,7 +1489,9 @@ void ReMesher::WriteDomain(){
 
   
   cout << "deleting "<<endl;
-  delete [] vfield, afield, pafield, esfield,pfield,sigfield, syfield, vol_0;
+  delete [] ufield, vfield, afield, pafield;
+  delete [] esfield,pfield,sigfield, syfield, psfield;
+  delete [] str_rate,rot_rate, tau,rho,vol_0,idetF;
   delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
     cout << "MESH CHANGED"<<endl;
 
