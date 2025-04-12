@@ -343,7 +343,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
       }
   }
 
-
+  
   
   cout << "NEW MESH. Done mapping "<<endl;
   cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
@@ -370,6 +370,7 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
   m_elem_count = nt;
   cout << "MESH CREATED."<<endl;
  
+  malloc_t(m_closest_elem, int,m_elem_count);
 
   delete[] corner;
   delete[] required,required_tets;

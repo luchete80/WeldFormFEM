@@ -1660,6 +1660,9 @@ void ReMesher::WriteDomain(){
       double p3 [] = {m_x[3*n3], m_x[3*n3+1], m_x[3*n3+2]};
       volumes[i]=tet_volume(p0,p1,p2,p3);
   }
+  
+  FindMapElemClosest();
+  cout << "foundelem closrsrt"<<endl;
   MapElem(esfield,   m_dom->pl_strain);
   cout << "map pressure"<<endl;
   MapElem(pfield,    m_dom->p);
@@ -1690,7 +1693,7 @@ void ReMesher::WriteDomain(){
    MapElem(syfield,  m_dom->sigma_y  , 1);
    MapElem(psfield,  m_dom->pl_strain  , 1);
 
-    
+  cout << "Map done"<<endl;  
   // /////////////////////// BOUNDARY CONDITIONS
   int bccount[3];
   int    *bcx_nod,*bcy_nod,*bcz_nod;
@@ -1722,7 +1725,7 @@ void ReMesher::WriteDomain(){
     m_dom->m_elem_count = m_elem_count;    
   }
   
-  
+  cout << "creating domain"<<endl;
   m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
 
   malloc_t(m_dom->m_elnod, unsigned int,m_dom->m_elem_count * m_dom->m_nodxelem);
@@ -2058,8 +2061,101 @@ void ReMesher::MapElemVector(Mesh& mesh, double *vfield, double *o_field, int fi
     //cout << "MAX FIELD VALUE: "<<max_field_val<<endl;
 }
 
-//// THIS NOT USES MESH AS OUTPUT; USES 
+// THIS NOT USES MESH AS OUTPUT; USES 
+////DO THIS AFTER SERACH CLOSEST
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
+  
+  for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+        for (int d=0;d<field_dim;d++) 
+          vfield[elem*field_dim+d] = o_field[m_closest_elem[elem]*field_dim+d];  
+  }
+}
+
+
+// void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
+
+
+    // for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+    // std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+    // std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
+    // bool found = false;
+        // // Calculate barycenter of the current new element
+        // for (int en = 0; en < 4; en++) {
+            // //auto v = elems2verts.ab2b[elem * 4 + en];
+            // //auto x = get_vector<3>(coords, v);
+            // int v = m_elnod[elem * 4 + en];
+
+            // double x[3];
+            // for (int d=0;d<3;d++)x[d]=m_x[3*v+d]; //X: NEW MESH NODE COORDS
+
+            // barycenter[0] += x[0];
+            // barycenter[1] += x[1];
+            // barycenter[2] += x[2];
+        // }
+        // barycenter[0] /= 4.0;
+        // barycenter[1] /= 4.0;
+        // barycenter[2] /= 4.0;
+
+        // // Search for the closest old element by distance
+        // double min_distance = std::numeric_limits<double>::max();
+        // int closest_elem = -1;
+
+        // for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // int n0 = m_dom->m_elnod[4 * i];
+            // int n1 = m_dom->m_elnod[4 * i + 1];
+            // int n2 = m_dom->m_elnod[4 * i + 2];
+            // int n3 = m_dom->m_elnod[4 * i + 3];
+
+            // std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            // std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            // std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            // std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // // Calculate the barycenter of the old element
+            // std::array<double, 3> old_barycenter = {
+                // (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                // (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                // (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            // };
+
+            // double distance = 
+            // //std::sqrt(
+                // std::pow(barycenter[0] - old_barycenter[0], 2) +
+                // std::pow(barycenter[1] - old_barycenter[1], 2) +
+                // std::pow(barycenter[2] - old_barycenter[2], 2)
+            // ;
+            // //);
+
+            // if (distance < min_distance) {
+                // min_distance = distance;
+                // closest_elem = i;
+                // found = true;
+                // barycenter_old_clos = old_barycenter;
+            // }
+        // }//elem
+
+        // // cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
+        // // cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
+        // // cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
+        // // cout << "Min dist "<<sqrt(min_distance)<<endl;
+        // // cout <<"val "<<o_field[closest_elem*field_dim]<<endl;
+
+        // for (int d=0;d<field_dim;d++) {
+          // vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
+          // //cout << vfield[elem*field_dim+d]<< " ";
+        // }
+
+        // if (found) {
+            // //std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
+        // } else {
+            // std::cout << "ERROR: No matching element found for element " << elem << std::endl;
+        // }
+
+    // }//elem
+// }
+
+void ReMesher::FindMapElemClosest() {
 
 
     for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
@@ -2116,22 +2212,11 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
 
             if (distance < min_distance) {
                 min_distance = distance;
-                closest_elem = i;
+                m_closest_elem[elem] = i;
                 found = true;
                 barycenter_old_clos = old_barycenter;
             }
         }//elem
-
-        // cout << "Closest element new - old "<< elem<<" - "<<closest_elem<<endl;
-        // cout << "Baricenter old "<<barycenter_old_clos[0]<<" "<<barycenter_old_clos[1]<<" "<<barycenter_old_clos[2]<<endl;
-        // cout << "Baricenter new "<<barycenter[0]<<" "<<barycenter[1]<<" "<<barycenter[2]<<endl;
-        // cout << "Min dist "<<sqrt(min_distance)<<endl;
-        // cout <<"val "<<o_field[closest_elem*field_dim]<<endl;
-
-        for (int d=0;d<field_dim;d++) {
-          vfield[elem*field_dim+d] = o_field[closest_elem*field_dim+d];
-          //cout << vfield[elem*field_dim+d]<< " ";
-        }
 
         if (found) {
             //std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
@@ -2141,6 +2226,7 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
 
     }//elem
 }
+
 
 template <int dim>
 void ReMesher::MapElemVectors() {

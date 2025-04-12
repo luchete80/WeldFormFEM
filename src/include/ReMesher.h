@@ -14,6 +14,7 @@ void create_mesh(Omega_h::Mesh& mesh,
                  int* h_element_conn, int num_elements
 #endif
                  ) ;
+#include "defs.h"
 
 namespace MetFEM{
 
@@ -41,6 +42,7 @@ class ReMesher{
   void MapNodalVectorRaw(double *vfield, double *o_field); //
   void MapElemVectorRaw  (double *vfield, double *o_field, int field_dim); ///
   
+  void FindMapElemClosest();
   
   template <int dim>
   void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
@@ -74,6 +76,11 @@ class ReMesher{
                     int  *new_bc_nod,
                     double *new_bc_val,
                     int bc_count);
+                    
+  ~ReMesher(){
+    delete[] m_x,m_elnod;//CONVERT TO free to use in CUDA
+    free_t(m_closest_elem);
+  }
   protected:
   
   
@@ -88,6 +95,8 @@ class ReMesher{
   int    *m_elnod;
   int     m_node_count;
   int     m_elem_count;
+  
+  int *m_closest_elem;
 };
 
 }; //MetFEM
