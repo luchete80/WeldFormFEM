@@ -4,7 +4,10 @@
 
 #include "Mesh.h"
 #include "WallTimer.h"
+
+#ifdef BUILD_REMESH
 #include "ReMesher.h"
+#endif
 
 using namespace std;
 

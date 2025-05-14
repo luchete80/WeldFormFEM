@@ -286,3 +286,4 @@ F90 PREVIOUS VERSION
 20250514 - Removing some remeshing things. 
          - Begining to test parallel.
          - Checking ok several processors.-
+         - Restorign CUDA.

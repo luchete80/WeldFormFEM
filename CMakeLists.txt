@@ -30,8 +30,11 @@ ENDIF()
 # FROM --use_fast_math implies --ftz=true --prec-div=false --prec-sqrt=false --fmad=true.
 # https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html
 
+if (BUILD_REMESH)
+  add_compile_definitions(BUILD_REMESH)
+endif()
 
-SET (BUILD_REMESH ON)
+#SET (BUILD_REMESH ON)
 if (BUILD_OMEGA_H STREQUAL(ON))
 message("SETTING OMEGA_H TO ON, FORCED REMESH TO ON")
 else()

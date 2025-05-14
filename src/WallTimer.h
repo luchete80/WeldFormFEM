@@ -1,5 +1,6 @@
 #ifndef _WALL_TIMER_H
 #define _WALL_TIMER_H
+
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -15,16 +16,18 @@ public:
         cudaEventCreate(&startEvent);
         cudaEventCreate(&stopEvent);
         cudaEventRecord(startEvent, 0);
+        clicks.push_back(startEvent);  // Use correct type
 #else
         start = std::chrono::steady_clock::now();
-#endif
         clicks.push_back(start);
+#endif
     }
 
     ~WallTimer() {
 #ifdef __CUDACC__
         cudaEventDestroy(startEvent);
         cudaEventDestroy(stopEvent);
+        for (auto& e : clicks) cudaEventDestroy(e);
 #endif
     }
 
@@ -49,45 +52,42 @@ public:
 #endif
     }
 
-    double elapsed() {
+    double elapsed() const {
 #ifdef __CUDACC__
         float milliseconds = 0;
         cudaEventElapsedTime(&milliseconds, startEvent, stopEvent);
-        return milliseconds / 1000.0; // Convert to seconds
+        return milliseconds / 1000.0;
 #else
-        std::chrono::duration<double> elapsed_time = end - start;
-        return elapsed_time.count();
+        return std::chrono::duration<double>(end - start).count();
 #endif
     }
 
-    double elapsedSinceLastClick() {
+    double elapsedSinceLastClick() const {
+        if (clicks.size() < 2) return 0.0;
 #ifdef __CUDACC__
-        if (clicks.size() < 2) return 0.0f;
-
         float milliseconds = 0;
         cudaEventElapsedTime(&milliseconds, clicks[clicks.size() - 2], clicks.back());
         return milliseconds / 1000.0;
 #else
-        if (clicks.size() < 2) return 0.0;
-        std::chrono::duration<double> elapsed_time = clicks.back() - clicks[clicks.size() - 2];
-        return elapsed_time.count();
+        return std::chrono::duration<double>(
+            clicks.back() - clicks[clicks.size() - 2]
+        ).count();
 #endif
     }
 
-    double elapsedSinceStart() {
+    double elapsedSinceStart() const {
+        if (clicks.empty()) return 0.0;
 #ifdef __CUDACC__
-        if (clicks.empty()) return 0.0f;
-
         float milliseconds = 0;
         cudaEventElapsedTime(&milliseconds, startEvent, clicks.back());
         return milliseconds / 1000.0;
 #else
-        if (clicks.empty()) return 0.0;
-        std::chrono::duration<double> elapsed_time = clicks.back() - start;
-        return elapsed_time.count();
+        return std::chrono::duration<double>(
+            clicks.back() - start
+        ).count();
 #endif
     }
-    
+
 private:
 #ifdef __CUDACC__
     cudaEvent_t startEvent, stopEvent;
@@ -99,7 +99,7 @@ private:
 };
 
 // Dummy CPU function
-void cpu_work(int cycles) {
+inline void cpu_work(int cycles) {
     for (volatile int i = 0; i < cycles; ++i);
 }
 
@@ -111,5 +111,4 @@ __global__ void gpu_work(int cycles) {
 }
 #endif
 
-
-#endif
+#endif // _WALL_TIMER_H
