@@ -232,23 +232,23 @@ TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 endif()
 
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
-else()
-# TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
-if (BUILD_REMESH)
-if (BUILD_EXAMPLES)
-  TARGET_LINK_LIBRARIES (1elem omega_h)
-  TARGET_LINK_LIBRARIES (4elem omega_h)
-endif()
-if(UNIX)
-    set(MMG3D_LIB "libmmg3d.so")
+else() #BUILD CPU
+  # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
+  if (BUILD_REMESH)
+  if (BUILD_EXAMPLES)
+    TARGET_LINK_LIBRARIES (1elem omega_h)
+    TARGET_LINK_LIBRARIES (4elem omega_h)
+  endif()
+  if(UNIX)
+      set(MMG3D_LIB "libmmg3d.so")
 
-# Windows
-elseif(WIN32)
-    set(MMG3D_LIB "mmg3d.dll")
-endif()
+  # Windows
+  elseif(WIN32)
+      set(MMG3D_LIB "mmg3d.dll")
+  endif()
 
-  TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB} )
-endif()
+    TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB}  OpenMP::OpenMP_CXX)
+  endif()
 
 endif()
 

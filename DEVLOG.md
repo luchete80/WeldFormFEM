@@ -283,3 +283,5 @@ F90 PREVIOUS VERSION
 20250411 - FIXED REMAP OF Plain Strain, and Sig yield
          - ADDED REMAP BCs
          - FIXED MMG remeshing errors of bad indices.
+20250514 - Removing some remeshing things. 
+         - Begining to test parallel.

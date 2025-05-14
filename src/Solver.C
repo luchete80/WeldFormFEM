@@ -157,39 +157,39 @@ void host_ Domain_d::SolveChungHulbert(){
         emin = e;
       }
     
-    //if (max > 0.1 ){
-    //if (!remesh_) { 
-    //cout << "MIN DET: "<<min_detJ<<" ON ELEM "<<emin<<endl;
-    //if (min_detJ<1.0e-5){
-      //cout << "REMESHING "<<endl;
-      ReMesher remesh(this);
-      remesh.m_type = MMG;
-      //remesh.Generate_omegah();
-      remesh.Generate_mmg();
-      remesh.WriteDomain(); 
-      //cout << "Step "<<step_count<<endl;
-      calcMinEdgeLength();
-      //parallel_for ()
+  //////////////////////////// IF REMESH
+      //#########################################################
+      //~ //cout << "REMESHING "<<endl;
+      //~ ReMesher remesh(this);
+      //~ remesh.m_type = MMG;
+      //~ //remesh.Generate_omegah();
+      //~ remesh.Generate_mmg();
+      //~ remesh.WriteDomain(); 
+      //~ //cout << "Step "<<step_count<<endl;
+      //~ calcMinEdgeLength();
+      //~ //parallel_for ()
 
-      //TO MODIFY
-      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      //SetDT(0.1*dt);
-      //dt *=0.4;
+      //~ //TO MODIFY
+      //~ double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      //~ //SetDT(0.1*dt);
+      //~ //dt *=0.4;
 
-      //double dt = 0.800e-5;
-      //cout << "New Time Step "<<dt<<endl;
-      //SetDT(dt); 
-      calcMinEdgeLength();
-      double minl = getMinLength();
-      double dt = 0.05*minl/(mat_cs);
-      cout << "min length "<<minl<<", dt "<<dt<<endl;
-      //cout << "DONE REMESH"<<endl;
-      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
-      remesh_ = true;
-   //}
-      //}
+      //~ //double dt = 0.800e-5;
+      //~ //cout << "New Time Step "<<dt<<endl;
+      //~ //SetDT(dt); 
+      //~ calcMinEdgeLength();
+      //~ double minl = getMinLength();
+      //~ double dt = 0.05*minl/(mat_cs);
+      //~ cout << "min length "<<minl<<", dt "<<dt<<endl;
+      //~ //cout << "DONE REMESH"<<endl;
+      //~ std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+      //~ VTKWriter writer3(this, s.c_str());
+      //~ writer3.writeFile();
+      //~ remesh_ = true;
+
+      //#########################################################
+  //////////////////////////// IF REMESH
+
   }
  
   //printf("Prediction ----------------\n");
@@ -450,11 +450,16 @@ void host_ Domain_d::SolveChungHulbert(){
   }// WHILE LOOP
 
 
-  ReMesher remesh(this);
+  //////////////////////////// IF REMESH
   
-  remesh.Generate_mmg();
-  remesh.m_type = MMG;
+  //~ ReMesher remesh(this);
   
+  //~ remesh.Generate_mmg();
+  //~ remesh.m_type = MMG;
+  
+  //////////////////////////////////////
+  
+
   #ifdef CUDA_BUILD
   cudaMemcpy(x_h, x, 3*sizeof(double) * m_node_count, cudaMemcpyDeviceToHost);		
   
@@ -479,6 +484,14 @@ void host_ Domain_d::SolveChungHulbert(){
 */
 
   #else
+  double max=0.0;
+     for (int e=0;e<m_node_count;e++)
+      if (this->u[e*m_dim]>max){
+        max = pl_strain[e];
+
+      } 
+  
+  cout << "MAX DISP "<<max<<endl;
     /*
   calcElemStrainRates();
   
@@ -518,8 +531,12 @@ void host_ Domain_d::SolveChungHulbert(){
   #endif
   cout << "Done."<<endl;
 
-  remesh.WriteDomain();
-  calcElemJAndDerivatives();    
+  ///// IF REMESH
+  /////#####################
+  //remesh.WriteDomain();
+  //calcElemJAndDerivatives();    
+  
+  //////////////////////////////////////
   
   VTKWriter writer3(this, "out_remesh.vtk");
   writer3.writeFile();

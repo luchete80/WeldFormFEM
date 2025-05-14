@@ -125,11 +125,12 @@ int main(int argc, char **argv) {
     int np = 1;
     readValue(config["Nproc"], np);   
     omp_set_num_threads(np);
-    omp_set_dynamic(0);
-    cout << "Number of threads used: "<<omp_get_num_threads()<<", "<<np<<endl;
+    //omp_set_dynamic(0);
+    cout << "Number of threads used: "<< omp_get_max_threads()<<"np "<<np<<endl;
     #pragma omp parallel 
     {
-       cout << "Thread "<<endl;
+      cout << "Thread "<<endl;
+      cout << "Threads used: "<<omp_get_num_threads()<<", np parameter (via [Config]{Nproc})"<<endl; //INSIDE PARALLEL
     }
     #endif
 
