@@ -140,7 +140,7 @@ void host_ Domain_d::SolveChungHulbert(){
   cout << "Main Loop----"<<endl;
   while (Time < end_t) {
       
-  if (step_count % 100 == 0)
+  if (step_count % 10000 == 0)
     printf("Step %d, Time %f\n",step_count, Time);  
 
   /////AFTER J AND DERIVATIVES
@@ -484,14 +484,16 @@ void host_ Domain_d::SolveChungHulbert(){
 */
 
   #else
-  double max=0.0;
+  double max[]={0.0,0.0,0.0};
+
      for (int e=0;e<m_node_count;e++)
-      if (this->u[e*m_dim]>max){
-        max = pl_strain[e];
+        for (int d=0;d<3;d++)
+              if (this->u[e*m_dim+d]>max[d]){
+          max[d] = this->u[e*m_dim+d];
 
       } 
   
-  cout << "MAX DISP "<<max<<endl;
+  cout << "MAX DISP "<<max[0]<< " "<<max[1]<< " "<<max[2]<<endl;
     /*
   calcElemStrainRates();
   

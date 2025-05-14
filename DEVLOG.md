@@ -285,3 +285,4 @@ F90 PREVIOUS VERSION
          - FIXED MMG remeshing errors of bad indices.
 20250514 - Removing some remeshing things. 
          - Begining to test parallel.
+         - Checking ok several processors.-
