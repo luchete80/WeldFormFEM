@@ -283,7 +283,13 @@ F90 PREVIOUS VERSION
 20250411 - FIXED REMAP OF Plain Strain, and Sig yield
          - ADDED REMAP BCs
          - FIXED MMG remeshing errors of bad indices.
+---------------------------------------------------------------
 20250514 - Removing some remeshing things. 
          - Begining to test parallel.
          - Checking ok several processors.-
          - Restorign CUDA.
+20250523 - FOUND ERROR IN REMESHING CRASH: 
+         - MUST CHANGE VELOCITY MAPPING FOLLOWING MOMENTUM.
+         - CHECK MASS CONSERVATION.
+20250523 - Found memory leaking (errors in Domain->Free()).
+         -  

@@ -363,6 +363,7 @@ void Domain_d::Free(){
   
   free_t (prev_a);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
+  
   free_t (m_fi); //Internal forces
   free_t (m_fe);
   
@@ -378,6 +379,16 @@ void Domain_d::Free(){
   free_t (m_dH_detJ_dx);
   free_t (m_dH_detJ_dy);
   free_t (m_dH_detJ_dz);
+
+
+  //DOUBLE POINTERS ATTENTION
+  // free_t (m_dHrs);     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
+  // free_t (x2);         //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
+  // free_t (dH_dxyz); 
+  
+  free_t(elnod_h); ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
+  free_t(dHxy_detJ ); ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
+
   
 
   free_t(m_detJ );    
@@ -418,6 +429,27 @@ void Domain_d::Free(){
 
   free_t (pl_strain);
   free_t (sigma_y);  
+
+  free_t(m_nodel);           // NODE ELEMENTS: ELEMENTS SHARED BY EACH NODE [nodxelem* node_count] call:  m_nodel[nod,elcount] =EL i,e m_nodel[nod_offset+elcount]
+  free_t(m_nodel_loc);        //
+  free_t(m_nodel_offset);    //OFFSET OF THE
+  free_t(m_nodel_count);    
+  free_t(m_elnod_count);   /// FOR CONTACT, TO REPLACE FOR m_node_count
+  
+  // unsigned int    *m_contsurf_count;
+  // unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
+  // unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
+
+  // ////////////////////// CONTACT 
+	// // TODO, EACH RIGID PARTICLE SHOULD 
+  // int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO
+  // TriMesh_d *trimesh;
+  // int trimesh_count;
+  // int *mesh_id; //particle mesh ID	
+	// bool *ext_nodes;
+  // int ext_nodes_count;
+  // double *contforce; 
+  // bool contact;
   
   //free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
   //free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);
