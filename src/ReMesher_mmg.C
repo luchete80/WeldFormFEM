@@ -181,7 +181,7 @@ void ReMesher::Generate_mmg(){
       cout << "Initial Mesh check succeed " << endl;
 
   // Edge initialization
-  int *edges = new int[3 * na];
+
 
   // Set vertices for 3D mesh
   for (int n = 0; n < np; n++) {
@@ -266,14 +266,8 @@ void ReMesher::Generate_mmg(){
       exit(EXIT_FAILURE);
   }
 
-int *required_nodes = (int*)calloc(np + 1, sizeof(int));
-int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
-
-  ridge = (int*)calloc(na + 1, sizeof(int));
-  if (!ridge) {
-      perror("  ## Memory problem: calloc");
-      exit(EXIT_FAILURE);
-  }
+  int *required_nodes = (int*)calloc(np + 1, sizeof(int));
+  int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
 
 
   // Copy to destination
@@ -372,10 +366,13 @@ int *required_tets  = (int*)calloc(nt + 1, sizeof(int));
  
   malloc_t(m_closest_elem, int,m_elem_count);
 
-  delete[] corner;
-  delete[] required,required_tets;
-  delete[] ridge;
-  delete[] edges;
+  free(corner);
+  free(required);
+  free(required_tets);
+
+
+  free(required_nodes);
+  required_nodes = nullptr;  // optional but recommended
 
 }
 

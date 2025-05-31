@@ -1494,6 +1494,11 @@ void ReMesher::WriteDomain(){
   delete [] str_rate,rot_rate, tau,rho,vol_0,idetF;
   delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
     cout << "MESH CHANGED"<<endl;
+    
+  //AFTER MAP
+  //THIS CRASHES
+  //free_t(m_closest_elem);
+  
 
 }
 
