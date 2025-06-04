@@ -159,7 +159,7 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-    
+      #ifdef BUILD_REMESH    
   //////////////////////////// IF REMESH
       //#########################################################
       //cout << "REMESHING "<<endl;
@@ -188,7 +188,7 @@ void host_ Domain_d::SolveChungHulbert(){
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;
-
+      #endif
       //#########################################################
   //////////////////////////// IF REMESH
 
@@ -444,12 +444,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   //////////////////////////// IF REMESH
-  
+  #ifdef BUILD_REMESH
   ReMesher remesh(this);
   
   remesh.Generate_mmg();
   remesh.m_type = MMG;
-  
+  #endif
   //////////////////////////////////////
   
 
