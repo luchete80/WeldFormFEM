@@ -159,37 +159,36 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-    
+      #ifdef BUILD_REMESH    
   //////////////////////////// IF REMESH
       //#########################################################
-      //~ //cout << "REMESHING "<<endl;
-      //~ ReMesher remesh(this);
-      //~ remesh.m_type = MMG;
-      //~ //remesh.Generate_omegah();
-      //~ remesh.Generate_mmg();
-      //~ remesh.WriteDomain(); 
-      //~ //cout << "Step "<<step_count<<endl;
-      //~ calcMinEdgeLength();
-      //~ //parallel_for ()
+      //cout << "REMESHING "<<endl;
+      ReMesher remesh(this);
+      remesh.m_type = MMG;
+      //remesh.Generate_omegah();
+      remesh.Generate_mmg();
+      remesh.WriteDomain(); 
+      //cout << "Step "<<step_count<<endl;
+      //parallel_for ()
 
-      //~ //TO MODIFY
-      //~ double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      //~ //SetDT(0.1*dt);
-      //~ //dt *=0.4;
+      //TO MODIFY
+      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      //SetDT(0.1*dt);
+      //dt *=0.4;
 
-      //~ //double dt = 0.800e-5;
-      //~ //cout << "New Time Step "<<dt<<endl;
-      //~ //SetDT(dt); 
-      //~ calcMinEdgeLength();
-      //~ double minl = getMinLength();
-      //~ double dt = 0.05*minl/(mat_cs);
-      //~ cout << "min length "<<minl<<", dt "<<dt<<endl;
-      //~ //cout << "DONE REMESH"<<endl;
-      //~ std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      //~ VTKWriter writer3(this, s.c_str());
-      //~ writer3.writeFile();
-      //~ remesh_ = true;
-
+      //double dt = 0.800e-5;
+      //cout << "New Time Step "<<dt<<endl;
+      //SetDT(dt); 
+      calcMinEdgeLength();
+      double minl = getMinLength();
+      double dt = 0.05*minl/(mat_cs);
+      cout << "min length "<<minl<<", dt "<<dt<<endl;
+      //cout << "DONE REMESH"<<endl;
+      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
+      remesh_ = true;
+      #endif
       //#########################################################
   //////////////////////////// IF REMESH
 
@@ -240,6 +239,10 @@ void host_ Domain_d::SolveChungHulbert(){
   
 	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
 	cudaDeviceSynchronize();   
+  
+  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
+  cudaDeviceSynchronize();
+  
   #else
   calcElemJAndDerivatives();
   CalcElemVol();  
@@ -249,20 +252,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   #endif
    
-  
-  /////AFTER J AND DERIVATIVES
-  //if (remesh_){
 
-    //#if CUDA_BUILD
-
-    //CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
-    //cudaDeviceSynchronize();
-    //#else
-    //CalcNodalMassFromVol(); //Repla
-        
-    //#endif
-         
-  //}  
   
   //////// END REMESH 
   ////////////////////////////////////////////
@@ -454,12 +444,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   //////////////////////////// IF REMESH
+  #ifdef BUILD_REMESH
+  ReMesher remesh(this);
   
-  //~ ReMesher remesh(this);
-  
-  //~ remesh.Generate_mmg();
-  //~ remesh.m_type = MMG;
-  
+  remesh.Generate_mmg();
+  remesh.m_type = MMG;
+  #endif
   //////////////////////////////////////
   
 

@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.5)
 
 set (BUILD_EXAMPLES OFF)
 
@@ -141,11 +141,11 @@ if (BUILD_OMEGA_H)
   #add_executable (test_omega_h test_omega_h.cpp)
 endif()
 #
-#add_executable(axisymm
-#                         main_axisymm.C
-#                         Domain_d.C
-#                         Matrices.C
-#                        Mechanical.C
+# add_executable(axisymm
+                        # main_axisymm.C
+                        # Domain_d.C
+                        # Matrices.C
+                       # Mechanical.C
                          # Matrices.C
                          # Solver.C
                          # input.C
