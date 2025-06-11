@@ -309,11 +309,18 @@ protected:
   double         *m_mglob, *m_mdiag, *m_ematm; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses, and element masses
   
 	double 					*p, *rho, *rho_0;
-  
+  double          *ut_prev;   //FOR HISTORICAL CONTACT
+    
   //////Thermal
   bool m_thermal;
   double *T;   /// temperature
   double *m_dTedt; //elem node
+  double *ps_energy;
+  double *q_cont_conv;
+  double *node_area; //THERMAL CONTACT
+  double  contact_hc; //MOVETO CONTACT INTERFACE
+  double *m_elem_length; //FOR CONTACT
+  
   double m_min_length;
   double m_min_height;
   double m_cfl_factor;
