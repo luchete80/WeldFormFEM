@@ -124,7 +124,8 @@ public:
   #endif
 
   void setTriMesh(TriMesh_d *m){trimesh = m;}
-  
+  void addMeshData(const TriMesh_d &m);
+    
   dev_t void SearchExtNodes();
 
   inline vector_t getAccVec (const int &n){return make_double3(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};  
@@ -273,6 +274,19 @@ public:
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
   void Free();
+
+  /////// THERMAL
+  void ThermalCalcs();
+  void setThermalOn(){m_thermal = true;}
+  void calcInelasticHeatFraction();
+  void setTemp(const double &val){
+    #ifdef  CUDA_BUILD
+    
+    #else
+    for (int i=0;i<m_node_count;i++)T[i]=val;
+    #endif
+    
+    }
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
