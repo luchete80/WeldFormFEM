@@ -486,6 +486,7 @@ dev_t void Domain_d::calcElemPressureANP(){
     }
     //printf("Node %d vol %f\n", n,voln[n]);
     pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
+    p_node[n] = pn[n];
   } //NODE LOOP
 
   par_loop(e,m_elem_count){
@@ -493,7 +494,9 @@ dev_t void Domain_d::calcElemPressureANP(){
       p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
     p[e] *= 0.25;
   }
-  delete pn,voln_0,voln;
+  delete []pn;
+  delete []voln_0;
+  delete []voln;
 }
 
 ///// ASSUMING CONSTANT element node count
@@ -657,8 +660,11 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
         }
         
+        //printf("sy %.3f\n",sigma_y[e]);
   // Inside your plasticity block where (sigma_y[e] < sig_trial)
   if (sigma_y[e] < sig_trial) {
+	  double Ep = 0.0; //Hardening
+      //printf("YIELD: %.5e\n", sigma_y[e]);
       // Calculate scaling factor
       double scale_factor = sigma_y[e] / sig_trial;
       
@@ -668,8 +674,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       // Reconstruct the full stress tensor
       //Sigma = -p[offset_s] * Identity() + ShearStress;
       
-      // Update plastic strain
-      pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G());
+
       
       // Calculate new equivalent stress for verification
       //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
@@ -684,10 +689,18 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       if(mat[e]->Material_model == HOLLOMON) {
           Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
       } else if (mat[e]->Material_model == JOHNSON_COOK){
-        
-      
+		  Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
       }
-  }
+	  
+	  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
+	  
+	  if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
+
+      // Update plastic strain
+      pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);
+	  
+	  double f = pl_strain[e]/sigma_y[e];
+  }//IF PLASTIC
 
 /*
 To calculate inelastic fraction and plastic work

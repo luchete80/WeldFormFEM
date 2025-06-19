@@ -41,4 +41,8 @@ inline void report_gpu_mem_()
   inline void double2_Ptr(const double2 v, double *p, const int i){p[2*i]=v.x;p[2*i+1]=v.y;}
 #endif
 
+
+//~ #define max(a,b) a>b?a:b;
+//~ #define min(a,b) a<b?a:b;
+
 #endif

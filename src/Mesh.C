@@ -47,7 +47,9 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
   TriMesh_d::TriMesh_d() : 
     node(nullptr), node_v(nullptr), elnode(nullptr),
     centroid(nullptr), normal(nullptr), pplane(nullptr),
-    nfar(nullptr), nod_mesh_id(nullptr), ele_mesh_id(nullptr),
+    nfar(nullptr), 
+    //nod_mesh_id(nullptr), 
+    ele_mesh_id(nullptr),
     nodecount(0), elemcount(0), mesh_count(0),
     current_node_capacity(0), current_elem_capacity(0),
     allocated_meshes(0) {
@@ -130,7 +132,8 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   malloc_t (normal,        double3,elemcount);
   malloc_t (elnode,        int, 3 * elemcount);
   
-  malloc_t (react_force,   double3, 1);
+  malloc_t (react_force,   	double3, 1);
+  malloc_t (react_p_force,  double, 1);
 	//cudaMalloc((void **)&centroid , 	elemcount * sizeof (double3));
 	//cudaMalloc((void **)&normal 	, 	elemcount * sizeof (double3));
 	//cudaMalloc((void **)&elnode 	, 	3 * elemcount * sizeof (int));	
@@ -139,6 +142,13 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   double3 *centroid_h = new double3[elemcount];
   double3 *normal_h   = new double3[elemcount];
 	
+  if (!node_h || !node_vh || !elnode_h || !centroid_h || !normal_h) {
+    printf("Memory allocation failed!\n");
+    exit(1);
+  } else {
+    printf("Allocation success.\n");
+  }
+
 	for (size_t j = 0 ;j  < dens; j++ ) {
 				// printf("j, dens" <<j<<", "<<dens<<endl;
 				// printf("j<dens"<< (j  < dens)<<endl;
@@ -203,11 +213,21 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   malloc_t (pplane,      double,elemcount);  
   malloc_t (nfar,        int   ,elemcount);  
 
-  malloc_t (nod_mesh_id,      int,nodecount);  
   malloc_t (ele_mesh_id,      int,elemcount);  
 
-  int *nod_mesh_id_h   = new int[nodecount];
-  for (int n=0;n<nodecount;n++){nod_mesh_id_h[n]=id;}
+  malloc_t (mu_sta,      double,1);  
+  malloc_t (mu_dyn,      double,1);
+  //malloc_t (nod_mesh_id,      int,nodecount);  
+
+  if (!pplane || !nfar ) {
+    printf("Memory allocation failed!\n");
+    exit(1);
+  } else {
+    printf("Allocation success.\n");
+  }
+  
+  //~ int *ele_mesh_id_h   = new int[elemcount];
+  //~ for (int n=0;n<elemcount;n++){ele_mesh_id_h[n]=id;}
     
   //cudaMalloc((void **)&pplane , 	elemcount * sizeof (double));
   //cudaMalloc((void **)&nfar   , 	elemcount * sizeof (int));
@@ -221,12 +241,12 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
 
 
-  memcpy_t(nod_mesh_id,    nod_mesh_id_h,     nodecount * sizeof(int));  
+  //memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
   
   
 
-  // delete[] node_h; //WHY THIS CRASHES
-  // delete[] node_vh; //WHY THIS CRASHES
+  delete[] node_h; //WHY THIS CRASHES
+  delete[] node_vh; //WHY THIS CRASHES
   
   printf("End mesh gen\n");
   //////CRASHES IN CPU
@@ -234,7 +254,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   delete[] elnode_h;
   delete[] centroid_h;
   delete[] normal_h;  
-  delete[] nod_mesh_id_h;  
+  //delete[] ele_mesh_id_h;  
   #endif
   mesh_count = 1;
 }
@@ -245,16 +265,20 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 void TriMesh_d::ResizeStorage(int new_mesh_capacity) {
     // Allocate with malloc_t
     double3 *new_react_force;
+    double *new_react_p_force;
     // malloc_t(new_mesh_vel, double3, new_mesh_capacity);
     // malloc_t(new_mesh_rot, double3, new_mesh_capacity);
-    printf("Newmesh capacity: %d", new_mesh_capacity);
-    malloc_t(new_react_force, double3, new_mesh_capacity);
-
+    printf("Newmesh capacity: %d\n", new_mesh_capacity);
+    printf("NEW MESH CAPACIDY %d\n",new_mesh_capacity);
+    malloc_t(new_react_force, 	double3, new_mesh_capacity);
+    malloc_t(new_react_p_force, double, new_mesh_capacity);
+	
     // Copy existing data
     if (mesh_count > 0) {
         //memcpy(new_node_offsets, node_offsets, (mesh_count + 1) * sizeof(int));
         //memcpy(new_elem_offsets, elem_offsets, (mesh_count + 1) * sizeof(int));
-        //memcpy(new_react_force, react_force, mesh_count * sizeof(double3));
+        memcpy(new_react_force, react_force, mesh_count * sizeof(double3));
+        memcpy(new_react_p_force, react_p_force, mesh_count * sizeof(double));
         // memcpy(new_mesh_vel, mesh_velocities, mesh_count * sizeof(double3));
         // memcpy(new_mesh_rot, mesh_rotations, mesh_count * sizeof(double3));
     }
@@ -271,13 +295,15 @@ void TriMesh_d::ResizeStorage(int new_mesh_capacity) {
     // free_t(node_offsets);
     // free_t(elem_offsets);
     free_t(react_force);
+    free_t(react_p_force);
     // free_t(mesh_velocities);
     // free_t(mesh_rotations);
 
     // Update pointers
     // node_offsets = new_node_offsets;
     // elem_offsets = new_elem_offsets;
-    react_force = new_react_force;
+    react_force 	= new_react_force;
+    react_p_force 	= new_react_p_force;
     // mesh_velocities = new_mesh_vel;
     // mesh_rotations = new_mesh_rot;
 
@@ -292,17 +318,20 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
     // Allocate new arrays using malloc_t
     double3* new_nodes = nullptr;
     double3* new_node_v = nullptr;
-    int* new_nod_mesh_id = nullptr;
+    //int* new_ele_mesh_id = nullptr;
+    //int* new_ele_mesh_id = nullptr;
     
     malloc_t(new_nodes, double3, new_capacity);
     malloc_t(new_node_v, double3, new_capacity);
-    malloc_t(new_nod_mesh_id, int, new_capacity);
+    //malloc_t(new_ele_mesh_id, int, new_capacity);
 
-    if (!new_nodes || !new_node_v || !new_nod_mesh_id) {
+    if (!new_nodes || !new_node_v 
+    //|| !new_ele_mesh_id
+    ) {
         printf("Memory allocation failed!\n");
         free_t(new_nodes);
         free_t(new_node_v);
-        free_t(new_nod_mesh_id);
+        //free_t(new_ele_mesh_id);
         return false;
     }
 
@@ -310,20 +339,20 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
         // Copy existing data
         memcpy_t(new_nodes, node, nodecount * sizeof(double3));
         memcpy_t(new_node_v, node_v, nodecount * sizeof(double3));
-        memcpy_t(new_nod_mesh_id, nod_mesh_id, nodecount * sizeof(int));
+        //memcpy_t(new_ele_mesh_id, ele_mesh_id, nodecount * sizeof(int));
         
         // Free old memory
         free_t(node);
         free_t(node_v);
-        free_t(nod_mesh_id);
+        free_t(ele_mesh_id);
     }
 
     // Update pointers
     node = new_nodes;
     node_v = new_node_v;
-    nod_mesh_id = new_nod_mesh_id;
+    //ele_mesh_id = new_ele_mesh_id;
     current_node_capacity = new_capacity;
-
+    
     return true;
 }
 
@@ -451,9 +480,22 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
     int no = 0;
     for (int n = new_nodes_start; n < new_nodes_end; n++) {
         node_v[n] = new_mesh.m_v;
-        nod_mesh_id[n] = new_mesh.nod_mesh_id[no];
         no++;
     }
+
+
+
+    //~ int new_elem_start = elemcount;
+    //~ int new_elem_end = elemcount + new_mesh.elemcount;
+    
+    //~ printf ("new_elem_start %d, new_elem_end %d\n",new_nodes_start, new_nodes_end);
+    //~ /////Set velocities only for the new nodes
+    //~ no = 0;
+    //~ for (int n = new_elem_start; n < new_elem_end; n++) {
+        //~ ele_mesh_id[n] = new_mesh.ele_mesh_id[no];
+        //~ no++;
+    //~ }
+
 
     printf("Updating metadata..\n");
     // 5. Update metadata
@@ -466,20 +508,7 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
     nodecount = new_nodes;
     elemcount = new_elems;
 
-   //~ for (int n=0;n<nodecount;n++){
-     //~ printf("Node %d %f %f %f \n", n,node_v[n].x,node_v[n].y,node_v[n].z);
-     
-     //~ }
-     
-  // for (int e=0;e<elemcount;e++){
-    // printf("EL %d PPLANE %f\n", e, pplane[e]);  
-    // printf("EL %d normal %f %f %f\n", e, normal[e].x,normal[e].y,normal[e].z);
-  // }
-  
-  // for (int m=0;m<mesh_count;m++){
-    // printf("Mesh %d Nod offset: %d\n",m,node_offsets[m]);
-    // printf("Mesh %d Ele offset: %d\n",m,elem_offsets[m]);
-  // }
+
 }
 
 

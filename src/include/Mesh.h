@@ -67,9 +67,11 @@ class TriMesh_d{
   int nodecount, elemcount;
   int                 id;
   
-  int *ele_mesh_id,*nod_mesh_id;
+  int *ele_mesh_id;
+  //int *nod_mesh_id;
 
-  double3 *react_force; //Per mesh
+  double3 *react_force;   //Per mesh
+  double  *react_p_force= nullptr; //Per mesh
   
   //// DATA FOR SEVERAL MESHES
   int* node_offsets = nullptr;
@@ -86,6 +88,8 @@ class TriMesh_d{
   // Capacity tracking
   int current_node_capacity = 0;
   int current_elem_capacity = 0;
+
+  double *mu_sta, *mu_dyn;
   
   ///////
 	
@@ -129,8 +133,10 @@ class TriMesh_d{
       free_t(normal);
       free_t(pplane);
       free_t(nfar);
-      free_t(nod_mesh_id);
+      //free_t(nod_mesh_id);
       free_t(ele_mesh_id);
+	  free_t(react_force);
+	  free_t(react_p_force);
       //free_t(node_offsets;
       //free_t(elem_offsets;
   }
@@ -262,7 +268,7 @@ inline  dev_t void   TriMesh_d::CalcSpheres(){
     double max = 0.;
     double3 rv;
     for (int n = 0 ;n < 3; n++){
-      rv = node[3*e+n] - centroid[e];
+      rv = node[elnode[3*e+n]] - centroid[e];
       if (length(rv) > max) max = length(rv);
       nfar[e] = n;
     }

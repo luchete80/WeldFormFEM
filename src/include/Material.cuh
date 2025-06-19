@@ -221,10 +221,11 @@ public Material_{
 dev_t inline double CalcHollomonYieldStress(const double &strain, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
   double sy = 0.0;
-  //printf("K %f eps0 %f , eps1 %f sy0 %f m %f\n",K,eps0,eps1,sy0,m);
-  //printf("K %f ", mat->K);
+  //printf("K %f eps0 %f , eps1 %f sy0 %f m %f\n",mat->K,mat->eps0,mat->eps1,mat->sy0,mat->m);
+   //if (strain + mat->eps0 > mat->eps1) sy = mat->K*pow(strain + mat->eps0,mat->m); //plateau surpassed. If no plateau, eps1=eps0 so 
    if (strain + mat->eps0 > mat->eps1) sy = mat->K*pow(strain + mat->eps0,mat->m); //plateau surpassed. If no plateau, eps1=eps0 so 
    else                      sy = mat->sy0; 
+  //if (sy>mat->sy0)printf("SY %.3f\n", sy);
 	return sy; 
   
 }

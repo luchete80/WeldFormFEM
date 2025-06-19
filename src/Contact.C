@@ -18,9 +18,8 @@ namespace MetFEM{
 void dev_t Domain_d::CalcContactForces(){
   
   #ifndef CUDA_BUILD
-  
 	//int i = threadIdx.x + blockDim.x*blockIdx.x;	
-  
+  double pxa[m_node_count];
 	double min_force_ts_=1000.;
 // https://stackoverflow.com/questions/10850155/whats-the-difference-between-static-and-dynamic-schedule-in-openmp
 			
@@ -36,16 +35,13 @@ void dev_t Domain_d::CalcContactForces(){
   #endif
   {
   */
-  
-  for  (int i=0; i < m_dim*m_node_count;i++ ) 
-    contforce[i]=0.0;
-  int max_cf = 0.0;
-  #ifdef BUILD_GPU
-  par_loop(i,m_node_count)
-  #else
-  for  (int i=0; i < m_node_count;i++ )   //i particle is from SOLID domain, j are always rigid 
-  #endif
-  {
+  //~ par_loop(i,m_dim*m_node_count)
+    //~ contforce[i]=0.0;
+  par_loop(i,m_node_count){
+    m_mesh_in_contact[i]=-1;
+    pxa[i]=0.0;
+  }
+  par_loop(i,m_node_count){
     //printf("Node %d\n",i);
     //printf("Element count %d\n", trimesh->elemcount);
     double min_dist = 1e10;
@@ -149,8 +145,14 @@ void dev_t Domain_d::CalcContactForces(){
               //~ if (getPosVec3(i).z<0.0001)
                 //~ printf("Node %d CF %f %f %f, dist %f mass %f\n",i, cf.x,cf.y,cf.z, d,m_mdiag[i]);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
+              pxa[i] = p_node[i] * node_area[i];
               //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);
-
+              
+              //printf("MESHIN CONTACT %d\n",trimesh->nod_mesh_id[j]);
+              //m_mesh_in_contact[i]=trimesh->ele_mesh_id[j];
+              m_mesh_in_contact[i]=0;
+              //~ if (m_mesh_in_contact[i]>trimesh->mesh_count)
+                //~ printf("ERROR!!! \n");
               ////
 
               double damping = 1.0;  // Tune this (0.01–0.5)
@@ -176,16 +178,15 @@ void dev_t Domain_d::CalcContactForces(){
               double3 Ft_trial = -kcont * ut_acc;
 
               // 5. Coulomb cap
-              double mu_dyn = 0.2;
-              double mu_sta = 0.2;
+
               double Ft_mag = length(Ft_trial);
               double3 Fn = dot(cf,trimesh->normal[j])*trimesh->normal[j];
-              double Ft_max = mu_sta * norm(Fn); // norm(Fn) is magnitude of normal force
+              double Ft_max = trimesh->mu_sta[0] * norm(Fn); // norm(Fn) is magnitude of normal force
               
 
               double3 Ft;
 
-              double Ft_max_static = mu_sta * norm(Fn);
+              double Ft_max_static = trimesh->mu_sta[0] * norm(Fn);
               if (Ft_mag <= Ft_max_static) {
                   // 6. Cap force, rescale
                   // Still sticking: Use trial force
@@ -197,7 +198,7 @@ void dev_t Domain_d::CalcContactForces(){
                   Ft = Ft_trial;
               }
               else {
-                  double Ft_max_dynamic = mu_dyn * norm(Fn);
+                  double Ft_max_dynamic =  trimesh->mu_dyn[0] * norm(Fn);
                   Ft = -Ft_max_dynamic * v_tan/norm(v_tan);  // Use velocity direction now
                   for (int d=0;d<3;d++)ut_prev[m_dim*i+d] = 0;  // Optional: reset accumulation when sliding
               }              
@@ -231,27 +232,86 @@ void dev_t Domain_d::CalcContactForces(){
     }//external nodes
   } //i<first fem index
   
+  //~ //printf("Assigning %d\n",trimesh->mesh_count);
+  //~ double  cf_p[trimesh->mesh_count];
+  double3 cf;
+  
+  
+  double area[trimesh->mesh_count];
+  area[0]=0.0;
+  double cfsum = 0.0;
+  for (int i=0;i<m_node_count;i++){
+    if(m_mesh_in_contact[i]>-1){
+      int mpos = m_mesh_in_contact[i];
+      double3 cfi;      
+      cfi.x = contforce[m_dim*i    ];
+      cfi.y = contforce[m_dim*i + 1];
+      cfi.z = contforce[m_dim*i + 2];
+      //~ if (mpos >1)
+        //~ printf("ERROR");
+      //~ else
+      cf.x = 0.0;
+      cf.y = 0.0;
+      cf.z = cf.z + abs(cfi.z);
+
+      cfsum += pxa[i];
+      area[mpos] +=node_area[i];
+      //~ /////cf[mpos]    = cf[mpos] + cfi;      
+      //printf("%.3e\n",node_area[i]*p_node[i]);
+      //cf_p[mpos] += node_area[i]*p_node[i];
+    }
+  }
+  //printf("Area: %.3e\n", area[0]);
+  trimesh->react_force[0].z = cfsum;
   
   for (int m=0;m<trimesh->mesh_count;m++){
-    double3 cf[trimesh->mesh_count];
-    for (int n=0;n<trimesh->nodecount;n++){
-      double3 cfi;
-      //printf("Node %d MESH id %d\n", n,trimesh->nod_mesh_id[n]);
-      cfi.x = contforce[m_dim*trimesh->nod_mesh_id[n]    ];
-      cfi.y = contforce[m_dim*trimesh->nod_mesh_id[n] + 1];
-      cfi.z = contforce[m_dim*trimesh->nod_mesh_id[n] + 2];
-      
-      cf[m] = cf[m] + cfi;
-      
-    }
-    //printf("Mesh id %d Contact Force Sum: %.4e %.4e %.4e \n", m, cf[m].x,cf[m].y,cf[m].z);
-    trimesh->react_force[m]=cf[m];
+    //cfsum += pxa[i];
+    //trimesh->react_force[m] = cf;
+    //printf("Contact Force %d %.3e\n", m,norm(cf));
   }
   
+  //trimesh->react_force[0] = 
+    //~ //printf("Force by pressure Surf %.3e\n",cf_p[0]);
+  //~ for (int m=0;m<trimesh->mesh_count;m++){
+    //~ //printf("Force by pressure Surf %d %.3e\n",m, cf_p[m]);
+    //~ //printf("Force by CF Surf %d %.3e %.3e %.3e\n",m, cf[m].x,cf[m].y,cf[m].z);
+    //~ //printf("Area %d: %.4e\n",m,area[m]);
+    //~ //printf("Time %f cf_p%d %.3e\n",Time, m, cf_p[m]);
+    
+    //~ trimesh->react_p_force[m]=cf_p[m];
+
+   //~ }
+   
+    
   #endif 
 	//Correct time step!
 //	std::min(deltat,dt_fext)
 } //Contact Forces
+
+void Domain_d::calcContactForceFromPressure(){
+  
+   bool is_elem_sum[m_elem_count];
+   //double pxa_el[m_elem_count];
+   double cfsum=0.0;
+   double area = 0.0;
+   for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
+   
+    for (int i=0;i<m_node_count;i++){
+      if(m_mesh_in_contact[i]>-1){
+      for (int ne=0; ne<m_nodel_count[i];ne++) {
+        int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+        if (!is_elem_sum[e]){
+          //pxa_el[e]+=p[e]*m_elem_area[e];
+          is_elem_sum[e]=true;
+          cfsum += p[e]*m_elem_area[e];
+          area+=m_elem_area[e];
+        }
+      }//nodel
+    }
+    }
+  printf("Area %.3e\n", area);
+  trimesh->react_p_force[0] = cfsum;
+}
 
 }; //Namespace
 //};//SPH
