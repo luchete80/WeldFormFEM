@@ -17,7 +17,7 @@ include_directories(../lib/LSDynaReader/src/)
 
 include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
 set (MMG_ROOT "${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/")
-link_directories("$MMG_ROOT/lib")
+link_directories("${MMG_ROOT}/lib")
 include_directories("${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/include") #FOR: Omega_h_config.h
 
 set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
