@@ -1,34 +1,145 @@
-20250526 - Added Linear Matrices
-         - Added Force Assembly
-         - Computation of Deformation Gradient
-20250529 - Fixed Bmat calculation
-         - Added class Eigen Solver
+F90 PREVIOUS VERSION
+20230522 - Added Material Matrix to example
+20230523 - Added nodal Boundary Conditions boolean flags
+         - Added bc reinforcement implementation
+         - Fixed full integration (only 2 points were active)
+20230524 - Added element strain calcs
+         - Fixed element dissasemble (pass global to elem) to calculate strains
+         - Added steps for alternative solver (From Benson 1992).
+         - Added fixity and accel bc 
+20230529 - Fixed mass matrix assembly
+20230530 - Begining to work with density calc, reducing indices
+20230531 - Adding 3x3 3D matrix inversion subroutines for 3d elements
+         - Working on 3D Domain Generation
+         - Adding hourglass control
+-----------------------------------------------------------------------
+20230602 - Allocate internal forces
+20230607 - Added vtu output file writer
+20230608 - Corrected several things of Mass matrix redimension
+         - Fixed hourglass forces calculation (was not initialized)
+         - Summed hourglass correction
+20230609 - Fixed density calc errors
+20230608 - Added element shared by each node to average constant stresses and strains
+20230612 - Fixed Element volume for full integration elements
+         - Fixed error in strain rate calculation (indices of tensor diagonal were wrong)
+20230613 - Fixed hourglass controls (corrected coefficients)
+         - Added hourglass for 2D elements
+         - Fixed 2D reduced integral volume calc
+         - Fixed global ext force assembe 
+         - Fixed element forces calculation error (in diagonal term was not incremented by node)
+         - Fixed Sign of rotation rate
+         - Fixed element strain rate calculation (derivative matrix indices were wrong)
+         - Fixed nodal forces calc, relaced derivative matrix by the onw with determinant calculated
+20230617 - Begining to add contact things
+20230625 - Working on cylinder example, mesh reading
+         - Working with several elements example (cylinder)
+20230623 - Fixed domain allocation in plane mesh reading (CSV)
+20230627 - Fixed fortran vtk element output 
+         - Fixed addboxlength node arrangement
+         - Added Verlet Solver
+         - Added Equivalent stress calc
+20230628 - Fixed ERROR in rot rate value
+         - Fixed hourglass calculation (increment)
+         - Fixed Hourglass forces magnitude
+20230629 - Added sigma symm tensor output to vtk
+-----------------------------------------------------------------------------------
+20230702 - Added Contact Mesh
+2023075  - Fixed Derived matrices, volume and jacobian calc for 2D full integration
+202307XX - Added Chung Hulbert Integrator
+20230725 - Added shock viscosity calculation
+-----------------------------------------------------------------------------------
+20230810 - Added Stress calculated by deformation (and not by def gradient)
+         - Fixed calcs
+         - Corrected BC for acceleration (is important IN Genrealized alpha method since u is calculated from a)
+         - Corrected DEFORMATION GRADIENT CALCULATION (WAS USED THE TOTAL DISPLACEMENT)
+         - Correct first step u_inc definition, now displacements after first step are ok.
+20230829 - Finally working Verlet integration with strain rates (OpenRadioss, ABAQUS and LS-DYNA style).
+         - This implies is not necessary to solve polar decomposition, neither F (Green Naghdi).
+         - On the other side, results are not exactly as above, so is pending to check TS, and corrections.-
+         - Hourglass and reduced integration is not working yet.
+20230830 - Chung Hulbert with strain rate (without polar decomp) is working ok. BUT LEAPFROG AND VERLET ARE DIVERGING BY THE MOMENT.
+         - Added Leapfrog, and Chung hulbert
+-------------------------------------------------------------------------------------
+20231108 - Fixed 2D plain strain stress decomposition calculation
+         - Fixed output (With numbers like E-221)
+20231113 - Added contact surfaces and things.
+20231128 - Added parallel processing on jacobian calc
+				 - Ommitted Shape matrix calculation (only derivs needed). 
+				 - Prallelized deriv matrix calc
+20231129 - Parallelized Stresses & Strains
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+20230207 - FIXED HOURGLASSING 
+20230425 - Fixed BCs
+
+20231128 - Added MemCopy From Host to Device, Nodes and Connectivity
+----------------------------------------------------------------------------------
+20231201 - Written Element matrices (created locally by the moment)
+20231211 - Fixed temporally jacobian creation (not crtashing, defining matrices at the begingin)
+         - Adding Element Strain calculations
+20231227 - Completed derivatives for 3D
+20231228 - Added strain computation, allocating element shape derivatives
+20231229 - Changed velocity allocation
+         - Working with strain rate
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+20240206 - Added to flat ptr
+         - Fixed derivative saving
+20240208 - Working with reduced integration
+20240209 - Added BC assignment
+         - Added Velocity and Disp Prediction
+         - Added Volume Calculation
+20240214 - Added Sigma Allocation
+         - Added material allocation
+         - Begining to add sigma calculations
+20240222 - Making to be build both as CPU AND GPU 
+         - Fixed Volume allocation
+         - ADDED ASSEMBLY WITHOUT LOCKING
+20240223 - Ended Node Elements generation
+         - Added m_nodel_local in order to assemblying through nodal loop
+20240224 - Begining to add Vec3D (from tiny and great DynELA) TODO: MAKING GPU/CPU MATH SUBMODULE (BASED ON DYNELA (CPU) AND (EVENTUALLY) TENSOR (GPUSPH)
+         - DISCARD DOUBLE3 AND REPLACE IT WITH VECTORS/MATRICES
+20240225 - Added memcpy
+20240226 - Added Solver, Mechanical and Matrices files for CPU Solver
+20240226 - Added Matrix Derivative dimensions and offset
+         - Fixed another derivarive allocation
+         - ADDED COPY CONSTRUCTOR TO MATRIX CLASS AND OPERATOR=
+20240229 - Fixed some GPU building, matrix is working
+         - Corrected Derivatives calculation
+         ----------------------------------------
+20240302 - Added velocity and accel corrections.
+         - Added mass matrices
+20240308 - Fixed Vol Calc (Gasuss weight)
+         - Added mass matrices
+         - Fixed nodal pos calculations in predictions
+20240312 - Fixed Vector to Ptr allocation
+20240315 - Fixed getVel fnc. Now strains are calculated ok.
+         - Corrected velocity components calculation of strani rate
+         - Corrected getDerivative function (several indices and offsets were wrong).
+         - Added velocity corrections
+20240315 - Added Shape matrix calculation (for element masses and lumped matrix)
+20240320 - Corrected mass matrix dimension
+         - Added AssemblyForces device call from Kernel.
+         - Added mass matrix calculation (parallel and CPU)
+20240321 - FIXED assembly (Two allocations were missed).
+         - Changed Initial Density
+         - Added first stress calc
+20240326 - Corrected Shear Stress calc. NOW GIVES OK STRESSES AND PRESSURE 
+           AT INTERMEDIATE CALCS!!
+         - Fixed material props example. 
+         - Fixed Forces calculation (Gauss integration Weight was lost, and never cleared)
+         - DISPLACEMENTS ARE CORRECT FOR REDUCED INTEGRATION BRICK AFTER FIRST TIME STEP!
+          (CHUNG HULBERT SOLVER)
+         - Added ACCEL BOUNDARY CONDITIONS
+20240327 - Added HOURGLASS FORCES! Attention: GPU Force Elem calc is wrong
+-----------------------------------------------
+20240403 - Fixed symm indices
+20240405 - Added hourglass forces sum (GPU)
+         - Found error in displacement correction.
+         - Found error in acceleration (internal forces were inverted)
+         - Fixed Strain and Rot rate calc
+         - Added CS0 to hourglass calc
          
-<<<<<<< HEAD
-20250530 - Adding EIGEN Elastic Simple Solver 
-         - Fixing getElementNode()
-         - Adding PETSC first functions.
-         - Adding Diricket Eigen BCs
-         - SINCE SOLVING ELASTIC COMPRESSION EXAMPLE SYSTEM DIVERGES:
-         - Adding hourglass forces for tetras (#5)
-         - FIXED Eigen solver for column major
-         - Setting some defaults
-         - Fixed Material matrix. 
-         - Validated Single Steel Element with Python and EIGEN.
----------------------------------------------------------------------------------------------------------------------
-20250601 - Fixed nonlinear material code.
-         - Adding single element UL mat+geo Nonlinearities python example.
-20250602 - Added MATRIX by tensor mult matrices.
-         - Changed almasi to Green Lagrange 
-20250605 - Fixed SLIDING CONTACT!
-         - Using accum displacement algorithm.
-20250606 - Added Contact Forces
-20250609 - Fixed Tetra Element Reading from LSDyna!! Was reading hexas.
-         - Fixed stress output (were wrongly calculated)
-         - Added Hollomon reading.
-20250610 - Added EA/l Geometric Contact stiffness instead of 
-         - Added damping. 
-=======
 20240409 - Added device print funcions (vectors and tensors)
 -----------------------------------------------
 20240516 - Fixed for 3D some crashing thing.  
@@ -222,4 +333,3 @@
          - Added Total Contact Force Pressure Nodal and Elemental 
          - Fixed Element Area calc!
 20250619 - Fied Element area in outer elements. Assumed 1 areaper element.
-

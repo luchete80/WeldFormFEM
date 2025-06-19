@@ -13,7 +13,7 @@
 #include <iostream>
 #include <vector>
 
-#include "Matrix_temp.h"
+#include "Matrix.h"
 #include <sstream>
 #include <fstream> 
 #include <iostream>

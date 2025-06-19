@@ -106,7 +106,8 @@ set (SOURCES
                          Mechanical.C
                          Mesh.C
                          Matrices.C
-                         Solver.C
+                         Solver_explicit.C
+                         Thermal.C
                          input.C
                          ../lib/LSDynaReader/src/lsdynaReader.cpp
                          VTKWriter.C
