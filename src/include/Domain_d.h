@@ -82,6 +82,23 @@ class BC_Node {
 
 namespace MetFEM{
 
+enum BC_TYPE {Velocity_BC=0, Force_BC, Temperature_BC, Convection_BC, Symmetry_BC};
+
+struct boundaryCondition {
+	int 	zoneId;
+	BC_TYPE 	type;	// ENUM TYPE Velocity, Force, Temperature
+	bool 	free;	//is necessary??
+	bool  is_type[4];  ////ACCORDING TO BC_TYPE {Velocity_BC=0, Force_BC, Temperature_BC, Convection_BC};
+	int 	valueType;		//0: Constant, 1 amplitude table
+	double3 value;       //If constant
+	double3 value_ang;       //Angular value
+	int 	ampId;			//if valuetype == 1
+	double 	ampFactor;		//if valuetype == 1
+  double cv_coeff;
+  double T_inf;
+  double T;
+};
+
 class TriMesh_d;
 class VTKWriter;
 class VTUWriter;
@@ -124,6 +141,8 @@ public:
   #endif
 
   void setTriMesh(TriMesh_d *m){trimesh = m;}
+  void addMeshData(const TriMesh_d &m);
+  
   
   dev_t void SearchExtNodes();
 
@@ -273,6 +292,21 @@ public:
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
   void Free();
+  void calcArtificialViscosity();
+  
+  /////// THERMAL
+  void ThermalCalcs();
+  void setThermalOn(){m_thermal = true;}
+  void calcInelasticHeatFraction();
+  void setTemp(const double &val){
+    #ifdef  CUDA_BUILD
+    
+    #else
+    for (int i=0;i<m_node_count;i++)T[i]=val;
+    #endif
+    
+    }
+  void calcContactForceFromPressure();
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
@@ -296,10 +330,22 @@ protected:
   
 	double 					*p, *rho, *rho_0;
   
+  double          *ut_prev;   //FOR HISTORICAL CONTACT
+  
   //////Thermal
   bool m_thermal;
   double *T;   /// temperature
   double *m_dTedt; //elem node
+  double *ps_energy;
+  double *q_cont_conv;
+  double *node_area; //THERMAL CONTACT
+  double  contact_hc; //MOVETO CONTACT INTERFACE
+  double *m_elem_length; //FOR CONTACT
+  double *p_node; //FOR CONTACT AND ANP (ANP will be overriden by HG later)
+  double *m_elem_area;
+  
+  int 	 *m_mesh_in_contact; //ID (Pos) with mesh in contact
+  
   double m_min_length;
   double m_min_height;
   double m_cfl_factor;

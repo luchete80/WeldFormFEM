@@ -26,6 +26,12 @@ void printDummyElem(Domain_d *dom, ostringstream &m_oss){
         m_oss <<0.0 <<endl;       
 }
 
+void printDummyNod(Domain_d *dom, ostringstream &m_oss){
+    if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+        m_oss <<0.0 <<endl;       
+}
+
 VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   //type definition to shorten coding
 
@@ -223,7 +229,6 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   // FOR NOT RETURN CARRIAGE
   int nc = dom->m_node_count;
   if (dom->isContactOn()){
-    cout << "CONTACT ON "<<endl;
     nc += dom->getTriMesh()->nodecount;
   }
   m_oss << nc << " float "<<endl;
@@ -238,7 +243,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3_h(i);
       //for (int d=0;d<3;d++){
-        m_oss << std::scientific<<std::setprecision(4)<<float(x.x) <<" "<<float(x.y) <<" " <<float(x.z)<<endl;
+          m_oss << std::scientific<<std::setprecision(4)<<float(x.x) <<" "<<float(x.y) <<" " <<float(x.z)<<endl;
       //}
       //m_oss<<endll;
       //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
@@ -251,7 +256,6 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   }
   if (dom->isContactOn()){
-    cout << "Contact on"<<endl;
     for (int n=0;n<dom->getTriMesh()->nodecount;n++){
       vector_t x = dom->getTriMesh()->node[n];
       m_oss << x.x <<" "<<x.y <<" " <<x.z<<endl;      
@@ -329,8 +333,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss<<"VECTORS DISP float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t x = dom->getDispVec(n);
-    m_oss << std::scientific<<std::setprecision(4)<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
-  }
+    if (norm(x)>1.e-10)
+      m_oss << std::scientific<<std::setprecision(4)<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
+    else
+     m_oss << std::scientific<<std::setprecision(4)<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;      
+  } 
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
@@ -357,6 +364,16 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
+  if (dom->m_thermal){
+    m_oss<<"SCALARS Temp float 1"<<endl;
+    m_oss<<"LOOKUP_TABLE default"<<endl;
+    for (int n=0;n<dom->m_node_count;n++)
+      m_oss << dom->T[n] <<endl;    
+    
+    if (dom->isContactOn())
+      for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+        m_oss << fixed<<0.0 <<endl;   
+  }
 
   m_oss<<"VECTORS ContForce float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
@@ -376,9 +393,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   double *a = new double[dom->m_node_count*6];
   
   //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
-  cout << "Avg Scalar" <<endl;
   avgScalar(dom->m_sigma,a,6)
-  cout << "Done "<<endl;
   
   double seq;
   //cout <<  "Averaging node count "<<endl;
@@ -386,15 +401,31 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int n=0;n<dom->m_node_count;n++){
 
     tensor3 sig = FromFlatSym(a,n*6);
-    double J2 = 0.5*(sig.xx*sig.xx +  2.0*sig.xy*sig.xy + 
-                                      2.0*sig.xz*sig.xz + 
-                     sig.yy*sig.yy+  
-                                      2.0*sig.yz*sig.yz +               
-                     sig.zz*sig.zz                 
+    
+    tensor3 s = sig - 1.0/3.0*Trace(sig) * Identity();
+    double J2 = 0.5*(s.xx*s.xx +  2.0*s.xy*s.xy + 
+                                      2.0*s.xz*s.xz + 
+                     s.yy*s.yy+  
+                                      2.0*s.yz*s.yz +               
+                     s.zz*s.zz                 
                                      
                     );
      m_oss << sqrt(3.0*J2)<<endl;
   }   
+  
+    printDummyNod(dom,m_oss);
+
+    m_oss<<"SCALARS nod_area float 1"<<endl;
+    m_oss<<"LOOKUP_TABLE default"<<endl;
+    for (int n=0;n<dom->m_node_count;n++)
+      m_oss << std::scientific<<std::setprecision(6)<<dom->node_area[n] <<endl;    
+    printDummyNod(dom,m_oss);
+
+    m_oss<<"SCALARS nod_p float 1"<<endl;
+    m_oss<<"LOOKUP_TABLE default"<<endl;
+    for (int n=0;n<dom->m_node_count;n++)
+      m_oss << dom->p_node[n] <<endl;    
+    printDummyNod(dom,m_oss);
 
   
   //cout << "done"<<endl;
@@ -415,6 +446,12 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   m_oss << "CELL_DATA "<<ne<<endl;
 
+  m_oss<<"SCALARS ele_area float 1"<<endl;
+  m_oss<<"LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss << std::scientific<<std::setprecision(6)<<dom->m_elem_area[n] <<endl;    
+  printDummyElem(dom,m_oss);
+  
   m_oss << "SCALARS pressure float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)

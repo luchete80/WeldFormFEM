@@ -6,6 +6,9 @@
 #endif
 #include "Mesh.h"
 
+#define max(a,b) a>b?a:b;
+#define min(a,b) a<b?a:b;
+
 #define PRINT_V(v) printf("%f %f %f\n",v.x,v.y,v.z);
 namespace MetFEM{
 // ORIGINAL CPU version
@@ -38,9 +41,23 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
   mesh_d->CalcNormals();
   mesh_d->UpdatePlaneCoeff(); 
 }
+
+
 */
+  TriMesh_d::TriMesh_d() : 
+    node(nullptr), node_v(nullptr), elnode(nullptr),
+    centroid(nullptr), normal(nullptr), pplane(nullptr),
+    nfar(nullptr), 
+    //nod_mesh_id(nullptr), 
+    ele_mesh_id(nullptr),
+    nodecount(0), elemcount(0), mesh_count(0),
+    current_node_capacity(0), current_elem_capacity(0),
+    allocated_meshes(0) {
+    m_v = m_w = make_double3(0.,0.,0.);
+}
+
 //NOW THIS IS ZORIENTED, CHANGE TO EVERY PLANE
-void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
+void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
 	#ifndef CUDA_BUILD
 	double x1,x2,x3;
 	double l1,l2;
@@ -103,17 +120,20 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   memcpy_t(node,       node_h,  nodecount * sizeof(double3));
   memcpy_t(node_v,    node_vh,  nodecount * sizeof(double3));
     
-  printf( "Element count: %d",elemcount );  
-  printf( "done. Creating elements... ");
+
 	int n[4];
 	int el =0;
 	int i;
 	
 	elemcount = dens * dens * 2;
+  printf( "Element count: %d",elemcount );  
+  printf( "done. Creating elements... ");
   malloc_t (centroid,      double3,elemcount);
   malloc_t (normal,        double3,elemcount);
   malloc_t (elnode,        int, 3 * elemcount);
   
+  malloc_t (react_force,   	double3, 1);
+  malloc_t (react_p_force,  double, 1);
 	//cudaMalloc((void **)&centroid , 	elemcount * sizeof (double3));
 	//cudaMalloc((void **)&normal 	, 	elemcount * sizeof (double3));
 	//cudaMalloc((void **)&elnode 	, 	3 * elemcount * sizeof (int));	
@@ -122,6 +142,13 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   double3 *centroid_h = new double3[elemcount];
   double3 *normal_h   = new double3[elemcount];
 	
+  if (!node_h || !node_vh || !elnode_h || !centroid_h || !normal_h) {
+    printf("Memory allocation failed!\n");
+    exit(1);
+  } else {
+    printf("Allocation success.\n");
+  }
+
 	for (size_t j = 0 ;j  < dens; j++ ) {
 				// printf("j, dens" <<j<<", "<<dens<<endl;
 				// printf("j<dens"<< (j  < dens)<<endl;
@@ -185,7 +212,23 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   
   malloc_t (pplane,      double,elemcount);  
   malloc_t (nfar,        int   ,elemcount);  
+
+  malloc_t (ele_mesh_id,      int,elemcount);  
+
+  malloc_t (mu_sta,      double,1);  
+  malloc_t (mu_dyn,      double,1);
+  //malloc_t (nod_mesh_id,      int,nodecount);  
+
+  if (!pplane || !nfar ) {
+    printf("Memory allocation failed!\n");
+    exit(1);
+  } else {
+    printf("Allocation success.\n");
+  }
   
+  //~ int *ele_mesh_id_h   = new int[elemcount];
+  //~ for (int n=0;n<elemcount;n++){ele_mesh_id_h[n]=id;}
+    
   //cudaMalloc((void **)&pplane , 	elemcount * sizeof (double));
   //cudaMalloc((void **)&nfar   , 	elemcount * sizeof (int));
   
@@ -196,119 +239,289 @@ void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double
   memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
   memcpy_t(centroid,  centroid_h,    elemcount * sizeof(double3));
   memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
-  
+
+
+  //memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
   
   
 
-  delete node_h;
-  delete node_vh;
-  //printf("End mesh gen\n");
-  //CRASHES IN CPU
-  //--------------
-  //delete elnode_h;
-
-  //delete centroid_h;
-
-  //delete normal_h;  
+  delete[] node_h; //WHY THIS CRASHES
+  delete[] node_vh; //WHY THIS CRASHES
+  
+  printf("End mesh gen\n");
+  //////CRASHES IN CPU
+  /////--------------
+  delete[] elnode_h;
+  delete[] centroid_h;
+  delete[] normal_h;  
+  //delete[] ele_mesh_id_h;  
   #endif
+  mesh_count = 1;
+}
+
+///// TODO: REPLACE WITH memcpy_t, malloc_t
+
+// //// RESIZING
+void TriMesh_d::ResizeStorage(int new_mesh_capacity) {
+    // Allocate with malloc_t
+    double3 *new_react_force;
+    double *new_react_p_force;
+    // malloc_t(new_mesh_vel, double3, new_mesh_capacity);
+    // malloc_t(new_mesh_rot, double3, new_mesh_capacity);
+    printf("Newmesh capacity: %d\n", new_mesh_capacity);
+    printf("NEW MESH CAPACIDY %d\n",new_mesh_capacity);
+    malloc_t(new_react_force, 	double3, new_mesh_capacity);
+    malloc_t(new_react_p_force, double, new_mesh_capacity);
+	
+    // Copy existing data
+    if (mesh_count > 0) {
+        //memcpy(new_node_offsets, node_offsets, (mesh_count + 1) * sizeof(int));
+        //memcpy(new_elem_offsets, elem_offsets, (mesh_count + 1) * sizeof(int));
+        memcpy(new_react_force, react_force, mesh_count * sizeof(double3));
+        memcpy(new_react_p_force, react_p_force, mesh_count * sizeof(double));
+        // memcpy(new_mesh_vel, mesh_velocities, mesh_count * sizeof(double3));
+        // memcpy(new_mesh_rot, mesh_rotations, mesh_count * sizeof(double3));
+    }
+
+    // Initialize new slots
+    // if (new_mesh_capacity > allocated_meshes) {
+        // for (int i = mesh_count + 1; i <= new_mesh_capacity; i++) {
+            // new_node_offsets[i] = new_node_offsets[mesh_count];
+            // new_elem_offsets[i] = new_elem_offsets[mesh_count];
+        // }
+    // }
+
+    // Cleanup old memory
+    // free_t(node_offsets);
+    // free_t(elem_offsets);
+    free_t(react_force);
+    free_t(react_p_force);
+    // free_t(mesh_velocities);
+    // free_t(mesh_rotations);
+
+    // Update pointers
+    // node_offsets = new_node_offsets;
+    // elem_offsets = new_elem_offsets;
+    react_force 	= new_react_force;
+    react_p_force 	= new_react_p_force;
+    // mesh_velocities = new_mesh_vel;
+    // mesh_rotations = new_mesh_rot;
+
+    allocated_meshes = new_mesh_capacity;
 }
 
 
-/*
+int TriMesh_d::ResizeNodeData(int new_capacity) {
+    printf("New capacity %d\n", new_capacity);
+    if (new_capacity <= nodecount) return false;
 
-//This is done once, Since mesh is rigid
-//Calculate radius and plane coefficient
-inline __device__ void TriMesh_d::CalcSpheres(){
-	// double max;
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
-  if (e < elemcount) {
-    double max = 0.;
-    double3 rv;
-    for (int n = 0 ;n < 3; n++){
-      rv = node[3*e+n] - centroid[e];
-      if (length(rv) > max) max = length(rv);
-      nfar[e] = n;
+    // Allocate new arrays using malloc_t
+    double3* new_nodes = nullptr;
+    double3* new_node_v = nullptr;
+    //int* new_ele_mesh_id = nullptr;
+    //int* new_ele_mesh_id = nullptr;
+    
+    malloc_t(new_nodes, double3, new_capacity);
+    malloc_t(new_node_v, double3, new_capacity);
+    //malloc_t(new_ele_mesh_id, int, new_capacity);
+
+    if (!new_nodes || !new_node_v 
+    //|| !new_ele_mesh_id
+    ) {
+        printf("Memory allocation failed!\n");
+        free_t(new_nodes);
+        free_t(new_node_v);
+        //free_t(new_ele_mesh_id);
+        return false;
+    }
+
+    if (node) {
+        // Copy existing data
+        memcpy_t(new_nodes, node, nodecount * sizeof(double3));
+        memcpy_t(new_node_v, node_v, nodecount * sizeof(double3));
+        //memcpy_t(new_ele_mesh_id, ele_mesh_id, nodecount * sizeof(int));
+        
+        // Free old memory
+        free_t(node);
+        free_t(node_v);
+        free_t(ele_mesh_id);
+    }
+
+    // Update pointers
+    node = new_nodes;
+    node_v = new_node_v;
+    //ele_mesh_id = new_ele_mesh_id;
+    current_node_capacity = new_capacity;
+    
+    return true;
+}
+
+int TriMesh_d::ResizeElementData(int new_capacity) {
+    if(new_capacity <= elemcount) return 0;
+    
+    // Allocate new arrays using malloc_t
+    int* new_elnode = nullptr;
+    double3* new_centroid = nullptr;
+    double3* new_normal = nullptr;
+    double* new_pplane = nullptr;
+    int* new_nfar = nullptr;
+    
+    malloc_t(new_elnode, int, new_capacity * 3);
+    malloc_t(new_centroid, double3, new_capacity);
+    malloc_t(new_normal, double3, new_capacity);
+    malloc_t(new_pplane, double, new_capacity);
+    malloc_t(new_nfar, int, new_capacity);
+
+    if(!new_elnode || !new_centroid || !new_normal || !new_pplane || !new_nfar) {
+        printf("Element memory allocation failed!\n");
+        free_t(new_elnode);
+        free_t(new_centroid);
+        free_t(new_normal);
+        free_t(new_pplane);
+        free_t(new_nfar);
+        return 0;
+    }
+
+    if(elnode) {
+        // Copy existing data
+        memcpy_t(new_elnode, elnode, elemcount * 3 * sizeof(int));
+        memcpy_t(new_centroid, centroid, elemcount * sizeof(double3));
+        memcpy_t(new_normal, normal, elemcount * sizeof(double3));
+        memcpy_t(new_pplane, pplane, elemcount * sizeof(double));
+        memcpy_t(new_nfar, nfar, elemcount * sizeof(int));
+        
+        // Free old memory
+        free_t(elnode);
+        free_t(centroid);
+        free_t(normal);
+        free_t(pplane);
+        free_t(nfar);
     }
     
-    //element[e]-> radius[e] = max;	//Fraser Eq 3-136
+    // Update pointers
+    elnode = new_elnode;
+    centroid = new_centroid;
+    normal = new_normal;
+    pplane = new_pplane;
+    nfar = new_nfar;
+    current_elem_capacity = new_capacity;
     
-    UpdatePlaneCoeff();
-	}
+    return 1;
 }
 
-__global__ inline void CalcSpheresKernel(TriMesh_d *mesh_d) {
-  mesh_d->CalcSpheres();
-  
+//AddMesh coordinates everything
+void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
+    // 1. Validate input
+    printf("Resizing storage\n");
+    if(mesh_count >= allocated_meshes) {
+        int new_capacity = allocated_meshes ? allocated_meshes * 2 : 4;
+        ResizeStorage(new_capacity);
+    }
+    printf("Resizing Node Data\n");
+    // 2. Calculate new totals
+    const int new_nodes = nodecount + new_mesh.nodecount;
+    const int new_elems = elemcount + new_mesh.elemcount;
+
+    printf("Old Node count %d, New node count %d, current_node_capacity %d\n", nodecount, new_nodes,current_node_capacity);
+    //~ // 3. Resize data arrays with safety checks
+    if(new_nodes > current_node_capacity) {
+        int new_node_cap = max(new_nodes, current_node_capacity * 2);
+        if(!ResizeNodeData(new_node_cap)) return;
+    }else{
+      printf("No allocated extra nodes.\n");
+    }
+    printf("Resizing Element Data\n");
+    if(new_elems > current_elem_capacity) {
+        int new_elem_cap = max(new_elems, current_elem_capacity * 2);
+        if(!ResizeElementData(new_elem_cap)) return;
+    }
+    printf("Copying memory\n");
+    // 4. Copy data with bounds checking
+    if(node && new_mesh.node) {
+        memcpy_t(node + nodecount, new_mesh.node, 
+              new_mesh.nodecount * sizeof(double3));
+    }
+    if(node_v && new_mesh.node_v) {
+        memcpy_t(node_v + nodecount, new_mesh.node_v,
+              new_mesh.nodecount * sizeof(double3));
+    }
+
+
+    // Copy element data with node index offset
+    if(new_mesh.elnode && new_mesh.elemcount > 0) {
+        printf("Copying %d elements to offset %d\n", new_mesh.elemcount, elemcount);
+        
+        for(int e = 0; e < new_mesh.elemcount; e++) {
+            // Calculate source and destination indices
+            int src_idx = 3 * e;
+            int dst_idx = 3 * (elemcount + e);
+            
+            // Copy and offset node indices
+            elnode[dst_idx]     = new_mesh.elnode[src_idx]     + nodecount;
+            elnode[dst_idx + 1] = new_mesh.elnode[src_idx + 1] + nodecount;
+            elnode[dst_idx + 2] = new_mesh.elnode[src_idx + 2] + nodecount;
+            
+            // Copy other element data
+            centroid[elemcount + e] = new_mesh.centroid[e];
+            normal[elemcount + e] = new_mesh.normal[e];
+            pplane[elemcount + e] = new_mesh.pplane[e];
+            nfar[elemcount + e] = new_mesh.nfar[e];
+        }
+    }
+    
+    printf("Setting vel\n");
+    //SETTING VEL
+    // After copying data but before updating counters:
+    int new_nodes_start = nodecount;
+    int new_nodes_end = nodecount + new_mesh.nodecount;
+    
+    printf ("new_nodes_start %d, new_nodes_end %d\n",new_nodes_start, new_nodes_end);
+    /////Set velocities only for the new nodes
+    int no = 0;
+    for (int n = new_nodes_start; n < new_nodes_end; n++) {
+        node_v[n] = new_mesh.m_v;
+        no++;
+    }
+
+
+
+    //~ int new_elem_start = elemcount;
+    //~ int new_elem_end = elemcount + new_mesh.elemcount;
+    
+    //~ printf ("new_elem_start %d, new_elem_end %d\n",new_nodes_start, new_nodes_end);
+    //~ /////Set velocities only for the new nodes
+    //~ no = 0;
+    //~ for (int n = new_elem_start; n < new_elem_end; n++) {
+        //~ ele_mesh_id[n] = new_mesh.ele_mesh_id[no];
+        //~ no++;
+    //~ }
+
+
+    printf("Updating metadata..\n");
+    // 5. Update metadata
+    //node_offsets[mesh_count + 1] = new_nodes;
+    //elem_offsets[mesh_count + 1] = new_elems;
+
+
+    // 6. Update counters
+    mesh_count++;
+    nodecount = new_nodes;
+    elemcount = new_elems;
+
+
 }
 
-inline __device__ void TriMesh_d::UpdatePlaneCoeff(){
-	//Update pplan
-  int i = threadIdx.x + blockDim.x*blockIdx.x;
-  if (i < elemcount) { //parallelize by element
-    //printf("elnode %f %f %f \n",elnode[3*i+nfar[i]].x,elnode[3*i+nfar[i]].y,elnode[3*i+nfar[i]].z);
-    pplane[i] = dot(node[elnode[3*i]+nfar[i]],normal[i]);
-    //printf("pplane %.8e \n",pplane[i]);
+
+  ///ONLY FOR NEW MESH ADDED
+  void TriMesh_d::SetNodesVel(const double3 &v, int start_node, int end_node) {
+      if (end_node == -1) end_node = nodecount; // default to all nodes
+      end_node = min(end_node, nodecount); // ensure we don't go out of bounds
+      
+      m_v = v; // Still set the overall mesh velocity
+      for (int n = start_node; n < end_node; n++) {
+          node_v[n] = v;
+      }
   }
-}
-
-inline __device__ void TriMesh_d::CalcNormals(){
-	double3 u, v, w;
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
-  if (e < elemcount) {
-    u = node [elnode[3*e+1]] - node [elnode[3*e]];
-    v = node [elnode[3*e+2]] - node [elnode[3*e]];
-    w = cross(u,v);
-    normal[e] = w/length(w);
-    // if (length(normal[e])<1.0e-3)
-      // printf("ERROR: ZERO normal. Calc error in element %d\n",e);
-    // if (abs(normal[e].y) >1.0e-5 || abs(normal[e].x) > 1.0e-5)
-      // printf("CalcNormal %d %.6e %.6e %.6e\n u %.6e %.6e %.6e \n v %.6e %.6e %.6e\n",e, normal[e].x,normal[e].y,normal[e].z,u.x,u.y,u.z,v.x,v.y,v.z);
-    normal[e].x = normal[e].y = 0.0;
-    normal[e].z = -1.0;
-      // //printf("elnodes z coord %.6e %.6e %.6e\n", node[elnode[3*e]].z,node[elnode[3*e+1]].z,node[elnode[3*e+2]].z);
-    // }
-    //Fraser Eqn 3.34
-    //Uj x Vj / |UjxVj|
-	}
-}
-
-inline __device__ void TriMesh_d::CalcCentroids(){
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
-  if (e < elemcount)
-    centroid[e] = ( node[elnode[3*e]] + node[elnode[3*e+1]] + node[elnode[3*e+2]]) / 3.; 
-}
-
-
-
-inline __device__ void TriMesh_d::Move(double dt){
-
-	int n = threadIdx.x + blockDim.x*blockIdx.x; //Parallelize by node 
-  if ( n < nodecount ){
-    double3 vr 	= cross(m_w, node[n]);
-    node_v[n] = m_v + vr;
-    // for (int i=0;i<3;i++) {
-      // if      ((*node[n])(i) < min(i)) min[i] = (*node[n])(i);
-      // else if ((*node[n])(i) > max(i)) max[i] = (*node[n])(i);
-    // } 
-
-    node[n] += (node_v[n])*dt;
-    //printf("after \n");
-    //PRINT_V(node[n]); 
-  }//n<nodecount
-}
-
-__global__ inline void CheckNormalsKernel(TriMesh_d *mesh_d){
-  mesh_d->CheckNormals();
-}
-
-inline __device__ void TriMesh_d::CheckNormals(){
-  int e = threadIdx.x + blockDim.x*blockIdx.x;
-  //printf("CheckNormals: %d, elemcount %d\n", e, elemcount);
-  if (e < elemcount){
-    printf("%d %f %f %f\n", e, normal[e].x,normal[e].y,normal[e].z);
-  }  
-}
-
-*/
+  
 
 };

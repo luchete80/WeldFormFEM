@@ -2,7 +2,7 @@
 #define _MATERIAL_CUH_
 
 #include "defs.h"
-
+#include "Matrix.h"
 class Particle;
 
 #define BILINEAR				0
@@ -55,6 +55,9 @@ class Material_{
 	double A, B, C;
 	double n/*, m*/;
 	double eps_0;
+  
+  //THERMAL
+  double k_T, cp_T; ///MAYBE MOVE TO element or nodes
 
 
   spec_ void InitHollomon(const Elastic_ &el, const double sy0_, const double &k_, const double &m_)
@@ -101,7 +104,26 @@ class Material_{
 	// //virtual  __device__ inline double CalcYieldStress(const double &strain){return 0.0;};
 	// //virtual  __device__ inline double CalcYieldStress(const double &strain, const double &strain_rate, const double &temp){};
 	 spec_ const Elastic_& Elastic()const{return elastic_m;}
-};
+
+  Matrix getElasticMatrix(){
+      Matrix D(6,6);
+      double E = Elastic().E();
+      double nu = Elastic().Poisson();
+      double G = Elastic().G();
+      
+      double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
+      D.Set(0,1, lambda);               D.Set(0,2, lambda);
+      D.Set(1,0, lambda);               D.Set(1,2, lambda);
+      D.Set(2,0, lambda);               D.Set(2,1, lambda);
+      
+      printf("Cmat\n");
+      
+      for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
+      for (int d=3;d<6;d++) D.Set(d,d,G);    
+      return D;
+  }
+
+}; //MATERIAL 
 
 class _Plastic{
 	
@@ -193,13 +215,17 @@ public Material_{
 	inline double  dev_t CalcYieldStress(const double &strain);	
 };
 
+
+/////// VIRTUAL FUNCTIONS NOT SUPPORTED ON CUDA ///////
+
 dev_t inline double CalcHollomonYieldStress(const double &strain, Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
   double sy = 0.0;
-  //printf("K %f eps0 %f , eps1 %f sy0 %f m %f\n",K,eps0,eps1,sy0,m);
-  //printf("K %f ", mat->K);
+  //printf("K %f eps0 %f , eps1 %f sy0 %f m %f\n",mat->K,mat->eps0,mat->eps1,mat->sy0,mat->m);
+   //if (strain + mat->eps0 > mat->eps1) sy = mat->K*pow(strain + mat->eps0,mat->m); //plateau surpassed. If no plateau, eps1=eps0 so 
    if (strain + mat->eps0 > mat->eps1) sy = mat->K*pow(strain + mat->eps0,mat->m); //plateau surpassed. If no plateau, eps1=eps0 so 
    else                      sy = mat->sy0; 
+  //if (sy>mat->sy0)printf("SY %.3f\n", sy);
 	return sy; 
   
 }

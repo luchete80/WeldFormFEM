@@ -292,4 +292,44 @@ F90 PREVIOUS VERSION
          - MUST CHANGE VELOCITY MAPPING FOLLOWING MOMENTUM.
          - CHECK MASS CONSERVATION.
 20250523 - Found memory leaking (errors in Domain->Free()).
-         -  
+20250526 - Added Linear Matrices
+         - Added Force Assembly
+         - Computation of Deformation Gradient
+20250529 - Fixed Bmat calculation
+         - Added class Eigen Solver
+         
+20250530 - Adding EIGEN Elastic Simple Solver 
+         - Fixing getElementNode()
+         - Adding PETSC first functions.
+         - Adding Diricket Eigen BCs
+         - SINCE SOLVING ELASTIC COMPRESSION EXAMPLE SYSTEM DIVERGES:
+         - Adding hourglass forces for tetras (#5)
+         - FIXED Eigen solver for column major
+         - Setting some defaults
+         - Fixed Material matrix. 
+         - Validated Single Steel Element with Python and EIGEN.
+---------------------------------------------------------------------------------------------------------------------
+20250601 - Fixed nonlinear material code.
+         - Adding single element UL mat+geo Nonlinearities python example.
+20250602 - Added MATRIX by tensor mult matrices.
+         - Changed almasi to Green Lagrange 
+20250605 - Fixed SLIDING CONTACT!
+         - Using accum displacement algorithm.
+20250606 - Added Contact Forces
+20250609 - Fixed Tetra Element Reading from LSDyna!! Was reading hexas.
+         - Fixed stress output (were wrongly calculated)
+         - Added Hollomon reading.
+20250610 - Added EA/l Geometric Contact stiffness instead of 
+         - Added damping. 
+20250612 - Added Contact Forces by integrated Pressures instead of Forces
+         - Added velocity reading (constant)
+20250613 - Added Contact Force output   
+         - Fixed Critical Contact Force calculation.
+         - Fixed BUG in nfar calc.
+20250617 - Fixed bug on m_mesh_in_contact (was nodal, but is elemental)
+         - Added element area (but not updated) 
+20250618 - Added friction coeff reading from file. 
+         - Restored penalty forces calc and output. 
+         - Added Total Contact Force Pressure Nodal and Elemental 
+         - Fixed Element Area calc!
+20250619 - Fied Element area in outer elements. Assumed 1 areaper element.

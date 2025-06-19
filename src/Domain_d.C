@@ -38,6 +38,8 @@
 
 #include "parallel_for_each.h"
 
+#include "Mesh.h"
+
 using namespace std;
 using namespace LS_Dyna;
 
@@ -56,23 +58,9 @@ namespace MetFEM {
 struct Face {
     int nodes[FACENOD];
     int count; // Number of occurrences of this face
+    int elem_id;  // <- store the originating element
 };
 
-/*
-// Function to compare two faces to check if they are identical
-bool areFacesEqual(const Face& f1, const Face& f2) {
-    int matchCount = 0;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            if (f1.nodes[i] == f2.nodes[j]) {
-                matchCount++;
-                break;
-            }
-        }
-    }
-    return matchCount == 4;
-}
-*/
 // Function to compare two faces to check if they are identical
 bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
     int matchCount = 0;
@@ -102,14 +90,14 @@ void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
 
 
 // Function to add all 6 faces of a hexahedron
-void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
+void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4], int elem_id) {
     // Define the 6 faces of the hexahedron
     //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
     Face faces[ELFAC] = {
-        {{element[0], element[1], element[2]}, 0}, // Front face
-        {{element[0], element[1], element[3]}, 0}, // Right face
-        {{element[1], element[2], element[3]}, 0}, // Back face
-        {{element[2], element[0], element[3]}, 0}, // Left face
+        {{element[0], element[1], element[2]}, 0,elem_id}, // Front face
+        {{element[0], element[1], element[3]}, 0,elem_id}, // Right face
+        {{element[1], element[2], element[3]}, 0,elem_id}, // Back face
+        {{element[2], element[0], element[3]}, 0,elem_id}, // Left face
     };
 
     // Add each face to the face list
@@ -118,29 +106,10 @@ void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4]) {
     }
 }
 
-/*
-// Function to add all 6 faces of a hexahedron
-void addHexahedronFaces(Face faceList[], int& faceCount, int element[8]) {
-    // Define the 6 faces of the hexahedron
-    Face faces[6] = {
-        {{element[0], element[1], element[5], element[4]}, 0}, // Front face
-        {{element[1], element[2], element[6], element[5]}, 0}, // Right face
-        {{element[2], element[3], element[7], element[6]}, 0}, // Back face
-        {{element[3], element[0], element[4], element[7]}, 0}, // Left face
-        {{element[0], element[1], element[2], element[3]}, 0}, // Bottom face
-        {{element[4], element[5], element[6], element[7]}, 0}  // Top face
-    };
-
-    // Add each face to the face list
-    for (int i = 0; i < 6; i++) {
-        addFace(faceList, faceCount, faces[i]);
-    }
-}
-*/
 
 dev_t void Domain_d::SearchExtNodes() {
 
-    printf("Adding hexas\n");
+    //printf("Adding hexas\n");
     // Array to store all faces
     //Face faceList[MAX_FACES];
     Face *faceList;
@@ -153,7 +122,7 @@ dev_t void Domain_d::SearchExtNodes() {
         for (int ne=0;ne<m_nodxelem;ne++)
           elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
         //cout << "Adding faces "<<endl;
-        addTriangleFaces(faceList, faceCount, elements);
+        addTriangleFaces(faceList, faceCount, elements,i);
     }
     //cout << "done. Face count: "<<faceCount<<endl;
     // Array to track external nodes
@@ -168,24 +137,142 @@ dev_t void Domain_d::SearchExtNodes() {
         if (faceList[i].count == 1) { // External face
             for (int j = 0; j < FACENOD; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
-                
+                //printf("NODE: %d, Z %f\n",faceList[i].nodes[j],getPosVec3(faceList[i].nodes[j]).z);
             }
             ext_faces++;
         }
     }
 
     // Output the external nodes
-    printf("External Nodes: ");
+    //printf("External Nodes: ");
     for (int i = 0; i < m_node_count; i++) {
         if (ext_nodes[i]) {
-            printf("%d ", i);
+            //printf("%d ", i);
             ext_nodes_count++;
+            //printf("EXT NODE %d Z %f\n", i, getNodePos3(i).z);
         }
     }
-    printf("\n");
-    printf("Ext node count %d\n\n",ext_nodes_count);
-    printf("Ext face count %d\n\n",ext_faces);
+    //printf("\n");
+    //printf("Ext node count %d\n\n",ext_nodes_count);
+    //printf("Ext face count %d\n\n",ext_faces);
+    
+    // for (int ne = 0;ne<ext_nodes_count;ne++){
+      // printf("EXT NODE Z %f\n", getNodePos3(ext_nodes[ne]).z);
+      
+      // }
+  
+  
+  bool elem_flags[m_elem_count];
+  for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
+  ////////////////////////////////////
+  //////// CALCULATE AREA (FOR CONTACT)
+  // Allocate and initialize nodal area array
+  for (int i = 0; i < m_node_count; i++)
+      node_area[i] = 0.0;
+  for (int i = 0; i < m_elem_count; i++)
+    m_elem_area[i] = 0.0;
+  // Compute nodal areas from external triangular faces
+  for (int i = 0; i < faceCount; i++) {
+      if (faceList[i].count == 1) { // External face
+          int n0 = faceList[i].nodes[0];
+          int n1 = faceList[i].nodes[1];
+          int n2 = faceList[i].nodes[2];
+
+          // Get coordinates of the nodes
+          double3 p0 = getPosVec3(n0);
+          double3 p1 = getPosVec3(n1);
+          double3 p2 = getPosVec3(n2);
+
+          // Compute face area via cross product
+          double3 v1 = p1 - p0;
+          double3 v2 = p2 - p0;
+          double3 cross_ = cross(v1,v2);
+          double area = 0.5 * norm(cross_);
+
+          // Distribute area equally to the three nodes
+          double area_share = area / 3.0;
+          node_area[n0] += area_share;
+          node_area[n1] += area_share;
+          node_area[n2] += area_share;
+          
+          int elem_id = faceList[i].elem_id;
+          if (!elem_flags[elem_id]){
+            m_elem_area[elem_id] += area;
+            elem_flags[elem_id] = true;
+          }
+      }//==1 
+    }//Face Count
+	
+
+  
+	// double area = 0.0;
+    // for (int i = 0; i < m_node_count; i++)
+      // if (ext_nodes[i]){
+        // //printf("NODE %d Area%f\n",i,node_area[i]);
+        // area+=node_area[i];
+        // for (int e=0; e<m_nodel_count[i];e++) {
+          // int eglob   = m_nodel     [m_nodel_offset[i]+e]; //Element
+          // m_elem_area[eglob]+=node_area[i];
+        // }
+	  // }
+	//printf("Total External Nodal Area: %.4e\n", area);
+  
+
 }
+
+/////NEW
+/////REFACTORING 
+//~ void Domain_d::SearchExtNodes() {
+    //~ // Initialize
+    //~ Face *faceList = nullptr;
+    //~ malloc_t(faceList, Face, m_elem_count*ELFAC);
+    //~ int faceCount = 0;
+    
+    //~ // Process elements
+    //~ for (int i = 0; i < m_elem_count; i++) {
+        //~ int elements[ELNOD];
+        //~ for(int ne=0; ne<m_nodxelem; ne++) {
+            //~ elements[ne] = m_elnod[m_nodxelem*i+ne];
+        //~ }
+        //~ addTriangleFaces(faceList, faceCount, elements);
+    //~ }
+
+    //~ // Find external nodes
+    //~ for(int i = 0; i < faceCount; i++) {
+        //~ if(faceList[i].count == 1) {
+            //~ for(int j = 0; j < FACENOD; j++) {
+                //~ ext_nodes[faceList[i].nodes[j]] = true;
+            //~ }
+        //~ }
+    //~ }
+
+    //~ // Calculate areas with validation
+    //~ for(int i = 0; i < faceCount; i++) {
+        //~ if(faceList[i].count == 1) {
+            //~ int n[3] = {faceList[i].nodes[0], faceList[i].nodes[1], faceList[i].nodes[2]};
+            //~ double3 p[3] = {getPosVec3(n[0]), getPosVec3(n[1]), getPosVec3(n[2])};
+            
+            //~ double3 edge1 = p[1] - p[0];
+            //~ double3 edge2 = p[2] - p[0];
+            //~ double3 normal = cross(edge1, edge2);
+            //~ double area = 0.5 * norm(normal);
+            
+            //~ if(area > 1.0) {
+                //~ printf("Large area face %d: nodes (%d,%d,%d) area %e\n",
+                      //~ i, n[0], n[1], n[2], area);
+                //~ printf("Coordinates:\n");
+                //~ for(int k=0; k<3; k++) 
+                    //~ printf("  Node %d: (%f, %f, %f)\n", n[k], p[k].x, p[k].y, p[k].z);
+            //~ }
+            
+            //~ double third_area = area / 3.0;
+            //~ for(int k=0; k<3; k++)
+                //~ node_area[n[k]] += third_area;
+        //~ }
+    //~ }
+    
+    //~ free_t(faceList);
+//~ }
 
 struct AssignValue {
     __device__ void operator()(double& x) const {
@@ -271,11 +358,21 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   //////if thermal
   
-  malloc_t (T,      double,node_count);
-  malloc_t(m_dTedt,    double, m_elem_count * m_dim * m_nodxelem);
+  malloc_t (T,                double, node_count);
+  malloc_t(m_dTedt,           double, m_elem_count * m_dim * m_nodxelem);
+  malloc_t(ps_energy,         double, m_elem_count);
+  malloc_t (q_cont_conv,      double, node_count);
+  malloc_t (node_area,        double, node_count); /////USED FOIR THERMAL CONTACT
+  //TODO: MAYBE THIS COULD BE DISCONTINUED 
+  malloc_t (p_node,        double, node_count); /////USED FOIR THERMAL CONTACT
+
+  
+  //Used for contact ()
+  malloc_t (m_elem_length,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
+  malloc_t (m_mesh_in_contact,      int, 	m_node_count); /////USED FOIR CONTACT
 
   /// MATRICES ///
-  /// dHxy_detJ: DIM X NODXELEM
+  /// dHxy_detJ: DIM X NODX ELEM
   /// TO AVOID EXCESSIVE OFFSET, SPLIT DIMENSIONS
   //cudaMalloc((void **)&m_dH_detJ_dx, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));
   //cudaMalloc((void **)&m_dH_detJ_dy, m_nodxelem * m_elem_count * m_gp_count * sizeof (double));  
@@ -346,12 +443,18 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   ////// CONTACT//////////////////////////////////////////////
   malloc_t(ext_nodes, bool, m_node_count);
   malloc_t(contforce, double,node_count*m_dim);
+
+  malloc_t(ut_prev, double,node_count*m_dim);  
+  
   
   m_contsurf_count = 0;
 
   //plastic
   malloc_t (pl_strain, double, m_elem_count * m_gp_count);
   malloc_t (sigma_y, double, m_elem_count * m_gp_count);  
+  
+  malloc_t (m_elem_area, double, m_elem_count);
+
 }
 
 void Domain_d::Free(){
@@ -1711,8 +1814,9 @@ dev_t void Domain_d::calcMinEdgeLength(){
 dev_t void Domain_d::calcMinEdgeLength(){
     double min_len = 1.0e6;
     double min_height = 1.0e6;
-    
+        
     for (int e = 0; e < m_elem_count; e++) {
+      double elem_min_height = 1.0e6;  // Track smallest height for this element
         int off = m_nodxelem * e;
 
         if (m_dim == 3) {  // Tetrahedron case
@@ -1750,15 +1854,23 @@ dev_t void Domain_d::calcMinEdgeLength(){
                 // Height from opposite node to the face
                 double3 vec = D - A;
                 double height = fabs(dot(vec, normal));
-
-                // Update minimum height
-                if (height < min_height) min_height = height;
-            }
+                if (height < elem_min_height) elem_min_height = height;
+                
+            }//face
+            m_elem_length[e] = elem_min_height;
+            // Update minimum height
+            if (elem_min_height < min_height) min_height = elem_min_height;  // Update global min
         }
     }
     m_min_length = sqrt(min_len);
     m_min_height = min_height;
     //printf("Min Edge length: %lf, Min Height: %lf\n", m_min_length, m_min_height);
+    
+}
+
+
+void Domain_d::addMeshData(const TriMesh_d &m){
+  trimesh->AddMesh(m);
 }
 
 __global__ void calcElemJAndDerivKernel(Domain_d *dom_d){

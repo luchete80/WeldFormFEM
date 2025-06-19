@@ -259,6 +259,9 @@ dev_t void Domain_d::calcAccel(){
     for (int d=0;d<m_dim;d++){
       a[i+d] = (m_fe[i+d]-m_fi[i+d])/m_mdiag[n]; //TODO: REMAIN EXTERNAL FORCES
     }
+    // if (n ==0){
+      // printf("accel node 40 %f %f %f\n",a[i],a[i+1],a[i+2]);
+    // }
     if (contact){
     for (int d=0;d<m_dim;d++){
       //printf("ADDED ACCEL: %f\n", contforce[i+d]);
@@ -483,6 +486,7 @@ dev_t void Domain_d::calcElemPressureANP(){
     }
     //printf("Node %d vol %f\n", n,voln[n]);
     pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
+    p_node[n] = pn[n];
   } //NODE LOOP
 
   par_loop(e,m_elem_count){
@@ -490,7 +494,9 @@ dev_t void Domain_d::calcElemPressureANP(){
       p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
     p[e] *= 0.25;
   }
-  delete pn,voln_0,voln;
+  delete []pn;
+  delete []voln_0;
+  delete []voln;
 }
 
 ///// ASSUMING CONSTANT element node count
@@ -523,10 +529,10 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
     }
     m_mdiag[n] = rhon[n]/(double)m_nodel_count[n] * m_voln[n];
     tot_mass +=m_mdiag[n];
-    //printf("Node %d mass %f rho %f vol %f\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
+    //printf("Node %d mass %f rho %f vol %.4e\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
     
   } //NODE LOOP
-  //printf("Tot mass: %f\n",tot_mass);
+  printf("Total Nodal Mass: %f\n",tot_mass);
   delete rhon;
 }
 
@@ -593,20 +599,6 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 dev_t void Domain_d::CalcStressStrain(double dt){
 
-
-	
-  // implicit none
-  // real(fp_kind) :: SRT(3,3), RS(3,3), ident(3,3)
-  // integer :: e,gp
-  // real(fp_kind) ,intent(in):: dt
-  
-  // real(fp_kind) :: p00
-  
-  // p00 = 0.
-  
-  // ident = 0.0d0
-  // ident (1,1) = 1.0d0; ident (2,2) = 1.0d0;  ident (3,3) = 1.0d0
-
   par_loop(e,m_elem_count){
       //printf("calculating sigma \n");
         // Jaumann rate terms
@@ -634,25 +626,81 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       // RS  = MatMul(elem%rot_rate(e,gp,:,:), elem%shear_stress(e,gp,:,:))
       
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
-      tensor3 test = StrRate-1.0/3.0*(StrRate.xx+StrRate.yy+StrRate.zz)*Identity();
+      //tensor3 test = StrRate - 1.0/3.0*Trace(StrRate) * Identity();
+      
       ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS);
       
-      double J2 = 0.5*(ShearStress.xx*ShearStress.xx +  2.0*ShearStress.xy*ShearStress.xy + 
-                                      2.0*ShearStress.xz*ShearStress.xz + 
-                     ShearStress.yy*ShearStress.yy+  
-                                      2.0*ShearStress.yz*ShearStress.yz +               
-                     ShearStress.zz*ShearStress.zz                 
+      //TODO: SAVE IN DOMAIN?
+      double eff_strain_rate = sqrt ( 	0.5*( (StrRate.xx-StrRate.yy)*(StrRate.xx-StrRate.yy) +
+                                  (StrRate.yy-StrRate.zz)*(StrRate.yy-StrRate.zz) +
+                                  (StrRate.zz-StrRate.xx)*(StrRate.zz-StrRate.xx)) + 
+                            3.0 * (StrRate.xy*StrRate.xy + StrRate.yz*StrRate.yz + StrRate.zx*StrRate.zx)
+                          );
+
+      double Et;
+      
+      tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;
+
+    tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
+
+
+      double J2 = 0.5*(s_trial.xx*s_trial.xx +  2.0*s_trial.xy*s_trial.xy + 
+                                      2.0*s_trial.xz*s_trial.xz + 
+                     s_trial.yy*s_trial.yy+  
+                                      2.0*s_trial.yz*s_trial.yz +               
+                     s_trial.zz*s_trial.zz                 
                                      
                     );
       double sig_trial = sqrt(3.0*J2);
-      //printf("sy %f\n", sigma_y[e]);
-      //printf("Sigmay %.f\n",pl_strain[e]);
-      if (sigma_y[e]<sig_trial){
-        //printf("Yield elem %d, %f, sig_trial %f, yield stress %f\n",e,pl_strain[e],sig_trial, sigma_y[e]);
-        //elem%shear_stress(e,gp,:,:) = elem%shear_stress(e,gp,:,:) * elem%sigma_y(e,gp) / sig_trial
-        //elem%pl_strain(e,gp) = elem%pl_strain(e,gp) + (sig_trial - elem%sigma_y(e,gp)) / (3.0d0 * mat_G) !
-        ShearStress = ShearStress * (sigma_y[e] / sig_trial);
-        pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 *  mat[e]->Elastic().G());
+      
+      
+      if(mat[e]->Material_model == HOLLOMON ){
+        sigma_y[e] = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
+      } else if (mat[e]->Material_model == JOHNSON_COOK){
+        sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
+        }
+        
+        //printf("sy %.3f\n",sigma_y[e]);
+  // Inside your plasticity block where (sigma_y[e] < sig_trial)
+  if (sigma_y[e] < sig_trial) {
+	  double Ep = 0.0; //Hardening
+      //printf("YIELD: %.5e\n", sigma_y[e]);
+      // Calculate scaling factor
+      double scale_factor = sigma_y[e] / sig_trial;
+      
+      // Scale the entire deviatoric stress tensor
+      ShearStress = ShearStress * scale_factor;
+      
+      // Reconstruct the full stress tensor
+      //Sigma = -p[offset_s] * Identity() + ShearStress;
+      
+
+      
+      // Calculate new equivalent stress for verification
+      //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
+      //~ double J2_new = 0.5*(s_new.xx*s_new.xx + 2.0*s_new.xy*s_new.xy + 
+                          //~ 2.0*s_new.xz*s_new.xz + s_new.yy*s_new.yy +  
+                          //~ 2.0*s_new.yz*s_new.yz + s_new.zz*s_new.zz);
+      //~ double sig_new = sqrt(3.0*J2_new);
+      
+
+      
+      // Update tangent modulus if needed
+      if(mat[e]->Material_model == HOLLOMON) {
+          Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
+      } else if (mat[e]->Material_model == JOHNSON_COOK){
+		  Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+      }
+	  
+	  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
+	  
+	  if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
+
+      // Update plastic strain
+      pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);
+	  
+	  double f = pl_strain[e]/sigma_y[e];
+  }//IF PLASTIC
 
 /*
 To calculate inelastic fraction and plastic work
@@ -667,7 +715,7 @@ double f = dep/Sigmay;
 		Strain_pl = Strain_pl + Strain_pl_incr;
 */
 
-      }
+      
       //printf("Shear Stress\n");
       //print(ShearStress);
       // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
@@ -676,14 +724,16 @@ double f = dep/Sigmay;
                                    
       // elem%sigma(e,gp,:,:) = -elem%pressure(e,gp) * ident + elem%shear_stress(e,gp,:,:)	!Fraser, eq 3.32
       Sigma = -p[offset_s] * Identity() + ShearStress;
-      //printf("SHEAR STRESS\n");
-      //print(ShearStress);
 
-      // printf("STR RATE\n");
-      // print(StrRate);
+       J2 = 0.5*(Sigma.xx*Sigma.xx +  2.0*Sigma.xy*Sigma.xy + 
+                                      2.0*Sigma.xz*Sigma.xz + 
+                     Sigma.yy*Sigma.yy+  
+                                      2.0*Sigma.yz*Sigma.yz +               
+                     Sigma.zz*Sigma.zz                 
+                                     
+                    );
       
-      //printf("ELEMENT SIGMA\n");
-      //print(Sigma);
+
       double Ep = 0;
 			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;
@@ -809,6 +859,44 @@ dev_t void Domain_d:: calcElemHourglassForces()
   } //gp ==1
   }//ELEM
 }
+
+
+
+  dev_t void Domain_d::calcArtificialViscosity() {
+    par_loop(e, m_elem_count) {
+
+      double c = sqrt(mat[e]->Elastic().BulkMod() / rho[e]);  // Speed of sound
+      double eps_v = 0.0;
+
+      tensor3 StrRate;      
+      // Compute volumetric strain rate (∇·v)
+
+      //printf("calculating sigma %d\n", e);
+        int offset_s = e * m_gp_count;   //SCALAR
+        int offset_t = offset_s * 6 ; //SYM TENSOR
+        StrRate     = FromFlatSym(m_str_rate,     offset_t );      
+
+        //eps_v += Trace(StrRate) / m_gp_count;
+        eps_v = Trace(StrRate);
+
+
+
+
+      
+      
+      double l = pow(vol[e], 1.0/3.0);  // Element characteristic length
+      double q = rho[e]* (0.1 * c * fabs(eps_v) * l + 1.5 * pow(eps_v * l, 2));
+      printf("q visc: %.4e\n", q);
+      // Apply only for compression (ϵ̇_v < 0)
+      if (eps_v < 0.0) {
+        //for (int gp = 0; gp < m_gp_count; gp++) {
+          for (int d=0;d<3;d++) m_sigma[offset_t+d] += q;  // Add to Cauchy stress
+        //}
+      }
+    }//element
+  }
+
+
 
   /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		

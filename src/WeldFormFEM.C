@@ -60,6 +60,8 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
+
+  TriMesh_d *msh = new TriMesh_d();
   
   int dim = 3;
 	if (argc > 1){
@@ -82,6 +84,7 @@ int main(int argc, char **argv) {
      
   lsdynaReader reader(inputFileName.c_str());
 
+  //TRIMESH DATA. IF MESH IS NOT RESIZED, THIS IS THE ADRESS (DO NOT DELETE)  
 
 	
   double3 V = make_double3(0.0,0.0,0.0);
@@ -115,7 +118,6 @@ int main(int argc, char **argv) {
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
     readValue(config["reMeshStepInterval"], remesh_interval);
-    
 
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
@@ -183,8 +185,13 @@ int main(int argc, char **argv) {
       
     }//File
 
-
-
+    
+  bool thermal = false;
+  readValue(config["thermal"], thermal);
+  if (thermal){
+    dom_d->setThermalOn();
+    dom_d->setTemp(20.0);
+  }
   int dim = 3;
   double tf = 5.0e-3;
 	
@@ -205,9 +212,9 @@ int main(int argc, char **argv) {
 
   ////// MATERIAL  
   double E, nu, rho;
-  E   = 70.0e9;
-  nu  = 0.3;
-  rho = 2700.0;
+  cout << "Density.."<< endl; readValue(material[0]["density0"], 		rho);
+  readValue(material[0]["youngsModulus"], 	E);
+  readValue(material[0]["poissonsRatio"], 	nu);
   
 
   cout << "Setting density"<<endl;
@@ -218,9 +225,10 @@ int main(int argc, char **argv) {
   Elastic_ el(E,nu);
   // cout << "Mat type  "<<mattype<<endl;
 
-  Material_ *material_h;
-  double Ep, c[6];
-
+  Material_ *material_h = nullptr;
+  double Ep;
+  std::vector<double> c;
+  c.resize(10);
   
   double mat_modK= E / ( 3.0*(1.0 -2.0*nu) );
   double mat_G= E / (2.0* (1.0 + nu));
@@ -231,6 +239,13 @@ int main(int argc, char **argv) {
 
   
   string mattype = "Bilinear";
+  cout << "Type: "; 
+  readValue(material[0]["type"], 		mattype);
+  cout << mattype<<endl;
+  double Fy=0.0;
+  readValue(material[0]["yieldStress0"],Fy);
+  readArray(material[0]["const"], 		c);
+      
   if      (mattype == "Bilinear")    {
     Ep = E*c[0]/(E-c[0]);		                              //only constant is tangent modulus
     material_h  = new Material_(el);
@@ -238,23 +253,23 @@ int main(int argc, char **argv) {
     cout << "CS_0: "<<material_h->cs0<<endl;
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
-    readValue(material[0]["yieldStress0"], 	material_h->sy0 );
+
     // cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
     // cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(Bilinear), cudaMemcpyHostToDevice);	
 
-    dom_d->AssignMaterial(material_h);
   } 
-  cout << "Done."<<endl;
-  // else if (mattype == "Hollomon")    {
-    // // material_h  = new Hollomon(el,Fy,c[0],c[1]);
-    // // cout << "Material Constants, K: "<<c[0]<<", n: "<<c[1]<<endl;
+
+
+   else if (mattype == "Hollomon")    {
+    material_h  = new Hollomon(el,Fy,c[0],c[1]);
+    cout << "Hollomon Material Constants, K: "<<c[0]<<", n: "<<c[1]<<endl;
     // // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Hollomon));
     
     // material_h  = new Material_(el);
-    // material_h->InitHollomon(el,Fy,c[0],c[1]);
-    // material_h->Material_model = HOLLOMON;
+    material_h->InitHollomon(el,Fy,c[0],c[1]);
+    material_h->Material_model = HOLLOMON;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Material_));
     
     // //init_hollomon_mat_kernel<<<1,1>>>(dom_d); //CRASH
@@ -262,18 +277,67 @@ int main(int argc, char **argv) {
     // cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(Material_), cudaMemcpyHostToDevice);	 //OR sizeof(Hollomon)??? i.e. derived class
     
   
-  // } else if (mattype == "JohnsonCook") {
+  } else if (mattype == "JohnsonCook") {
     // //Order is 
                                // //A(sy0) ,B,  ,C,   m   ,n   ,eps_0,T_m, T_transition
-   // //Material_ *material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[3],c[2],c[6], c[4],c[5]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
-    
+   Material_ *material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[3],c[2],c[6], c[4],c[5]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
+   cout << "Johnson Cook Material"<<endl; 
+   
     // //Only 1 material to begin with
     // //cudaMalloc((void**)&dom_d->materials, 1 * sizeof(JohnsonCook ));
     // //cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(JohnsonCook), cudaMemcpyHostToDevice);	
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
-  // } else                              printf("ERROR: Invalid material type.
+  } else                              
+    printf("ERROR: Invalid material type.\n");
 
+  if (material_h){
+    ////// THERMAL 
+    material_h->cs0 = sqrt(material_h->Elastic().BulkMod()/rho); //TODO: INSIDE MATERIAL 
+    readValue(material[0]["thermalCond"], 	  material_h->k_T);
+    readValue(material[0]["thermalHeatCap"], 	material_h->cp_T);    
+    readValue(Fy, 	material_h->sy0 );
+    dom_d->AssignMaterial(material_h);
+  }
+  cout << "Done."<<endl;
+  
+  //////////////////////////////////////////////////////
+  //////////////////// BOUNDARY CONDITIONS
+  std::vector<boundaryCondition> bConds;
+  
+  
+    int bc_count = 0;
+    //std::vector<boundaryCondition> bcondvec;
+		for (auto& bc : bcs) { //TODO: CHECK IF DIFFERENTS ZONES OVERLAP
+			// MaterialData* data = new MaterialData();
+			int zoneid,valuetype,var,ampid;
+ 
 
+	////// BOUNDARY CONDITIONS
+	double ampfactor = 1.0;
+	
+	bool free=true;
+	boundaryCondition bcon;
+	//bcon.type = 0;        //DEFAULT: VELOCITY
+	//bcon.valueType = 0;   //DEFAULT: CONSTANT
+	//bcon.value_ang = 0.0;
+	readValue(bc["zoneId"], 	bcon.zoneId);
+	readValue(bc["type"], 		bcon.type);
+	//type 0 means velocity vc
+	readValue(bc["valueType"], 	bcon.valueType);
+	readVector(bc["value"], 	      bcon.value);      //Or value linear
+	readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+	if (bcon.valueType == 0){//Constant
+
+	} else {
+	// if ( bcon.valueType == 1){ //Amplitude
+	// readValue(bc["amplitudeId"], 		bcon.ampId);
+	// readValue(bc["amplitudeFactor"], 	ampfactor); //DEFAULT NOW IS ZERO
+	// bcon.ampFactor = ampfactor;
+	}
+	bConds.push_back(bcon);
+
+  } //BCs
+  
       
   // //////////////////////////////////////////////////////////
   // ////////////////// RIGID BODIES //////////////////////////
@@ -282,6 +346,7 @@ int main(int argc, char **argv) {
   if (readValue(rigbodies[0]["type"],rigbody_type))
   contact = true;
   double3 dim_,start;
+
   
   readVector(rigbodies[0]["start"], 	start); 
   readVector(rigbodies[0]["dim"], 	dim_); 
@@ -289,33 +354,102 @@ int main(int argc, char **argv) {
   readValue(rigbodies[0]["flipNormals"],flipnormals);
   int partSide = 1;
   readValue(rigbodies[0]["partSide"],partSide);
-
+	
+	
+	////TODO: JOIN DIFFERENT MATRICES
   if (contact){
     cout << "Searching external nodes"<<endl;
     #ifdef CUDA_BUILD
     #else
     dom_d->SearchExtNodes();
     #endif
-    
-    TriMesh_d *msh = new TriMesh_d();
-    
+
+    bool flipnormals = false;
+    readValue(rigbodies[0]["flipNormals"],flipnormals);    
+    int id = 0;
+	readValue(rigbodies[0]["zoneId"],id);
     //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
     cout <<"Creating plane mesh..."<<endl;
    //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
    cout <<"Mesh start: "<<start.x<<","<<start.y<<", "<<start.z<<endl;
    cout <<"Mesh dim: "<<dim_.x<<","<<dim_.y<<", "<<dim_.z<<endl;
-    msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
-    #ifdef CUDA_BUILD
+   //(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
+    msh->AxisPlaneMesh(0,  2, flipnormals, start , dim_,  partSide);
+    dom_d->setTriMesh(msh);
+	printf("Searching bcs for ZoneID %d..\n", id);
+	for (int bc=0;bc<bConds.size();bc++){
+		if (bConds[bc].zoneId==id){
+		printf("BC Found for Zone ID: %d\n", id);
+		printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
+		for (int nc=0;nc<msh->nodecount;nc++)
+			msh->node_v[nc]=bConds[bc].value;
+		}
+	}
+
+  readValue(contact_[0]["fricCoeffStatic"], 	msh->mu_sta[0]); 
+  readValue(contact_[0]["fricCoeffDynamic"], 	msh->mu_dyn[0]); 
+  printf("FRICTION COEFFS %.3e %.3e\n", msh->mu_sta[0],msh->mu_dyn[0]);
+	// for (int nc=0;nc<msh->nodecount;nc++)
+		// msh->node_v[nc]=make_double3(0.,0.,0.);
+	
+    //THIS MESH AHOULD NOT BE DELETED 
+	printf("-------------------\n");
+  }
+  cout <<"Done"<<endl;
+  if (rigbodies.size() > 1){
+    cout << "More than one Rigid Bodies found."<<endl; 
+    double3 dim_,start;
+    int partSide = 1;
+    int id = 0;
+	readValue(rigbodies[1]["zoneId"],id);
+    readValue(rigbodies[1]["partSide"],partSide);
+        
+    readVector(rigbodies[1]["start"], 	start); 
+    cout << "Start: "<<start.x<<", "<<start.y<<", "<<start.z<<endl;
+    readVector(rigbodies[1]["dim"], 	dim_); 
+    bool flipnormals = false;
+    readValue(rigbodies[1]["flipnormals"],flipnormals);    
+    
+    TriMesh_d *m = new TriMesh_d();    
+    m->AxisPlaneMesh(1,  2, flipnormals, start , dim_,  partSide);
+    /// CONVERT TO ABSTRACT MESH
+	printf("Searching bcs for ZoneID %d..\n", id);
+	for (int bc=0;bc<bConds.size();bc++){
+		if (bConds[bc].zoneId==id){
+		printf("BC Found for Zone ID: %d\n", id);
+		printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
+		    m->SetMeshVel(bConds[bc].value); ////m_v
+		// for (int nc=0;nc<msh->nodecount;nc++)
+			// msh->node_v[nc]=bConds[bc].value;
+		
+		}
+	}
+	//m->SetMeshVel(make_double3(-10.,0.0,0.0));
+    //THIS MESH AHOULD NOT BE DELETED 
+	printf("-------------------\n");
+
+    dom_d->addMeshData(*m);
+    delete m;
+    cout << "Done."<<endl;
+    
+    cout << "MESH NODE COUNT "<<msh->nodecount<<endl;
+  }
+  cout <<"Setting contact..."<<endl;
+  //ONCE ALL MESH ARE INITIALIZED
+  if (contact){
+    //cout <<"Calculating plane pos"<<endl;    
+      #ifdef CUDA_BUILD
 
     #else
+      
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     #endif
-    cout <<"Done"<<endl;
-    msh->SetVel(make_double3(0.0,0.,-10.0));
-    dom_d->setTriMesh(msh);
-    
+    cout <<"Done."<<endl;
+    //~ for (int e=0;e<msh->elemcount;e++)
+      //~ printf("EL %d PPLANE %f\n", e, msh->pplane[e]);  
     dom_d->setContactOn();
-  }
+  } //if contact
+  
   cout << "Calulating min element size ..."<<endl;
   #ifdef CUDA_BUILD
   calcMinEdgeLengthKernel<<<1,1>>>(dom_d); //TODO: PARALLELIZE
@@ -345,69 +479,37 @@ int main(int argc, char **argv) {
     dom_d->setRemeshInterval(remesh_interval); 
   //dom_d->SetEndTime (10.0*dt);
   
-  //////////////////// BOUNDARY CONDITIONS
-    int bc_count = 0;
-    //std::vector<boundaryCondition> bcondvec;
-		for (auto& bc : bcs) { //TODO: CHECK IF DIFFERENTS ZONES OVERLAP
-			// MaterialData* data = new MaterialData();
-			int zoneid,valuetype,var,ampid;
-      /*
-			double ampfactor;
-			bool free=true;
-			//SPH::boundaryCondition bcon;
-      //bcon.type = 0;        //DEFAULT: VELOCITY
-      //bcon.valueType = 0;   //DEFAULT: CONSTANT
-      //bcon.value_ang = make_double3 (0.0);
-			readValue(bc["zoneId"], 	bcon.zoneId);
-      //type 0 means velocity vc
-			readValue(bc["valueType"], 	bcon.valueType);
-			if (bcon.valueType == 0){//Constant
-        readVector(bc["value"], 	      bcon.value);      //Or value linear
-        readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
-      } else 
-        if ( bcon.valueType == 1){ //Amplitude
-				readValue(bc["amplitudeId"], 		bcon.ampId);
-				readValue(bc["amplitudeFactor"], 	bcon.ampFactor);
-			}
-				
-			readValue(bc["free"], 	bcon.free);
-			//dom_d->bConds.push_back(bcon);
-      //bcondvec.push_back(bcon);
-      bc_count++;
-			
-      std::cout<< "BCs "<<  ", Zone ID: "<<bcon.zoneId<<", Value :" <<bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<std::endl;
-      */
-		}//Boundary Conditions
-  
-  
+
   
   int fixcount =0;
   int velcount =0;
   for (int i=0;i<dom_d->getNodeCount();i++){
     #ifdef CUDA_BUILD
     #else
-    if (dom_d->getPosVec3(i).z <0.002) {
-      for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-      fixcount++;
-      //cout << "node "<< i<<" fixed "<<endl;
-    }
+    // if (dom_d->getPosVec3(i).z <0.002) {
+      // for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
+      // fixcount++;
+      // //cout << "node "<< i<<" fixed "<<endl;
+    // }
     #endif
     
 
-    //#ifdef CUDA_BUILD
-    //#else    
-    if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
-    //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
-      dom_d->AddBCVelNode(i,0,-0.0);
-      dom_d->AddBCVelNode(i,1,-0.0);
-      dom_d->AddBCVelNode(i,2,-10.0);
-      //cout << "Node "<<i <<" vel "<<endl;
-      velcount++;
-    }     
-    //#endif
+    //~ //#ifdef CUDA_BUILD
+    //~ //#else    
+    //~ if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
+    //~ //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
+      //~ dom_d->AddBCVelNode(i,0,-0.0);
+      //~ dom_d->AddBCVelNode(i,1,-0.0);
+      //~ dom_d->AddBCVelNode(i,2,-40.0);
+      //~ //cout << "Node "<<i <<" vel "<<endl;
+      //~ velcount++;
+    //~ }     
+    //~ //#endif
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
+
+
   
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
   cout << "VEL  "<<velcount<< " NODES"<<endl;  
@@ -431,14 +533,14 @@ int main(int argc, char **argv) {
     
     
 
-  }
+  }//if Json
 
 	dom_d->SolveChungHulbert ();
   
   
 	cout << "Program ended."<<endl;
       
-	} else {
+	} else { //ARG >1
     cout << "Please provide an input file."<<endl;
   }
 	
