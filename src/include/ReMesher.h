@@ -1,10 +1,19 @@
 #ifndef _REMESHER_
 #define _REMESHER_
 
+#ifdef REMESH_OMEGA_H
 #include <Omega_h_mesh.hpp>
+#endif
+
+struct Mesh{
+  
+  
+};
+
 
 enum Remesh_Type { MMG=0, OMG_H=1 };
 
+#ifdef REMESH_OMEGA_H
 void create_mesh(Omega_h::Mesh& mesh, 
 #ifdef CUDA_BUILD
                  double* d_node_coords, int num_nodes, 
@@ -14,6 +23,15 @@ void create_mesh(Omega_h::Mesh& mesh,
                  int* h_element_conn, int num_elements
 #endif
                  ) ;
+                 
+#else
+void create_mesh(Mesh& mesh, 
+                 double* h_node_coords, int num_nodes, 
+                 int* h_element_conn, int num_elements  
+);
+#endif
+                 
+                 
 #include "defs.h"
 
 namespace MetFEM{
@@ -31,8 +49,6 @@ class ReMesher{
   
   void Generate_omegah();
   void Generate_mmg();
-  template <int dim>
-  void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   
   //dest,origin,switches between mesher
   void MapNodal(double *vfield, double *o_field);
@@ -44,16 +60,21 @@ class ReMesher{
   
   void FindMapElemClosest();
   
+  #ifdef REMESH_OMEGA_H
+  template <int dim>
+  void MapNodalVector(Omega_h::Mesh &mesh, double *, double *);
   template <int dim>
   void MapElemVector (Omega_h::Mesh &mesh, double *, double *, int field_dim=1);
   template <int dim>
   void ProjectElemToNodes(Omega_h::Mesh& mesh,  double* elemvals, double* nodal_vals, int field_dim);
   template <int dim>
   void ProjectNodesToElem(Omega_h::Mesh& mesh,  double* nodal_vals, double* elemvals, int field_dim);
-
   template <int dim>
   void HybridProjectionElemToElem(Omega_h::Mesh& mesh, double* new_elemvals,  double* old_elemvals, int field_dim=1);
-
+  template <int dim, typename T>
+  void MapElemPtrVector(Omega_h::Mesh& mesh, T* vfield, T* o_field);
+  #endif
+  
   void ReMapBCsByFace(int* old_bc_nod,
                         double* old_bc_val,
                         int* new_bc_nod,
@@ -63,8 +84,7 @@ class ReMesher{
   template <int dim>
   void MapElemVectors ();
   
-  template <int dim, typename T>
-  void MapElemPtrVector(Omega_h::Mesh& mesh, T* vfield, T* o_field);
+
   
   void WriteDomain();
       
@@ -87,9 +107,13 @@ class ReMesher{
 
   Domain_d *m_dom;
   int *m_mapelem; //DEVICE VECTOR, MAPS ORIGINAL VECTOR TO NEW MESH VECTOR
+  #ifdef REMESH_OMEGA_H 
   Omega_h::Mesh m_mesh;
   Omega_h::Mesh m_old_mesh;
-  
+  #else
+  Mesh m_mesh;
+  Mesh m_old_mesh;
+  #endif
   //IF OMEGA H NOT USED
   double *m_x;
   int    *m_elnod;

@@ -17,12 +17,12 @@ namespace MetFEM{
     m_dom = d;
     m_dom->m_dim = 3;
 
-
+#ifdef REMESH_OMEGA_H 
     Omega_h::Library lib;
     Omega_h::Mesh mesh(&lib);
 
 
-#ifdef CUDA_BUILD
+  #ifdef CUDA_BUILD
     // Allocate GPU memory
     double* d_node_data;
     int* d_connectivity_data;
@@ -45,16 +45,20 @@ namespace MetFEM{
     // Free GPU memory
     cudaFree(d_node_data);
     cudaFree(d_connectivity_data);
-#else
+  #else
     #ifdef DEBUG_MODE
     std::cout << "Creating mesh"<<std::endl;
     #endif
     // CPU case
     create_mesh(mesh, m_dom->x, m_dom->m_node_count, (int *)m_dom->m_elnod, m_dom->m_elem_count);
-#endif
+  #endif
 
       m_old_mesh = mesh; 
       m_mesh = mesh;
+
+
+#endif //OMEGA_H
+
 }
 
  
@@ -145,16 +149,20 @@ for (int v=0;v<size;v++)
 }
 
 void ReMesher::MapNodal(double *vfield, double *o_field){
-  if(m_type == MMG) MapNodalVectorRaw        (vfield, o_field);
-  else              MapNodalVector<3> (m_mesh, vfield, o_field); 
- 
+  #ifndef REMESH_OMEGA_H
+  MapNodalVectorRaw        (vfield, o_field);
+  #else              
+  MapNodalVector<3> (m_mesh, vfield, o_field); 
+  #endif
   
 }
 
 void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
-  if(m_type == MMG) MapElemVectorRaw        (vfield, o_field,field_dim);
-  else              MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
- 
+  #ifndef REMESH_OMEGA_H ////MMG
+  MapElemVectorRaw        (vfield, o_field,field_dim);
+  #else              
+  MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
+ #endif
   
 }
 
@@ -175,10 +183,10 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
 void ReMesher::WriteDomain(){
 
   cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
-  if(m_type==OMG_H) {
+  #ifdef REMESH_OMEGA_H
     m_node_count = m_mesh.nverts();
     m_elem_count = m_mesh.nelems();
-  }
+  #endif
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   double *ufield  = new double [3*m_node_count];   
@@ -274,14 +282,14 @@ void ReMesher::WriteDomain(){
   //// WRITE
   m_dom->Free();
   
-  if (m_type==OMG_H){
+   #ifdef REMESH_OMEGA_H
     m_dom->m_node_count = m_mesh.nverts();
     m_dom->m_elem_count = m_mesh.nelems();
-  } else{
+  #else
     
     m_dom->m_node_count = m_node_count;
     m_dom->m_elem_count = m_elem_count;    
-  }
+  #endif
   
   cout << "creating domain"<<endl;
   m_dom->SetDimension(m_dom->m_node_count,m_dom->m_elem_count);	 //AFTER CREATING DOMAIN
@@ -563,6 +571,7 @@ void ReMesher::FindMapElemClosest() {
         // unchanged_verts[v] = 1; // Mark as unchanged
     // }
 // });
+
 void ReMesher::ReMapBCs(int  *old_bc_nod,
                       double *old_bc_val,
 
@@ -570,51 +579,51 @@ void ReMesher::ReMapBCs(int  *old_bc_nod,
                     double *new_bc_val,
                     int bc_count) {
     
-  //cout << "MAPPING BCs"<<endl;
+  // //cout << "MAPPING BCs"<<endl;
 
-  //cout << "coords"<<endl;
-  auto new_coords = m_mesh.coords();
-  //cout << "OLDCOORDS"<<endl;
-  auto old_coords = m_old_mesh.coords();
-  //int dim = m_old_mesh.dim();
+  // //cout << "coords"<<endl;
+  // auto new_coords = m_mesh.coords();
+  // //cout << "OLDCOORDS"<<endl;
+  // auto old_coords = m_old_mesh.coords();
+  // //int dim = m_old_mesh.dim();
   
-  int new_count = 0;
-  for (std::size_t i = 0; i < bc_count; ++i) {
-    //cout << "vert "<<i<<endl;
-    I64 old_id = old_bc_nod[i];
-    Real val = old_bc_val[i];
+  // int new_count = 0;
+  // for (std::size_t i = 0; i < bc_count; ++i) {
+    // //cout << "vert "<<i<<endl;
+    // I64 old_id = old_bc_nod[i];
+    // Real val = old_bc_val[i];
 
-    Vector<3> p_old;
-    for (int d = 0; d < 3; ++d) {
-      p_old[d] = old_coords[old_id * 3 + d];
-    }
+    // Vector<3> p_old;
+    // for (int d = 0; d < 3; ++d) {
+      // p_old[d] = old_coords[old_id * 3 + d];
+    // }
 
-    Real min_dist2 = std::numeric_limits<Real>::max();
-    I64 closest_id = -1;
+    // Real min_dist2 = std::numeric_limits<Real>::max();
+    // I64 closest_id = -1;
 
-    for (I64 new_id = 0; new_id < m_mesh.nverts(); ++new_id) {
-      Vector<3> p_new;
-      for (int d = 0; d < 3; ++d) {
-        p_new[d] = new_coords[new_id * 3 + d];
-      }
+    // for (I64 new_id = 0; new_id < m_mesh.nverts(); ++new_id) {
+      // Vector<3> p_new;
+      // for (int d = 0; d < 3; ++d) {
+        // p_new[d] = new_coords[new_id * 3 + d];
+      // }
 
-      Real dist2 = norm_squared(p_new - p_old);
-      if (dist2 < min_dist2) {
-        min_dist2 = dist2;
-        closest_id = new_id;
-      }
-    }
+      // Real dist2 = norm_squared(p_new - p_old);
+      // if (dist2 < min_dist2) {
+        // min_dist2 = dist2;
+        // closest_id = new_id;
+      // }
+    // }
 
-    if (closest_id >= 0) {
-      if (closest_id != i)
-        //cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
-      new_bc_nod[i]=closest_id;
-      new_bc_val[i]=val;
-      //cout << "val "<<val<<endl;
-    } else {
-      std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
-    }
-  }//bc_count
+    // if (closest_id >= 0) {
+      // if (closest_id != i)
+        // //cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
+      // new_bc_nod[i]=closest_id;
+      // new_bc_val[i]=val;
+      // //cout << "val "<<val<<endl;
+    // } else {
+      // std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
+    // }
+  // }//bc_count
 }
 
 
