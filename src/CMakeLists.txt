@@ -247,8 +247,11 @@ else() #BUILD CPU
   elseif(WIN32)
       set(MMG3D_LIB "mmg3d.dll")
   endif()
-
+    if (REMESH_OMEGA_H)
     TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB}  OpenMP::OpenMP_CXX)
+    else() #ONLY MMG (default)
+    TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX)
+    endif()
   endif()
 
 endif()
