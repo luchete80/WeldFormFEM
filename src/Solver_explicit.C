@@ -176,6 +176,10 @@ void host_ Domain_d::SolveChungHulbert(){
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
   
+  if (step_count % 10 == 0){
+    CalcExtFaceAreas();
+    }
+  
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
 

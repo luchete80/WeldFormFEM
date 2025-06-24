@@ -81,6 +81,23 @@ class BC_Node {
 };
 
 namespace MetFEM{
+ 
+
+// Structure to define a face with 4 nodes
+//FOR HEXA IS 4
+//PARALLELIZE WITH GPU : TODO
+//// ORIGINALLY MEANS HEXA
+#define ELNOD  4   //ORIGINALLY 8
+#define FACENOD 3  //ORIGINALLY 4
+#define ELFAC  4   //ORIGINALLY 6
+//OLD FOT HEXA, CHANGE IT
+
+struct Face {
+    int nodes[FACENOD];
+    int count; // Number of occurrences of this face
+    int elem_id;  // <- store the originating element
+};
+
 
 enum BC_TYPE {Velocity_BC=0, Force_BC, Temperature_BC, Convection_BC, Symmetry_BC};
 
@@ -308,7 +325,8 @@ public:
     }
   void calcContactForceFromPressure();
   //--------------------------------------------------------------------------------------------------------------------------------
-
+  
+  void CalcExtFaceAreas();
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
@@ -424,6 +442,9 @@ protected:
   unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
   unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
 
+  Face *faceList;
+  int m_faceCount;
+    
   ////////////////////// CONTACT 
 	// TODO, EACH RIGID PARTICLE SHOULD 
   int   *contelem; //ELEMENT OF TRIMESH FROM "RIGID" PARTICLE, ALL FIRST PARTICLES ARE ZERO

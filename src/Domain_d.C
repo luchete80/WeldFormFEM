@@ -46,21 +46,6 @@ using namespace LS_Dyna;
 namespace MetFEM {
 
 
-// Structure to define a face with 4 nodes
-//FOR HEXA IS 4
-//PARALLELIZE WITH GPU : TODO
-//// ORIGINALLY MEANS HEXA
-#define ELNOD  4   //ORIGINALLY 8
-#define FACENOD 3  //ORIGINALLY 4
-#define ELFAC  4   //ORIGINALLY 6
-//OLD FOT HEXA, CHANGE IT
-
-struct Face {
-    int nodes[FACENOD];
-    int count; // Number of occurrences of this face
-    int elem_id;  // <- store the originating element
-};
-
 // Function to compare two faces to check if they are identical
 bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
     int matchCount = 0;
@@ -112,8 +97,7 @@ dev_t void Domain_d::SearchExtNodes() {
     //printf("Adding hexas\n");
     // Array to store all faces
     //Face faceList[MAX_FACES];
-    Face *faceList;
-    malloc_t(faceList, Face, m_elem_count*ELFAC);
+
     int faceCount = 0;
     int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
 
@@ -122,9 +106,9 @@ dev_t void Domain_d::SearchExtNodes() {
         for (int ne=0;ne<m_nodxelem;ne++)
           elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
         //cout << "Adding faces "<<endl;
-        addTriangleFaces(faceList, faceCount, elements,i);
+        addTriangleFaces(faceList, m_faceCount, elements,i);
     }
-    //cout << "done. Face count: "<<faceCount<<endl;
+    //cout << "done. Face count: "<<m_faceCount<<endl;
     // Array to track external nodes
     for (int n=0;n<m_node_count;n++)
       ext_nodes[n] = false;
@@ -133,7 +117,7 @@ dev_t void Domain_d::SearchExtNodes() {
 
     // Identify external nodes by checking faces that appear only once
     int ext_faces = 0;
-    for (int i = 0; i < faceCount; i++) {
+    for (int i = 0; i < m_faceCount; i++) {
         if (faceList[i].count == 1) { // External face
             for (int j = 0; j < FACENOD; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
@@ -172,7 +156,7 @@ dev_t void Domain_d::SearchExtNodes() {
   for (int i = 0; i < m_elem_count; i++)
     m_elem_area[i] = 0.0;
   // Compute nodal areas from external triangular faces
-  for (int i = 0; i < faceCount; i++) {
+  for (int i = 0; i < m_faceCount; i++) {
       if (faceList[i].count == 1) { // External face
           int n0 = faceList[i].nodes[0];
           int n1 = faceList[i].nodes[1];
@@ -218,6 +202,54 @@ dev_t void Domain_d::SearchExtNodes() {
 	//printf("Total External Nodal Area: %.4e\n", area);
   
 
+}
+
+void Domain_d::CalcExtFaceAreas(){
+  
+  
+  bool elem_flags[m_elem_count];
+  for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
+  ////////////////////////////////////
+  //////// CALCULATE AREA (FOR CONTACT)
+  // Allocate and initialize nodal area array
+  for (int i = 0; i < m_node_count; i++)
+      node_area[i] = 0.0;
+  for (int i = 0; i < m_elem_count; i++)
+    m_elem_area[i] = 0.0;
+  // Compute nodal areas from external triangular faces
+  for (int i = 0; i < m_faceCount; i++) {
+      if (faceList[i].count == 1) { // External face
+          int n0 = faceList[i].nodes[0];
+          int n1 = faceList[i].nodes[1];
+          int n2 = faceList[i].nodes[2];
+
+          // Get coordinates of the nodes
+          double3 p0 = getPosVec3(n0);
+          double3 p1 = getPosVec3(n1);
+          double3 p2 = getPosVec3(n2);
+
+          // Compute face area via cross product
+          double3 v1 = p1 - p0;
+          double3 v2 = p2 - p0;
+          double3 cross_ = cross(v1,v2);
+          double area = 0.5 * norm(cross_);
+
+          // Distribute area equally to the three nodes
+          double area_share = area / 3.0;
+          node_area[n0] += area_share;
+          node_area[n1] += area_share;
+          node_area[n2] += area_share;
+          
+          int elem_id = faceList[i].elem_id;
+          if (!elem_flags[elem_id]){
+            m_elem_area[elem_id] += area;
+            elem_flags[elem_id] = true;
+          }
+      }//==1 
+    }//Face Count
+	
+  
+  
 }
 
 /////NEW
@@ -454,7 +486,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (sigma_y, double, m_elem_count * m_gp_count);  
   
   malloc_t (m_elem_area, double, m_elem_count);
-
+  //MODIFY THIS!!! IS A LOT OF SPACE
+  malloc_t(faceList, Face, m_elem_count*ELFAC);
+    
 }
 
 void Domain_d::Free(){
