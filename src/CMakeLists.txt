@@ -17,7 +17,7 @@ include_directories(../lib/LSDynaReader/src/)
 
 include_directories(../lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
 set (MMG_ROOT "${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/")
-link_directories("$MMG_ROOT/lib")
+link_directories("${MMG_ROOT}/lib")
 include_directories("${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/include") #FOR: Omega_h_config.h
 
 set(OMEGA_H_DIR "${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src")  # Adjust this path
@@ -247,8 +247,11 @@ else() #BUILD CPU
   elseif(WIN32)
       set(MMG3D_LIB "mmg3d.dll")
   endif()
-
+    if (REMESH_OMEGA_H)
     TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB}  OpenMP::OpenMP_CXX)
+    else() #ONLY MMG (default)
+    TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX)
+    endif()
   endif()
 
 endif()

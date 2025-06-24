@@ -50,6 +50,11 @@ if (NOT DEFINED BUILD_MMG)
   set (BUILD_MMG OFF)
 endif()
 
+#DEFAULT IS 
+if (NOT DEFINED REMESH_OMEGA_H )
+  set (REMESH_OMEGA_H OFF)
+endif()
+
 if (BUILD_MMG)
   add_compile_definitions(MMG_BUILD)
 endif()

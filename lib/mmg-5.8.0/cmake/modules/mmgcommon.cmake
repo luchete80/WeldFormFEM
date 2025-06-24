@@ -111,12 +111,12 @@ if (PERL_FOUND)
 endif()
 
 IF (NOT WIN32 OR MINGW)
-  COPY_HEADER (
-    ${MMGCOMMON_BINARY_DIR} git_log_mmg.h
-    ${MMGCOMMON_INCLUDE} git_log_mmg.h
-    GenerateGitHashMmg copymmgcommon_mmggithash )
+  # COPY_HEADER (
+    # ${MMGCOMMON_BINARY_DIR} git_log_mmg.h
+    # ${MMGCOMMON_INCLUDE} git_log_mmg.h
+    # GenerateGitHashMmg copymmgcommon_mmggithash )
 
-  LIST ( APPEND tgt_list copymmgcommon_mmggithash)
+  #LIST ( APPEND tgt_list copymmgcommon_mmggithash)
 ENDIF ()
 
 IF ( MMG_INSTALL_PRIVATE_HEADERS )
