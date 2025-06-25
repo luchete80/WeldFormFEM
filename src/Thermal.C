@@ -45,10 +45,23 @@ void Domain_d::ThermalCalcs(){
         double m_inv = 1.0 / m_mdiag[node_id];  // You must compute lumped thermal mass!
         // dTde = element heat flow vector
         // m_inv = 1/(lumped thermal mass) => m = rho * cp * V
-        m_dTedt[e*m_nodxelem + i] += - m_inv * dTde->getVal(i, 0);  // Include time step and minus sign
+        m_dTedt[e*m_nodxelem + i]  = - m_inv * dTde->getVal(i, 0);  // Include time step and minus sign
         
       
-        //m_dTedt[e*m_nodxelem + i] += heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T);// (J) / (J/°C) = °C
+        m_dTedt[e*m_nodxelem + i] += heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T);// (J) / (J/°C) = °C
+        //printf ("temp inc  x node %.3e\n",heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T));
+    //~ if (e == 0) { // Solo primer elemento
+        //~ printf("DEBUG - Element %d:\n", e);
+        //~ printf("  m_q_plheat[e] = %.3e [J/m³]\n", m_q_plheat[e]);
+        //~ printf("  vol[e] = %.3e [m³]\n", vol[e]);
+        //~ printf("  heat_per_node = %.3e [J]\n", heat_per_node);
+        //~ printf("  m_mdiag[node_id] = %.3e\n", m_mdiag[node_id]);
+        //~ printf("  mat[e]->cp_T = %.3e\n", mat[e]->cp_T);
+        //~ printf("  mat[e]->k_T = %.3e\n", mat[e]->k_T);
+        //~ printf("  dT increment = %.3e [°C]\n", heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T));
+    //~ }
+
+
     }
 
 
