@@ -397,6 +397,10 @@ protected:
   int             m_gp_count; //Assuming constant gauss points
   int             m_nodxelem; //THIS IS INTENDED TO BE MODIFIED BY m_nodxelem_e which is a matrix
   int             *m_nodxelem_e;
+  //PLASTIC HEAT 
+  double          *m_strain_pl_incr; //Increment of plastic strain, useful for plastic heat generation.
+  double          *m_q_plheat;
+  double_t        m_pl_energy;
   
   /////// ELEMENT VARIABLES
   /////////////////////// //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION ///////////////////////////////////

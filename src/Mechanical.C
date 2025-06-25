@@ -607,6 +607,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       tensor3 StrRate;
       tensor3 ShearStress;
       tensor3 Sigma;
+      tensor3 Strain_pl_incr;
 
     //printf("calculating sigma %d\n", e);
     for (int gp=0;gp<m_gp_count;gp++){
@@ -662,6 +663,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         
         //printf("sy %.3f\n",sigma_y[e]);
   // Inside your plasticity block where (sigma_y[e] < sig_trial)
+  double dep = 0.0; //Incremental plastic strain
   if (sigma_y[e] < sig_trial) {
 	  double Ep = 0.0; //Hardening
       //printf("YIELD: %.5e\n", sigma_y[e]);
@@ -695,25 +697,15 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 	  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
 	  
 	  if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
-
+    dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
       // Update plastic strain
-      pl_strain[e] += (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);
-	  
-	  double f = pl_strain[e]/sigma_y[e];
+    pl_strain[e] += dep;
+  
+    
+
   }//IF PLASTIC
 
-/*
-To calculate inelastic fraction and plastic work
-double f = dep/Sigmay;
-		Strain_pl_incr (0,0) = f*(Sigma(0,0)-0.5*(Sigma(1,1) + Sigma(2,2) ));
-		Strain_pl_incr (1,1) = f*(Sigma(1,1)-0.5*(Sigma(0,0) + Sigma(2,2) ));
-		Strain_pl_incr (2,2) = f*(Sigma(2,2)-0.5*(Sigma(0,0) + Sigma(1,1) ));
-		Strain_pl_incr (0,1) = Strain_pl_incr (1,0) = 1.5*f*(Sigma(0,1));
-		Strain_pl_incr (0,2) = Strain_pl_incr (2,0) = 1.5*f*(Sigma(0,2));
-		Strain_pl_incr (1,2) = Strain_pl_incr (2,1) = 1.5*f*(Sigma(1,2));
-		
-		Strain_pl = Strain_pl + Strain_pl_incr;
-*/
+
 
       
       //printf("Shear Stress\n");
@@ -734,8 +726,42 @@ double f = dep/Sigmay;
                     );
       
 
+      if (m_thermal)
+        m_q_plheat[e]  = 0.0;
+      
+      if (dep > 0.0){
+        ///////To calculate inelastic fraction and plastic work
+        double f = dep/sigma_y[e];
+        Strain_pl_incr.xx = f*(Sigma.xx-0.5*(Sigma.yy + Sigma.zz ));
+        Strain_pl_incr.yy = f*(Sigma.yy-0.5*(Sigma.xx + Sigma.zz ));
+        Strain_pl_incr.zz = f*(Sigma.zz-0.5*(Sigma.xx + Sigma.yy ));
+        Strain_pl_incr.xy = Strain_pl_incr.yx = 1.5*f*(Sigma.xy);
+        Strain_pl_incr.xz = Strain_pl_incr.zx = 1.5*f*(Sigma.xz);
+        Strain_pl_incr.yz = Strain_pl_incr.zy = 1.5*f*(Sigma.yz);
+      
+      
+        if (m_thermal){
+          
+            tensor3 depdt = 1./dt * Strain_pl_incr;
+          //~ // // Double inner product, Fraser 3-106
+          //printf("depdt %.3e\n", depdt);
+          //~ // //cout << depdt<<endl;
+          m_q_plheat[e] 	= 
+            Sigma.xx * depdt.xx + 
+            2.0*Sigma.xy * depdt.yx + 2.0 * Sigma.xz*depdt.zx +              //~ // ;
+            Sigma.yy*depdt.yy +      //~ // //cout << "plastic heat "<<q_plheat<<endl;
+            2.0*Sigma.yz*depdt.yz +     //~ // ps_energy[e] += q_plheat * dt;
+            Sigma.zz*depdt.zz; //Parallel
+          //~ if (m_q_plheat[e]>1.0e-5)
+            //~ printf("m_q_plheat %.3e\n",m_q_plheat[e]);
+        
+              
+          
+          
+          }
+      
+      } 
       double Ep = 0;
-			double dep=( sig_trial - sigma_y[e])/ (3.*mat[e]->Elastic().G() + Ep);	//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
 			//cout << "dep: "<<dep<<endl;
 			//pl_strain[e] += dep;
 			//delta_pl_strain = dep; // For heating work calculation
@@ -748,6 +774,8 @@ double f = dep/Sigmay;
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		
       ToFlatSymPtr(ShearStress, m_tau, offset_t);
+      
+      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
       
     }//gp
   }//el < elcount
