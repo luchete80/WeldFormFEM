@@ -185,12 +185,22 @@ int main(int argc, char **argv) {
       
     }//File
 
-    
+
+		double IniTemp = 20.;
+    int ics_count = 0;
+		for (auto& ic : ics){
+			double temp;
+      int id;
+      readValue(ic["Temp"], IniTemp);
+      readValue(ic["id"], id);
+      cout << "Initial Temp: "<<IniTemp<<endl;      
+    }
+        
   bool thermal = false;
   readValue(config["thermal"], thermal);
   if (thermal){
     dom_d->setThermalOn();
-    dom_d->setTemp(20.0);
+    dom_d->setTemp(IniTemp);
   }
   int dim = 3;
   double tf = 5.0e-3;
