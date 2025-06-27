@@ -230,9 +230,9 @@ void host_ Domain_d::SolveChungHulbert(){
       writer3.writeFile();
       remesh_ = true;
 
-      cout << "Searching ext nodes "<<endl;
+      //cout << "Searching ext nodes "<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
-      cout << "Done "<<endl;
+      //cout << "Done "<<endl;
   
       #endif
       //#########################################################
