@@ -177,7 +177,9 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (step_count % 10 == 0){
+    cout << "Calc ExtFace Areas"<<endl;
     CalcExtFaceAreas();
+    cout << "Done"<<endl;
     }
   
   //~ if (step_count % 50 == 0)
@@ -227,6 +229,16 @@ void host_ Domain_d::SolveChungHulbert(){
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;
+
+      free_t (m_elem_area);
+      //MODIFY THIS!!! IS A LOT OF SPACE
+      free_t(faceList);     
+      SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
+      
+      //Mainly for contact: ##### SLOOOOOOOOOW: TODO CHANGE search algorithm
+      malloc_t (m_elem_area, double, m_elem_count);
+      malloc_t(faceList, Face, m_elem_count*ELFAC);
+  
       #endif
       //#########################################################
   //////////////////////////// IF REMESH
@@ -265,7 +277,8 @@ void host_ Domain_d::SolveChungHulbert(){
       ImposeBCV(d);
     #endif
   }
-  //cout <<"Done."<<endl;
+  cout <<"Done."<<endl;
+  cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
   
