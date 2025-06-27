@@ -45,7 +45,7 @@ namespace MetFEM {
           if(m_thermal){
             T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
 	  }
-      }
+      }//Element loop
       if (m_gp_count == 1 ) {  
         for (int e=0; e<m_nodel_count[n];e++) {
           int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element

@@ -333,3 +333,5 @@ F90 PREVIOUS VERSION
          - Added Total Contact Force Pressure Nodal and Elemental 
          - Fixed Element Area calc!
 20250619 - Fied Element area in outer elements. Assumed 1 areaper element.
+20250625 - Fixed Contact Conduction (was doubled multiplied by dt)
+         - Added Plastic strain heating equations 

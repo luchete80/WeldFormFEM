@@ -477,10 +477,11 @@ void host_ Domain_d::SolveChungHulbert(){
     }
 
   ///// AFTER CONTACT (FOR THE cont_cond)
-  if(m_thermal)
+  if(m_thermal){
+    //calcInelasticHeatFraction(); //Before thermal calc
     ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
 
-
+}
 
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
@@ -499,6 +500,7 @@ void host_ Domain_d::SolveChungHulbert(){
     std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
+    std::cout << "Plastic Strain energy "<<m_pl_energy<<endl;
     printf("Reaction Forces\n");
     of <<std::scientific<<std::setprecision(6)<< Time ;
     //for (int m=0;m<trimesh->mesh_count;m++){
