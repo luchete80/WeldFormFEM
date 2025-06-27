@@ -230,14 +230,9 @@ void host_ Domain_d::SolveChungHulbert(){
       writer3.writeFile();
       remesh_ = true;
 
-      free_t (m_elem_area);
-      //MODIFY THIS!!! IS A LOT OF SPACE
-      free_t(faceList);     
+      cout << "Searching ext nodes "<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
-      
-      //Mainly for contact: ##### SLOOOOOOOOOW: TODO CHANGE search algorithm
-      malloc_t (m_elem_area, double, m_elem_count);
-      malloc_t(faceList, Face, m_elem_count*ELFAC);
+      cout << "Done "<<endl;
   
       #endif
       //#########################################################

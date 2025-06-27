@@ -94,21 +94,18 @@ void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4], int
 
 dev_t void Domain_d::SearchExtNodes() {
 
-    //printf("Adding hexas\n");
-    // Array to store all faces
-    //Face faceList[MAX_FACES];
-
-    int faceCount = 0;
     int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
-
+    m_faceCount = 0;
+    
+    //printf("Adding faces\n");
     // Process each hexahedron to extract its faces
     for (int i = 0; i < m_elem_count; i++) {
         for (int ne=0;ne<m_nodxelem;ne++)
           elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
-        //cout << "Adding faces "<<endl;
+        //cout << "Adding faces, face count  "<<m_faceCount<<endl;
         addTriangleFaces(faceList, m_faceCount, elements,i);
     }
-    //cout << "done. Face count: "<<m_faceCount<<endl;
+    cout << "done. Face count: "<<m_faceCount<<endl;
     // Array to track external nodes
     for (int n=0;n<m_node_count;n++)
       ext_nodes[n] = false;
@@ -597,6 +594,10 @@ void Domain_d::Free(){
   //free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
   //free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);
   //bc_count[0] = bc_count[1] = bc_count[2] = 0;
+
+  free_t(m_elem_area);
+  free_t(faceList);    
+  free_t(node_area);
 }
 
 
