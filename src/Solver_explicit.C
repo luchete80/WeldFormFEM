@@ -177,9 +177,9 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (step_count % 10 == 0){
-    cout << "Calc ExtFace Areas"<<endl;
+    //cout << "Calc ExtFace Areas"<<endl;
     CalcExtFaceAreas();
-    cout << "Done"<<endl;
+    //cout << "Done"<<endl;
     }
   
   //~ if (step_count % 50 == 0)
