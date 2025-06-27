@@ -272,8 +272,8 @@ void host_ Domain_d::SolveChungHulbert(){
       ImposeBCV(d);
     #endif
   }
-  cout <<"Done."<<endl;
-  cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
+  //cout <<"Done."<<endl;
+  //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
   
