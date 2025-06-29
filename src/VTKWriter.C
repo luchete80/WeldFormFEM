@@ -424,7 +424,12 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     m_oss<<"SCALARS nod_p float 1"<<endl;
     m_oss<<"LOOKUP_TABLE default"<<endl;
     for (int n=0;n<dom->m_node_count;n++)
-      m_oss << dom->p_node[n] <<endl;    
+    if (dom->p_node[n]*dom->p_node[n]>eps)
+      m_oss << std::scientific<<std::setprecision(4)<<dom->p_node[n] <<endl;  
+    else
+      m_oss << std::scientific<<std::setprecision(4)<<"0.0"<<endl;  
+
+        
     printDummyNod(dom,m_oss);
 
   
