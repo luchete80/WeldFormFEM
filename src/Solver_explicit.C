@@ -225,15 +225,14 @@ void host_ Domain_d::SolveChungHulbert(){
       double dt = 0.05*minl/(mat_cs);
       cout << "min length "<<minl<<", dt "<<dt<<endl;
       //cout << "DONE REMESH"<<endl;
-      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
-      remesh_ = true;
 
       //cout << "Searching ext nodes "<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
       //cout << "Done "<<endl;
-  
+      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
+      remesh_ = true;  
       #endif
       //#########################################################
   //////////////////////////// IF REMESH

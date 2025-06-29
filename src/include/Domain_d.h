@@ -308,6 +308,7 @@ public:
 
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
+  void setRemeshLength(const double &d){m_remesh_length=d;}
   void Free();
   void calcArtificialViscosity();
   
@@ -368,6 +369,7 @@ protected:
   double m_min_height;
   double m_cfl_factor;
   int             m_remesh_interval;
+  double          m_remesh_length;
 
   double          *pl_strain, *sigma_y;
   

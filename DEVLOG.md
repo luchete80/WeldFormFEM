@@ -337,3 +337,4 @@ F90 PREVIOUS VERSION
          - Added Plastic strain heating equations 
 20250627 - Fixed crash at external face & node search in Remeshing
          - Problem in element size. 
+20250629 - Set remesh length from domain instead of auto.

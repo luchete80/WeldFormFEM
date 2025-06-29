@@ -473,6 +473,7 @@ int main(int argc, char **argv) {
   #else
   dom_d->calcMinEdgeLength();
   dx = dom_d->getMinLength();
+  dom_d->setRemeshLength(dx);
   #endif
   
 

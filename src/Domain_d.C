@@ -186,17 +186,13 @@ dev_t void Domain_d::SearchExtNodes() {
 	
 
   
-	// double area = 0.0;
-    // for (int i = 0; i < m_node_count; i++)
-      // if (ext_nodes[i]){
-        // //printf("NODE %d Area%f\n",i,node_area[i]);
-        // area+=node_area[i];
-        // for (int e=0; e<m_nodel_count[i];e++) {
-          // int eglob   = m_nodel     [m_nodel_offset[i]+e]; //Element
-          // m_elem_area[eglob]+=node_area[i];
-        // }
-	  // }
-	//printf("Total External Nodal Area: %.4e\n", area);
+	double area = 0.0;
+    for (int i = 0; i < m_node_count; i++)
+      if (ext_nodes[i]){
+        //printf("NODE %d Area%f\n",i,node_area[i]);
+        area+=node_area[i];
+	  }
+	printf("Total External Nodal Area: %.4e\n", area);
   
 
 }

@@ -228,7 +228,7 @@ void ReMesher::Generate_mmg(){
 
   MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar);
   for (int k = 1; k <= np; k++)
-      MMG3D_Set_scalarSol(mmgSol, 0.004, k);  // uniform sizing via scalar field
+      MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
       
 
   // Remesh
