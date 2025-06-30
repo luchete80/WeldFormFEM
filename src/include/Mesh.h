@@ -90,6 +90,7 @@ class TriMesh_d{
   int current_elem_capacity = 0;
 
   double *mu_sta, *mu_dyn;
+  double heat_cond;
   
   ///////
 	

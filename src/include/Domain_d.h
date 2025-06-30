@@ -21,6 +21,8 @@
 
 #include "parallel_for_each.h"
 
+#include <fstream>
+
 #define _QUA2D_ 0
 #define _TRI2D_ 1
 #define _TET2D_ 2
@@ -328,6 +330,7 @@ public:
   //--------------------------------------------------------------------------------------------------------------------------------
   
   void CalcExtFaceAreas();
+  std::ofstream out_file;
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

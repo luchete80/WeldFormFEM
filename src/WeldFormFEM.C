@@ -130,19 +130,19 @@ int main(int argc, char **argv) {
     if (test != string::npos) pos = test;
     
     string out_name = inputFileName.substr(pos, inputFileName.find(".json") - pos +1) + "out";
-    //cout << "Out file: "<< out_name << endl;
-    //dom.out_file.open(out_name.c_str()/*, std::ofstream::out | std::ofstream::app*/);
+    cout << "Out file: "<< out_name << endl;
+    dom_d->out_file.open(out_name.c_str()/*, std::ofstream::out | std::ofstream::app*/);
 
     ostringstream oss_out;
     
     oss_out << "-----------------------------------------------"<<endl;
     oss_out << "------------------ WELDFORM FEM -----------------"<<endl;
-    oss_out << "----------------- " <<  PROJECT_VERSION << "------------------"<<endl;
-    oss_out << "----------------- "<< GIT_COMMIT_HASH << "-------------------"<<endl;
+    oss_out << "------------- Version: " <<  PROJECT_VERSION << "------------------"<<endl;
+    oss_out << "------------- Date:  " << GIT_COMMIT_HASH << "-------------------"<<endl;
     oss_out << "----------------- "<< BUILD_DATE << "-------------------"<<endl;
             
     cout << oss_out.str();
-    //dom.out_file << oss_out.str();    
+    dom_d->out_file << oss_out.str();    
 
     cout << "Opening JSON format file"<<endl;
     
@@ -447,6 +447,8 @@ int main(int argc, char **argv) {
 
   readValue(contact_[0]["fricCoeffStatic"], 	msh->mu_sta[0]); 
   readValue(contact_[0]["fricCoeffDynamic"], 	msh->mu_dyn[0]); 
+  readValue(contact_[0]["heatCondCoeff"], 	  msh->heat_cond);
+        
   printf("FRICTION COEFFS %.3e %.3e\n", msh->mu_sta[0],msh->mu_dyn[0]);
 	// for (int nc=0;nc<msh->nodecount;nc++)
 		// msh->node_v[nc]=make_double3(0.,0.,0.);
