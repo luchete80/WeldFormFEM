@@ -341,3 +341,5 @@ F90 PREVIOUS VERSION
 20250630 - Make thread safe nodal mass summation.
          - Make log with commit and date. 
          - Added New Pressure Calculation with hourglass.
+         - FIXED CRITICAL pressure. 
+         - No more need of ANP.
