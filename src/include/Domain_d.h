@@ -308,7 +308,8 @@ public:
   void InitValues();
   double dev_t getMinLength(){return m_min_length;}
   
-
+  dev_t void calcNodalPressureFromElemental();
+  
   bool m_auto_contact; // if not define external nodes
   void setRemeshInterval(int i) {m_remesh_interval = i;}
   void setRemeshLength(const double &d){m_remesh_length=d;}

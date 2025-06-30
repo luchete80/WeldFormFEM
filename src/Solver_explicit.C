@@ -360,6 +360,7 @@ void host_ Domain_d::SolveChungHulbert(){
     calcElemPressureANP();
   }else
     calcElemPressure();
+  
   //calcElemPressureFromJ();
   CalcStressStrain(dt);
   //calcArtificialViscosity(); //Added to Sigma
