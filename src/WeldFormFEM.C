@@ -31,6 +31,9 @@
 #include <iomanip>	//ONY FOR GCC!!
 #include "Input.h"
 
+
+#include "git_commit.h"
+
 using namespace MetFEM;
 
 using namespace std;
@@ -57,6 +60,31 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 
 #endif
 
+size_t findLastOccurrence(string str, char ch)
+{
+ 
+    // To store the index of the result
+    size_t found;
+
+    found = str.rfind(ch);
+    // If string doesn't have
+    // character ch present in it
+    if (found == string::npos) {
+        cout << "Character " << ch
+             << " is not present in"
+             << " the given string.";
+    }
+ 
+    // Else print the position
+    else {
+        cout << "The last occurrence of '"
+             << ch << "' is found at index: "
+             << found << endl;
+    }
+  return found;
+}
+ 
+
 using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
@@ -78,7 +106,8 @@ int main(int argc, char **argv) {
   #else
     dom_d = new Domain_d;
   #endif    
-    
+  
+
   if(extension == "k") {
      
      
@@ -95,6 +124,26 @@ int main(int argc, char **argv) {
 	dom_d->CreateFromLSDyna(reader);
   
   } else if (extension == "json"){
+
+    size_t pos = 0;
+    size_t test = findLastOccurrence(inputFileName, '\\');
+    if (test != string::npos) pos = test;
+    
+    string out_name = inputFileName.substr(pos, inputFileName.find(".json") - pos +1) + "out";
+    //cout << "Out file: "<< out_name << endl;
+    //dom.out_file.open(out_name.c_str()/*, std::ofstream::out | std::ofstream::app*/);
+
+    ostringstream oss_out;
+    
+    oss_out << "-----------------------------------------------"<<endl;
+    oss_out << "------------------ WELDFORM FEM -----------------"<<endl;
+    oss_out << "----------------- " <<  PROJECT_VERSION << "------------------"<<endl;
+    oss_out << "----------------- "<< GIT_COMMIT_HASH << "-------------------"<<endl;
+    oss_out << "----------------- "<< BUILD_DATE << "-------------------"<<endl;
+            
+    cout << oss_out.str();
+    //dom.out_file << oss_out.str();    
+
     cout << "Opening JSON format file"<<endl;
     
     nlohmann::json j;

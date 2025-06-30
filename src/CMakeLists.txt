@@ -1,5 +1,8 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 3.5)
 
+set(PROJECT_VERSION "0.0.1")  # or your current version
+message(STATUS "Version: ${PROJECT_VERSION}")
+
 set (BUILD_EXAMPLES OFF)
 
 
@@ -256,6 +259,25 @@ else() #BUILD CPU
 
 endif()
 
+if (UNIX AND NOT APPLE)
+    message(STATUS "Configuring SCOTCH linking for Linux")
+
+    find_library(SCOTCH_LIBRARY scotch REQUIRED)
+    find_library(SCOTCHERR_LIBRARY scotcherr REQUIRED)
+    find_library(SCOTCHMETIS_LIBRARY scotchmetis REQUIRED)
+    find_library(ESMUMPS_LIBRARY esmumps)
+
+    target_compile_definitions(WeldFormFEM PRIVATE USE_SCOTCH)
+
+    target_link_libraries(WeldFormFEM
+        PRIVATE
+            ${SCOTCH_LIBRARY}
+            ${SCOTCHMETIS_LIBRARY}
+            ${SCOTCHERR_LIBRARY}
+            ${ESMUMPS_LIBRARY} # may be empty if not found, that's ok
+    )
+endif()
+
 
 if (BUILD_OMEGA_H)
   if (MSVC)
@@ -263,6 +285,32 @@ if (BUILD_OMEGA_H)
   endif()
   #TARGET_LINK_LIBRARIES (test_omega_h omega_h)
 endif()
+
+
+###################################### COMMIT
+set(GIT_COMMIT_HEADER "${CMAKE_BINARY_DIR}/generated/git_commit.h")
+
+# Create directory for generated headers
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
+
+# Custom command to generate git_commit.h with the short commit hash
+set(GIT_COMMIT_HEADER "${CMAKE_BINARY_DIR}/generated/git_commit.h")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated")
+
+message(STATUS "Version: ${PROJECT_VERSION}")
+
+#add_custom_target(update_git_commit ALL DEPENDS ${GIT_COMMIT_HEADER})
+add_custom_target(update_git_commit ALL
+  COMMAND ${CMAKE_COMMAND} -DOUT_HEADER=${GIT_COMMIT_HEADER} -DVERSION=${PROJECT_VERSION} -P ${CMAKE_SOURCE_DIR}/cmake/WriteGitHash.cmake
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMENT "Forcing regeneration of git_commit.h"
+)
+add_dependencies(WeldFormFEM update_git_commit)
+target_include_directories(WeldFormFEM PRIVATE "${CMAKE_BINARY_DIR}/generated")
+
+#############################################################
+
+
 
 #FOREACH(var ${EXES})
 #    ADD_EXECUTABLE        (${var} "${var}.cpp" #

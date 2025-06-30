@@ -210,7 +210,7 @@ void dev_t Domain_d::CalcContactForces(){
               contforce[m_dim * i + 2] += Ft.z;                     
 
 
-              q_cont_conv[i] = 25000.0*node_area[i]*(700.0-T[i]);
+              q_cont_conv[i] = 25000.0*node_area[i]*(20.0-T[i]);
 
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
