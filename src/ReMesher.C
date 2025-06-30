@@ -223,6 +223,7 @@ void ReMesher::WriteDomain(){
   
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
+  double vol = 0.0;
   for (int i=0;i<m_elem_count;i++){
       int n0 = m_elnod[4 * i];
       int n1 = m_elnod[4 * i + 1];
@@ -233,7 +234,9 @@ void ReMesher::WriteDomain(){
       double p2 []= {m_x[3*n2], m_x[3*n2+1], m_x[3*n2+2]};
       double p3 [] = {m_x[3*n3], m_x[3*n3+1], m_x[3*n3+2]};
       volumes[i]=tet_volume(p0,p1,p2,p3);
+      vol+=volumes[i];
   }
+  cout << "New Volume: "<<vol<<endl;
   
   FindMapElemClosest();
   cout << "foundelem closrsrt"<<endl;

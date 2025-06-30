@@ -338,3 +338,5 @@ F90 PREVIOUS VERSION
 20250627 - Fixed crash at external face & node search in Remeshing
          - Problem in element size. 
 20250629 - Set remesh length from domain instead of auto.
+20250630 - Make thread safe nodal mass summation.
+         - Make log with commit and date. 

@@ -519,7 +519,7 @@ dev_t void Domain_d::CalcNodalVol(){
 //Assuming constant material
 dev_t void Domain_d::CalcNodalMassFromVol(){
   double *rhon = new double [m_node_count];  
-  double tot_mass = 0.0;
+
   
   par_loop(n, m_node_count){
     rhon[n]=0.0;
@@ -528,10 +528,13 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
       rhon[n] += rho[eglob]; 
     }
     m_mdiag[n] = rhon[n]/(double)m_nodel_count[n] * m_voln[n];
-    tot_mass +=m_mdiag[n];
     //printf("Node %d mass %f rho %f vol %.4e\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
     
   } //NODE LOOP
+  double tot_mass = 0.0;
+  for (int n=0;n<m_node_count;n++)
+    tot_mass +=m_mdiag[n];
+    
   printf("Total Nodal Mass: %f\n",tot_mass);
   delete rhon;
 }
