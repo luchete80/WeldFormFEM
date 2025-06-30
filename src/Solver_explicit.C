@@ -491,11 +491,13 @@ void host_ Domain_d::SolveChungHulbert(){
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
     timer.click();
-    std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
-    std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
-    std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
-    std::cout << "Plastic Strain energy "<<m_pl_energy<<endl;
-    printf("Reaction Forces\n");
+
+    ostringstream oss_out;
+    oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    oss_out << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
+    oss_out << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
+    oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
+    //printf("Reaction Forces\n");
     of <<std::scientific<<std::setprecision(6)<< Time ;
     //for (int m=0;m<trimesh->mesh_count;m++){
       //printf("Surf Id %d %.4e\n",m, norm(trimesh->react_force[m]));
@@ -507,6 +509,15 @@ void host_ Domain_d::SolveChungHulbert(){
                                                     trimesh->react_p_force[0]<<", "<<
                                                     trimesh->react_force[0].z;
                                                      
+    
+    cout << oss_out.str();
+    if (!out_file.is_open()) {
+        std::cerr << " out_file is not open! Cannot write." << std::endl;
+    } else {
+        out_file << oss_out.str();
+        out_file.flush();
+    }
+    
     
     //}
     of <<endl;

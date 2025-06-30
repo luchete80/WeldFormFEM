@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
     
     string out_name = inputFileName.substr(pos, inputFileName.find(".json") - pos +1) + "out";
     cout << "Out file: "<< out_name << endl;
-    dom_d->out_file.open(out_name.c_str()/*, std::ofstream::out | std::ofstream::app*/);
+    dom_d->out_file.open(out_name.c_str(), std::ofstream::out | std::ofstream::app);
 
     ostringstream oss_out;
     
@@ -143,6 +143,7 @@ int main(int argc, char **argv) {
             
     cout << oss_out.str();
     dom_d->out_file << oss_out.str();    
+    dom_d->out_file.flush(); // Optional
 
     cout << "Opening JSON format file"<<endl;
     
@@ -592,7 +593,7 @@ int main(int argc, char **argv) {
 
     
     
-    
+  //dom_d->out_file.close(); // If done writing    
     
 
   }//if Json
@@ -605,5 +606,6 @@ int main(int argc, char **argv) {
 	} else { //ARG >1
     cout << "Please provide an input file."<<endl;
   }
+  
 	
 }
