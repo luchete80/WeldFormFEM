@@ -499,6 +499,43 @@ dev_t void Domain_d::calcElemPressureANP(){
   delete []voln;
 }
 
+// Alternative: Use element-based approach (often more stable)
+dev_t void Domain_d::calcElemPressureElementBased(){
+  double k = mat[0]->Elastic().BulkMod() * 0.1; // Reduced bulk modulus
+  
+  par_loop(e, m_elem_count){
+    if (vol_0[e] > 1e-15) {
+      double vol_ratio = vol[e] / vol_0[e];
+      vol_ratio = fmax(0.2, fmin(5.0, vol_ratio)); // Clamp ratio
+      
+      p[e] = k * (1.0 - vol_ratio);
+      
+      // Pressure limiting
+      double max_pressure = 1.0 * k;
+      p[e] = fmax(-max_pressure, fmin(max_pressure, p[e]));
+    } else {
+      p[e] = 0.0;
+    }
+  }
+  
+  // Update nodal pressures from element pressures
+  par_loop(n, m_node_count){
+    p_node[n] = 0.0;
+    int elem_count = 0;
+    
+    for (int e=0; e<m_nodel_count[n]; e++) {    
+      int eglob = m_nodel[m_nodel_offset[n]+e];
+      p_node[n] += p[eglob];
+      elem_count++;
+    }
+    
+    if (elem_count > 0) {
+      p_node[n] /= double(elem_count);
+    }
+  }
+}
+
+
 ///// ASSUMING CONSTANT element node count
 dev_t void Domain_d::CalcNodalVol(){
   double tot_vol = 0.0; //Only for verif
@@ -792,8 +829,139 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 
 dev_t void Domain_d:: calcElemHourglassForces()
 {
-  if (m_dim == 3 && m_nodxelem == 4)
-    return;
+  if (m_dim == 3 && m_nodxelem == 4){
+
+    // For tetrahedra, we use volumetric stabilization modes
+    // The hourglass modes for tetrahedra are related to volume preservation
+    // and can be constructed using the residual of the divergence field
+    
+    par_loop(e, m_elem_count) {
+      
+      if (m_gp_count == 1) { // Single integration point
+        
+        int offset = e * m_nodxelem * m_dim; // 4 nodes × 3 dimensions
+        
+        // Initialize hourglass forces to zero
+        for (int n = 0; n < m_nodxelem; n++) {
+          for (int d = 0; d < m_dim; d++) {
+            m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+          }
+        }
+        
+        // Get element nodal coordinates
+        double x[4], y[4], z[4];
+        for (int n = 0; n < 4; n++) {
+          int node_id = m_elnod[e * m_nodxelem + n];
+          x[n] = coords[node_id * m_dim + 0];
+          y[n] = coords[node_id * m_dim + 1];  
+          z[n] = coords[node_id * m_dim + 2];
+        }
+        
+        // Calculate element center
+        double xc = 0.25 * (x[0] + x[1] + x[2] + x[3]);
+        double yc = 0.25 * (y[0] + y[1] + y[2] + y[3]);
+        double zc = 0.25 * (z[0] + z[1] + z[2] + z[3]);
+        
+        // Calculate shape function derivatives at center
+        // For linear tetrahedra, these are constant
+        double dNdx[4], dNdy[4], dNdz[4];
+        
+        // Calculate Jacobian matrix components
+        double J11 = x[1] - x[0]; double J12 = x[2] - x[0]; double J13 = x[3] - x[0];
+        double J21 = y[1] - y[0]; double J22 = y[2] - y[0]; double J23 = y[3] - y[0];
+        double J31 = z[1] - z[0]; double J32 = z[2] - z[0]; double J33 = z[3] - z[0];
+        
+        // Calculate Jacobian determinant (6 * volume)
+        double detJ = J11 * (J22 * J33 - J23 * J32) 
+                    - J12 * (J21 * J33 - J23 * J31) 
+                    + J13 * (J21 * J32 - J22 * J31);
+        
+        if (fabs(detJ) < 1e-15) continue; // Skip degenerate elements
+        
+        // Calculate inverse Jacobian components
+        double invJ11 = (J22 * J33 - J23 * J32) / detJ;
+        double invJ12 = (J13 * J32 - J12 * J33) / detJ;
+        double invJ13 = (J12 * J23 - J13 * J22) / detJ;
+        double invJ21 = (J23 * J31 - J21 * J33) / detJ;
+        double invJ22 = (J11 * J33 - J13 * J31) / detJ;
+        double invJ23 = (J13 * J21 - J11 * J23) / detJ;
+        double invJ31 = (J21 * J32 - J22 * J31) / detJ;
+        double invJ32 = (J12 * J31 - J11 * J32) / detJ;
+        double invJ33 = (J11 * J22 - J12 * J21) / detJ;
+        
+        // Shape function derivatives in physical coordinates
+        dNdx[0] = -(invJ11 + invJ12 + invJ13);
+        dNdx[1] = invJ11;
+        dNdx[2] = invJ12;
+        dNdx[3] = invJ13;
+        
+        dNdy[0] = -(invJ21 + invJ22 + invJ23);
+        dNdy[1] = invJ21;
+        dNdy[2] = invJ22;
+        dNdy[3] = invJ23;
+        
+        dNdz[0] = -(invJ31 + invJ32 + invJ33);
+        dNdz[1] = invJ31;
+        dNdz[2] = invJ32;
+        dNdz[3] = invJ33;
+        
+        // Calculate velocity divergence
+        double div_v = 0.0;
+        for (int n = 0; n < 4; n++) {
+          div_v += dNdx[n] * getVElem(e, n, 0) 
+                 + dNdy[n] * getVElem(e, n, 1) 
+                 + dNdz[n] * getVElem(e, n, 2);
+        }
+        
+        // Hourglass coefficient for tetrahedra
+        // This is based on element size and material properties
+        double elem_size = pow(vol[e], 1.0/3.0); // Characteristic element size
+        double c_h = 0.1 * elem_size * elem_size * rho[e] * mat[e]->cs0;
+        
+        // Alternative: Use bulk modulus based stabilization
+        // double c_h = 0.05 * mat[e]->Elastic().BulkMod() * vol[e] / (elem_size * elem_size);
+        
+        // Apply hourglass forces based on divergence control
+        // This helps maintain volume conservation and stability
+        for (int n = 0; n < 4; n++) {
+          // Volumetric hourglass forces
+          m_f_elem_hg[offset + n * m_dim + 0] = -c_h * div_v * dNdx[n];
+          m_f_elem_hg[offset + n * m_dim + 1] = -c_h * div_v * dNdy[n];
+          m_f_elem_hg[offset + n * m_dim + 2] = -c_h * div_v * dNdz[n];
+          
+          // Additional stabilization based on nodal position relative to centroid
+          double dx = x[n] - xc;
+          double dy = y[n] - yc; 
+          double dz = z[n] - zc;
+          
+          // Cross-product based stabilization (similar to hex hourglass modes)
+          double stab_coeff = 0.01 * c_h;
+          
+          // Mode 1: Based on coordinate differences
+          double mode1_x = dx * (getVElem(e, n, 1) * dz - getVElem(e, n, 2) * dy);
+          double mode1_y = dy * (getVElem(e, n, 2) * dx - getVElem(e, n, 0) * dz);
+          double mode1_z = dz * (getVElem(e, n, 0) * dy - getVElem(e, n, 1) * dx);
+          
+          m_f_elem_hg[offset + n * m_dim + 0] += stab_coeff * mode1_x * dNdx[n];
+          m_f_elem_hg[offset + n * m_dim + 1] += stab_coeff * mode1_y * dNdy[n];
+          m_f_elem_hg[offset + n * m_dim + 2] += stab_coeff * mode1_z * dNdz[n];
+        }
+        
+        // Debug output
+        /*
+        printf("Elem %d: div_v = %.6e, c_h = %.6e\n", e, div_v, c_h);
+        for (int n = 0; n < 4; n++) {
+          printf("  Node %d HG forces: %.6e %.6e %.6e\n", n,
+                 m_f_elem_hg[offset + n * m_dim + 0],
+                 m_f_elem_hg[offset + n * m_dim + 1],
+                 m_f_elem_hg[offset + n * m_dim + 2]);
+        }
+        */
+        
+      } // gp == 1
+    } // ELEM loop
+    
+    }
     
   int jmax;
   if (m_dim==2) jmax = 1;
@@ -820,19 +988,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
     for (int i=0;i<4;i++)
       for (int n=0;n<m_nodxelem;n++)
         Sig.Set(i,n,sig_[i][n]*8.0);
-      
-    //VA_LIST NOT WORKING PROPERLY
-    // SetMatVals(&Sig,32, 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125,
-    // 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125,
-    // 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125,
-    // -0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125);
-                       
-    ////printf("Sigma mat HG\n");
-    //Sig.Print();
-    // double Sig[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
-                                  // { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
-                                  // { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
-                                  // {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};   
+
   } else if (m_dim == 2){
     double sig_[1][4] ={{0.25, -0.25, 0.25,-0.25}};    
     
@@ -889,6 +1045,49 @@ dev_t void Domain_d:: calcElemHourglassForces()
 
   } //gp ==1
   }//ELEM
+}
+
+
+  
+
+// Alternative simplified version focusing only on volumetric stabilization
+dev_t void Domain_d::calcElemHourglassForces_Simple()
+{
+  if (m_dim != 3 || m_nodxelem != 4) {
+    return; // Only for 3D tetrahedral elements
+  }
+  
+  par_loop(e, m_elem_count) {
+    
+    int offset = e * m_nodxelem * m_dim;
+    
+    // Initialize forces
+    for (int n = 0; n < m_nodxelem; n++) {
+      for (int d = 0; d < m_dim; d++) {
+        m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+      }
+    }
+    
+    // Simple pressure-based stabilization
+    // This is similar to what you have in calcElemPressureANP
+    double vol_ratio = vol[e] / vol_0[e];
+    double pressure_dev = mat[e]->Elastic().BulkMod() * (1.0 - vol_ratio);
+    
+    // Apply pressure-based hourglass control
+    double hg_coeff = 0.05 * fabs(pressure_dev) * vol[e];
+    
+    // Get shape function derivatives (simplified for tetrahedra)
+    double dNdxi[4] = {-1.0, 1.0, 0.0, 0.0};
+    double dNdeta[4] = {-1.0, 0.0, 1.0, 0.0};  
+    double dNdzeta[4] = {-1.0, 0.0, 0.0, 1.0};
+    
+    for (int n = 0; n < 4; n++) {
+      // Simple hourglass forces based on shape function derivatives
+      m_f_elem_hg[offset + n * m_dim + 0] = hg_coeff * dNdxi[n] * pressure_dev;
+      m_f_elem_hg[offset + n * m_dim + 1] = hg_coeff * dNdeta[n] * pressure_dev;
+      m_f_elem_hg[offset + n * m_dim + 2] = hg_coeff * dNdzeta[n] * pressure_dev;
+    }
+  }
 }
 
 
