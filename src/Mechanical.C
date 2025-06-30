@@ -423,34 +423,75 @@ dev_t void Domain_d::calcElemForces(){
   }//if e<elem_count
 }
 
-dev_t void Domain_d::calcElemPressure(){
+// ORIGINAL
+// dev_t void Domain_d::calcElemPressure(){
 
-  par_loop(e,m_elem_count){
-    //printf("calc pressure \n");
-    int offset_t = e * m_gp_count *6;
+  // par_loop(e,m_elem_count){
+    // //printf("calc pressure \n");
+    // int offset_t = e * m_gp_count *6;
 
-    double trace;
-    double press_inc = 0.0;
-    for (int gp=0;gp<m_gp_count;gp++){
-      trace = 0.0;
-      tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-      //printf("str inc, dt %f\n", dt);print(str_inc);
-      press_inc += Trace(str_inc);
-    }//gauss point
-    press_inc = -press_inc/m_gp_count;
-    //  //printf("trace %f\n",trace);
-    int offset = e * m_gp_count ;
-    for (int gp=0;gp<m_gp_count;gp++){
-      //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
-      trace = 0.0;
-      for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
+    // double trace;
+    // double press_inc = 0.0;
+    // for (int gp=0;gp<m_gp_count;gp++){
+      // trace = 0.0;
+      // tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
+      // //printf("str inc, dt %f\n", dt);print(str_inc);
+      // press_inc += Trace(str_inc);
+    // }//gauss point
+    // press_inc = -press_inc/m_gp_count;
+    // //  //printf("trace %f\n",trace);
+    // int offset = e * m_gp_count ;
+    // for (int gp=0;gp<m_gp_count;gp++){
+      // //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
+      // trace = 0.0;
+      // for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
       
-      p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      //printf("pressure %f\n",p[offset + gp]);
-    }
+      // p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
+      // //printf("pressure %f\n",p[offset + gp]);
+    // }
 
-  } // e< elem_count
+  // } // e< elem_count
+// }
+
+dev_t void Domain_d::calcElemPressure() {
+  double *voln_0 = new double [m_node_count];
+  double *voln = new double [m_node_count];
+  
+  // Primero: calcular volúmenes nodales para hourglass
+  par_loop(n, m_node_count) {
+    voln_0[n] = 0.0;
+    voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];
+      voln[n] += vol[e];
+    }
+  }
+
+  // Ahora calcular presión elemental + hourglass
+  par_loop(e, m_elem_count) {
+    double K = mat[e]->Elastic().BulkMod();
+    double J = vol[e] / vol_0[e];
+    double p_vol = K * (1.0 - J);
+
+    // Calcular promedio nodal de J para hourglass
+    double Jnod = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      Jnod += voln[nid] / voln_0[nid];
+    }
+    Jnod /= m_nodxelem;
+
+    // Coeficiente hourglass (ajustar según pruebas)
+    double hg_coeff = 0.02;
+    double p_hg = hg_coeff * K * (J - Jnod);
+
+    p[e] = p_vol + p_hg;
+  }
+  delete []voln_0;
+  delete []voln;
 }
+
 
 //Computational Methods in lagfangian & Eulerian Hydrocodes
 //From Benson 1992
@@ -852,9 +893,9 @@ dev_t void Domain_d:: calcElemHourglassForces()
         double x[4], y[4], z[4];
         for (int n = 0; n < 4; n++) {
           int node_id = m_elnod[e * m_nodxelem + n];
-          x[n] = coords[node_id * m_dim + 0];
-          y[n] = coords[node_id * m_dim + 1];  
-          z[n] = coords[node_id * m_dim + 2];
+          x[n] = x[node_id * m_dim + 0];
+          y[n] = x[node_id * m_dim + 1];  
+          z[n] = x[node_id * m_dim + 2];
         }
         
         // Calculate element center
@@ -1050,45 +1091,45 @@ dev_t void Domain_d:: calcElemHourglassForces()
 
   
 
-// Alternative simplified version focusing only on volumetric stabilization
-dev_t void Domain_d::calcElemHourglassForces_Simple()
-{
-  if (m_dim != 3 || m_nodxelem != 4) {
-    return; // Only for 3D tetrahedral elements
-  }
+// // Alternative simplified version focusing only on volumetric stabilization
+// dev_t void Domain_d::calcElemHourglassForces_Simple()
+// {
+  // if (m_dim != 3 || m_nodxelem != 4) {
+    // return; // Only for 3D tetrahedral elements
+  // }
   
-  par_loop(e, m_elem_count) {
+  // par_loop(e, m_elem_count) {
     
-    int offset = e * m_nodxelem * m_dim;
+    // int offset = e * m_nodxelem * m_dim;
     
-    // Initialize forces
-    for (int n = 0; n < m_nodxelem; n++) {
-      for (int d = 0; d < m_dim; d++) {
-        m_f_elem_hg[offset + n * m_dim + d] = 0.0;
-      }
-    }
+    // // Initialize forces
+    // for (int n = 0; n < m_nodxelem; n++) {
+      // for (int d = 0; d < m_dim; d++) {
+        // m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+      // }
+    // }
     
-    // Simple pressure-based stabilization
-    // This is similar to what you have in calcElemPressureANP
-    double vol_ratio = vol[e] / vol_0[e];
-    double pressure_dev = mat[e]->Elastic().BulkMod() * (1.0 - vol_ratio);
+    // // Simple pressure-based stabilization
+    // // This is similar to what you have in calcElemPressureANP
+    // double vol_ratio = vol[e] / vol_0[e];
+    // double pressure_dev = mat[e]->Elastic().BulkMod() * (1.0 - vol_ratio);
     
-    // Apply pressure-based hourglass control
-    double hg_coeff = 0.05 * fabs(pressure_dev) * vol[e];
+    // // Apply pressure-based hourglass control
+    // double hg_coeff = 0.05 * fabs(pressure_dev) * vol[e];
     
-    // Get shape function derivatives (simplified for tetrahedra)
-    double dNdxi[4] = {-1.0, 1.0, 0.0, 0.0};
-    double dNdeta[4] = {-1.0, 0.0, 1.0, 0.0};  
-    double dNdzeta[4] = {-1.0, 0.0, 0.0, 1.0};
+    // // Get shape function derivatives (simplified for tetrahedra)
+    // double dNdxi[4] = {-1.0, 1.0, 0.0, 0.0};
+    // double dNdeta[4] = {-1.0, 0.0, 1.0, 0.0};  
+    // double dNdzeta[4] = {-1.0, 0.0, 0.0, 1.0};
     
-    for (int n = 0; n < 4; n++) {
-      // Simple hourglass forces based on shape function derivatives
-      m_f_elem_hg[offset + n * m_dim + 0] = hg_coeff * dNdxi[n] * pressure_dev;
-      m_f_elem_hg[offset + n * m_dim + 1] = hg_coeff * dNdeta[n] * pressure_dev;
-      m_f_elem_hg[offset + n * m_dim + 2] = hg_coeff * dNdzeta[n] * pressure_dev;
-    }
-  }
-}
+    // for (int n = 0; n < 4; n++) {
+      // // Simple hourglass forces based on shape function derivatives
+      // m_f_elem_hg[offset + n * m_dim + 0] = hg_coeff * dNdxi[n] * pressure_dev;
+      // m_f_elem_hg[offset + n * m_dim + 1] = hg_coeff * dNdeta[n] * pressure_dev;
+      // m_f_elem_hg[offset + n * m_dim + 2] = hg_coeff * dNdzeta[n] * pressure_dev;
+    // }
+  // }
+// }
 
 
 
