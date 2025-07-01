@@ -24,7 +24,7 @@ namespace MetFEM {
 
 
 
-void ImpDomain_d::SetDimension(const int &node_count, const int &elem_count){
+void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count){
   
   m_node_count = node_count;
   m_elem_count = elem_count;

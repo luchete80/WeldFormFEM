@@ -83,6 +83,8 @@ class BC_Node {
 };
 
 namespace MetFEM{
+  
+enum DomainType { IMPL, EXPL };
  
 
 // Structure to define a face with 4 nodes
@@ -145,7 +147,8 @@ public:
     m_remesh_interval = 1e10;
   }
   void setNproc(const int &n){Nproc=n;}
-  virtual void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
+  void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
+  
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
@@ -344,7 +347,8 @@ public:
     
     }
   void calcContactForceFromPressure();
-  virtual void CalcMaterialStiffElementMatrix(){}
+  void CalcMaterialStiffElementMatrix();
+  
   //--------------------------------------------------------------------------------------------------------------------------------
   
   void CalcExtFaceAreas();

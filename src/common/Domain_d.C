@@ -515,6 +515,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   malloc_t(m_elem_neigh,        int, m_elem_count*4);
   malloc_t(m_elem_neigh_count,  int, m_elem_count);
+  
+  
+    /// IMPLICIT THINGS
+  //malloc_t(m_Kmat, Matrix, m_elem_count );  Written for asinglepointer
+  m_Kmat = new Matrix*[m_elem_count];  // or use malloc_t macro if it's defined
+  for (int e=0;e<m_elem_count;e++)
+    m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
+
+
+
 }
 
 void Domain_d::Free(){

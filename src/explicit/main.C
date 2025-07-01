@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
 	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
 	report_gpu_mem();
   #else
-    dom_d = new Domain_d;
+    dom_d = new ImpDomain_d;
   #endif    
   
 

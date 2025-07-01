@@ -161,7 +161,9 @@ for (int e = 0; e < m_elem_count; e++) {
   
   }//SOLVE
   
-  
+ 
+//PROBLEMWITH INHERITANCE
+ 
 void host_ ImpDomain_d::ElasticSolve(){
   WallTimer timer;
 
@@ -190,5 +192,7 @@ void host_ ImpDomain_d::ElasticSolve(){
   
   
   }//ELASTICSOLVE
+  
+
     
 };

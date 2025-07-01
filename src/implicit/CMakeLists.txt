@@ -27,6 +27,29 @@ include_directories (${CMAKE_SOURCE_DIR}/lib/LSDynaReader/src/)
 include_directories(${EIGEN_INC_DIR})
 message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
+if (BUILD_GPU)
+
+ELSE ()
+  INCLUDE      (FindOpenMP)
+  message ("BUILD GPU set to OFF")
+  if (OPENMP_FOUND)
+      message ("OPENMP FOUND!!!")
+      set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+      set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+      set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  else()
+  message ("OPENMP NOT FOUND")
+  endif()
+
+set_source_files_properties(main.C 
+                            Solver.C
+                            ${CMAKE_SOURCE_DIR}/include
+
+                            PROPERTIES LANGUAGE CXX)
+
+#SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
+ENDIF() 
+
 INCLUDE      (FindOpenMP)
 message ("BUILD GPU set to OFF")
 if (OPENMP_FOUND)
@@ -93,12 +116,6 @@ set (SOURCES
                         Solver_Eigen.C
                           
                    )
-
-if (BUILD_REMESH)
- set (SOURCES "${SOURCES}" ReMesher.C
-                           ReMesher_mmg.C)
-endif()
-
                    
 add_executable(weldform_imp main.C
                          "${SOURCES}"

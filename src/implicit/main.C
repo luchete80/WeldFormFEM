@@ -31,7 +31,7 @@
 #include "Input.h"
 
 
-#include "ImpDomain_d.h"
+#include "Domain_d.h"
 
 using namespace MetFEM;
 
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 
 	Domain_d *dom_d;
 
-  dom_d = new ImpDomain_d;
+  dom_d = new Domain_d;
     
   if(extension == "k") {
      
