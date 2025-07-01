@@ -98,6 +98,8 @@ struct Face {
     int nodes[FACENOD];
     int count; // Number of occurrences of this face
     int elem_id;  // <- store the originating element
+    int other_elem;   // second elem
+
 };
 
 
@@ -201,6 +203,7 @@ public:
   dev_t void calcElemForces();
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void smoothPressureField(double gamma); //Laplace Smooth
   dev_t void calcElemPressureFromJ();
   dev_t void calcElemPressureANP(); //AVERAGE NODAL POINT
   dev_t void calcElemPressureElementBased();
@@ -468,6 +471,9 @@ protected:
 
   Face *faceList;
   int m_faceCount;
+  
+  int *m_elem_neigh;
+  int *m_elem_neigh_count;
     
   ////////////////////// CONTACT 
 	// TODO, EACH RIGID PARTICLE SHOULD 

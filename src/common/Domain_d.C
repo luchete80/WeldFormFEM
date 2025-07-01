@@ -64,12 +64,16 @@ void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     for (int i = 0; i < faceCount; i++) {
         if (areFacesEqual(faceList[i], newFace)) {
             faceList[i].count++;
+            if (faceList[i].count == 2) {
+                faceList[i].other_elem = newFace.elem_id;
+            }
             return;
         }
     }
     // Add new face
     faceList[faceCount] = newFace;
     faceList[faceCount].count = 1;
+    faceList[faceCount].other_elem = -1; // Initialize with no neighbor
     faceCount++;
 }
 
@@ -79,10 +83,10 @@ void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4], int
     // Define the 6 faces of the hexahedron
     //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
     Face faces[ELFAC] = {
-        {{element[0], element[1], element[2]}, 0,elem_id}, // Front face
-        {{element[0], element[1], element[3]}, 0,elem_id}, // Right face
-        {{element[1], element[2], element[3]}, 0,elem_id}, // Back face
-        {{element[2], element[0], element[3]}, 0,elem_id}, // Left face
+        {{element[0], element[1], element[2]}, 0,elem_id,-1}, // Front face
+        {{element[0], element[1], element[3]}, 0,elem_id,-1}, // Right face
+        {{element[1], element[2], element[3]}, 0,elem_id,-1}, // Back face
+        {{element[2], element[0], element[3]}, 0,elem_id,-1}, // Left face
     };
 
     // Add each face to the face list
@@ -112,6 +116,14 @@ dev_t void Domain_d::SearchExtNodes() {
     ext_nodes_count = 0;
     //bool externalNodes[m_node_count] = {false};
 
+    // Initialize neighbor list for each element
+    for (int i = 0; i < m_elem_count; i++) {
+      for (int j = 0; j < 4; j++)
+        m_elem_neigh[4*i+j]=0;
+      m_elem_neigh_count[i]=0;
+    }
+
+
     // Identify external nodes by checking faces that appear only once
     int ext_faces = 0;
     for (int i = 0; i < m_faceCount; i++) {
@@ -122,6 +134,18 @@ dev_t void Domain_d::SearchExtNodes() {
             }
             ext_faces++;
         }
+        else if (faceList[i].count == 2) { // Internal face (shared by two elements)
+            int e1 = faceList[i].elem_id;
+            int e2 = faceList[i].other_elem;
+            // Add e2 to e1's neighbor list
+            m_elem_neigh[4*e1 + m_elem_neigh_count[e1]] = e2;
+            m_elem_neigh_count[e1]++;
+            
+            // Add e1 to e2's neighbor list
+            m_elem_neigh[4*e2 + m_elem_neigh_count[e2]] = e1;
+            m_elem_neigh_count[e2]++;
+        }
+
     }
 
     // Output the external nodes
@@ -488,6 +512,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   
   m_pl_energy = 0.0;
+  
+  malloc_t(m_elem_neigh,        int, m_elem_count*4);
+  malloc_t(m_elem_neigh_count,  int, m_elem_count);
 }
 
 void Domain_d::Free(){
@@ -594,6 +621,10 @@ void Domain_d::Free(){
   free_t(m_elem_area);
   free_t(faceList);    
   free_t(node_area);
+  
+  
+  free_t (m_elem_neigh);
+  free_t (m_elem_neigh_count);  
 }
 
 

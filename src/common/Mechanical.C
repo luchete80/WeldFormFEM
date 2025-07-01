@@ -495,8 +495,8 @@ dev_t void Domain_d::calcElemPressure() {
       double c = sqrt(K / rho_e); // Velocidad del sonido
       //double h = elem_char_length[e]; // Longitud característica del elemento
       double h = getMinLength();
-      double alpha = 1.0;
-      double beta = 0.05;
+      double alpha = 1.2;
+      double beta = 0.1;
       
 
       q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
@@ -511,7 +511,7 @@ dev_t void Domain_d::calcElemPressure() {
     }
     Jnod /= m_nodxelem;
 
-    double hg_coeff = 0.05;
+    double hg_coeff = 0.1;
     double p_hg = hg_coeff * K * (J - Jnod);
     
     // Presión final
@@ -520,6 +520,28 @@ dev_t void Domain_d::calcElemPressure() {
   delete[] voln_0;
   delete[] voln;
   
+}
+
+
+void Domain_d::smoothPressureField(double gamma) {
+  std::vector<double> p_new(m_elem_count, 0.0);
+  
+  for (int e = 0; e < m_elem_count; ++e) {
+    double sum_p = 0.0;
+    int count = 0;
+    for (int i = 0; i < m_elem_neigh_count[e]; ++i) {
+      int e_neigh = m_elem_neigh[4*e+i];
+      sum_p += p[e_neigh] - p[e];
+      count++;
+    }
+    if (count > 0) {
+      p_new[e] = p[e] + gamma * sum_p / count;
+    } else {
+      p_new[e] = p[e];
+    }
+  }
+
+  for (int e = 0; e < m_elem_count; ++e) p[e] = p_new[e];
 }
 
 dev_t void Domain_d::calcElemPressure_Hybrid() {

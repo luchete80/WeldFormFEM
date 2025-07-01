@@ -361,6 +361,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP();
   // }else
   calcElemPressure();
+  smoothPressureField(0.1);
   //calcElemPressure_Hybrid_VolHG();
   //calcElemPressureANP_Nodal_HG();
   
