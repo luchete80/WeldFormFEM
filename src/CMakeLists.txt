@@ -144,87 +144,9 @@ add_executable(WeldFormFEM WeldFormFEM.C
 if (BUILD_OMEGA_H)
   #add_executable (test_omega_h test_omega_h.cpp)
 endif()
-#
-# add_executable(axisymm
-                        # main_axisymm.C
-                        # Domain_d.C
-                        # Matrices.C
-                       # Mechanical.C
-                         # Matrices.C
-                         # Solver.C
-                         # input.C
-                         # ../lib/LSDynaReader/src/lsdynaReader.cpp
-                         # VTKWriter.C
-               # )
 
-# add_executable(1el_2d_sig_dev_pe  1el_2d_sig_dev_pe.cpp
-                                 # Domain_d.C
-                                 # Matrices.C
-                                 # Mechanical.C)
-
-#add_executable(1el_3d  test_1el_3D.cpp
-#                       Domain_d.C
-#                       Matrices.C
-#                       Mechanical.C)
-
-
-
-# set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 60)
-
-
-# add_executable(main_thermal 
-													# main_thermal.cu
-													# Domain.cpp 
-													# #NbSearch.cpp 
-													# Output.cpp
-													# Vector.cpp
-                          # cuda/thermal.cu
-													# #TODO: ALLOW BUILD CUDA DIR WITH SEPARABLE COMPILATION
-													# cuda/Domain_d.cu
-													# #cuda/Thermal.cu
-													# #cuda/Interaction_global.cu	#TEMPORARY, ALL IS EXTERNAL
-													# cuNSearch/src/PointSet.cu cuNSearch/src/PointSetImplementation.cu
-													# cuNSearch/src/cuNSearch.cu cuNSearch/src/cuNSearchDeviceData.cu cuNSearch/src/cuNSearchKernels.cu
-													# cuNSearch/Utils/cuda_helper.cu cuNSearch/Utils/Timing.cpp
-													# cuNSearch/Utils/IDFactory.cpp													
-													# )
-                          
-
-# add_executable(main_pairs 
-													# #main_thermal.cu
-													# main_thermal_pairs.cu
-													# Domain.cpp 
-													# #NbSearch.cpp 
-													# Output.cpp
-													# Vector.cpp
-													# #TODO: ALLOW BUILD CUDA DIR WITH SEPARABLE COMPILATION
-													# cuda/Domain_d.cu
-													# cuda/Thermal.cu
-													# #cuda/Interaction_global.cu	#TEMPORARY, ALL IS EXTERNAL
-													# cuNSearch/src/PointSet.cu
-													# cuNSearch/src/PointSetImplementation.cu
-													# cuNSearch/src/cuNSearch.cu
-													# cuNSearch/src/cuNSearchDeviceData.cu
-													# cuNSearch/src/cuNSearchKernels.cu
-													# cuNSearch/Utils/cuda_helper.cu
-													# cuNSearch/Utils/Timing.cpp
-													# cuNSearch/Utils/IDFactory.cpp													
-													# ) 
-
-
-#tensor and all functions defined in separate modulus
-# CASE NO INLINE VERSION
-#set_property(TARGET gpuweldform PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-#add_subdirectory (cuda)
-#ATTENTION 
-#https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 
 if (BUILD_GPU)
-#THIS SHOULD BE SET GREATER THAN 60 DUE TO CUDA ADDATOMIC
-#set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
-#set_property(TARGET 1elem PROPERTY CUDA_ARCHITECTURES 75)
-#set_property(TARGET 4elem PROPERTY CUDA_ARCHITECTURES 75)
 
 set_property(TARGET WeldFormFEM PROPERTY CUDA_ARCHITECTURES 75)
 
