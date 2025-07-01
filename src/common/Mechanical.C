@@ -555,58 +555,186 @@ dev_t void Domain_d::calcNodalPressureFromElemental() {
   // delete []voln_0;
   // delete []voln;
 // }
-///// EXPERIMENTAL NEW
-dev_t void Domain_d::calcElemPressureANP() {
-   double *voln_0 = new double [m_node_count];
-   double *voln = new double [m_node_count];
-  
-  // Primero: calcular volúmenes nodales (para hourglass)
+
+////CORRECTED
+//~ dev_t void Domain_d::calcElemPressureANP_Nodal() {
+  //~ double *pn = new double[m_node_count];
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln = new double[m_node_count];
+
+  //~ // Asumimos mismo bulk modulus para todos los elementos
+  //~ double k = mat[0]->Elastic().BulkMod();
+
+  //~ // Inicializar volúmenes nodales
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = 0.0;
+    //~ voln[n]   = 0.0;
+    //~ pn[n]     = 0.0;
+
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+
+      //~ // Distribuir el volumen entre los nodos (tetra = 4 nodos)
+      //~ voln_0[n] += vol_0[e] / 4.0;
+      //~ voln[n]   += vol[e]   / 4.0;
+    //~ }
+
+    //~ // Cálculo del J nodal y presión nodal
+    //~ if (voln_0[n] > 1e-12) {
+      //~ double Jn = voln[n] / voln_0[n];
+      //~ pn[n] = k * (1.0 - Jn);
+    //~ } else {
+      //~ pn[n] = 0.0; // O alguna penalización por nodo inválido
+    //~ }
+
+    //~ p_node[n] = pn[n]; // Guardar para visualización
+  //~ }
+
+  //~ // Promediar presiones nodales para obtener presión elemental
+  //~ par_loop(e, m_elem_count) {
+    //~ p[e] = 0.0;
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ p[e] += pn[nid];
+    //~ }
+    //~ p[e] /= m_nodxelem;
+  //~ }
+
+  //~ delete[] pn;
+  //~ delete[] voln_0;
+  //~ delete[] voln;
+//~ }
+
+
+dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
+  double *pn     = new double[m_node_count];
+  double *voln_0 = new double[m_node_count];
+  double *voln   = new double[m_node_count];
+
+  double *Jnodal = new double[m_node_count]; // Para interpolar luego
+  double *count  = new double[m_node_count]; // Para evitar división por 0
+
+  // Asumimos mismo bulk modulus para todos los elementos (ajustar si variable)
+  double k = mat[0]->Elastic().BulkMod();
+
+  // Inicializar volúmenes nodales y Jnod
   par_loop(n, m_node_count) {
     voln_0[n] = 0.0;
-    voln[n] = 0.0;
+    voln[n]   = 0.0;
+    pn[n]     = 0.0;
+    Jnodal[n] = 0.0;
+    count[n]  = 0.0;
+
     for (int i = 0; i < m_nodel_count[n]; ++i) {
       int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n] += vol[e];
+      voln_0[n] += vol_0[e] / 4.0;
+      voln[n]   += vol[e]   / 4.0;
     }
+
+    if (voln_0[n] > 1e-12) {
+      double Jn = voln[n] / voln_0[n];
+      pn[n] = k * (1.0 - Jn);
+      Jnodal[n] = Jn;
+      count[n]  = 1.0;
+    } else {
+      pn[n] = 0.0;
+      Jnodal[n] = 1.0; // Valor neutro
+    }
+
+    p_node[n] = pn[n]; // Guardar para visualización
   }
 
-  // Segundo: calcular presión elemental con hourglass volumétrico
+  // Calcular presión elemental promediando nodos + hourglass correction
   par_loop(e, m_elem_count) {
-    double k = mat[e]->Elastic().BulkMod();
-    double J = vol[e] / vol_0[e];
-    double p_vol = k * (1.0 - J);
+    double p_avg = 0.0;
+    double Jnod  = 0.0;
 
-    // Promedio nodal de J para hourglass
-    double Jnod = 0.0;
     for (int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e * m_nodxelem + a];
-      Jnod += voln[nid] / voln_0[nid];
+      p_avg += pn[nid];
+      Jnod  += Jnodal[nid];
     }
-    Jnod /= m_nodxelem;
+    p_avg /= m_nodxelem;
+    Jnod  /= m_nodxelem;
 
-    // Coeficiente hourglass (puede ajustarse, ej 0.02)
-    //double hg_coeff = 0.02;
-    //double p_hg = hg_coeff * k * (J - Jnod);
+    // Presión volumétrica directa del elemento
+    double J_elem = vol[e] / vol_0[e];
+    double p_elem = k * (1.0 - J_elem);
 
-    p[e] = p_vol /*+ p_hg*/;
+    // Hourglass volumétrico (corrección de presión)
+    double hg_coeff = 0.05; // entre 0.01 y 0.1 típico
+    double p_hg = hg_coeff * k * (J_elem - Jnod);
+
+    p[e] = p_avg + p_hg;
   }
 
-  // Opcional: presión nodal para postproceso o visualización
-  par_loop(n, m_node_count) {
-    p_node[n] = 0.0;
-    int count = 0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      p_node[n] += p[e];
-      count++;
-    }
-    if (count > 0)
-      p_node[n] /= count;
-  }
-  delete []voln_0;
-  delete []voln;
+  delete[] pn;
+  delete[] voln_0;
+  delete[] voln;
+  delete[] Jnodal;
+  delete[] count;
 }
+
+
+
+///// EXPERIMENTAL NEW
+//~ dev_t void Domain_d::calcElemPressureANP_Element() {
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln = new double[m_node_count];
+
+  //~ // Acumulación de volumen nodal (para calcular Jnod más adelante)
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = 0.0;
+    //~ voln[n] = 0.0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ voln_0[n] += vol_0[e] / 4.0;
+      //~ voln[n] += vol[e] / 4.0;
+    //~ }
+  //~ }
+
+  //~ // Presión por elemento con estabilización tipo hourglass
+  //~ par_loop(e, m_elem_count) {
+    //~ double k = mat[e]->Elastic().BulkMod();
+
+    //~ double J = vol[e] / vol_0[e];
+    //~ double p_vol = k * (1.0 - J);
+
+    //~ // Promedio nodal de J
+    //~ double Jnod = 0.0;
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ if (voln_0[nid] > 1e-12) {
+        //~ Jnod += voln[nid] / voln_0[nid];
+      //~ } else {
+        //~ Jnod += 1.0; // Neutral (sin deformación)
+      //~ }
+    //~ }
+    //~ Jnod /= m_nodxelem;
+
+    //~ // Coeficiente de hourglass volumétrico (ajustable)
+    //~ double hg_coeff = 0.05; // probar entre 0.01–0.1
+    //~ double p_hg = hg_coeff * k * (J - Jnod);
+
+    //~ p[e] = p_vol + p_hg;
+  //~ }
+
+  //~ // Presión nodal para postproceso
+  //~ par_loop(n, m_node_count) {
+    //~ p_node[n] = 0.0;
+    //~ int count = 0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ p_node[n] += p[e];
+      //~ count++;
+    //~ }
+    //~ if (count > 0)
+      //~ p_node[n] /= count;
+  //~ }
+
+  //~ delete[] voln_0;
+  //~ delete[] voln;
+//~ }
 
 // Alternative: Use element-based approach (often more stable)
 dev_t void Domain_d::calcElemPressureElementBased(){

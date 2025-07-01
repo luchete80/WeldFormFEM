@@ -1,6 +1,6 @@
 #include "Solver_Eigen.h"
 #include "Matrix.h"
-#include "Domain_d.h"
+#include "ImpDomain_d.h"
 #include <iomanip> //setprecision
 
 using namespace std;

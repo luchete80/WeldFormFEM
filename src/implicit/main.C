@@ -19,7 +19,6 @@
 * PersianSPH; if not, see <http://www.gnu.org/licenses/>                           *
 ************************************************************************************/
 
-#include "Domain_d.h"
 
 #include <iostream>
 #include "defs.h"
@@ -30,6 +29,9 @@
 #include <fstream>
 #include <iomanip>	//ONY FOR GCC!!
 #include "Input.h"
+
+
+#include "ImpDomain_d.h"
 
 using namespace MetFEM;
 
@@ -50,7 +52,7 @@ int main(int argc, char **argv) {
 
 	Domain_d *dom_d;
 
-  dom_d = new Domain_d;
+  dom_d = new ImpDomain_d;
     
   if(extension == "k") {
      

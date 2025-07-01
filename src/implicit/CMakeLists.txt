@@ -2,10 +2,9 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.18)
 
 set (BUILD_EXAMPLES OFF)
 
-project (ForgeFormFEM LANGUAGES CXX )
+project (WeldFormImp LANGUAGES CXX )
 
 include_directories(${PROJECT_SOURCE_DIR})
-include_directories(${PROJECT_SOURCE_DIR}/include)
 
 include_directories(../lib/LSDynaReader/src/)
 
@@ -19,6 +18,11 @@ link_directories(${OMEGA_H_DIR})
 
 set(CMAKE_PREFIX_PATH "/path/to/omega_h")
 include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
+
+include_directories ("${CMAKE_SOURCE_DIR}/include/common")
+include_directories ("${CMAKE_SOURCE_DIR}/include/implicit")
+include_directories (${CMAKE_SOURCE_DIR}/lib/LSDynaReader/src/)
+
 
 include_directories(${EIGEN_INC_DIR})
 message ("EIGEN DIR" ${EIGEN_INC_DIR})
@@ -83,17 +87,10 @@ endif ()
 
 
 set (SOURCES                          
-                         #Contact.C
-                         Domain_d.C
-                         #Matrices.C
-                         Mechanical.C
-                         Mesh.C
-                         Matrices.C
+                       
                          Solver.C
                          Solver_Eigen.C
-                         #input.C
-                         ../lib/LSDynaReader/src/lsdynaReader.cpp
-                         VTKWriter.C
+
                    )
 
 if (BUILD_REMESH)
@@ -102,7 +99,7 @@ if (BUILD_REMESH)
 endif()
 
                    
-add_executable(ForgeFormFEM ForgeFormFEM.C
+add_executable(weldform_imp main.C
                          "${SOURCES}"
                )
 add_library(ForgeFormFEMlib 

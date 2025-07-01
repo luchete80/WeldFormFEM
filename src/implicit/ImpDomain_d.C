@@ -9,7 +9,7 @@
 
 
 #include "Tensor3.C"
-#include "../lib/LSDynaReader/src/lsdynaReader.h"
+#include "lsdynaReader.h"
 
 
 using namespace std;

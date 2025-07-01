@@ -97,8 +97,11 @@ class TriMesh_d{
 	//double							v;						//Constant Uniform v
 	TriMesh_d();
 	void AxisPlaneMesh(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
-  void SetMeshVel(const double3 &v) {m_v = v;} //Like in WeldForm CPU version
+	void AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
   
+  void SetMeshVel(const double3 &v) {m_v = v;} //Like in WeldForm CPU version
+  void SetVel(const double3 &v) {m_v = v;} //Like in WeldForm CPU version
+    
   ///ONLY FOR NEW MESH ADDED
   void SetNodesVel(const double3 &v, int start_node = 0, int end_node = -1);
   

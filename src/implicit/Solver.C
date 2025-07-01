@@ -1,4 +1,4 @@
-#include "Domain_d.h"
+#include "ImpDomain_d.h"
 #include <iostream>
 #include "VTKWriter.h"
 
@@ -17,7 +17,7 @@ using namespace std;
 
 namespace MetFEM{
 
-void host_ Domain_d::Solve(){
+void host_ ImpDomain_d::Solve(){
   WallTimer timer;
 
   AssignMatAddress();
@@ -162,7 +162,7 @@ for (int e = 0; e < m_elem_count; e++) {
   }//SOLVE
   
   
-void host_ Domain_d::ElasticSolve(){
+void host_ ImpDomain_d::ElasticSolve(){
   WallTimer timer;
 
   AssignMatAddress();
