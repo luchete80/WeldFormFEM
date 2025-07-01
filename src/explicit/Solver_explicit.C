@@ -360,11 +360,12 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  //  calcElemPressure();
+  //calcElemPressure();
+  //calcElemPressure_Hybrid_VolHG();
   
   //calcElemPressureFromJ();
   CalcStressStrain(dt);
-  //calcArtificialViscosity(); //Added to Sigma
+  calcArtificialViscosity(); //Added to Sigma
   
   calcElemForces();
   calcElemHourglassForces();

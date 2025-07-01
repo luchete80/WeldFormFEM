@@ -484,7 +484,7 @@ dev_t void Domain_d::calcElemPressure() {
     Jnod /= m_nodxelem;
 
     // Coeficiente hourglass (ajustar según pruebas)
-    double hg_coeff = 0.02;
+    double hg_coeff = 0.025;
     double p_hg = hg_coeff * K * (J - Jnod);
 
     p[e] = p_vol + p_hg;
@@ -493,6 +493,82 @@ dev_t void Domain_d::calcElemPressure() {
   delete []voln;
 }
 
+dev_t void Domain_d::calcElemPressure_Hybrid() {
+  // Compute nodal volumes (reused for hourglass control)
+  double *voln_0 = new double[m_node_count];
+  double *voln = new double[m_node_count];
+  
+  par_loop(n, m_node_count) {
+    voln_0[n] = voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];  // Sum elemental ref volumes
+      voln[n]   += vol[e];    // Sum elemental current volumes
+    }
+  }
+
+  // Blended elemental-nodal pressure
+  par_loop(e, m_elem_count) {
+    double K = mat[e]->Elastic().BulkMod();
+    double J_elem = vol[e] / vol_0[e];  // Elemental J
+    double p_elem = K * (1.0 - J_elem); // Elemental pressure
+
+    // Nodal J average (for stabilization)
+    double J_nod = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      J_nod += voln[nid] / voln_0[nid]; 
+    }
+    J_nod /= m_nodxelem;
+    double p_nod = K * (1.0 - J_nod);  // Nodal pressure
+
+    // Blend 80% elemental + 20% nodal (adjust weights as needed)
+    p[e] = 0.7 * p_elem + 0.3 * p_nod; 
+  }
+
+  delete[] voln_0;
+  delete[] voln;
+}
+
+dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
+  // ---- Step 1: Compute Nodal Volumes (for HG control) ----
+  double *voln_0 = new double[m_node_count];
+  double *voln = new double[m_node_count];
+  
+  par_loop(n, m_node_count) {
+    voln_0[n] = voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];  // Sum elemental ref volumes
+      voln[n]   += vol[e];    // Sum elemental current volumes
+    }
+  }
+
+  // ---- Step 2: Hybrid Pressure + Volumetric HG ----
+  par_loop(e, m_elem_count) {
+    double K = mat[e]->Elastic().BulkMod();
+    double J_elem = vol[e] / vol_0[e];  // Elemental Jacobian
+    double p_elem = K * (1.0 - J_elem); // Elemental pressure (hyperelastic)
+
+    // Compute nodal J average for HG stabilization
+    double J_nod = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      J_nod += voln[nid] / voln_0[nid]; 
+    }
+    J_nod /= m_nodxelem;
+
+    // ---- Volumetric Hourglass Term (Critical for Stability) ----
+    double hg_coeff = 0.03;  // Adjusted for metal forming (typical range: 0.02–0.05)
+    double p_hg = hg_coeff * K * (J_elem - J_nod);  // HG pressure correction
+
+    // ---- Final Blended Pressure ----
+    p[e] = 0.8 * p_elem + 0.2 * (K * (1.0 - J_nod)) + p_hg;  // 80% elemental, 20% nodal + HG
+  }
+
+  delete[] voln_0;
+  delete[] voln;
+}
 
 //Computational Methods in lagfangian & Eulerian Hydrocodes
 //From Benson 1992
@@ -605,77 +681,67 @@ dev_t void Domain_d::calcElemPressureANP_Nodal() {
   delete[] voln;
 }
 
+dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
+  double *pn = new double[m_node_count];
+  double *voln_0 = new double[m_node_count];
+  double *voln = new double[m_node_count];
+  double *Jelem = new double[m_elem_count];  // Store elemental J for HG term
 
-//~ dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
-  //~ double *pn     = new double[m_node_count];
-  //~ double *voln_0 = new double[m_node_count];
-  //~ double *voln   = new double[m_node_count];
+  // Assume uniform bulk modulus (or loop per element if needed)
+  double k = mat[0]->Elastic().BulkMod();
+  double hg_coeff = 0.03;  // Hourglass coefficient (tune as needed)
 
-  //~ double *Jnodal = new double[m_node_count]; // Para interpolar luego
-  //~ double *count  = new double[m_node_count]; // Para evitar división por 0
+  // --- Step 1: Compute nodal volumes and pressures ---
+  par_loop(n, m_node_count) {
+    voln_0[n] = 0.0;
+    voln[n] = 0.0;
+    pn[n] = 0.0;
 
-  //~ // Asumimos mismo bulk modulus para todos los elementos (ajustar si variable)
-  //~ double k = mat[0]->Elastic().BulkMod();
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e] / 4.0;  // Tet4 volume distribution
+      voln[n] += vol[e] / 4.0;
+    }
 
-  //~ // Inicializar volúmenes nodales y Jnod
-  //~ par_loop(n, m_node_count) {
-    //~ voln_0[n] = 0.0;
-    //~ voln[n]   = 0.0;
-    //~ pn[n]     = 0.0;
-    //~ Jnodal[n] = 0.0;
-    //~ count[n]  = 0.0;
+    // Nodal pressure (hyperelastic)
+    if (voln_0[n] > 1e-12) {
+      pn[n] = k * (1.0 - voln[n] / voln_0[n]);
+    }
+    p_node[n] = pn[n];  // For visualization
+  }
 
-    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
-      //~ int e = m_nodel[m_nodel_offset[n] + i];
-      //~ voln_0[n] += vol_0[e] / 4.0;
-      //~ voln[n]   += vol[e]   / 4.0;
-    //~ }
+  // --- Step 2: Compute elemental J (for HG term) ---
+  par_loop(e, m_elem_count) {
+    Jelem[e] = vol[e] / vol_0[e];  // Elemental Jacobian
+  }
 
-    //~ if (voln_0[n] > 1e-12) {
-      //~ double Jn = voln[n] / voln_0[n];
-      //~ pn[n] = k * (1.0 - Jn);
-      //~ Jnodal[n] = Jn;
-      //~ count[n]  = 1.0;
-    //~ } else {
-      //~ pn[n] = 0.0;
-      //~ Jnodal[n] = 1.0; // Valor neutro
-    //~ }
+  // --- Step 3: Final elemental pressure (nodal avg + HG) ---
+  par_loop(e, m_elem_count) {
+    // Nodal-averaged J
+    double Jnod = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      Jnod += voln[nid] / voln_0[nid];
+    }
+    Jnod /= m_nodxelem;
 
-    //~ p_node[n] = pn[n]; // Guardar para visualización
-  //~ }
+    // Hourglass stabilization term
+    double p_hg = hg_coeff * k * (Jelem[e] - Jnod);
 
-  //~ // Calcular presión elemental promediando nodos + hourglass correction
-  //~ par_loop(e, m_elem_count) {
-    //~ double p_avg = 0.0;
-    //~ double Jnod  = 0.0;
+    // Final pressure: nodal avg + HG
+    p[e] = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      p[e] += pn[nid];
+    }
+    p[e] = p[e] / m_nodxelem + p_hg;  // Add HG correction
+  }
 
-    //~ for (int a = 0; a < m_nodxelem; ++a) {
-      //~ int nid = m_elnod[e * m_nodxelem + a];
-      //~ p_avg += pn[nid];
-      //~ Jnod  += Jnodal[nid];
-    //~ }
-    //~ p_avg /= m_nodxelem;
-    //~ Jnod  /= m_nodxelem;
-
-    //~ // Presión volumétrica directa del elemento
-    //~ double J_elem = vol[e] / vol_0[e];
-    //~ double p_elem = k * (1.0 - J_elem);
-
-    //~ // Hourglass volumétrico (corrección de presión)
-    //~ double hg_coeff = 0.05; // entre 0.01 y 0.1 típico
-    //~ double p_hg = hg_coeff * k * (J_elem - Jnod);
-
-    //~ p[e] = p_avg + p_hg;
-  //~ }
-
-  //~ delete[] pn;
-  //~ delete[] voln_0;
-  //~ delete[] voln;
-  //~ delete[] Jnodal;
-  //~ delete[] count;
-//~ }
-
-
+  delete[] pn;
+  delete[] voln_0;
+  delete[] voln;
+  delete[] Jelem;
+}
 
 ///// EXPERIMENTAL NEW
 //~ dev_t void Domain_d::calcElemPressureANP_Element() {
@@ -1328,43 +1394,31 @@ dev_t void Domain_d:: calcElemHourglassForces()
   // }
 // }
 
+dev_t void Domain_d::calcArtificialViscosity() {
+  double alpha = 2.0;  // Increased from 1.0 (more linear damping)
+  double beta = 0.2;   // Increased from 0.05 (more quadratic damping)
+  double q_max = 1e9;
 
+  par_loop(e, m_elem_count) {
+    int offset_t = e * 6;
+    double c = sqrt(mat[e]->Elastic().BulkMod() / rho[e]);
+    tensor3 StrRate = FromFlatSym(m_str_rate, e * m_gp_count * 6);
+    double eps_v = Trace(StrRate);
 
-  dev_t void Domain_d::calcArtificialViscosity() {
-    par_loop(e, m_elem_count) {
+    // Apply viscosity for BOTH compression and tension
+    if (abs(eps_v) > 1e-12) {  // Small threshold to avoid noise
+      double l = pow(vol[e], 1.0/3.0);
+      double q = alpha * c * abs(eps_v) * l + beta * pow(eps_v * l, 2);
+      q = std::min(q, q_max);
 
-      double c = sqrt(mat[e]->Elastic().BulkMod() / rho[e]);  // Speed of sound
-      double eps_v = 0.0;
-
-      tensor3 StrRate;      
-      // Compute volumetric strain rate (∇·v)
-
-      //printf("calculating sigma %d\n", e);
-        int offset_s = e * m_gp_count;   //SCALAR
-        int offset_t = offset_s * 6 ; //SYM TENSOR
-        StrRate     = FromFlatSym(m_str_rate,     offset_t );      
-
-        //eps_v += Trace(StrRate) / m_gp_count;
-        eps_v = Trace(StrRate);
-
-
-
-
-      
-      
-      double l = pow(vol[e], 1.0/3.0);  // Element characteristic length
-      double q = rho[e]* (0.1 * c * fabs(eps_v) * l + 1.5 * pow(eps_v * l, 2));
-      printf("q visc: %.4e\n", q);
-      // Apply only for compression (ϵ̇_v < 0)
-      if (eps_v < 0.0) {
-        //for (int gp = 0; gp < m_gp_count; gp++) {
-          for (int d=0;d<3;d++) m_sigma[offset_t+d] += q;  // Add to Cauchy stress
-        //}
-      }
-    }//element
+      // Subtract q from diagonal stresses (sign depends on expansion/compression)
+      double q_signed = (eps_v > 0) ? -q : q;
+      m_sigma[offset_t + 0] += q_signed;
+      m_sigma[offset_t + 1] += q_signed;
+      m_sigma[offset_t + 2] += q_signed;
+    }
   }
-
-
+}
 
   /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		

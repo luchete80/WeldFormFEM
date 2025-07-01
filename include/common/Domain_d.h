@@ -206,6 +206,9 @@ public:
   dev_t void calcElemPressureElementBased();
   dev_t void calcElemPressureANP_Nodal();
   dev_t void calcElemPressureANP_Nodal_HG();
+  
+  dev_t void calcElemPressure_Hybrid();
+  dev_t void calcElemPressure_Hybrid_VolHG();
 
   dev_t void assemblyMassMatrix();
   dev_t void assemblyForces();
