@@ -455,6 +455,19 @@ dev_t void Domain_d::calcElemForces(){
 
 ////ALT PRESSURE CALC
 dev_t void Domain_d::calcElemPressure() {
+  // Compute nodal volumes (reused for hourglass control)
+  double *voln_0 = new double[m_node_count];
+  double *voln = new double[m_node_count];
+  
+  par_loop(n, m_node_count) {
+    voln_0[n] = voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];  // Sum elemental ref volumes
+      voln[n]   += vol[e];    // Sum elemental current volumes
+    }
+  }
+
   par_loop(e, m_elem_count) {
     double K = mat[e]->Elastic().BulkMod();
     double rho_e = rho[e];  // Densidad actual del elemento
@@ -484,13 +497,29 @@ dev_t void Domain_d::calcElemPressure() {
       double h = getMinLength();
       double alpha = 1.0;
       double beta = 0.05;
+      
 
       q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
     }
+    
+    // Hourglass volumétrico (opcional, ajustable)
+    double Jnod = 0.0;
+    for (int a = 0; a < m_nodxelem; ++a) {
+      int nid = m_elnod[e * m_nodxelem + a];
+      double Jn = voln[nid] / voln_0[nid];
+      Jnod += Jn;
+    }
+    Jnod /= m_nodxelem;
 
+    double hg_coeff = 0.05;
+    double p_hg = hg_coeff * K * (J - Jnod);
+    
     // Presión final
     p[e] = p_vol + q;
   }
+  delete[] voln_0;
+  delete[] voln;
+  
 }
 
 dev_t void Domain_d::calcElemPressure_Hybrid() {
