@@ -557,123 +557,123 @@ dev_t void Domain_d::calcNodalPressureFromElemental() {
 // }
 
 ////CORRECTED
-//~ dev_t void Domain_d::calcElemPressureANP_Nodal() {
-  //~ double *pn = new double[m_node_count];
-  //~ double *voln_0 = new double[m_node_count];
-  //~ double *voln = new double[m_node_count];
-
-  //~ // Asumimos mismo bulk modulus para todos los elementos
-  //~ double k = mat[0]->Elastic().BulkMod();
-
-  //~ // Inicializar volúmenes nodales
-  //~ par_loop(n, m_node_count) {
-    //~ voln_0[n] = 0.0;
-    //~ voln[n]   = 0.0;
-    //~ pn[n]     = 0.0;
-
-    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
-      //~ int e = m_nodel[m_nodel_offset[n] + i];
-
-      //~ // Distribuir el volumen entre los nodos (tetra = 4 nodos)
-      //~ voln_0[n] += vol_0[e] / 4.0;
-      //~ voln[n]   += vol[e]   / 4.0;
-    //~ }
-
-    //~ // Cálculo del J nodal y presión nodal
-    //~ if (voln_0[n] > 1e-12) {
-      //~ double Jn = voln[n] / voln_0[n];
-      //~ pn[n] = k * (1.0 - Jn);
-    //~ } else {
-      //~ pn[n] = 0.0; // O alguna penalización por nodo inválido
-    //~ }
-
-    //~ p_node[n] = pn[n]; // Guardar para visualización
-  //~ }
-
-  //~ // Promediar presiones nodales para obtener presión elemental
-  //~ par_loop(e, m_elem_count) {
-    //~ p[e] = 0.0;
-    //~ for (int a = 0; a < m_nodxelem; ++a) {
-      //~ int nid = m_elnod[e * m_nodxelem + a];
-      //~ p[e] += pn[nid];
-    //~ }
-    //~ p[e] /= m_nodxelem;
-  //~ }
-
-  //~ delete[] pn;
-  //~ delete[] voln_0;
-  //~ delete[] voln;
-//~ }
-
-
-dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
-  double *pn     = new double[m_node_count];
+dev_t void Domain_d::calcElemPressureANP_Nodal() {
+  double *pn = new double[m_node_count];
   double *voln_0 = new double[m_node_count];
-  double *voln   = new double[m_node_count];
+  double *voln = new double[m_node_count];
 
-  double *Jnodal = new double[m_node_count]; // Para interpolar luego
-  double *count  = new double[m_node_count]; // Para evitar división por 0
-
-  // Asumimos mismo bulk modulus para todos los elementos (ajustar si variable)
+  // Asumimos mismo bulk modulus para todos los elementos
   double k = mat[0]->Elastic().BulkMod();
 
-  // Inicializar volúmenes nodales y Jnod
+  // Inicializar volúmenes nodales
   par_loop(n, m_node_count) {
     voln_0[n] = 0.0;
     voln[n]   = 0.0;
     pn[n]     = 0.0;
-    Jnodal[n] = 0.0;
-    count[n]  = 0.0;
 
     for (int i = 0; i < m_nodel_count[n]; ++i) {
       int e = m_nodel[m_nodel_offset[n] + i];
+
+      // Distribuir el volumen entre los nodos (tetra = 4 nodos)
       voln_0[n] += vol_0[e] / 4.0;
       voln[n]   += vol[e]   / 4.0;
     }
 
+    // Cálculo del J nodal y presión nodal
     if (voln_0[n] > 1e-12) {
       double Jn = voln[n] / voln_0[n];
       pn[n] = k * (1.0 - Jn);
-      Jnodal[n] = Jn;
-      count[n]  = 1.0;
     } else {
-      pn[n] = 0.0;
-      Jnodal[n] = 1.0; // Valor neutro
+      pn[n] = 0.0; // O alguna penalización por nodo inválido
     }
 
     p_node[n] = pn[n]; // Guardar para visualización
   }
 
-  // Calcular presión elemental promediando nodos + hourglass correction
+  // Promediar presiones nodales para obtener presión elemental
   par_loop(e, m_elem_count) {
-    double p_avg = 0.0;
-    double Jnod  = 0.0;
-
+    p[e] = 0.0;
     for (int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e * m_nodxelem + a];
-      p_avg += pn[nid];
-      Jnod  += Jnodal[nid];
+      p[e] += pn[nid];
     }
-    p_avg /= m_nodxelem;
-    Jnod  /= m_nodxelem;
-
-    // Presión volumétrica directa del elemento
-    double J_elem = vol[e] / vol_0[e];
-    double p_elem = k * (1.0 - J_elem);
-
-    // Hourglass volumétrico (corrección de presión)
-    double hg_coeff = 0.05; // entre 0.01 y 0.1 típico
-    double p_hg = hg_coeff * k * (J_elem - Jnod);
-
-    p[e] = p_avg + p_hg;
+    p[e] /= m_nodxelem;
   }
 
   delete[] pn;
   delete[] voln_0;
   delete[] voln;
-  delete[] Jnodal;
-  delete[] count;
 }
+
+
+//~ dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
+  //~ double *pn     = new double[m_node_count];
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln   = new double[m_node_count];
+
+  //~ double *Jnodal = new double[m_node_count]; // Para interpolar luego
+  //~ double *count  = new double[m_node_count]; // Para evitar división por 0
+
+  //~ // Asumimos mismo bulk modulus para todos los elementos (ajustar si variable)
+  //~ double k = mat[0]->Elastic().BulkMod();
+
+  //~ // Inicializar volúmenes nodales y Jnod
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = 0.0;
+    //~ voln[n]   = 0.0;
+    //~ pn[n]     = 0.0;
+    //~ Jnodal[n] = 0.0;
+    //~ count[n]  = 0.0;
+
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ voln_0[n] += vol_0[e] / 4.0;
+      //~ voln[n]   += vol[e]   / 4.0;
+    //~ }
+
+    //~ if (voln_0[n] > 1e-12) {
+      //~ double Jn = voln[n] / voln_0[n];
+      //~ pn[n] = k * (1.0 - Jn);
+      //~ Jnodal[n] = Jn;
+      //~ count[n]  = 1.0;
+    //~ } else {
+      //~ pn[n] = 0.0;
+      //~ Jnodal[n] = 1.0; // Valor neutro
+    //~ }
+
+    //~ p_node[n] = pn[n]; // Guardar para visualización
+  //~ }
+
+  //~ // Calcular presión elemental promediando nodos + hourglass correction
+  //~ par_loop(e, m_elem_count) {
+    //~ double p_avg = 0.0;
+    //~ double Jnod  = 0.0;
+
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ p_avg += pn[nid];
+      //~ Jnod  += Jnodal[nid];
+    //~ }
+    //~ p_avg /= m_nodxelem;
+    //~ Jnod  /= m_nodxelem;
+
+    //~ // Presión volumétrica directa del elemento
+    //~ double J_elem = vol[e] / vol_0[e];
+    //~ double p_elem = k * (1.0 - J_elem);
+
+    //~ // Hourglass volumétrico (corrección de presión)
+    //~ double hg_coeff = 0.05; // entre 0.01 y 0.1 típico
+    //~ double p_hg = hg_coeff * k * (J_elem - Jnod);
+
+    //~ p[e] = p_avg + p_hg;
+  //~ }
+
+  //~ delete[] pn;
+  //~ delete[] voln_0;
+  //~ delete[] voln;
+  //~ delete[] Jnodal;
+  //~ delete[] count;
+//~ }
 
 
 
