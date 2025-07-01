@@ -1,4 +1,4 @@
-#include "Domain_d.h"
+#include "ImpDomain_d.h"
 #include "Matrix.h"
 
 #include <iostream>
@@ -44,7 +44,7 @@ namespace MetFEM{
 
 ///// USES VOL OR DETERMINANT
 /////// IN CUDA ISPREFERRED NOT TO SAVE IT
-Matrix Domain_d::getElemBMatrix(const int &e){
+Matrix ImpDomain_d::getElemBMatrix(const int &e){
   Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
     if (m_dim == 3){
     //3D Voigt notation, where:
@@ -71,7 +71,7 @@ Matrix Domain_d::getElemBMatrix(const int &e){
   return B;
 }
 
-void Domain_d::CalcMaterialStiffElementMatrix(){
+void ImpDomain_d::CalcMaterialStiffElementMatrix(){
   par_loop(e, m_elem_count){
     /// TODO: CHANGE FOR DIM = 2
     Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
@@ -130,8 +130,10 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   
 }
 
-void Domain_d::CalcGeometricStiffElementMatrix() {
+/*
+void ImpDomain_d::CalcGeomStiffElementMatrix() {
   par_loop(e, m_elem_count) {
+   
     Matrix& stress = *(m_stress_voigt[e]);  // 3x3 Cauchy stress tensor (assumed full matrix, not Voigt)
     double Ve = vol[e];                     // element volume
 
@@ -169,10 +171,10 @@ void Domain_d::CalcGeometricStiffElementMatrix() {
       }
     }
 
-    Kgeo.Print();
+    //Kgeo.Print();
   }
 }
-
+*/
 
 
 /// KGEO - NO B APPROACH
@@ -200,7 +202,7 @@ void Domain_d::CalcGeometricStiffElementMatrix() {
 //}
 
 //// K GEO - B MATRIX APPROACH
-dev_t void Domain_d::CalcGeomStiffElementMatrix(){
+dev_t void ImpDomain_d::CalcGeomStiffElementMatrix(){
   
   par_loop(e, m_elem_count){
    //# Insert Kab into 12x12 Kgeo_local at block [a][b]
@@ -255,128 +257,47 @@ dev_t void Domain_d::CalcGeomStiffElementMatrix(){
 /// FOR EACH NODE PAIR
 ///dNdNiT sig dNdJ I3x3
 
-dev_t void Domain_d::assemblyForces(){
+//~ dev_t void Domain_d::assemblyForces(){
 
-    //if ()
-  //par_loop(n, m_node_count){
-  for (int n=0;n<m_node_count;n++){
-    for (int d=0;d<m_dim;d++)
-      m_fi[n*m_dim + d] = 0.0;
+    //~ //if ()
+  //~ //par_loop(n, m_node_count){
+  //~ for (int n=0;n<m_node_count;n++){
+    //~ for (int d=0;d<m_dim;d++)
+      //~ m_fi[n*m_dim + d] = 0.0;
       
-      //printf("--------\n");    
-      for (int e=0; e<m_nodel_count[n];e++) {
-        int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-        int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-        int offset  = eglob * m_nodxelem * m_dim;
+      //~ //printf("--------\n");    
+      //~ for (int e=0; e<m_nodel_count[n];e++) {
+        //~ int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+        //~ int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+        //~ int offset  = eglob * m_nodxelem * m_dim;
 
-        for (int d=0;d<m_dim;d++){
-          //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
-          //if (n==9)
-          //  printf("%6e %6e %6e\n",m_fi[n*m_dim],m_f_elem[n*m_dim+1],m_f_elem[n*m_dim+2]);
-          m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
-        }
-          if(m_thermal){
-            T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
-	  }
-      }
-      if (m_gp_count == 1 ) {  
-        for (int e=0; e<m_nodel_count[n];e++) {
-          int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-          int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
-          int offset  = eglob * m_nodxelem * m_dim;
-          ////printf("glob %d, loc %d \n",n,ne);
-          for (int d=0;d<m_dim;d++){
-            //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
-            m_fi[n*m_dim + d] -= m_f_elem_hg [offset + ne*m_dim + d];
-          }
-        }      
-      }
-      // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
-    } // element
-
-
-}//assemblyForcesNonLock
-
-
-//~ void Domain_d::assemblyGlobalSolverMatrix(){
-  
-  //~ for (int e = 0; e < m_elem_count; ++e) {
-      //~ const Matrix& Ke = *(m_Kmat[e]);  // Dense local stiffness matrix
-
-      //~ // Collect global DOF indices for this element
-      //~ std::vector<int> global_dofs(m_nodxelem * m_dim);
-      //~ for (int a = 0; a < m_nodxelem; ++a) {
-          //~ //int node = elem_conn[e][a];
-          //~ int node = getElemNode(e,a);
-          //~ for (int i = 0; i < m_dim; ++i) {
-              //~ global_dofs[a * m_dim + i] = node * m_dim + i;
-          //~ }
+        //~ for (int d=0;d<m_dim;d++){
+          //~ //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+          //~ //if (n==9)
+          //~ //  printf("%6e %6e %6e\n",m_fi[n*m_dim],m_f_elem[n*m_dim+1],m_f_elem[n*m_dim+2]);
+          //~ m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
+        //~ }
+          //~ if(m_thermal){
+            //~ T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
+	  //~ }
       //~ }
-
-      //~ // Assemble into global matrix
-      //~ for (int i = 0; i < global_dofs.size(); ++i) {
-          //~ int I = global_dofs[i];
-          //~ for (int j = 0; j < global_dofs.size(); ++j) {
-              //~ int J = global_dofs[j];
-              //~ //global_K[I][J] += Ke(i, j);
+      //~ if (m_gp_count == 1 ) {  
+        //~ for (int e=0; e<m_nodel_count[n];e++) {
+          //~ int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+          //~ int ne      = m_nodel_loc [m_nodel_offset[n]+e]; //LOCAL ELEMENT NODE INDEX m_nodel_local
+          //~ int offset  = eglob * m_nodxelem * m_dim;
+          //~ ////printf("glob %d, loc %d \n",n,ne);
+          //~ for (int d=0;d<m_dim;d++){
+            //~ //atomicAdd(&m_f[m_elnod[n]*m_dim + d], m_f_elem[e*m_nodxelem*m_dim + n*m_dim + d]);
+            //~ m_fi[n*m_dim + d] -= m_f_elem_hg [offset + ne*m_dim + d];
           //~ }
+        //~ }      
       //~ }
-  //~ } //elem_count
-  
-  
-//~ }
+      //~ // printf ("force %f %f %f\n",m_fi[m_dim*n],m_fi[m_dim*n+1],m_fi[m_dim*n+2]);
+    //~ } // element
 
 
-  //~ std::vector<std::unordered_set<int>> dof_neighbors(n_nodes * m_dim);
+//~ }//assemblyForcesNonLock
 
-  //~ // Loop over all elements
-  //~ for (int e = 0; e < m_elem_count; ++e) {
-      //~ for (int a = 0; a < m_nodxelem; ++a) {
-          //~ int node_a = elem_conn[e][a];
-          //~ for (int i = 0; i < m_dim; ++i) {
-              //~ int dof_a = node_a * m_dim + i;
-              //~ for (int b = 0; b < m_nodxelem; ++b) {
-                  //~ int node_b = elem_conn[e][b];
-                  //~ for (int j = 0; j < m_dim; ++j) {
-                      //~ int dof_b = node_b * m_dim + j;
-                      //~ dof_neighbors[dof_a].insert(dof_b);
-                  //~ }
-              //~ }
-          //~ }
-      //~ }
-  //~ }
-
-
-//~ // Now count total number of nonzeros (NNZ)
-//~ int nnz = 0;
-//~ for (const auto& neighbors : dof_neighbors) {
-    //~ nnz += neighbors.size();  // Number of unique DOFs connected to this DOF
-//~ }
-
-
-//~ void allocateSolverSizes(){
-  //~ std::vector<int> nnz_per_row(num_dofs, 0);
-
-  //~ // Loop over elements
-  //~ for (int e = 0; e < m_elem_count; ++e) {
-      //~ std::vector<int> global_dofs(m_nodxelem * m_dim);
-      //~ for (int a = 0; a < m_nodxelem; ++a) {
-          //~ int node = getElemNode(e, a);
-          //~ for (int i = 0; i < m_dim; ++i) {
-              //~ global_dofs[a * m_dim + i] = node * m_dim + i;
-          //~ }
-      //~ }
-
-      //~ for (int i = 0; i < global_dofs.size(); ++i) {
-          //~ int row = global_dofs[i];
-          //~ for (int j = 0; j < global_dofs.size(); ++j) {
-              //~ int col = global_dofs[j];
-              //~ if (col != row) nnz_per_row[row]++;
-          //~ }
-          //~ nnz_per_row[row]++; // Diagonal
-      //~ }
-  //~ }
-
-//~ }
 
 };

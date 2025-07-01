@@ -87,10 +87,11 @@ endif ()
 
 
 set (SOURCES                          
-                       
-                         Solver.C
-                         Solver_Eigen.C
-
+                        ImpDomain_d.C
+                        Matrices.C
+                        Solver.C
+                        Solver_Eigen.C
+                          
                    )
 
 if (BUILD_REMESH)
@@ -102,7 +103,7 @@ endif()
 add_executable(weldform_imp main.C
                          "${SOURCES}"
                )
-add_library(ForgeFormFEMlib 
-                         "${SOURCES}"
-               )
+               
+TARGET_LINK_LIBRARIES (weldform_imp PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)
+
 

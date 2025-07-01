@@ -143,7 +143,7 @@ public:
     m_remesh_interval = 1e10;
   }
   void setNproc(const int &n){Nproc=n;}
-  void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
+  virtual void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
