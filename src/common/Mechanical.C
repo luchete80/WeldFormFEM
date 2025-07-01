@@ -559,11 +559,11 @@ dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
     J_nod /= m_nodxelem;
 
     // ---- Volumetric Hourglass Term (Critical for Stability) ----
-    double hg_coeff = 0.03;  // Adjusted for metal forming (typical range: 0.02–0.05)
+    double hg_coeff = 0.0;  // Adjusted for metal forming (typical range: 0.02–0.05)
     double p_hg = hg_coeff * K * (J_elem - J_nod);  // HG pressure correction
 
     // ---- Final Blended Pressure ----
-    p[e] = 0.8 * p_elem + 0.2 * (K * (1.0 - J_nod)) + p_hg;  // 80% elemental, 20% nodal + HG
+    p[e] = 0.7 * p_elem + 0.3 * (K * (1.0 - J_nod)) + p_hg;  // 80% elemental, 20% nodal + HG
   }
 
   delete[] voln_0;
@@ -689,7 +689,7 @@ dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
 
   // Assume uniform bulk modulus (or loop per element if needed)
   double k = mat[0]->Elastic().BulkMod();
-  double hg_coeff = 0.03;  // Hourglass coefficient (tune as needed)
+  double hg_coeff = 0.02;  // Hourglass coefficient (tune as needed)
 
   // --- Step 1: Compute nodal volumes and pressures ---
   par_loop(n, m_node_count) {

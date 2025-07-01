@@ -362,6 +362,7 @@ void host_ Domain_d::SolveChungHulbert(){
   // }else
   //calcElemPressure();
   //calcElemPressure_Hybrid_VolHG();
+  calcElemPressureANP_Nodal_HG();
   
   //calcElemPressureFromJ();
   CalcStressStrain(dt);
