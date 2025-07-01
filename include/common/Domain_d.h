@@ -204,6 +204,7 @@ public:
   dev_t void calcElemPressureFromJ();
   dev_t void calcElemPressureANP(); //AVERAGE NODAL POINT
   dev_t void calcElemPressureElementBased();
+  dev_t void calcElemPressureANP_Nodal();
   dev_t void calcElemPressureANP_Nodal_HG();
 
   dev_t void assemblyMassMatrix();

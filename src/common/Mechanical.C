@@ -524,37 +524,37 @@ dev_t void Domain_d::calcNodalPressureFromElemental() {
 //ONLY FOR CONSTANT TETRA
 //JOLDES, WITTEK, MILLER
 //Non-locking tetrahedral finite element for surgical simulation
-// dev_t void Domain_d::calcElemPressureANP(){
-  // double *pn = new double [m_node_count];
-  // double *voln_0 = new double [m_node_count];
-  // double *voln = new double [m_node_count];
+dev_t void Domain_d::calcElemPressureANP(){
+  double *pn = new double [m_node_count];
+  double *voln_0 = new double [m_node_count];
+  double *voln = new double [m_node_count];
 
-  // //assume same bulk modulus
-  // double k = mat[0]->Elastic().BulkMod();
+   //assume same bulk modulus
+  double k = mat[0]->Elastic().BulkMod();
 
-  // par_loop(n, m_node_count){
-    // voln_0[n]=0.0;
-    // voln  [n]=0.0;
-    // pn[n]    = 0.0;
-    // for (int e=0; e<m_nodel_count[n];e++) {    
-      // int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      // voln_0[n]+= /*0.25**/vol_0[eglob];
-      // voln[n] +=/*0.25**/vol[eglob]; 
-    // }
-    // //printf("Node %d vol %f\n", n,voln[n]);
-    // pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
-    // p_node[n] = pn[n];
-  // } //NODE LOOP
+   par_loop(n, m_node_count){
+     voln_0[n]=0.0;
+     voln  [n]=0.0;
+     pn[n]    = 0.0;
+     for (int e=0; e<m_nodel_count[n];e++) {    
+       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+       voln_0[n]+= /*0.25**/vol_0[eglob];
+       voln[n] +=/*0.25**/vol[eglob]; 
+     }
+     //printf("Node %d vol %f\n", n,voln[n]);
+     pn[n] = k*(1.0 - voln[n]/voln_0[n]); //0.25 is not necesary since is dividing
+     p_node[n] = pn[n];
+   } //NODE LOOP
 
-  // par_loop(e,m_elem_count){
-    // for (int ne=0;ne<m_nodxelem;ne++) //I.E. 4 
-      // p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
-    // p[e] *= 0.25;
-  // }
-  // delete []pn;
-  // delete []voln_0;
-  // delete []voln;
-// }
+   par_loop(e,m_elem_count){
+     for (int ne=0;ne<m_nodxelem;ne++) //I.E. 4 
+       p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
+     p[e] *= 0.25;
+   }
+   delete []pn;
+   delete []voln_0;
+   delete []voln;
+ }
 
 ////CORRECTED
 dev_t void Domain_d::calcElemPressureANP_Nodal() {
