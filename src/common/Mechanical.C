@@ -511,7 +511,7 @@ dev_t void Domain_d::calcElemPressure() {
     }
     Jnod /= m_nodxelem;
 
-    double hg_coeff = 0.1;
+    double hg_coeff = 0.0;
     double p_hg = hg_coeff * K * (J - Jnod);
     
     // Presión final
@@ -529,6 +529,7 @@ void Domain_d::smoothPressureField(double gamma) {
   for (int e = 0; e < m_elem_count; ++e) {
     double sum_p = 0.0;
     int count = 0;
+    //printf("element nb%d\n",m_elem_neigh_count[e]);
     for (int i = 0; i < m_elem_neigh_count[e]; ++i) {
       int e_neigh = m_elem_neigh[4*e+i];
       sum_p += p[e_neigh] - p[e];
