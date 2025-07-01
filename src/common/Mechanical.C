@@ -455,42 +455,42 @@ dev_t void Domain_d::calcElemForces(){
 
 ////ALT PRESSURE CALC
 dev_t void Domain_d::calcElemPressure() {
-  double *voln_0 = new double [m_node_count];
-  double *voln = new double [m_node_count];
-  
-  // Primero: calcular volúmenes nodales para hourglass
-  par_loop(n, m_node_count) {
-    voln_0[n] = 0.0;
-    voln[n] = 0.0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n] += vol[e];
-    }
-  }
-
-  // Ahora calcular presión elemental + hourglass
   par_loop(e, m_elem_count) {
     double K = mat[e]->Elastic().BulkMod();
-    double J = vol[e] / vol_0[e];
-    double p_vol = K * (1.0 - J);
+    double rho_e = rho[e];  // Densidad actual del elemento
+    double vol0 = vol_0[e];
+    double vol1 = vol[e];
+    double J = vol1 / vol0;
 
-    // Calcular promedio nodal de J para hourglass
-    double Jnod = 0.0;
+    // Presión volumétrica pura (ley logarítmica)
+    double p_vol = -K * log(J);
+
+    // Viscosidad artificial (solo si hay compresión)
+    double div_v = 0.0;
+
     for (int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e * m_nodxelem + a];
-      Jnod += voln[nid] / voln_0[nid];
+      double3 va = getVelVec(nid); // Velocidad nodal
+      //vec3 gradNa = grad_shape[e][a]; // ∇N constante en tetra lineal
+      //getDerivative(e,gp,d,n)
+      double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+      div_v += dot(gradNa, va);
     }
-    Jnod /= m_nodxelem;
 
-    // Coeficiente hourglass (ajustar según pruebas)
-    double hg_coeff = 0.025;
-    double p_hg = hg_coeff * K * (J - Jnod);
+    double q = 0.0;
+    if (div_v < 0.0) {
+      double c = sqrt(K / rho_e); // Velocidad del sonido
+      //double h = elem_char_length[e]; // Longitud característica del elemento
+      double h = getMinLength();
+      double alpha = 1.0;
+      double beta = 0.05;
 
-    p[e] = p_vol + p_hg;
+      q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
+    }
+
+    // Presión final
+    p[e] = p_vol + q;
   }
-  delete []voln_0;
-  delete []voln;
 }
 
 dev_t void Domain_d::calcElemPressure_Hybrid() {

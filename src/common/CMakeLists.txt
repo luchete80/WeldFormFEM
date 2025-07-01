@@ -113,6 +113,9 @@ TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 endif()
 
 TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
+
+link_directories (${CMAKE_BINARY_DIR}/lib/mmg-5.8.0)
+
 else() #BUILD CPU
   # TARGET_LINK_LIBRARIES (MetFEMGPU libstdc++)
   if (BUILD_REMESH)

@@ -2,7 +2,7 @@
 #define _DEFS_H_
 
 //TODO: TEST IT AND COMPARE WITH VEC3D...
-#include "Vec3D.h"
+//#include "Vec3D.h"
 
 #define Ptr_vector2   Ptr_double2
 

@@ -357,12 +357,12 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
-  calcElemPressureANP_Nodal();
+  //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  //calcElemPressure();
+  calcElemPressure();
   //calcElemPressure_Hybrid_VolHG();
-  calcElemPressureANP_Nodal_HG();
+  //calcElemPressureANP_Nodal_HG();
   
   //calcElemPressureFromJ();
   CalcStressStrain(dt);

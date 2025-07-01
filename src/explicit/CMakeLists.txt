@@ -20,18 +20,28 @@ ELSE ()
   message ("OPENMP NOT FOUND")
   endif()
 
+set_source_files_properties(main.C 
+                            Solver_explicit.C
+                            ${CMAKE_SOURCE_DIR}/include
+
+                            PROPERTIES LANGUAGE CXX)
+
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -O3")
 ENDIF() 
 
 
             
 add_executable(weldform_exp main.C
-                            Solver_explicit
+                            Solver_explicit.C
                          "${SOURCES}"
                )
 target_include_directories(weldform_exp PRIVATE "${CMAKE_BINARY_DIR}/generated")
 
-TARGET_LINK_LIBRARIES (weldform_exp PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)
+link_directories (${CMAKE_BINARY_DIR}/lib/mmg-5.8.0)
+TARGET_LINK_LIBRARIES (weldform_exp PRIVATE 
+                                  
+                                  #${MMG3D_LIB} 
+                                  OpenMP::OpenMP_CXX WeldFormFEM)
 
 
 
