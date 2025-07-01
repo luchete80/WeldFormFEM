@@ -424,74 +424,74 @@ dev_t void Domain_d::calcElemForces(){
 }
 
 // ORIGINAL
-// dev_t void Domain_d::calcElemPressure(){
+ dev_t void Domain_d::calcElemPressure(){
 
-  // par_loop(e,m_elem_count){
-    // //printf("calc pressure \n");
-    // int offset_t = e * m_gp_count *6;
+  par_loop(e,m_elem_count){
+    //printf("calc pressure \n");
+    int offset_t = e * m_gp_count *6;
 
-    // double trace;
-    // double press_inc = 0.0;
-    // for (int gp=0;gp<m_gp_count;gp++){
-      // trace = 0.0;
-      // tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-      // //printf("str inc, dt %f\n", dt);print(str_inc);
-      // press_inc += Trace(str_inc);
-    // }//gauss point
-    // press_inc = -press_inc/m_gp_count;
-    // //  //printf("trace %f\n",trace);
-    // int offset = e * m_gp_count ;
-    // for (int gp=0;gp<m_gp_count;gp++){
-      // //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
-      // trace = 0.0;
-      // for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
-      
-      // p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-      // //printf("pressure %f\n",p[offset + gp]);
-    // }
+     double trace;
+     double press_inc = 0.0;
+     for (int gp=0;gp<m_gp_count;gp++){
+       trace = 0.0;
+       tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
+       //printf("str inc, dt %f\n", dt);print(str_inc);
+       press_inc += Trace(str_inc);
+      }//gauss point
+       press_inc = -press_inc/m_gp_count;
+       //  //printf("trace %f\n",trace);
+       int offset = e * m_gp_count ;
+       for (int gp=0;gp<m_gp_count;gp++){
+        //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
+       trace = 0.0;
+       for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
+        
+       p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
+       //printf("pressure %f\n",p[offset + gp]);
+     }
 
-  // } // e< elem_count
-// }
+   } // e< elem_count
+ }
 
 ////ALT PRESSURE CALC
-dev_t void Domain_d::calcElemPressure() {
-  double *voln_0 = new double [m_node_count];
-  double *voln = new double [m_node_count];
+//~ dev_t void Domain_d::calcElemPressure() {
+  //~ double *voln_0 = new double [m_node_count];
+  //~ double *voln = new double [m_node_count];
   
-  // Primero: calcular volúmenes nodales para hourglass
-  par_loop(n, m_node_count) {
-    voln_0[n] = 0.0;
-    voln[n] = 0.0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n] += vol[e];
-    }
-  }
+  //~ // Primero: calcular volúmenes nodales para hourglass
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = 0.0;
+    //~ voln[n] = 0.0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ voln_0[n] += vol_0[e];
+      //~ voln[n] += vol[e];
+    //~ }
+  //~ }
 
-  // Ahora calcular presión elemental + hourglass
-  par_loop(e, m_elem_count) {
-    double K = mat[e]->Elastic().BulkMod();
-    double J = vol[e] / vol_0[e];
-    double p_vol = K * (1.0 - J);
+  //~ // Ahora calcular presión elemental + hourglass
+  //~ par_loop(e, m_elem_count) {
+    //~ double K = mat[e]->Elastic().BulkMod();
+    //~ double J = vol[e] / vol_0[e];
+    //~ double p_vol = K * (1.0 - J);
 
-    // Calcular promedio nodal de J para hourglass
-    double Jnod = 0.0;
-    for (int a = 0; a < m_nodxelem; ++a) {
-      int nid = m_elnod[e * m_nodxelem + a];
-      Jnod += voln[nid] / voln_0[nid];
-    }
-    Jnod /= m_nodxelem;
+    //~ // Calcular promedio nodal de J para hourglass
+    //~ double Jnod = 0.0;
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ Jnod += voln[nid] / voln_0[nid];
+    //~ }
+    //~ Jnod /= m_nodxelem;
 
-    // Coeficiente hourglass (ajustar según pruebas)
-    double hg_coeff = 0.02;
-    double p_hg = hg_coeff * K * (J - Jnod);
+    //~ // Coeficiente hourglass (ajustar según pruebas)
+    //~ double hg_coeff = 0.02;
+    //~ double p_hg = hg_coeff * K * (J - Jnod);
 
-    p[e] = p_vol + p_hg;
-  }
-  delete []voln_0;
-  delete []voln;
-}
+    //~ p[e] = p_vol + p_hg;
+  //~ }
+  //~ delete []voln_0;
+  //~ delete []voln;
+//~ }
 
 
 //Computational Methods in lagfangian & Eulerian Hydrocodes
