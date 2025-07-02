@@ -168,7 +168,7 @@ void host_ Domain_d::SolveChungHulbert(){
   while (Time < end_t) {
       
   ////// OR TIME
-  if (step_count % 1000 == 0){
+  if (step_count % 100 == 0){
     printf("Step %d, Time %f, Step Time %.4e\n",step_count, Time, dt);  
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
@@ -504,8 +504,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
     ostringstream oss_out;
     oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
-    oss_out << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
-    oss_out << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
+    oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
     //printf("Reaction Forces\n");
     of <<std::scientific<<std::setprecision(6)<< Time ;
