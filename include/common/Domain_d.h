@@ -148,7 +148,7 @@ public:
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
-  
+  void SetDimensionImplicit(const int &node_count, const int &elem_count); //TO NOT USE virtual (GPU issues)
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
   ///// (CUDA HOST) FUNCTIONS 
@@ -317,7 +317,6 @@ public:
 	int & getDim(){return m_dim;}
   void setProcCount(const int &np){Nproc = np;} //for CPU only
   
-  void ElasticSolve();
     
   void dev_t CalcContactForces(); //standard, not predicted
   void setContactOn(){contact = true;}
@@ -347,13 +346,25 @@ public:
     
     }
   void calcContactForceFromPressure();
-  void CalcMaterialStiffElementMatrix();
   
   //--------------------------------------------------------------------------------------------------------------------------------
   
   void CalcExtFaceAreas();
   std::ofstream out_file;
   void setCFL(const double &f){m_cfl_factor = f;}
+  
+    // IMPLICIT FUNCTIONS
+  //--------------------------------------------------------------------------------------------------------------------------------
+  Matrix getElemBMatrix(const int &e);
+  void CalcMaterialStiffElementMatrix();
+  void CalcGeomStiffElementMatrix();  
+  void CalcElemIntForces();
+	void Solve();
+	void ElasticSolve();
+   
+  //--------------------------------------------------------------------------------------------------------------------------------
+
+  
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

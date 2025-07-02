@@ -1,4 +1,4 @@
-#include "ImpDomain_d.h"
+#include "Domain_d.h"
 #include "Matrix.h"
 
 #include <iostream>
@@ -44,7 +44,7 @@ namespace MetFEM{
 
 ///// USES VOL OR DETERMINANT
 /////// IN CUDA ISPREFERRED NOT TO SAVE IT
-Matrix ImpDomain_d::getElemBMatrix(const int &e){
+Matrix Domain_d::getElemBMatrix(const int &e){
   Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
     if (m_dim == 3){
     //3D Voigt notation, where:
@@ -71,7 +71,7 @@ Matrix ImpDomain_d::getElemBMatrix(const int &e){
   return B;
 }
 
-void ImpDomain_d::CalcMaterialStiffElementMatrix(){
+void Domain_d::CalcMaterialStiffElementMatrix(){
   par_loop(e, m_elem_count){
     /// TODO: CHANGE FOR DIM = 2
     Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
@@ -131,7 +131,7 @@ void ImpDomain_d::CalcMaterialStiffElementMatrix(){
 }
 
 /*
-void ImpDomain_d::CalcGeomStiffElementMatrix() {
+void Domain_d::CalcGeomStiffElementMatrix() {
   par_loop(e, m_elem_count) {
    
     Matrix& stress = *(m_stress_voigt[e]);  // 3x3 Cauchy stress tensor (assumed full matrix, not Voigt)
@@ -202,7 +202,7 @@ void ImpDomain_d::CalcGeomStiffElementMatrix() {
 //}
 
 //// K GEO - B MATRIX APPROACH
-dev_t void ImpDomain_d::CalcGeomStiffElementMatrix(){
+dev_t void Domain_d::CalcGeomStiffElementMatrix(){
   
   par_loop(e, m_elem_count){
    //# Insert Kab into 12x12 Kgeo_local at block [a][b]
