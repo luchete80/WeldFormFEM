@@ -242,7 +242,7 @@ void host_ Domain_d::SolveChungHulbert(){
       double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
       calcMinEdgeLength();
       double minl = getMinLength();
-      dt = 0.03*minl/(mat_cs);
+      dt = m_cfl_factor*minl/(mat_cs);
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD

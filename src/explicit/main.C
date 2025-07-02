@@ -171,6 +171,7 @@ int main(int argc, char **argv) {
 
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
+    dom_d->setCFL(cflFactor);
     #ifdef CUDA_BUILD
     
     #else

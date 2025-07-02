@@ -1889,61 +1889,54 @@ dev_t void Domain_d::calcMinEdgeLength(){
 }
 */
 // Calculate min edge length and height
-dev_t void Domain_d::calcMinEdgeLength(){
+dev_t void Domain_d::calcMinEdgeLength() {
     double min_len = 1.0e6;
     double min_height = 1.0e6;
-        
+    
     for (int e = 0; e < m_elem_count; e++) {
-      double elem_min_height = 1.0e6;  // Track smallest height for this element
+        double elem_min_height = 1.0e6;
         int off = m_nodxelem * e;
 
         if (m_dim == 3) {  // Tetrahedron case
-            // Loop through all 4 faces of the tetrahedron
+            int a = m_elnod[off];
+            int b = m_elnod[off + 1];
+            int c = m_elnod[off + 2];
+            int d = m_elnod[off + 3];
+            
+            double3 A = getPosVec3(a);
+            double3 B = getPosVec3(b);
+            double3 C = getPosVec3(c);
+            double3 D = getPosVec3(d);
+
+            // Compute all 6 edges once
+            double3 edges[6] = {B-A, C-A, D-A, C-B, D-B, D-C};
+            for (int i = 0; i < 6; i++) {
+                double len = length(edges[i]);
+                if (len < min_len) min_len = len;
+            }
+
+            // Compute heights for all 4 faces
+            double3 faces[4][3] = {
+                {B, C, D}, {A, C, D}, {A, B, D}, {A, B, C}
+            };
             for (int i = 0; i < 4; i++) {
-                int a = m_elnod[off + ((i + 1) % 4)];
-                int b = m_elnod[off + ((i + 2) % 4)];
-                int c = m_elnod[off + ((i + 3) % 4)];
-                int d = m_elnod[off + i]; // Opposite node
-
-                // Get positions of the vertices
-                double3 A = getPosVec3(a);
-                double3 B = getPosVec3(b);
-                double3 C = getPosVec3(c);
-                double3 D = getPosVec3(d);
-
-                // Calculate edge lengths
-                double3 x1 = B - A;
-                double3 x2 = C - A;
-                double3 x3 = C - B;
-                double d1 = sqlength(x1);
-                double d2 = sqlength(x2);
-                double d3 = sqlength(x3);
-
-                // Update minimum edge length
-                if (d1 < min_len) min_len = d1;
-                if (d2 < min_len) min_len = d2;
-                if (d3 < min_len) min_len = d3;
-
-                // Calculate face normal
+                double3 x1 = faces[i][1] - faces[i][0];
+                double3 x2 = faces[i][2] - faces[i][0];
                 double3 normal = cross(x1, x2);
                 double area = length(normal);
-                if (area > 0) normal= normal/area;
-
-                // Height from opposite node to the face
-                double3 vec = D - A;
+                if (area < 1e-12) continue;  // Skip degenerate faces
+                normal = normal / area;
+                
+                double3 vec = getPosVec3(m_elnod[off + i]) - faces[i][0];
                 double height = fabs(dot(vec, normal));
                 if (height < elem_min_height) elem_min_height = height;
-                
-            }//face
+            }
             m_elem_length[e] = elem_min_height;
-            // Update minimum height
-            if (elem_min_height < min_height) min_height = elem_min_height;  // Update global min
+            if (elem_min_height < min_height) min_height = elem_min_height;
         }
     }
-    m_min_length = sqrt(min_len);
+    m_min_length = min_len;  // Now stores actual length (not squared)
     m_min_height = min_height;
-    //printf("Min Edge length: %lf, Min Height: %lf\n", m_min_length, m_min_height);
-    
 }
 
 

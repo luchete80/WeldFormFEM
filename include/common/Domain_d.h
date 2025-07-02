@@ -353,6 +353,7 @@ public:
   
   void CalcExtFaceAreas();
   std::ofstream out_file;
+  void setCFL(const double &f){m_cfl_factor = f;}
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
