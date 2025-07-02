@@ -300,15 +300,14 @@ void Domain_d::calcContactForceFromPressure(){
    
     for (int i=0;i<m_node_count;i++){
       if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
-        ecount_1++;
-      for (int ne=0; ne<m_nodel_count[i];ne++) {
-        int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
-        if (!is_elem_sum[e]){
-          //pxa_el[e]+=p[e]*m_elem_area[e];
-          is_elem_sum[e]=true;
-          cfsum += p[e]*m_elem_area[e];
-          area+=m_elem_area[e];
-        }
+        for (int ne=0; ne<m_nodel_count[i];ne++) {
+          int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+          if (!is_elem_sum[e]){
+            //pxa_el[e]+=p[e]*m_elem_area[e];
+            is_elem_sum[e]=true;
+            cfsum += p[e]*m_elem_area[e];
+            area+=m_elem_area[e];
+          }
       }//nodel
     }
     }
