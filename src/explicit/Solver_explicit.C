@@ -169,9 +169,9 @@ void host_ Domain_d::SolveChungHulbert(){
       
   ////// OR TIME
   if (step_count % 1000 == 0){
-    printf("Step %d, Time %f\n",step_count, Time);  
+    printf("Step %d, Time %f, Step Time %.4e\n",step_count, Time, dt);  
     timer.click();
-    std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
@@ -238,6 +238,11 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
 
   }
+
+      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      calcMinEdgeLength();
+      double minl = getMinLength();
+      dt = 0.03*minl/(mat_cs);
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
