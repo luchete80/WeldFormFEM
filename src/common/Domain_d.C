@@ -390,7 +390,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   m_elem_count = elem_count;
   
   // NODAL VARIABLES
-  
+  cout << "Setting explicit dimensions"<<endl;
   malloc_t (x,      double,node_count*m_dim);
   malloc_t (v,      double,node_count*m_dim);
   malloc_t (a,      double,node_count*m_dim);
@@ -528,10 +528,13 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 }
 
 void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count){
-  
+  m_dim = 3;
+  m_nodxelem = 4;
+  m_gp_count = 1;
+  cout << "Setting Dimension for implicit domain"<<endl;
   m_node_count = node_count;
   m_elem_count = elem_count;
-  
+  cout << "m_dim"<<endl;
   // NODAL VARIABLES
   
   malloc_t (x,      double,node_count*m_dim);
@@ -2052,6 +2055,18 @@ dev_t void Domain_d::calcMinEdgeLength() {
     m_min_length = min_len;  // Now stores actual length (not squared)
     m_min_height = min_height;
 }
+
+  ///// ALREADY ALLOCATED
+  void Domain_d::setNode(const int &i, const double &_x, const double &_y, const double &_z){
+    if (i<m_node_count){
+    x[i*m_dim  ]=_x;
+    x[i*m_dim+1]=_y;
+    x[i*m_dim+2]=_z;
+    //return 1;
+    }
+  else{cout << "Node allocation error, node pos larger than node count."<<endl;}
+        //return 0;
+  }
 
 
 void Domain_d::addMeshData(const TriMesh_d &m){

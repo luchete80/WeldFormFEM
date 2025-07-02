@@ -116,11 +116,14 @@ set (SOURCES
                         Solver_Eigen.C
                           
                    )
-                   
+add_library (implicit STATIC "${SOURCES}")                   
 add_executable(weldform_imp main.C
-                         "${SOURCES}"
+                         
                )
                
-TARGET_LINK_LIBRARIES (weldform_imp PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)
+TARGET_LINK_LIBRARIES (weldform_imp PRIVATE implicit ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)
 
-
+add_executable(test_1el_imp #ForgeFormFEM.C
+                          test_1elem.cpp
+               )
+TARGET_LINK_LIBRARIES (test_1el_imp PRIVATE implicit ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)

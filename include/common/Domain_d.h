@@ -346,7 +346,8 @@ public:
     
     }
   void calcContactForceFromPressure();
-  
+  void setNode(const int &i, const double &_x, const double &_y, const double &_z);
+    
   //--------------------------------------------------------------------------------------------------------------------------------
   
   void CalcExtFaceAreas();
