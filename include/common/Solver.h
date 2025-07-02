@@ -33,7 +33,7 @@
 
 namespace MetFEM{
 
-class ImpDomain_d;
+class Domain_d;
 
 class Solver{
 public:
@@ -49,7 +49,7 @@ public:
   Solver(const int &d):
 	m_dof(d)
 	{}
-  void setDomain(ImpDomain_d *d){m_dom = d;}  
+  void setDomain(Domain_d *d){m_dom = d;}  
   virtual void Allocate(){}
   virtual int Solve(){}
   virtual void SetRDOF(const int &, const double &val){}
@@ -75,7 +75,7 @@ protected:
 	int m_dof;		//CONST?
 	int maxits;
   
-  ImpDomain_d *m_dom;
+  Domain_d *m_dom;
 
 };
 

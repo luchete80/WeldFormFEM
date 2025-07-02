@@ -254,7 +254,7 @@ int main(int argc, char **argv) {
    //void TriMesh_d::AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
    cout <<"Mesh start: "<<start.x<<","<<start.y<<", "<<start.z<<endl;
    cout <<"Mesh dim: "<<dim_.x<<","<<dim_.y<<", "<<dim_.z<<endl;
-    msh->AxisPlaneMesh(2, false, start , dim_,  partSide);
+    msh->AxisPlaneMesh(0,2, false, start , dim_,  partSide);
 
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
 
