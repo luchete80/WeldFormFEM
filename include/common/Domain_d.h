@@ -489,6 +489,19 @@ protected:
   int ext_nodes_count;
   double *contforce; 
   bool contact;
+  
+  
+  /////// IMPLICIT
+  //////////////////////////////// IMPLICIT THINGS
+  Matrix **m_Kmat;   //MATERIAL PART OF 
+  Matrix **m_Kgeo;   //MATERIAL PART OF   
+  
+  //// DEFORMATION GRADIENT
+  Matrix **m_Fel;    //def
+  
+  
+  Solver* m_solver;
+
 };
 
 #ifdef  CUDA_BUILD

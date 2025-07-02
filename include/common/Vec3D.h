@@ -12,7 +12,7 @@
 #define __dnlMaths_Vec3D_h__
 
 #include <string>
-//#include <string.h>
+#include <string.h>
 //#include <dnlKernel.h>
 #include <cmath> //sqrt
 #include "Macros.h"

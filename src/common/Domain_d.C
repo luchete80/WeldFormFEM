@@ -117,11 +117,11 @@ dev_t void Domain_d::SearchExtNodes() {
     //bool externalNodes[m_node_count] = {false};
 
     // Initialize neighbor list for each element
-    for (int i = 0; i < m_elem_count; i++) {
-      for (int j = 0; j < 4; j++)
-        m_elem_neigh[4*i+j]=0;
-      m_elem_neigh_count[i]=0;
-    }
+    //~ for (int i = 0; i < m_elem_count; i++) {
+      //~ for (int j = 0; j < 4; j++)
+        //~ m_elem_neigh[4*i+j]=0;
+      //~ m_elem_neigh_count[i]=0;
+    //~ }
 
 
     // Identify external nodes by checking faces that appear only once
@@ -519,9 +519,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
     /// IMPLICIT THINGS
   //malloc_t(m_Kmat, Matrix, m_elem_count );  Written for asinglepointer
-  m_Kmat = new Matrix*[m_elem_count];  // or use malloc_t macro if it's defined
-  for (int e=0;e<m_elem_count;e++)
-    m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
+  //~ m_Kmat = new Matrix*[m_elem_count];  // or use malloc_t macro if it's defined
+  //~ for (int e=0;e<m_elem_count;e++)
+    //~ m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
 
 
 

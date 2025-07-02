@@ -473,49 +473,65 @@ dev_t void Domain_d::calcElemPressure() {
     double rho_e = rho[e];  // Densidad actual del elemento
     double vol0 = vol_0[e];
     double vol1 = vol[e];
-    double J = vol1 / vol0;
+    double J =vol1/vol0;
 
-    // Presión volumétrica pura (ley logarítmica)
-    double p_vol = -K * log(J);
 
-    // Viscosidad artificial (solo si hay compresión)
+    // 1. Div Velocity 
     double div_v = 0.0;
 
     for (int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e * m_nodxelem + a];
       double3 va = getVelVec(nid); // Velocidad nodal
-      //vec3 gradNa = grad_shape[e][a]; // ∇N constante en tetra lineal
-      //getDerivative(e,gp,d,n)
       double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
       div_v += dot(gradNa, va);
     }
 
-    double q = 0.0;
-    if (div_v < 0.0) {
-      double c = sqrt(K / rho_e); // Velocidad del sonido
-      //double h = elem_char_length[e]; // Longitud característica del elemento
-      double h = getMinLength();
-      double alpha = 1.2;
-      double beta = 0.1;
-      
+    // 2. PSPG: Estabilización de presión
+    double h = pow(vol[e], 1.0/3.0); // Longitud característica
+    double mu_eff = 0.1 * sigma_y[e]; // Ej: σ_y = 100e6 Pa → mu_eff = 10e6 Pa·s
+    double tau = (h*h) / (4.0 * mu_eff);
+    double p_pspg = tau * div_v; // Término clave!
 
-      q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
-    }
-    
-    // Hourglass volumétrico (opcional, ajustable)
-    double Jnod = 0.0;
+// 3. F-bar: Corregir J (evitar locking)
+    double J_physical = vol[e] / vol_0[e]; // J sin corregir
+    double J_avg = 0.0;
     for (int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e * m_nodxelem + a];
-      double Jn = voln[nid] / voln_0[nid];
-      Jnod += Jn;
+      J_avg += (voln[nid] / voln_0[nid]); // J nodal promediado
     }
-    Jnod /= m_nodxelem;
+    J_avg /= m_nodxelem;
+    double J_bar = J_avg; // Usar J promedio para el elemento (F-bar volumétrico)
+    
+
+    // 4. Presión física CORREGIDA (sin ANP!)
+    double p_physical = -mat[e]->Elastic().BulkMod() * log(J_bar);
+    
+    //Artif Visc
+    double q = 0.0;
+    //~ if (div_v < 0.0) {
+      //~ double c = sqrt(K / rho_e); // Velocidad del sonido
+      //~ //double h = elem_char_length[e]; // Longitud característica del elemento
+      //~ //double h = getMinLength();
+      //~ double h = pow(vol[e], 1.0/3.0); 
+      //~ double alpha = 0.12;
+      //~ double beta = 0.01;
+      
+
+      //~ q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
+    //~ }
+    
+    // Hourglass volumétrico (opcional, ajustable)
+
 
     double hg_coeff = 0.0;
-    double p_hg = hg_coeff * K * (J - Jnod);
+    double p_hg = hg_coeff * K * (J - J_avg);
     
     // Presión final
-    p[e] = p_vol + q;
+    //p[e] = p_vol + q;
+
+    // 5. Combinar con PSPG
+    p[e] = p_physical + p_pspg + q + p_hg; // PSPG suprime oscilaciones
+    
   }
   delete[] voln_0;
   delete[] voln;
