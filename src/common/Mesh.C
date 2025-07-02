@@ -226,8 +226,8 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
     printf("Allocation success.\n");
   }
   
-  //~ int *ele_mesh_id_h   = new int[elemcount];
-  //~ for (int n=0;n<elemcount;n++){ele_mesh_id_h[n]=id;}
+  int *ele_mesh_id_h   = new int[elemcount];
+  for (int n=0;n<elemcount;n++){ele_mesh_id_h[n]=id;}
     
   //cudaMalloc((void **)&pplane , 	elemcount * sizeof (double));
   //cudaMalloc((void **)&nfar   , 	elemcount * sizeof (int));
@@ -241,7 +241,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
 
 
-  //memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
+  memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
   
   
 
@@ -254,7 +254,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   delete[] elnode_h;
   delete[] centroid_h;
   delete[] normal_h;  
-  //delete[] ele_mesh_id_h;  
+  delete[] ele_mesh_id_h;  
   #endif
   mesh_count = 1;
 }
@@ -318,12 +318,11 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
     // Allocate new arrays using malloc_t
     double3* new_nodes = nullptr;
     double3* new_node_v = nullptr;
-    //int* new_ele_mesh_id = nullptr;
-    //int* new_ele_mesh_id = nullptr;
+
     
     malloc_t(new_nodes, double3, new_capacity);
     malloc_t(new_node_v, double3, new_capacity);
-    //malloc_t(new_ele_mesh_id, int, new_capacity);
+
 
     if (!new_nodes || !new_node_v 
     //|| !new_ele_mesh_id
@@ -331,7 +330,7 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
         printf("Memory allocation failed!\n");
         free_t(new_nodes);
         free_t(new_node_v);
-        //free_t(new_ele_mesh_id);
+
         return false;
     }
 
@@ -339,12 +338,10 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
         // Copy existing data
         memcpy_t(new_nodes, node, nodecount * sizeof(double3));
         memcpy_t(new_node_v, node_v, nodecount * sizeof(double3));
-        //memcpy_t(new_ele_mesh_id, ele_mesh_id, nodecount * sizeof(int));
         
         // Free old memory
         free_t(node);
         free_t(node_v);
-        free_t(ele_mesh_id);
     }
 
     // Update pointers
@@ -365,12 +362,14 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
     double3* new_normal = nullptr;
     double* new_pplane = nullptr;
     int* new_nfar = nullptr;
-    
+    int* new_ele_mesh_id = nullptr;
+        
     malloc_t(new_elnode, int, new_capacity * 3);
     malloc_t(new_centroid, double3, new_capacity);
     malloc_t(new_normal, double3, new_capacity);
     malloc_t(new_pplane, double, new_capacity);
     malloc_t(new_nfar, int, new_capacity);
+    malloc_t(new_ele_mesh_id, int, new_capacity);
 
     if(!new_elnode || !new_centroid || !new_normal || !new_pplane || !new_nfar) {
         printf("Element memory allocation failed!\n");
@@ -379,6 +378,7 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
         free_t(new_normal);
         free_t(new_pplane);
         free_t(new_nfar);
+        free_t(new_ele_mesh_id);
         return 0;
     }
 
@@ -389,6 +389,7 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
         memcpy_t(new_normal, normal, elemcount * sizeof(double3));
         memcpy_t(new_pplane, pplane, elemcount * sizeof(double));
         memcpy_t(new_nfar, nfar, elemcount * sizeof(int));
+        memcpy_t(new_ele_mesh_id, ele_mesh_id, elemcount * sizeof(int));
         
         // Free old memory
         free_t(elnode);
@@ -396,6 +397,7 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
         free_t(normal);
         free_t(pplane);
         free_t(nfar);
+        free_t(ele_mesh_id);
     }
     
     // Update pointers
@@ -405,6 +407,7 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
     pplane = new_pplane;
     nfar = new_nfar;
     current_elem_capacity = new_capacity;
+    ele_mesh_id= new_ele_mesh_id;
     
     return 1;
 }
@@ -485,16 +488,16 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
 
 
 
-    //~ int new_elem_start = elemcount;
-    //~ int new_elem_end = elemcount + new_mesh.elemcount;
+    int new_elem_start = elemcount;
+    int new_elem_end = elemcount + new_mesh.elemcount;
     
-    //~ printf ("new_elem_start %d, new_elem_end %d\n",new_nodes_start, new_nodes_end);
-    //~ /////Set velocities only for the new nodes
-    //~ no = 0;
-    //~ for (int n = new_elem_start; n < new_elem_end; n++) {
-        //~ ele_mesh_id[n] = new_mesh.ele_mesh_id[no];
-        //~ no++;
-    //~ }
+    printf ("new_elem_start %d, new_elem_end %d\n",new_nodes_start, new_nodes_end);
+    /////Set velocities only for the new nodes
+    no = 0;
+    for (int n = new_elem_start; n < new_elem_end; n++) {
+        ele_mesh_id[n] = new_mesh.ele_mesh_id[no];
+        no++;
+    }
 
 
     printf("Updating metadata..\n");
