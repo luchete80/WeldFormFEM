@@ -150,7 +150,7 @@ void dev_t Domain_d::CalcContactForces(){
               
               //printf("MESHIN CONTACT %d\n",trimesh->ele_mesh_id[j]);
               m_mesh_in_contact[i]=trimesh->ele_mesh_id[j];
-              m_mesh_in_contact[i]=0;
+              //m_mesh_in_contact[i]=0;
               //~ if (m_mesh_in_contact[i]>trimesh->mesh_count)
                 //~ printf("ERROR!!! \n");
               ////
@@ -294,10 +294,13 @@ void Domain_d::calcContactForceFromPressure(){
    //double pxa_el[m_elem_count];
    double cfsum=0.0;
    double area = 0.0;
+   
+      
    for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
    
     for (int i=0;i<m_node_count;i++){
       if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
+        ecount_1++;
       for (int ne=0; ne<m_nodel_count[i];ne++) {
         int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
         if (!is_elem_sum[e]){
