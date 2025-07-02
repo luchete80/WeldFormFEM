@@ -131,7 +131,8 @@ int main(int argc, char **argv) {
     
     string out_name = inputFileName.substr(pos, inputFileName.find(".json") - pos +1) + "out";
     cout << "Out file: "<< out_name << endl;
-    dom_d->out_file.open(out_name.c_str(), std::ofstream::out | std::ofstream::app);
+    //dom_d->out_file.open(out_name.c_str(), std::ofstream::out | std::ofstream::app);
+    dom_d->out_file.open(out_name.c_str());
 
     ostringstream oss_out;
     
