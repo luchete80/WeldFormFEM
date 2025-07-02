@@ -311,6 +311,7 @@ void Domain_d::calcContactForceFromPressure(){
     }
   printf("Area %.3e\n", area);
   trimesh->react_p_force[0] = cfsum;
+  trimesh->react_force[0].z = area;
 }
 
 }; //Namespace
