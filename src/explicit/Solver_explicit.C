@@ -214,17 +214,6 @@ void host_ Domain_d::SolveChungHulbert(){
 
       //TO MODIFY
       double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      //SetDT(0.1*dt);
-      //dt *=0.4;
-
-      //double dt = 0.800e-5;
-      //cout << "New Time Step "<<dt<<endl;
-      //SetDT(dt); 
-      calcMinEdgeLength();
-      double minl = getMinLength();
-      double dt = 0.05*minl/(mat_cs);
-      cout << "min length "<<minl<<", dt "<<dt<<endl;
-      //cout << "DONE REMESH"<<endl;
 
       //cout << "Searching ext nodes "<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
