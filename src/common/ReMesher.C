@@ -382,7 +382,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
       for (int d=0;d<3;d++) x[d]=m_x[3*vert+d];
       
       bool found_samenode = false;
-      double tol = 1.0e-3;
+      double tol = 1.0e-6;
       //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
       for (int v = 0; v < m_dom->m_node_count; v++){
         //If new node dist <tol, map new node = old node
@@ -421,7 +421,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
 
             std::array<double, 4> lambdas = barycentric_coordinates(target_node, p0, p1, p2, p3);
 
-            if (lambdas[0] >= -5.0e-2 && lambdas[1] >= -5.0e-2 && lambdas[2] >= -5.0e-2 && lambdas[3] >= -5.0e-2) { 
+            if (lambdas[0] >= -1.0e-4 && lambdas[1] >= -1.0e-4 && lambdas[2] >= -1.0e-4 && lambdas[3] >= -1.0e-4) { 
                 //std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
                 //double scalar[4];
                 //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
