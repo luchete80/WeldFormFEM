@@ -75,6 +75,8 @@ class ReMesher{
   void MapElemPtrVector(Omega_h::Mesh& mesh, T* vfield, T* o_field);
   #endif
   
+  int find_closest_node(const double x[3]);
+  
   void ReMapBCsByFace(int* old_bc_nod,
                         double* old_bc_val,
                         int* new_bc_nod,
@@ -101,6 +103,7 @@ class ReMesher{
     delete[] m_x,m_elnod;//CONVERT TO free to use in CUDA
     free_t(m_closest_elem);
   }
+  
   protected:
   
   

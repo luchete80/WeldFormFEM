@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <limits>
+#include <algorithm>
+
 
 using namespace std;
 
@@ -82,12 +84,6 @@ std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
                 - v0[1] * (v1[0] * v2[2] - v1[2] * v2[0])
                 + v0[2] * (v1[0] * v2[1] - v1[1] * v2[0]);
 
-    if (detT == 0.0) {
-        std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
-        return {-1.0, -1.0, -1.0, -1.0}; // Invalid barycentric coordinates
-    }
-
-
  if (std::abs(detT) < 1e-12) {  // Tolerance to avoid floating-point issues
         std::cerr << "Degenerate tetrahedron encountered!" << std::endl;
         return {-1.0, -1.0, -1.0, -1.0}; // Invalid coordinates
@@ -116,6 +112,57 @@ std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
     double w1 = d1 / detT;
     double w2 = d2 / detT;
     double w3 = 1.0 - (w0 + w1 + w2);  // Enforce sum-to-one constraint
+
+    return {w0, w1, w2, w3};
+}
+
+std::array<double, 4> stable_barycentric(const std::array<double, 3>& p,
+                                        const std::array<double, 3>& p0,
+                                        const std::array<double, 3>& p1,
+                                        const std::array<double, 3>& p2,
+                                        const std::array<double, 3>& p3) {
+    const double EPS = 1.0e-9;
+    const double NEG_EPS = -1.0e-7; // Slightly more tolerant for negatives
+    
+    // Compute vectors
+    auto vec = [](const auto& a, const auto& b) {
+        return std::array<double, 3>{b[0]-a[0], b[1]-a[1], b[2]-a[2]};
+    };
+    
+    std::array<double, 3> v0 = vec(p0, p1);
+    std::array<double, 3> v1 = vec(p0, p2);
+    std::array<double, 3> v2 = vec(p0, p3);
+    std::array<double, 3> vp = vec(p0, p);
+
+    // Compute determinant using more stable approach
+    double det = v0[0]*(v1[1]*v2[2] - v1[2]*v2[1]) 
+               - v0[1]*(v1[0]*v2[2] - v1[2]*v2[0]) 
+               + v0[2]*(v1[0]*v2[1] - v1[1]*v2[0]);
+
+    if (std::abs(det) < EPS) {
+        return {NEG_EPS, NEG_EPS, NEG_EPS, NEG_EPS};
+    }
+
+    // Compute weights using the same basis for consistency
+    double w0 = (vp[0]*(v1[1]*v2[2] - v1[2]*v2[1]) 
+              - vp[1]*(v1[0]*v2[2] - v1[2]*v2[0]) 
+              + vp[2]*(v1[0]*v2[1] - v1[1]*v2[0])) / det;
+
+    double w1 = (v0[0]*(vp[1]*v2[2] - vp[2]*v2[1]) 
+              - v0[1]*(vp[0]*v2[2] - vp[2]*v2[0]) 
+              + v0[2]*(vp[0]*v2[1] - vp[1]*v2[0])) / det;
+
+    double w2 = (v0[0]*(v1[1]*vp[2] - v1[2]*vp[1]) 
+              - v0[1]*(v1[0]*vp[2] - v1[2]*vp[0]) 
+              + v0[2]*(v1[0]*vp[1] - v1[1]*vp[0])) / det;
+
+    double w3 = 1.0 - (w0 + w1 + w2);
+
+    // Apply smoothing for near-zero weights
+    if (std::abs(w0) < EPS) w0 = 0;
+    if (std::abs(w1) < EPS) w1 = 0;
+    if (std::abs(w2) < EPS) w2 = 0;
+    if (std::abs(w3) < EPS) w3 = 0;
 
     return {w0, w1, w2, w3};
 }
@@ -211,15 +258,20 @@ void ReMesher::WriteDomain(){
   
   double rho_0 = m_dom->rho_0[0];
   
+  for (int i=0;i<3*m_node_count;i++){
+    afield[i]=0.0;
+    pafield[i]=0.0;
+    //vfield[i]=0.0;
+  }
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
   //MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   cout <<"MAP NODAL"<<endl;
   //MapNodal(ufield,  m_dom->u);
-  MapNodal(ufield,   m_dom->u);
+  MapNodal(ufield,   m_dom->u); //new , old
   MapNodal(vfield,   m_dom->v);
-  MapNodal(afield,   m_dom->a);
-  MapNodal(pafield,  m_dom->prev_a);
+  //MapNodal(afield,   m_dom->a);
+  //MapNodal(pafield,  m_dom->prev_a);
   
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
@@ -366,7 +418,8 @@ void ReMesher::WriteDomain(){
 }
 
 
-//WITH THE RAW ELEM AND CONNECT
+/////WITH THE RAW ELEM AND CONNECT
+//args: NEW (m_node_count), OLD(m_dom->m_elem_count)
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
@@ -394,6 +447,9 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
         if (distance<tol){
           found_samenode = true;
           //cout << "FOUND " << vert << " SAME NODE "<<endl;
+          if (vert == 0)
+            std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
+          
           for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
         }                
       }//node
@@ -419,10 +475,10 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
             std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
             std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
 
-            std::array<double, 4> lambdas = barycentric_coordinates(target_node, p0, p1, p2, p3);
+            std::array<double, 4> lambdas = stable_barycentric(target_node, p0, p1, p2, p3);
 
             if (lambdas[0] >= -1.0e-4 && lambdas[1] >= -1.0e-4 && lambdas[2] >= -1.0e-4 && lambdas[3] >= -1.0e-4) { 
-                //std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+
                 //double scalar[4];
                 //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
 
@@ -439,11 +495,12 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
                 for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
-
+                if (vert == 0)  {
+                std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
                 //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
-                //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
-                //std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
-
+                  //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                  std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+                }
                 found = true;
                 break;  // Exit the element loop once the element is found
             }//lambdas
@@ -458,6 +515,169 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     }
 
 }//MAP
+
+
+int ReMesher::find_closest_node(const double x[3]) {
+    int closest = -1;
+    double min_dist_sq = 1.0e20;
+
+    for (int i = 0; i < m_dom->m_node_count; ++i) {
+        double dx = x[0] - m_dom->x[3*i];
+        double dy = x[1] - m_dom->x[3*i + 1];
+        double dz = x[2] - m_dom->x[3*i + 2];
+        double dist_sq = dx*dx + dy*dy + dz*dz;
+
+        if (dist_sq < min_dist_sq) {
+            min_dist_sq = dist_sq;
+            closest = i;
+        }
+    }
+
+    return closest;
+}
+
+// void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+    // const double EPS = 1.0e-4;
+    // const double SAME_NODE_TOL = 1.0e-6;
+
+    // // double avg_element_size = ...; // estimate from mesh, e.g., average edge length or cube root of average element volume
+    // // double tolerance = avg_element_size * 1e-3; // e.g. 0.001 times element size
+
+    // int fallback_node = 16;
+    // double xx[3] = {m_x[3*fallback_node], m_x[3*fallback_node+1], m_x[3*fallback_node+2]};
+    // bool found = false;
+
+    // for (int i = 0; i < m_dom->m_elem_count; ++i) {
+        // int n0 = m_dom->m_elnod[4*i];
+        // int n1 = m_dom->m_elnod[4*i+1];
+        // int n2 = m_dom->m_elnod[4*i+2];
+        // int n3 = m_dom->m_elnod[4*i+3];
+
+        // std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+        // std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+        // std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+        // std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+        // auto lambdas = stable_barycentric({xx[0], xx[1], xx[2]}, p0, p1, p2, p3);
+        // if (lambdas[0] >= -1e-5 && lambdas[1] >= -1e-5 &&
+            // lambdas[2] >= -1e-5 && lambdas[3] >= -1e-5) {
+            // std::cout << "✅ Node " << fallback_node << " lies inside element " << i << std::endl;
+            // found = true;
+            // break;
+        // }
+    // }
+    // if (!found){
+      // cout <<"Node 16 not found inside elements!!"<<endl;
+      
+    // }
+    
+    // // Pre-compute element centers for faster searching
+    // std::vector<std::array< double, 3> > elem_centers(m_dom->m_elem_count);
+    // for (int i = 0; i < m_dom->m_elem_count; i++) {
+        // elem_centers[i] = {0,0,0};
+        // for (int n = 0; n < 4; n++) {
+            // int node_idx = m_dom->m_elnod[4*i + n];
+            // elem_centers[i][0] += m_dom->x[3*node_idx];
+            // elem_centers[i][1] += m_dom->x[3*node_idx + 1];
+            // elem_centers[i][2] += m_dom->x[3*node_idx + 2];
+        // }
+        // for (int d = 0; d < 3; d++) elem_centers[i][d] /= 4.0;
+    // }
+
+    // for (int vert = 0; vert < m_dom->m_node_count; vert++) {
+        // double x[3] = {m_x[3*vert], m_x[3*vert+1], m_x[3*vert+2]};
+        
+        // // 1. Check for exact node matches first
+        // bool found_samenode = false;
+        // for (int v = 0; v < m_dom->m_node_count; v++) {
+            // double dist_sq = 0.0;
+            // for (int d = 0; d < 3; d++) {
+                // double diff = x[d] - m_dom->x[3*v+d];
+                // dist_sq += diff*diff;
+            // }
+            // if (dist_sq < SAME_NODE_TOL*SAME_NODE_TOL) {
+                // for (int d = 0; d < 3; d++) 
+                    // vfield[3*vert+d] = o_field[3*v+d];
+                // found_samenode = true;
+                // break;
+            // }
+        // }
+        // if (found_samenode) continue;
+
+        // // 2. Find closest elements (for smoother transitions)
+        // const int NUM_CANDIDATES = 20;
+        // std::vector<std::pair<double, int>> candidate_elements;
+        
+        // for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // double dist_sq = 0.0;
+            // for (int d = 0; d < 3; d++) {
+                // double diff = x[d] - elem_centers[i][d];
+                // dist_sq += diff*diff;
+            // }
+            // candidate_elements.emplace_back(dist_sq, i);
+        // }
+        
+        // // Sort by distance and take top candidates
+        // std::sort(candidate_elements.begin(), candidate_elements.end());
+        // candidate_elements.resize(std::min(NUM_CANDIDATES, (int)candidate_elements.size()));
+
+        // // 3. Try each candidate element for valid interpolation
+        // bool found = false;
+        // int found_el;
+        // std::array<double, 3> interpolated_disp = {0,0,0};
+        
+        // for (const auto& [dist, i] : candidate_elements) {
+            // int n0 = m_dom->m_elnod[4*i];
+            // int n1 = m_dom->m_elnod[4*i+1];
+            // int n2 = m_dom->m_elnod[4*i+2];
+            // int n3 = m_dom->m_elnod[4*i+3];
+
+            // std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            // std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            // std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            // std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+        
+            // auto lambdas = stable_barycentric({x[0],x[1],x[2]}, p0, p1, p2, p3);
+
+        
+            // if (lambdas[0] >= -EPS && lambdas[1] >= -EPS && 
+                // lambdas[2] >= -EPS && lambdas[3] >= -EPS) {
+                
+                // std::array<double, 3> disp[4];
+                // for (int n = 0; n < 4; n++) {
+                    // int node_idx = m_dom->m_elnod[4*i+n];
+                    // disp[n] = {o_field[3*node_idx], o_field[3*node_idx+1], o_field[3*node_idx+2]};
+                // }
+                
+                // // Weighted average that preserves constant Z-values
+                // interpolated_disp = {0,0,0};
+                // for (int n = 0; n < 4; n++) {
+                    // double w = lambdas[n];
+                    // if (w < 0) w = 0; // Clip negative weights
+                    // interpolated_disp[0] += w * disp[n][0];
+                    // interpolated_disp[1] += w * disp[n][1];
+                    // interpolated_disp[2] += w * disp[n][2];
+                // }
+                
+                // found = true;
+                // found_el = i;
+                // break;
+            // }
+        // }
+
+        // if (found) {
+            // for (int d = 0; d < 3; d++) 
+                // vfield[3*vert+d] = interpolated_disp[d];
+            // //cout << "Node "<<vert <<"inside element "<<found_el<<endl;
+        // } else {
+            // // Fallback: Use nearest node value
+            // int closest_node = find_closest_node(x);
+            // for (int d = 0; d < 3; d++)
+                // vfield[3*vert+d] = o_field[3*closest_node+d];
+            // std::cout << "Warning: Using fallback for node " << vert << std::endl;
+        // }
+    // }
+// }
 
 // THIS NOT USES MESH AS OUTPUT; USES 
 ////DO THIS AFTER SERACH CLOSEST

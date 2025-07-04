@@ -203,6 +203,10 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
       //#########################################################
       //cout << "REMESHING "<<endl;
+      std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer(this, ss.c_str());
+      writer.writeFile();
+      
       #ifdef BUILD_REMESH
       ReMesher remesh(this);
       remesh.m_type = MMG;
@@ -228,10 +232,10 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-      //~ double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      //~ calcMinEdgeLength();
-      //~ double minl = getMinLength();
-      //~ dt = m_cfl_factor*minl/(mat_cs);
+      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      calcMinEdgeLength();
+      double minl = getMinLength();
+      dt = m_cfl_factor*minl/(mat_cs);
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -466,7 +470,9 @@ void host_ Domain_d::SolveChungHulbert(){
   if (remesh_){
    //printf("DISPLACEMENTS\n");
    //printVec(this->u);       
-    
+       std::string s = "out_remesh_after1_"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();   
     }
 
   ///// AFTER CONTACT (FOR THE cont_cond)
