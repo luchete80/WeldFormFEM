@@ -261,7 +261,7 @@ void ReMesher::WriteDomain(){
   for (int i=0;i<3*m_node_count;i++){
     afield[i]=0.0;
     pafield[i]=0.0;
-    //vfield[i]=0.0;
+    vfield[i]=0.0;
   }
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
