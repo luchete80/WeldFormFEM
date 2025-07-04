@@ -199,7 +199,7 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-    
+      if (max>0.8){
   //////////////////////////// IF REMESH
       //#########################################################
       //cout << "REMESHING "<<endl;
@@ -227,6 +227,7 @@ void host_ Domain_d::SolveChungHulbert(){
       writer3.writeFile();
       remesh_ = true;  
       #endif
+      }
       //#########################################################
   //////////////////////////// IF REMESH
 
