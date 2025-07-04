@@ -169,7 +169,7 @@ void host_ Domain_d::SolveChungHulbert(){
       
   ////// OR TIME
   if (step_count % 100 == 0){
-    printf("Step %d, Time %f, Step Time %.4e\n",step_count, Time, dt);  
+    printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
@@ -228,10 +228,10 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      calcMinEdgeLength();
-      double minl = getMinLength();
-      dt = m_cfl_factor*minl/(mat_cs);
+      //~ double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      //~ calcMinEdgeLength();
+      //~ double minl = getMinLength();
+      //~ dt = m_cfl_factor*minl/(mat_cs);
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -506,7 +506,17 @@ void host_ Domain_d::SolveChungHulbert(){
                                                     //trimesh->react_p_force[m]<<
                                                     trimesh->react_p_force[0]<<", "<<
                                                     trimesh->react_force[0].z;
-                                                     
+
+  double max[]={0.0,0.0,0.0};
+
+     for (int e=0;e<m_node_count;e++)
+        for (int d=0;d<3;d++)
+              if (this->u[e*m_dim+d]*this->u[e*m_dim+d]>max[d]){
+          max[d] = this->u[e*m_dim+d];
+
+      } 
+  
+  cout << "MAX DISP "<<sqrt(max[0])<< " "<<sqrt(max[1])<< " "<<sqrt(max[2])<<endl;                                                     
     
     cout << oss_out.str();
     if (!out_file.is_open()) {

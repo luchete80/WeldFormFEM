@@ -366,6 +366,8 @@ public:
   //--------------------------------------------------------------------------------------------------------------------------------
 
   
+  void setFixedDt(const bool &f){m_fixed_dt = f;}
+  const bool &ifFixedDt()const{return m_fixed_dt;}
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
@@ -503,6 +505,7 @@ protected:
   double *contforce; 
   bool contact;
   
+  bool m_fixed_dt;
   
   /////// IMPLICIT
   //////////////////////////////// IMPLICIT THINGS
