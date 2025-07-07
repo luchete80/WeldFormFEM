@@ -358,10 +358,10 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
-  //calcElemPressureANP_Nodal();
+  calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  calcElemPressure();
+  //calcElemPressure();
   //smoothPressureField(0.2);
   //calcElemPressure_Hybrid_VolHG();
   //calcElemPressureANP_Nodal_HG();
@@ -514,7 +514,8 @@ void host_ Domain_d::SolveChungHulbert(){
     of <<std::scientific<<std::setprecision(6)<<", "<<
                                                     //trimesh->react_p_force[m]<<
                                                     trimesh->react_p_force[0]<<", "<<
-                                                    trimesh->react_force[0].z;
+                                                    trimesh->react_force[0].z<<","<<
+                                                    trimesh->cont_area;
 
   double max[]={0.0,0.0,0.0};
 

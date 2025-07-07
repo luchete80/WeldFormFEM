@@ -232,11 +232,6 @@ void dev_t Domain_d::CalcContactForces(){
   
     }//external nodes
   } //i<first fem index
-  
-  //~ //printf("Assigning %d\n",trimesh->mesh_count);
-  //~ double  cf_p[trimesh->mesh_count];
-  double3 cf;
-  
 
    
     
@@ -252,12 +247,13 @@ void Domain_d::calcContactForceFromPressure(){
    //double pxa_el[m_elem_count];
    double cfsum=0.0;
    double area = 0.0;
-   
-      
+    double cfnsum = 0.0;
+    
    for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
    
     for (int i=0;i<m_node_count;i++){
       if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
+        cfnsum += p_node[i]*node_area[i];
         for (int ne=0; ne<m_nodel_count[i];ne++) {
           int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
           if (!is_elem_sum[e]){
@@ -276,7 +272,8 @@ void Domain_d::calcContactForceFromPressure(){
   
   printf("Area %.3e\n", area);
   trimesh->react_p_force[0] = cfsum;
-  trimesh->react_force[0].z = area;
+  trimesh->react_force[0].z = cfnsum;
+   trimesh->cont_area = area;
 }
 
 }; //Namespace

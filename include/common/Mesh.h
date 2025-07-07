@@ -72,6 +72,7 @@ class TriMesh_d{
 
   double3 *react_force;   //Per mesh
   double  *react_p_force= nullptr; //Per mesh
+  double  cont_area;
   
   //// DATA FOR SEVERAL MESHES
   int* node_offsets = nullptr;
