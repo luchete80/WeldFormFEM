@@ -244,6 +244,8 @@ void ReMesher::WriteDomain(){
   double *afield   = new double [3*m_node_count]; 
   double *pafield   = new double [3*m_node_count];  //prev_a
   
+  double *cforce   = new double [3*m_node_count];   
+  
   double *esfield  = new double [m_elem_count]; 
   double *pfield   = new double [m_elem_count]; 
   double *sigfield = new double [6*m_elem_count]; 
@@ -262,6 +264,7 @@ void ReMesher::WriteDomain(){
     afield[i]=0.0;
     pafield[i]=0.0;
     vfield[i]=0.0;
+    cforce[i] = 0.0;
   }
 //  cout << "MAPPING"<<endl;
   ///// BEFORE REDIMENSION!
@@ -269,7 +272,7 @@ void ReMesher::WriteDomain(){
   cout <<"MAP NODAL"<<endl;
   //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
- // MapNodal(vfield,   m_dom->v);
+  MapNodal(vfield,   m_dom->v);
   //MapNodal(afield,   m_dom->a);
   //MapNodal(pafield,  m_dom->prev_a);
   
@@ -366,11 +369,11 @@ void ReMesher::WriteDomain(){
   }
   
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u,       ufield, sizeof(double) * m_dom->m_node_count * 3);    
-  memcpy_t(m_dom->v,       vfield, sizeof(double) * m_dom->m_node_count * 3);    
-  memcpy_t(m_dom->a,       afield, sizeof(double) * m_dom->m_node_count * 3);   
-  memcpy_t(m_dom->prev_a, pafield, sizeof(double) * m_dom->m_node_count * 3);   
-    
+  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
+  memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
+  memcpy_t(m_dom->contforce,cforce, sizeof(double) * m_dom->m_node_count * 3);
 
   memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 

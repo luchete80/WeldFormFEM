@@ -159,6 +159,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double tout = 0;
   
   bool remesh_ = false;
+  int remesh_count = 0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +188,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   /////AFTER J AND DERIVATIVES
-  if ( step_count % m_remesh_interval == 0 && step_count  >0 )
+  if ( step_count % m_remesh_interval == 0 && step_count  >0 && remesh_count < 3)
   //if (0) //debug
   {
     //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
@@ -199,7 +200,7 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-      if (max>0.8){
+      if (max>0.4){
   //////////////////////////// IF REMESH
       //#########################################################
       //cout << "REMESHING "<<endl;
@@ -227,6 +228,7 @@ void host_ Domain_d::SolveChungHulbert(){
       writer3.writeFile();
       remesh_ = true;  
       #endif
+      remesh_count++;
       }
       //#########################################################
   //////////////////////////// IF REMESH

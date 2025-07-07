@@ -343,5 +343,9 @@ F90 PREVIOUS VERSION
          - Added New Pressure Calculation with hourglass.
          - FIXED CRITICAL pressure. 
          - No more need of ANP.
+--------------------------------------------------------------------------------------------------------------------------
 20250701 - Added several pressure calc algorithms.
          - Added laplacian filter.
+20250705 - SET VELOCITY AND ACCEL TO 0 at remesh. First working.
+20250707 - Added contact force reset to remesh
+         
