@@ -188,7 +188,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   /////AFTER J AND DERIVATIVES
-  if ( step_count % m_remesh_interval == 0 && step_count  >0 && remesh_count < 3)
+  if ( step_count % m_remesh_interval == 0 && step_count  >0 /*&& remesh_count < 2*/)
   //if (0) //debug
   {
     //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
@@ -200,10 +200,10 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-      if (max>0.4){
+      if (max>0.01){
   //////////////////////////// IF REMESH
       //#########################################################
-      //cout << "REMESHING "<<endl;
+      cout << "REMESHING "<< " at step "<<step_count<<endl;
       std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
       VTKWriter writer(this, ss.c_str());
       writer.writeFile();

@@ -272,7 +272,7 @@ void ReMesher::WriteDomain(){
   cout <<"MAP NODAL"<<endl;
   //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
-  MapNodal(vfield,   m_dom->v);
+  //MapNodal(vfield,   m_dom->v);
   //MapNodal(afield,   m_dom->a);
   //MapNodal(pafield,  m_dom->prev_a);
   

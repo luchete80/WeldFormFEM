@@ -146,6 +146,7 @@ void dev_t Domain_d::CalcContactForces(){
                 //~ printf("Node %d CF %f %f %f, dist %f mass %f\n",i, cf.x,cf.y,cf.z, d,m_mdiag[i]);
               contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
               pxa[i] = p_node[i] * node_area[i];
+              //printf("Nodal pressure %.4e\n",p_node[i]);
               //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);
               
               //printf("MESHIN CONTACT %d\n",trimesh->ele_mesh_id[j]);
@@ -262,7 +263,7 @@ void dev_t Domain_d::CalcContactForces(){
     }
   }
   //printf("Area: %.3e\n", area[0]);
-  trimesh->react_force[0].z = cfsum;
+  //trimesh->react_force[0].z = cfsum;
   
   for (int m=0;m<trimesh->mesh_count;m++){
     //cfsum += pxa[i];
@@ -291,6 +292,7 @@ void dev_t Domain_d::CalcContactForces(){
 void Domain_d::calcContactForceFromPressure(){
   
    bool is_elem_sum[m_elem_count];
+   bool is_node_sum[m_node_count];
    //double pxa_el[m_elem_count];
    double cfsum=0.0;
    double area = 0.0;
@@ -299,7 +301,7 @@ void Domain_d::calcContactForceFromPressure(){
    for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
    
     for (int i=0;i<m_node_count;i++){
-      if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
+      if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<2){
         for (int ne=0; ne<m_nodel_count[i];ne++) {
           int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
           if (!is_elem_sum[e]){
@@ -308,9 +310,14 @@ void Domain_d::calcContactForceFromPressure(){
             cfsum += p[e]*m_elem_area[e];
             area+=m_elem_area[e];
           }
-      }//nodel
+            //~ if (!is_node_sum[i]){
+              //~ area+=node_area[i];
+              //~ }
+        }//nodel
+      }//mesh in contact
     }
-    }
+    
+  
   printf("Area %.3e\n", area);
   trimesh->react_p_force[0] = cfsum;
   trimesh->react_force[0].z = area;
