@@ -100,7 +100,7 @@ struct Face {
     int nodes[FACENOD];
     int count; // Number of occurrences of this face
     int elem_id;  // <- store the originating element
-    //int other_elem;   // second elem
+    int other_elem;   // second elem
 
 };
 

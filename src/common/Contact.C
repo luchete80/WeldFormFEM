@@ -237,51 +237,7 @@ void dev_t Domain_d::CalcContactForces(){
   //~ double  cf_p[trimesh->mesh_count];
   double3 cf;
   
-  
-  double area[trimesh->mesh_count];
-  area[0]=0.0;
-  double cfsum = 0.0;
-  for (int i=0;i<m_node_count;i++){
-    if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
-      int mpos = m_mesh_in_contact[i];
-      double3 cfi;      
-      cfi.x = contforce[m_dim*i    ];
-      cfi.y = contforce[m_dim*i + 1];
-      cfi.z = contforce[m_dim*i + 2];
-      //~ if (mpos >1)
-        //~ printf("ERROR");
-      //~ else
-      cf.x = 0.0;
-      cf.y = 0.0;
-      cf.z = cf.z + abs(cfi.z);
 
-      cfsum += pxa[i];
-      area[mpos] +=node_area[i];
-      //~ /////cf[mpos]    = cf[mpos] + cfi;      
-      //printf("%.3e\n",node_area[i]*p_node[i]);
-      //cf_p[mpos] += node_area[i]*p_node[i];
-    }
-  }
-  //printf("Area: %.3e\n", area[0]);
-  //trimesh->react_force[0].z = cfsum;
-  
-  for (int m=0;m<trimesh->mesh_count;m++){
-    //cfsum += pxa[i];
-    //trimesh->react_force[m] = cf;
-    //printf("Contact Force %d %.3e\n", m,norm(cf));
-  }
-  
-  //trimesh->react_force[0] = 
-    //~ //printf("Force by pressure Surf %.3e\n",cf_p[0]);
-  //~ for (int m=0;m<trimesh->mesh_count;m++){
-    //~ //printf("Force by pressure Surf %d %.3e\n",m, cf_p[m]);
-    //~ //printf("Force by CF Surf %d %.3e %.3e %.3e\n",m, cf[m].x,cf[m].y,cf[m].z);
-    //~ //printf("Area %d: %.4e\n",m,area[m]);
-    //~ //printf("Time %f cf_p%d %.3e\n",Time, m, cf_p[m]);
-    
-    //~ trimesh->react_p_force[m]=cf_p[m];
-
-   //~ }
    
     
   #endif 
@@ -301,7 +257,7 @@ void Domain_d::calcContactForceFromPressure(){
    for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
    
     for (int i=0;i<m_node_count;i++){
-      if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<2){
+      if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
         for (int ne=0; ne<m_nodel_count[i];ne++) {
           int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
           if (!is_elem_sum[e]){
