@@ -1472,7 +1472,8 @@ dev_t void Domain_d::calcArtificialViscosity() {
     
   double q_max = 1e9;
 
-  par_loop(e, m_elem_count) {
+  //par_loop(e, m_elem_count) {
+  for (int e=0;e<m_elem_count;e++){
     int offset_t = e * 6;
     double c = sqrt(mat[e]->Elastic().BulkMod() / rho[e]);
     tensor3 StrRate = FromFlatSym(m_str_rate, e * m_gp_count * 6);
