@@ -518,6 +518,7 @@ protected:
   
   
   Solver* m_solver;
+  double *x_old;
 
 };
 

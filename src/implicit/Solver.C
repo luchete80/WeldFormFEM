@@ -16,6 +16,38 @@
 using namespace std;
 
 namespace MetFEM{
+  
+//~ void radialReturnJ2(const Matrix& D, double dt, 
+                 //~ const Matrix& sigma_old, double ep_old,
+                 //~ const MaterialProps& props,
+                 //~ Matrix& sigma_new, double& ep_new,
+                 //~ Matrix& C_ep) {
+  
+  //~ // Elastic predictor
+  //~ Matrix deps = D * dt;
+  //~ Matrix sigma_trial = sigma_old + 2*props.G*deviatoric(deps) 
+                     //~ + props.K*trace(deps)*Matrix::Identity();
+  
+  //~ // Check yield condition
+  //~ double f_trial = equivalentStress(sigma_trial) 
+                 //~ - props.yieldStress(ep_old);
+  
+  //~ if (f_trial <= 0) {
+      //~ // Elastic step
+      //~ sigma_new = sigma_trial;
+      //~ ep_new = ep_old;
+      //~ C_ep = elasticTangent(props);
+  //~ } else {
+      //~ // Plastic correction
+      //~ double delta_gamma = f_trial / (3*props.G + props.H);
+      //~ Matrix n = deviatoric(sigma_trial) / equivalentStress(sigma_trial);
+      //~ sigma_new = sigma_trial - 2*props.G*delta_gamma*n;
+      //~ ep_new = ep_old + sqrt(2.0/3.0)*delta_gamma;
+      
+      //~ // Consistent tangent
+      //~ C_ep = consistentTangent(props, sigma_trial, delta_gamma);
+  //~ }
+//~ }
 
 void host_ Domain_d::Solve(){
   WallTimer timer;
@@ -67,6 +99,8 @@ void host_ Domain_d::Solve(){
   double u_accum[m_dim*m_node_count];
   double u_count[m_dim*m_node_count];
   double relax = 0.5;
+
+  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,24 +111,29 @@ void host_ Domain_d::Solve(){
     printf("Step %d, Time %f\n",step_count, Time);  
 
   
-  
+    for (int n=0;n<m_node_count;n++)
+      x_old[n]=x[n];  
 
 
     // For each element
     for (int e = 0; e < m_elem_count; e++) {
         // 1) Compute deformation gradient F
         Matrix F(m_dim, m_dim); // 3x3 zero initialized
+        Matrix F_old(m_dim, m_dim); // 3x3 zero initialized
         for (int n = 0; n < m_nodxelem; n++) {
             Matrix X(m_dim, 1);
+            Matrix X_old(m_dim, 1);
             Matrix gradN(1, m_dim);
 
             for (int d = 0; d < m_dim; d++) {
                 // Current nodal position (x)
                 X.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]); // careful indexing!
+                X_old.Set(d, 0, x_old[e * m_nodxelem * m_dim + n * m_dim + d]); // careful indexing!
                 // Shape function gradient in current config
                 gradN.Set(0, d, getDerivative(e, 0, d, n)); 
             }
             F += MatMul(X, gradN); // F += x_a ⊗ ∇N_a
+            F_old += MatMul(X_old, gradN); // F += x_a ⊗ ∇N_a
         }
 
         // 2) Compute Left Cauchy-Green tensor b = F * F^T
@@ -103,16 +142,20 @@ void host_ Domain_d::Solve(){
         // 3) Compute Almansi strain: e = 0.5 * (I - b^{-1})
         Matrix I = Identity(m_dim);
         Matrix b_inv = b.Inv();
-        Matrix e_almansi = (I - b_inv) * 0.5;
+        Matrix e_almansi = (I - b_inv) * 0.5; //almansi
+        
+        Matrix L   = 1.0/dt * (MatMul(F,F_old.Inv()) - Identity(m_dim)) ;
+        Matrix sym_L = L + L.Transpose();
+        Matrix eps = 0.5 * sym_L;  // Rate of deformation
 
         // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
         Matrix strain_voigt(6, 1);
-        strain_voigt.Set(0, 0, e_almansi.getVal(0, 0));  // ε_xx
-        strain_voigt.Set(1, 0, e_almansi.getVal(1, 1));  // ε_yy
-        strain_voigt.Set(2, 0, e_almansi.getVal(2, 2));  // ε_zz
-        strain_voigt.Set(3, 0, 2 * e_almansi.getVal(0, 1)); // γ_xy = 2 * ε_xy
-        strain_voigt.Set(4, 0, 2 * e_almansi.getVal(1, 2)); // γ_yz
-        strain_voigt.Set(5, 0, 2 * e_almansi.getVal(2, 0)); // γ_zx
+        strain_voigt.Set(0, 0, eps.getVal(0, 0));  // ε_xx
+        strain_voigt.Set(1, 0, eps.getVal(1, 1));  // ε_yy
+        strain_voigt.Set(2, 0, eps.getVal(2, 2));  // ε_zz
+        strain_voigt.Set(3, 0, 2 * eps.getVal(0, 1)); // γ_xy = 2 * ε_xy
+        strain_voigt.Set(4, 0, 2 * eps.getVal(1, 2)); // γ_yz
+        strain_voigt.Set(5, 0, 2 * eps.getVal(2, 0)); // γ_zx
 
         // 5) Compute stress σ = D * ε
         Matrix D(6,6);

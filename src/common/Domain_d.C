@@ -544,6 +544,8 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (u,      double,node_count*m_dim);
   malloc_t (u_dt,   double,node_count*m_dim);
   
+  malloc_t (x_old,      double,node_count*m_dim);
+  
   malloc_t (prev_a, double,node_count*m_dim);  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_fi,double,node_count*m_dim); //Internal forces
