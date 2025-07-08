@@ -1360,7 +1360,6 @@ void Domain_d::setNodElem(int *elnod_h){
   malloc_t(m_elnod, unsigned int, m_elem_count * m_nodxelem);
   cout << "COPYING "<<m_elem_count * m_nodxelem<< " element nodes "<<endl;
   memcpy_t(this->m_elnod, elnod_h, sizeof(int) * m_elem_count * m_nodxelem); 
-
   cout << "Done"<<endl;
   
   //////////////////// ELEMENT SHARED BY NODES (FOR PARALLEL NODAL MODE ASSEMBLY) ///////////////////////////////

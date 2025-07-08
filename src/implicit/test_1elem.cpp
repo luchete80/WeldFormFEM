@@ -68,6 +68,8 @@ int main(int argc, char **argv) {
   elnod_h[0]=0;elnod_h[1]=1;elnod_h[2]=2;elnod_h[3]=3;
   cout << "Setting Nod Elements"<<endl;
   dom_d->setNodElem(elnod_h);
+  cout << "NODEL "<<endl;
+  cout << dom_d->getElemNode(0,0)<<endl;
   
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  

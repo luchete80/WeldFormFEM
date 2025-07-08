@@ -245,7 +245,7 @@ public:
 	int threadsPerBlock, blocksPerGrid; //TO BE USED BY SOLVER
 	
 	const int & getElemCount()const{return m_elem_count;}
-  const int & getElemNode(const int &e, const int &n)const{return m_elnod[m_nodxelem*e+n];}
+  unsigned int & getElemNode(const int &e, const int &n)const{return m_elnod[m_nodxelem*e+n];}
 	const int & getNodeCount()const{return m_node_count;}
   vector_t getNodePos3(const int &n){
     #ifdef CUDA_BUILD

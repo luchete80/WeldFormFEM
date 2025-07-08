@@ -23,26 +23,32 @@ void Solver_Eigen::Allocate(){
 
 void Solver_Eigen::assemblyGlobalMatrix() {
     int ndof = m_dom->m_nodxelem * m_dom->m_dim; // DOFs per element
+    cout << "ndof "<<ndof <<endl;
     std::vector<T> triplets;
     triplets.reserve(m_dom->m_elem_count * ndof * ndof);
 
     for (int e = 0; e < m_dom->m_elem_count; ++e) {
+        cout << "positioning "<<endl;
         Matrix *Ke = m_dom->m_Kmat[e];
+        cout <<"endl"<<endl;
         std::vector<int> global_dofs(ndof);  // <<--- FIXED
-
+        cout <<"set"<<endl;
         for (int a = 0; a < m_dom->m_nodxelem; ++a) {
             int node = m_dom->getElemNode(e, a);
+            cout << "node "<<node<<endl;
             //int node = m_dom->m_elnod[e*m_dom->m_nodxelem+a];
             for (int i = 0; i < m_dom->m_dim; ++i) {
                 global_dofs[a * m_dom->m_dim + i] = node * m_dom->m_dim + i;
             }
         }
-
+        cout << "global dof set"<<endl;
         for (int i = 0; i < ndof; ++i) {  // <<--- FIXED
             int I = global_dofs[i];
             for (int j = 0; j < ndof; ++j) {  // <<--- FIXED
                 int J = global_dofs[j];
+                cout <<"get val"<<endl;
                 double val = Ke->getVal(i, j);
+                cout << val<<endl;
                 if (val != 0.0) {
                     cout << "I J "<< I <<", "<<J <<", val"<<val<<endl;
                     triplets.emplace_back(I, J, val);
