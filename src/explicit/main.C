@@ -475,7 +475,7 @@ int main(int argc, char **argv) {
     //THIS MESH AHOULD NOT BE DELETED 
 	printf("-------------------\n");
   }
-  i
+  
   cout <<"Done"<<endl;
   if (rigbodies.size() > 1){
     cout << "More than one Rigid Bodies found."<<endl; 
