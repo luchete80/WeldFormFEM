@@ -132,12 +132,12 @@ void dev_t Domain_d::CalcContactForces(){
               double kcont_mass = 0.2 * m_mdiag[i] / (dt * dt);
               //double kcont = std::min(kcont_geo, kcont_mass);
               double kcont = kcont_mass;
-              double damping_ratio = 0.05;
+              double damping_ratio = 0.01;
               double omega = sqrt(kcont / m_mdiag[i]);
               double ccrit = 2.0 * m_mdiag[i] * omega;
               double F_damp = damping_ratio * ccrit * v_reln;
 
-              double F_normal = kcont * d;
+              double F_normal = m_contPF * kcont * d;
 
               //double F_damp = beta_d * sqrt(kcont * m_mdiag[i]) * v_reln;
               //printf("KCON geo %f KCON mass %f: \n", kcont, kcont2;

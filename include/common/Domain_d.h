@@ -145,6 +145,7 @@ public:
     contact = false;
     m_thermal = false;
     m_remesh_interval = 1e10;
+    m_contPF = 0.1;
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
@@ -369,7 +370,7 @@ public:
   void setFixedDt(const bool &f){m_fixed_dt = f;}
   const bool &ifFixedDt()const{return m_fixed_dt;}
   double m_artifvisc[2];
-  
+  void setContactPF(const double &pf){m_contPF = pf;}
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
@@ -519,6 +520,7 @@ protected:
   
   Solver* m_solver;
   double *x_old;
+  double m_contPF = 0.2;
 
 };
 
