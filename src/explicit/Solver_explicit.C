@@ -235,10 +235,10 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      calcMinEdgeLength();
-      double minl = getMinLength();
-      dt = m_cfl_factor*minl/(mat_cs);
+      //~ double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+      //~ calcMinEdgeLength();
+      //~ double minl = getMinLength();
+      //~ dt = m_cfl_factor*minl/(mat_cs);
  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -358,10 +358,10 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
-  calcElemPressureANP_Nodal();
+  //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  //calcElemPressure();
+  calcElemPressure();
   //smoothPressureField(0.2);
   //calcElemPressure_Hybrid_VolHG();
   //calcElemPressureANP_Nodal_HG();
