@@ -524,7 +524,7 @@ dev_t void Domain_d::calcElemPressure() {
     // Hourglass volumétrico (opcional, ajustable)
 
 
-    double hg_coeff = 0.05;
+    double hg_coeff = 0.0;
     double p_hg = hg_coeff * K * (J - J_avg);
     
     // Presión final
