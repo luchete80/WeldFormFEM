@@ -63,6 +63,10 @@ void host_ Domain_d::Solve(){
   double tout = 0;
   
   bool remesh_ = false;
+  
+  double u_accum[m_dim*m_node_count];
+  double u_count[m_dim*m_node_count];
+  double relax = 0.5;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,63 +80,88 @@ void host_ Domain_d::Solve(){
   
 
 
-// For each element
-for (int e = 0; e < m_elem_count; e++) {
-    // 1) Compute deformation gradient F
-    Matrix F(m_dim, m_dim); // 3x3 zero initialized
-    for (int n = 0; n < m_nodxelem; n++) {
-        Matrix X(m_dim, 1);
-        Matrix gradN(1, m_dim);
+    // For each element
+    for (int e = 0; e < m_elem_count; e++) {
+        // 1) Compute deformation gradient F
+        Matrix F(m_dim, m_dim); // 3x3 zero initialized
+        for (int n = 0; n < m_nodxelem; n++) {
+            Matrix X(m_dim, 1);
+            Matrix gradN(1, m_dim);
 
-        for (int d = 0; d < m_dim; d++) {
-            // Current nodal position (x)
-            X.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]); // careful indexing!
-            // Shape function gradient in current config
-            gradN.Set(0, d, getDerivative(e, 0, d, n)); 
+            for (int d = 0; d < m_dim; d++) {
+                // Current nodal position (x)
+                X.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]); // careful indexing!
+                // Shape function gradient in current config
+                gradN.Set(0, d, getDerivative(e, 0, d, n)); 
+            }
+            F += MatMul(X, gradN); // F += x_a ⊗ ∇N_a
         }
-        F += MatMul(X, gradN); // F += x_a ⊗ ∇N_a
+
+        // 2) Compute Left Cauchy-Green tensor b = F * F^T
+        Matrix b = MatMul(F, F.Transpose());
+
+        // 3) Compute Almansi strain: e = 0.5 * (I - b^{-1})
+        Matrix I = Identity(m_dim);
+        Matrix b_inv = b.Inv();
+        Matrix e_almansi = (I - b_inv) * 0.5;
+
+        // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
+        Matrix strain_voigt(6, 1);
+        strain_voigt.Set(0, 0, e_almansi.getVal(0, 0));  // ε_xx
+        strain_voigt.Set(1, 0, e_almansi.getVal(1, 1));  // ε_yy
+        strain_voigt.Set(2, 0, e_almansi.getVal(2, 2));  // ε_zz
+        strain_voigt.Set(3, 0, 2 * e_almansi.getVal(0, 1)); // γ_xy = 2 * ε_xy
+        strain_voigt.Set(4, 0, 2 * e_almansi.getVal(1, 2)); // γ_yz
+        strain_voigt.Set(5, 0, 2 * e_almansi.getVal(2, 0)); // γ_zx
+
+        // 5) Compute stress σ = D * ε
+        Matrix D(6,6);
+        D =  mat[e]->getElasticMatrix();
+        Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x6 elastic stiffness matrix
+
+        // 6) Build B matrix (strain-displacement) for the element
+        Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
+
+        // 7) Compute internal force: fint = V_e * B^T * σ
+        Matrix fint = MatMul(B.Transpose(), stress_voigt);
+        fint = fint * vol[e];
+
+        // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
+        Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
+        Kmat = Kmat * vol[e];
+
+        // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
+
+        // 9) Local System: Kmat * Δu_e = fint
+        Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
+
+        // 10) Distribute Δu_e to nodes
+        for (int a = 0; a < m_nodxelem; ++a) {
+            for (int d = 0; d < m_dim; ++d) {
+                int idx_local = a * m_dim + d;
+                //int idx_global = elem_to_node[e][a] * m_dim + d;
+                int idx_global = getElemNode(e,a) * m_dim + d;
+
+                u_accum[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
+                u_count[idx_global] += 1; // acumulás contribuciones
+            }
+        }
+    
+    } // end element loop
+    
+    //~ // 11) Average &  actualize nodal pos
+    for (int i = 0; i < m_node_count * m_dim; ++i) {
+        if (u_count[i] > 0) {
+            double delta = u_accum[i] / u_count[i];
+            x[i] += delta; // actualizás posición
+        }
     }
 
-    // 2) Compute Left Cauchy-Green tensor b = F * F^T
-    Matrix b = MatMul(F, F.Transpose());
+    // 12) Volver a calcular deformaciones con x actualizado
 
-    // 3) Compute Almansi strain: e = 0.5 * (I - b^{-1})
-    Matrix I = Identity(m_dim);
-    Matrix b_inv = b.Inv();
-    Matrix e_almansi = (I - b_inv) * 0.5;
+        // ...
 
-    // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
-    Matrix strain_voigt(6, 1);
-    strain_voigt.Set(0, 0, e_almansi.getVal(0, 0));  // ε_xx
-    strain_voigt.Set(1, 0, e_almansi.getVal(1, 1));  // ε_yy
-    strain_voigt.Set(2, 0, e_almansi.getVal(2, 2));  // ε_zz
-    strain_voigt.Set(3, 0, 2 * e_almansi.getVal(0, 1)); // γ_xy = 2 * ε_xy
-    strain_voigt.Set(4, 0, 2 * e_almansi.getVal(1, 2)); // γ_yz
-    strain_voigt.Set(5, 0, 2 * e_almansi.getVal(2, 0)); // γ_zx
 
-    // 5) Compute stress σ = D * ε
-    Matrix D(6,6);
-    D =  mat[e]->getElasticMatrix();
-    Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x6 elastic stiffness matrix
-
-    // 6) Build B matrix (strain-displacement) for the element
-    Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
-
-    // 7) Compute internal force: fint = V_e * B^T * σ
-    Matrix fint = MatMul(B.Transpose(), stress_voigt);
-    fint = fint * vol[e];
-
-    // 8) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
-    Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
-    Kmat = Kmat * vol[e];
-
-    // 9) (Optional) Compute geometric stiffness Kgeo if needed
-
-    // 10) Assemble fint and Kmat into global system (your assembler)
-
-    // ...
-
-} // end element loop
 
 
 

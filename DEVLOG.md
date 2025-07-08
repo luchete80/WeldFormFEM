@@ -349,3 +349,5 @@ F90 PREVIOUS VERSION
 20250705 - SET VELOCITY AND ACCEL TO 0 at remesh. First working.
 20250707 - Added contact force reset to remesh
          - FIXED NODAL AREA CALCULATION!! (Problem with .other_face, restored)
+         - Added Implicit main loop.
+          
