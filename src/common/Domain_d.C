@@ -118,11 +118,11 @@ dev_t void Domain_d::SearchExtNodes() {
     //bool externalNodes[m_node_count] = {false};
 
     // Initialize neighbor list for each element
-    //~ for (int i = 0; i < m_elem_count; i++) {
-      //~ for (int j = 0; j < 4; j++)
-        //~ m_elem_neigh[4*i+j]=0;
-      //~ m_elem_neigh_count[i]=0;
-    //~ }
+    for (int i = 0; i < m_elem_count; i++) {
+       for (int j = 0; j < 4; j++)
+        m_elem_neigh[4*i+j]=0;
+        m_elem_neigh_count[i]=0;
+     }
 
 
     // Identify external nodes by checking faces that appear only once
