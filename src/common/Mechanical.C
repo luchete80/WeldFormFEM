@@ -468,7 +468,8 @@ dev_t void Domain_d::calcElemPressure() {
     }
   }
 
-  par_loop(e, m_elem_count) {
+  for (int e=0;e<m_elem_count;e++){
+  //par_loop(e, m_elem_count) {
     double K = mat[e]->Elastic().BulkMod();
     double rho_e = rho[e];  // Densidad actual del elemento
     double vol0 = vol_0[e];
@@ -1463,8 +1464,12 @@ dev_t void Domain_d:: calcElemHourglassForces()
 // }
 
 dev_t void Domain_d::calcArtificialViscosity() {
-  double alpha = 2.0;  // Increased from 1.0 (more linear damping)
-  double beta = 0.2;   // Increased from 0.05 (more quadratic damping)
+  //double alpha = 2.0;  // Increased from 1.0 (more linear damping)
+  //double beta = 0.2;   // Increased from 0.05 (more quadratic damping)
+  
+  double alpha = m_artifvisc[0];
+  double beta  = m_artifvisc[1];
+    
   double q_max = 1e9;
 
   par_loop(e, m_elem_count) {

@@ -173,6 +173,13 @@ int main(int argc, char **argv) {
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
     dom_d->setCFL(cflFactor);
+    
+    double3 artifvisc;
+    dom_d->m_artifvisc[0] = dom_d->m_artifvisc[1] = 0.0;
+    
+    readVector(config["artifViscCoeffs"], artifvisc);      //Or value linear
+    dom_d->m_artifvisc[0] = artifvisc.x;dom_d->m_artifvisc[1] = artifvisc.y;
+    
     #ifdef CUDA_BUILD
     
     #else
@@ -298,7 +305,8 @@ int main(int argc, char **argv) {
   // dom%mat_K = mat_modK !!!TODO CREATE MATERIAL
   
   double mat_cs = sqrt(mat_modK/rho);
-
+  
+  
   
   string mattype = "Bilinear";
   cout << "Type: "; 

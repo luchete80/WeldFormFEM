@@ -368,6 +368,7 @@ public:
   
   void setFixedDt(const bool &f){m_fixed_dt = f;}
   const bool &ifFixedDt()const{return m_fixed_dt;}
+  double m_artifvisc[2];
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
