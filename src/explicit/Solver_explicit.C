@@ -448,10 +448,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
   if (contact){
     double f =1.0;
-    if(Time<0.01*end_t)
-      f = Time/(0.01*end_t);
-    else 
-      f = 1.0;
+    const double RAMP_FRACTION = 0.001;  // 0.1% of total time instead of 1%
+    if(Time < RAMP_FRACTION*end_t) {
+        f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
+    } else {
+        f = 1.0;
+    }
     for (int n=0;n<trimesh->nodecount;n++){
       trimesh->node_v[n] = f*m_v_orig[n];
       }
