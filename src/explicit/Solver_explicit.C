@@ -368,10 +368,10 @@ void host_ Domain_d::SolveChungHulbert(){
   
   //calcElemPressureFromJ();
   CalcStressStrain(dt);
-  //calcArtificialViscosity(); //Added to Sigma
+  calcArtificialViscosity(); //Added to Sigma
   
   calcElemForces();
-  //calcElemHourglassForces();
+  calcElemHourglassForces();
   
   if (contact)
 //    CalcContactForcesWang();

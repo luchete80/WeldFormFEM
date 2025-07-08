@@ -524,7 +524,7 @@ dev_t void Domain_d::calcElemPressure() {
     // Hourglass volumétrico (opcional, ajustable)
 
 
-    double hg_coeff = 0.0;
+    double hg_coeff = 0.05;
     double p_hg = hg_coeff * K * (J - J_avg);
     
     // Presión final
@@ -1202,139 +1202,64 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 dev_t void Domain_d:: calcElemHourglassForces()
 {
   if (m_dim == 3 && m_nodxelem == 4){
-    ////// THIS IS CRASHING
-    
-    //~ // For tetrahedra, we use volumetric stabilization modes
-    //~ // The hourglass modes for tetrahedra are related to volume preservation
-    //~ // and can be constructed using the residual of the divergence field
-    
-    //~ par_loop(e, m_elem_count) {
-      
-      //~ if (m_gp_count == 1) { // Single integration point
+        // Tetrahedron hourglass control parameters
+        const double hourglass_coeff = 0.15; // Typical value for stabilization
+        const double small_volume = 1e-15;  // Threshold for degenerate elements
         
-        //~ int offset = e * m_nodxelem * m_dim; // 4 nodes × 3 dimensions
-        
-        //~ // Initialize hourglass forces to zero
-        //~ for (int n = 0; n < m_nodxelem; n++) {
-          //~ for (int d = 0; d < m_dim; d++) {
-            //~ m_f_elem_hg[offset + n * m_dim + d] = 0.0;
-          //~ }
-        //~ }
-        
-        //~ // Get element nodal coordinates
-        //~ double x[4], y[4], z[4];
-        //~ for (int n = 0; n < 4; n++) {
-          //~ int node_id = m_elnod[e * m_nodxelem + n];
-          //~ x[n] = x[node_id * m_dim + 0];
-          //~ y[n] = x[node_id * m_dim + 1];  
-          //~ z[n] = x[node_id * m_dim + 2];
-        //~ }
-        
-        //~ // Calculate element center
-        //~ double xc = 0.25 * (x[0] + x[1] + x[2] + x[3]);
-        //~ double yc = 0.25 * (y[0] + y[1] + y[2] + y[3]);
-        //~ double zc = 0.25 * (z[0] + z[1] + z[2] + z[3]);
-        
-        //~ // Calculate shape function derivatives at center
-        //~ // For linear tetrahedra, these are constant
-        //~ double dNdx[4], dNdy[4], dNdz[4];
-        
-        //~ // Calculate Jacobian matrix components
-        //~ double J11 = x[1] - x[0]; double J12 = x[2] - x[0]; double J13 = x[3] - x[0];
-        //~ double J21 = y[1] - y[0]; double J22 = y[2] - y[0]; double J23 = y[3] - y[0];
-        //~ double J31 = z[1] - z[0]; double J32 = z[2] - z[0]; double J33 = z[3] - z[0];
-        
-        //~ // Calculate Jacobian determinant (6 * volume)
-        //~ double detJ = J11 * (J22 * J33 - J23 * J32) 
-                    //~ - J12 * (J21 * J33 - J23 * J31) 
-                    //~ + J13 * (J21 * J32 - J22 * J31);
-        
-        //~ if (fabs(detJ) < 1e-15) continue; // Skip degenerate elements
-        
-        //~ // Calculate inverse Jacobian components
-        //~ double invJ11 = (J22 * J33 - J23 * J32) / detJ;
-        //~ double invJ12 = (J13 * J32 - J12 * J33) / detJ;
-        //~ double invJ13 = (J12 * J23 - J13 * J22) / detJ;
-        //~ double invJ21 = (J23 * J31 - J21 * J33) / detJ;
-        //~ double invJ22 = (J11 * J33 - J13 * J31) / detJ;
-        //~ double invJ23 = (J13 * J21 - J11 * J23) / detJ;
-        //~ double invJ31 = (J21 * J32 - J22 * J31) / detJ;
-        //~ double invJ32 = (J12 * J31 - J11 * J32) / detJ;
-        //~ double invJ33 = (J11 * J22 - J12 * J21) / detJ;
-        
-        //~ // Shape function derivatives in physical coordinates
-        //~ dNdx[0] = -(invJ11 + invJ12 + invJ13);
-        //~ dNdx[1] = invJ11;
-        //~ dNdx[2] = invJ12;
-        //~ dNdx[3] = invJ13;
-        
-        //~ dNdy[0] = -(invJ21 + invJ22 + invJ23);
-        //~ dNdy[1] = invJ21;
-        //~ dNdy[2] = invJ22;
-        //~ dNdy[3] = invJ23;
-        
-        //~ dNdz[0] = -(invJ31 + invJ32 + invJ33);
-        //~ dNdz[1] = invJ31;
-        //~ dNdz[2] = invJ32;
-        //~ dNdz[3] = invJ33;
-        
-        //~ // Calculate velocity divergence
-        //~ double div_v = 0.0;
-        //~ for (int n = 0; n < 4; n++) {
-          //~ div_v += dNdx[n] * getVElem(e, n, 0) 
-                 //~ + dNdy[n] * getVElem(e, n, 1) 
-                 //~ + dNdz[n] * getVElem(e, n, 2);
-        //~ }
-        
-        //~ // Hourglass coefficient for tetrahedra
-        //~ // This is based on element size and material properties
-        //~ double elem_size = pow(vol[e], 1.0/3.0); // Characteristic element size
-        //~ double c_h = 0.1 * elem_size * elem_size * rho[e] * mat[e]->cs0;
-        
-        //~ // Alternative: Use bulk modulus based stabilization
-        //~ // double c_h = 0.05 * mat[e]->Elastic().BulkMod() * vol[e] / (elem_size * elem_size);
-        
-        //~ // Apply hourglass forces based on divergence control
-        //~ // This helps maintain volume conservation and stability
-        //~ for (int n = 0; n < 4; n++) {
-          //~ // Volumetric hourglass forces
-          //~ m_f_elem_hg[offset + n * m_dim + 0] = -c_h * div_v * dNdx[n];
-          //~ m_f_elem_hg[offset + n * m_dim + 1] = -c_h * div_v * dNdy[n];
-          //~ m_f_elem_hg[offset + n * m_dim + 2] = -c_h * div_v * dNdz[n];
-          
-          //~ // Additional stabilization based on nodal position relative to centroid
-          //~ double dx = x[n] - xc;
-          //~ double dy = y[n] - yc; 
-          //~ double dz = z[n] - zc;
-          
-          //~ // Cross-product based stabilization (similar to hex hourglass modes)
-          //~ double stab_coeff = 0.01 * c_h;
-          
-          //~ // Mode 1: Based on coordinate differences
-          //~ double mode1_x = dx * (getVElem(e, n, 1) * dz - getVElem(e, n, 2) * dy);
-          //~ double mode1_y = dy * (getVElem(e, n, 2) * dx - getVElem(e, n, 0) * dz);
-          //~ double mode1_z = dz * (getVElem(e, n, 0) * dy - getVElem(e, n, 1) * dx);
-          
-          //~ m_f_elem_hg[offset + n * m_dim + 0] += stab_coeff * mode1_x * dNdx[n];
-          //~ m_f_elem_hg[offset + n * m_dim + 1] += stab_coeff * mode1_y * dNdy[n];
-          //~ m_f_elem_hg[offset + n * m_dim + 2] += stab_coeff * mode1_z * dNdz[n];
-        //~ }
-        
-        //~ // Debug output
-        //~ /*
-        //~ printf("Elem %d: div_v = %.6e, c_h = %.6e\n", e, div_v, c_h);
-        //~ for (int n = 0; n < 4; n++) {
-          //~ printf("  Node %d HG forces: %.6e %.6e %.6e\n", n,
-                 //~ m_f_elem_hg[offset + n * m_dim + 0],
-                 //~ m_f_elem_hg[offset + n * m_dim + 1],
-                 //~ m_f_elem_hg[offset + n * m_dim + 2]);
-        //~ }
-        //~ */
-        
-      //~ } // gp == 1
-    //~ } // ELEM loop
-    
+        // Hourglass base vectors for tetrahedra (4 modes)
+        const double Sig[4][4] = {
+            { 1.0, -1.0,  1.0, -1.0},
+            { 1.0, -1.0, -1.0,  1.0},
+            { 1.0,  1.0, -1.0, -1.0},
+            {-1.0,  1.0, -1.0,  1.0}
+        };
+
+        par_loop(e, m_elem_count) {
+            if (m_gp_count == 1) { // Single integration point
+                int offset = e * m_nodxelem * m_dim;
+                
+                // Skip degenerate elements
+                if (vol[e] < small_volume) {
+                    for (int n = 0; n < m_nodxelem; n++) {
+                        for (int d = 0; d < m_dim; d++) {
+                            m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+                        }
+                    }
+                    continue;
+                }
+
+                // Calculate characteristic element size
+                double elem_size = pow(vol[e], 1.0/3.0);
+                
+                // Compute stabilization coefficient
+                double c_h = hourglass_coeff * rho[e] * mat[e]->cs0 * elem_size * elem_size;
+                
+                // Compute hourglass modes (4 modes for tetrahedra)
+                double hmod[3][4] = {0}; // [dim][mode]
+                
+                for (int d = 0; d < m_dim; d++) {
+                    for (int j = 0; j < 4; j++) {
+                        for (int n = 0; n < 4; n++) {
+                            hmod[d][j] += getVElem(e, n, d) * Sig[j][n];
+                        }
+                    }
+                }
+                
+                // Apply hourglass forces
+                for (int n = 0; n < 4; n++) {
+                    for (int d = 0; d < m_dim; d++) {
+                        double force = 0.0;
+                        for (int j = 0; j < 4; j++) {
+                            force -= hmod[d][j] * Sig[j][n];
+                        }
+                        m_f_elem_hg[offset + n * m_dim + d] = c_h * force;
+                    }
+                }
+            }
+        }
     }
+    
+  else {
     
   int jmax;
   if (m_dim==2) jmax = 1;
@@ -1418,6 +1343,8 @@ dev_t void Domain_d:: calcElemHourglassForces()
 
   } //gp ==1
   }//ELEM
+  
+  } //non tetra
 }
 
 
@@ -1463,6 +1390,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
   // }
 // }
 
+////// CLASSIC WILKINS
 dev_t void Domain_d::calcArtificialViscosity() {
   //double alpha = 2.0;  // Increased from 1.0 (more linear damping)
   //double beta = 0.2;   // Increased from 0.05 (more quadratic damping)
