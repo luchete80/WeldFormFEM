@@ -562,8 +562,8 @@ dev_t void Domain_d::calcElemPressure() {
     double hg_coeff_contact = 0.1;  // Slightly lower in contact
     const double artvisc_coeff = 0.15;    // Artificial viscosity
     const double log_factor = 0.8;
-    double pspg_scale = 0.5;  // Escalar a 10% del valor original
-    const double p_pspg_bulkfac = 0.08;
+    double pspg_scale = 0.1;  // Escalar a 10% del valor original
+    const double p_pspg_bulkfac = 0.05;
     
         
     // 3. Element loop - main computation
@@ -573,16 +573,19 @@ dev_t void Domain_d::calcElemPressure() {
     double vol0 = vol_0[e];
     double vol1 = vol[e];
     double J_local = vol1 / vol0;
-
+    double h = pow(vol1, 1.0/3.0);
+    
     // Contact detection
+    double contact_weight = 0.0;
     bool is_contact = false;
     for(int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e*m_nodxelem + a];
-      double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid]+2);
+      double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
         if(dot(cf,cf) > 0) {
             is_contact = true;
             break;
         }
+        //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
     }
 
     // F-bar adaptive blending
@@ -596,13 +599,12 @@ dev_t void Domain_d::calcElemPressure() {
     // Critical: Contact-adaptive blending
     //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
     double alpha = is_contact ? alpha_contact : alpha_free;  // More local in contact
-    
+    //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
     double p_physical = -K * (log_factor*log(J_bar) + (1.0-log_factor)*(J_bar - 1.0));
 
     // Enhanced PSPG - dynamic tau calculation
-    double h = pow(vol1, 1.0/3.0);
     double c = sqrt(K / rho_e);  // Sound speed
     double tau = h / (2.0 * c);  // Dynamic stabilization
     
@@ -617,20 +619,22 @@ dev_t void Domain_d::calcElemPressure() {
     
     //div_v /= vol1;  // Normalización
     
-    double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
-
+    //double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
+    double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+        
     // Non-negative hourglass (stabilization only)
     double p_hg = (is_contact ? hg_coeff_contact : hg_coeff_free) * K * fabs(J_local - J_avg);
     
     // Artificial viscosity - compression only
     double p_q = 0.0;
     if(div_v < 0.0) {
-        p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+        //p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
         double q1 = artvisc_coeff * rho_e * h * c * (-div_v);
         double delta_J = 1.0 - J_local;
         double q2 = 0.15 * K * delta_J;  // Volumetric term
         if (is_contact) {
             p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
+            p_pspg = 0.0;
         } else {
             p_q = std::max(q1, q2);
         }
