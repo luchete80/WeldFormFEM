@@ -85,6 +85,18 @@ class BC_Node {
 namespace MetFEM{
   
 enum DomainType { IMPL, EXPL };
+
+struct StabilizationParams {
+    double alpha_free;
+    double alpha_contact;
+    double hg_coeff_free;
+    double hg_coeff_contact;
+    double artvisc_coeff;
+    double log_factor;
+    double pspg_scale;
+    double p_pspg_bulkfac;
+};
+
  
 
 // Structure to define a face with 4 nodes
@@ -146,6 +158,17 @@ public:
     m_thermal = false;
     m_remesh_interval = 1e10;
     m_contPF = 0.1;
+
+
+    m_stab.alpha_free       = 0.3;
+    m_stab.alpha_contact    = 0.7;
+    m_stab.hg_coeff_free    = 0.2;
+    m_stab.hg_coeff_contact = 0.08;
+    m_stab.artvisc_coeff    = 0.15;
+    m_stab.log_factor       = 0.8;
+    m_stab.pspg_scale       = 0.3;
+    m_stab.p_pspg_bulkfac   = 0.1;
+    
   }
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
@@ -334,6 +357,9 @@ public:
   void setRemeshLength(const double &d){m_remesh_length=d;}
   void Free();
   void calcArtificialViscosity();
+
+
+  StabilizationParams m_stab;
   
   /////// THERMAL
   void ThermalCalcs();

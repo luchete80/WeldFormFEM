@@ -83,6 +83,26 @@ size_t findLastOccurrence(string str, char ch)
     }
   return found;
 }
+
+// Función para cargar los parámetros desde JSON
+StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
+    StabilizationParams params;
+    
+    // Accede al objeto "Stabilization" en el JSON
+    const nlohmann::json& stab = j["Stabilization"];
+    
+    // Carga cada parámetro con valores por defecto si no existen en el JSON
+    params.alpha_free       = stab.value("alpha_free", 0.3);         // Valor por defecto: 0.3
+    params.alpha_contact    = stab.value("alpha_contact", 0.7);      // Valor por defecto: 0.7
+    params.hg_coeff_free    = stab.value("hg_coeff_free", 0.15);     // Valor por defecto: 0.15
+    params.hg_coeff_contact = stab.value("hg_coeff_contact", 0.08);  // Valor por defecto: 0.08
+    params.artvisc_coeff    = stab.value("artvisc_coeff", 0.15);     // Valor por defecto: 0.15
+    params.log_factor       = stab.value("log_factor", 0.8);         // Valor por defecto: 0.8
+    params.pspg_scale       = stab.value("pspg_scale", 0.3);         // Valor por defecto: 0.3
+    params.p_pspg_bulkfac   = stab.value("p_pspg_bulkfac", 0.1);     // Valor por defecto: 0.1
+    
+    return params;
+}
  
 
 using namespace LS_Dyna;
@@ -155,6 +175,7 @@ int main(int argc, char **argv) {
 		i >> j;
     
 		nlohmann::json config 		= j["Configuration"];
+		nlohmann::json stab 		=  j["Stabilization"];
 		nlohmann::json material 	= j["Materials"];
 		nlohmann::json domblock 	= j["DomainBlocks"];
 		nlohmann::json domzones 	= j["DomainZones"];
@@ -162,7 +183,9 @@ int main(int argc, char **argv) {
 		nlohmann::json rigbodies 		= j["RigidBodies"];
     nlohmann::json contact_ 		= j["Contact"];
 		nlohmann::json bcs 			= j["BoundaryConditions"];
-		nlohmann::json ics 			= j["InitialConditions"];    
+		nlohmann::json ics 			= j["InitialConditions"];   
+    
+    dom_d->m_stab = loadStabilizationParams(j); 
 
     double out_time,sim_time;
     int remesh_interval = -1;

@@ -556,14 +556,14 @@ dev_t void Domain_d::calcElemPressure() {
   }
 
     // 2. Material/Stabilization parameters
-    const double alpha_contact = 0.7;  
-    const double alpha_free = 0.4;      
-    double hg_coeff_free = 0.2;    // TO COMPENSATE LOW ALPHA 0.2 ON FREE ZONES
-    double hg_coeff_contact = 0.1;  // Slightly lower in contact
-    const double artvisc_coeff = 0.15;    // Artificial viscosity
-    const double log_factor = 0.8;
-    double pspg_scale = 0.1;  // Escalar a 10% del valor original
-    const double p_pspg_bulkfac = 0.05;
+    //~ const double alpha_contact = 0.5;  
+    //~ const double alpha_free = 0.2;      
+    //~ double hg_coeff_free = 0.2;    // 
+    //~ double hg_coeff_contact = 0.1;  // Slightly lower in contact
+    //~ const double artvisc_coeff = 0.15;    // Artificial viscosity
+    //~ const double log_factor = 0.8;
+    //~ double pspg_scale = 0.5;  // Escalar a 10% del valor original
+    //~ const double p_pspg_bulkfac = 0.1;
     
         
     // 3. Element loop - main computation
@@ -598,11 +598,12 @@ dev_t void Domain_d::calcElemPressure() {
 
     // Critical: Contact-adaptive blending
     //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
-    double alpha = is_contact ? alpha_contact : alpha_free;  // More local in contact
+    double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
     //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    double p_physical = -K * (log_factor*log(J_bar) + (1.0-log_factor)*(J_bar - 1.0));
+    double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
+
 
     // Enhanced PSPG - dynamic tau calculation
     double c = sqrt(K / rho_e);  // Sound speed
@@ -619,22 +620,22 @@ dev_t void Domain_d::calcElemPressure() {
     
     //div_v /= vol1;  // Normalización
     
-    //double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
-    double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
-        
+    double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
+    //double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+            
     // Non-negative hourglass (stabilization only)
-    double p_hg = (is_contact ? hg_coeff_contact : hg_coeff_free) * K * fabs(J_local - J_avg);
+    double p_hg = (is_contact ? m_stab.hg_coeff_contact : m_stab.hg_coeff_free) * K * fabs(J_local - J_avg);
     
     // Artificial viscosity - compression only
     double p_q = 0.0;
     if(div_v < 0.0) {
-        //p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
-        double q1 = artvisc_coeff * rho_e * h * c * (-div_v);
+        p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
+        //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
+        double q1 = m_stab.artvisc_coeff * rho_e * h * c * (-div_v);
         double delta_J = 1.0 - J_local;
         double q2 = 0.15 * K * delta_J;  // Volumetric term
         if (is_contact) {
             p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
-            p_pspg = 0.0;
         } else {
             p_q = std::max(q1, q2);
         }
