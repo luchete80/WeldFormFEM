@@ -103,6 +103,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     Matrix D(6,6);
     
     double G  = mat[e]->Elastic().G();
+    cout << "Material G "<<G<<endl;
     double E  = mat[e]->Elastic().E();
     double nu = mat[e]->Elastic().Poisson();
     double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
