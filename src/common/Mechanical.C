@@ -562,7 +562,7 @@ dev_t void Domain_d::calcElemPressure() {
     double hg_coeff_contact = 0.1;  // Slightly lower in contact
     const double artvisc_coeff = 0.15;    // Artificial viscosity
     const double log_factor = 0.8;
-    double pspg_scale = 0.3;  // Escalar a 10% del valor original
+    double pspg_scale = 0.5;  // Escalar a 10% del valor original
     const double p_pspg_bulkfac = 0.08;
     
         
@@ -617,7 +617,7 @@ dev_t void Domain_d::calcElemPressure() {
     
     //div_v /= vol1;  // Normalización
     
-    double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+    double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
 
     // Non-negative hourglass (stabilization only)
     double p_hg = (is_contact ? hg_coeff_contact : hg_coeff_free) * K * fabs(J_local - J_avg);
@@ -625,6 +625,7 @@ dev_t void Domain_d::calcElemPressure() {
     // Artificial viscosity - compression only
     double p_q = 0.0;
     if(div_v < 0.0) {
+        p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
         double q1 = artvisc_coeff * rho_e * h * c * (-div_v);
         double delta_J = 1.0 - J_local;
         double q2 = 0.15 * K * delta_J;  // Volumetric term
