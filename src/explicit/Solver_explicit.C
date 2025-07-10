@@ -86,6 +86,15 @@ void host_ Domain_d::SolveChungHulbert(){
   printf ("beta %.10e\n",  m_beta);
   printf ("gamma %.10e\n", m_gamma);
   
+  cout << "alpha_free "<<m_stab.alpha_free <<endl;
+  cout << "alpha_contact "<<m_stab.alpha_contact <<endl;
+  cout << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
+  cout << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
+  cout << "artvisc_coeff "<<m_stab.artvisc_coeff <<endl;
+  cout << "log_factor "<<m_stab.log_factor <<endl;
+  cout << "pspg_scale "<<m_stab.pspg_scale <<endl;
+  cout << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
+  
   //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
 	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
