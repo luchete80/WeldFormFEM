@@ -85,7 +85,7 @@ size_t findLastOccurrence(string str, char ch)
 }
 
 // Función para cargar los parámetros desde JSON
-StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
+StabilizationParams loadStabilizationParams(const nlohmann::json& j,Domain_d *dom) {
     StabilizationParams params;
     
     if (j.contains("Stabilization") && !j["Stabilization"].is_null()) {
@@ -96,12 +96,14 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
     // Carga cada parámetro con valores por defecto si no existen en el JSON
     params.alpha_free       = stab.value("alpha_free", 0.3);         // Valor por defecto: 0.3
     params.alpha_contact    = stab.value("alpha_contact", 0.7);      // Valor por defecto: 0.7
-    params.hg_coeff_free    = stab.value("hg_coeff_free", 0.15);     // Valor por defecto: 0.15
+    params.hg_coeff_free    = stab.value("hg_coeff_free", 0.2);     // Valor por defecto: 0.15
     params.hg_coeff_contact = stab.value("hg_coeff_contact", 0.08);  // Valor por defecto: 0.08
     params.artvisc_coeff    = stab.value("artvisc_coeff", 0.15);     // Valor por defecto: 0.15
     params.log_factor       = stab.value("log_factor", 0.8);         // Valor por defecto: 0.8
     params.pspg_scale       = stab.value("pspg_scale", 0.3);         // Valor por defecto: 0.3
     params.p_pspg_bulkfac   = stab.value("p_pspg_bulkfac", 0.1);     // Valor por defecto: 0.1
+    
+    dom->m_stab = params;
     } else {
         std::cerr << "[WARNING] 'Stabilization' block not found in JSON, using defaults." << std::endl;
         // Defaults already set by constructor or initializer list
@@ -109,7 +111,6 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
 
     return params;
         
-    return params;
 }
  
 
@@ -193,7 +194,7 @@ int main(int argc, char **argv) {
 		nlohmann::json bcs 			= j["BoundaryConditions"];
 		nlohmann::json ics 			= j["InitialConditions"];   
     
-    dom_d->m_stab = loadStabilizationParams(j); 
+    loadStabilizationParams(j, dom_d); 
 
     double out_time,sim_time;
     int remesh_interval = -1;

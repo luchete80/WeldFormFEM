@@ -28,6 +28,8 @@ namespace MetFEM{
 void host_ Domain_d::SolveChungHulbert(){
   WallTimer timer;
 
+  std::ofstream of("Contact_Forces.csv", std::ios::out);
+  
   int N;
 	N = getElemCount();
   #if CUDA_BUILD
@@ -86,14 +88,19 @@ void host_ Domain_d::SolveChungHulbert(){
   printf ("beta %.10e\n",  m_beta);
   printf ("gamma %.10e\n", m_gamma);
   
-  cout << "alpha_free "<<m_stab.alpha_free <<endl;
-  cout << "alpha_contact "<<m_stab.alpha_contact <<endl;
-  cout << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
-  cout << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
-  cout << "artvisc_coeff "<<m_stab.artvisc_coeff <<endl;
-  cout << "log_factor "<<m_stab.log_factor <<endl;
-  cout << "pspg_scale "<<m_stab.pspg_scale <<endl;
-  cout << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
+  ostringstream oss_out;
+  oss_out << "alpha_free "<<m_stab.alpha_free <<endl;
+  oss_out << "alpha_contact "<<m_stab.alpha_contact <<endl;
+  oss_out << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
+  oss_out << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
+  oss_out << "artvisc_coeff "<<m_stab.artvisc_coeff <<endl;
+  oss_out << "log_factor "<<m_stab.log_factor <<endl;
+  oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
+  oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
+  
+  cout << oss_out.str();
+  
+  of << oss_out.str();
   
   //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
@@ -172,9 +179,6 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  std::ofstream of("Contact_Forces.csv", std::ios::out);
-  of << "t, f, area"<<endl;
-  cout << "Main Loop----"<<endl;
   while (Time < end_t) {
       
   ////// OR TIME
