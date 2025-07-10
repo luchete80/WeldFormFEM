@@ -556,9 +556,15 @@ dev_t void Domain_d::calcElemPressure() {
   }
 
     // 2. Material/Stabilization parameters
-    const double hg_coeff = 0.1;         // Hourglass coefficient
+    const double alpha_contact = 0.7;  
+    const double alpha_free = 0.4;      
+    double hg_coeff_free = 0.15;    // TO COMPENSATE LOW ALPHA 0.2 ON FREE ZONES
+    double hg_coeff_contact = 0.08;  // Slightly lower in contact
     const double artvisc_coeff = 0.15;    // Artificial viscosity
+    const double log_factor = 0.8;
+    double pspg_scale = 0.1;  // Escalar a 10% del valor original
     
+        
     // 3. Element loop - main computation
   par_loop(e, m_elem_count) {
     double K = mat[e]->Elastic().BulkMod();
@@ -572,7 +578,7 @@ dev_t void Domain_d::calcElemPressure() {
     for(int a = 0; a < m_nodxelem; ++a) {
       int nid = m_elnod[e*m_nodxelem + a];
       double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid]+2);
-        if(contforce[nid] > 0) {
+        if(dot(cf,cf) > 0) {
             is_contact = true;
             break;
         }
@@ -587,45 +593,55 @@ dev_t void Domain_d::calcElemPressure() {
     J_avg /= m_nodxelem;
 
     // Critical: Contact-adaptive blending
-    double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
+    //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
+    double alpha = is_contact ? alpha_contact : alpha_free;  // More local in contact
+    
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
-         // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-        double p_physical = -K * (0.7*log(J_bar) + 0.3*(J_bar - 1.0));
+     // IMPROVED PHYSICAL PRESSURE (Hybrid model)
+    double p_physical = -K * (log_factor*log(J_bar) + (1.0-log_factor)*(J_bar - 1.0));
 
-        // Enhanced PSPG - dynamic tau calculation
-        double h = pow(vol1, 1.0/3.0);
-        double c = sqrt(K / rho_e);  // Sound speed
-        double tau = h / (2.0 * c);  // Dynamic stabilization
-        
-        // Velocity divergence
-        double div_v = 0.0;
-        for(int a = 0; a < m_nodxelem; ++a) {
-            int nid = m_elnod[e*m_nodxelem + a];
-            double3 va = getVelVec(nid);
-            double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
-            div_v += dot(gradNa, va);
+    // Enhanced PSPG - dynamic tau calculation
+    double h = pow(vol1, 1.0/3.0);
+    double c = sqrt(K / rho_e);  // Sound speed
+    double tau = h / (2.0 * c);  // Dynamic stabilization
+    
+    // Velocity divergence
+    double div_v = 0.0;
+    for(int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        double3 va = getVelVec(nid);
+        double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+        div_v += dot(gradNa, va);
+    }
+
+    double p_pspg = std::min(pspg_scale * tau * div_v, 0.05 * K);  // Límite del 5% de 
+
+    // Non-negative hourglass (stabilization only)
+    double p_hg = (is_contact ? hg_coeff_contact : hg_coeff_free) * K * fabs(J_local - J_avg);
+    
+    // Artificial viscosity - compression only
+    double p_q = 0.0;
+    if(div_v < 0.0) {
+        double q1 = artvisc_coeff * rho_e * h * c * (-div_v);
+        double delta_J = 1.0 - J_local;
+        double q2 = 0.15 * K * delta_J;  // Volumetric term
+        if (is_contact) {
+            p_q = q2;  // Ignora q1 en contacto
+        } else {
+            p_q = std::max(q1, q2);
         }
-        double p_pspg = tau * div_v;  // Remove scaling factor
+    }
 
-        // Non-negative hourglass (stabilization only)
-        double p_hg = hg_coeff * K * fabs(J_local - J_avg);
-        
-        // Artificial viscosity - compression only
-        double p_q = 0.0;
-        if(div_v < 0.0) {  // Compressing
-            p_q = artvisc_coeff * rho_e * h * c * (-div_v);
-        }
-
-        // Contact pressure boost (additional 10-15% in contact zones)
-        double contact_boost = is_contact ? 1.15 : 1.0;
-        
-        // FINAL PRESSURE (contact boosted)
-        p[e] = contact_boost * (p_physical + p_pspg + p_hg + p_q);
+    // Contact pressure boost (additional 10-15% in contact zones)
+    
+    // FINAL PRESSURE (contact boosted)
+    p[e] = p_physical + p_pspg + p_hg + p_q;
   }
 
   delete[] voln_0;
   delete[] voln;
 }
+
 
 void Domain_d::smoothPressureField(double gamma) {
   std::vector<double> p_new(m_elem_count, 0.0);
@@ -729,26 +745,54 @@ dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
 //Computational Methods in lagfangian & Eulerian Hydrocodes
 //From Benson 1992
 // Equation 1.3.12
-dev_t void Domain_d::calcElemPressureFromJ(){
+//~ dev_t void Domain_d::calcElemPressureFromJ(){
 
-  par_loop(e,m_elem_count){
-    p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
-  } // e< elem_count
-}
+  //~ par_loop(e,m_elem_count){
+    //~ p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
+  //~ } // e< elem_count
+//~ }
 
+
+//~ dev_t void Domain_d::calcNodalPressureFromElemental() {
+  //~ par_loop(n, m_node_count) {
+    //~ p_node[n] = 0.0;
+    //~ int count = 0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ p_node[n] += p[e];
+      //~ count++;
+    //~ }
+    //~ if (count > 0)
+      //~ p_node[n] /= count;
+  //~ }
+//~ }
 
 dev_t void Domain_d::calcNodalPressureFromElemental() {
+  
+  double* vol_acc = new double[m_node_count];
+
   par_loop(n, m_node_count) {
-    p_node[n] = 0.0;
-    int count = 0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      p_node[n] += p[e];
-      count++;
-    }
-    if (count > 0)
-      p_node[n] /= count;
+      p_node[n] = 0.0;
+      vol_acc[n] = 0.0;
   }
+
+//  par_loop(e, m_elem_count) {
+  for (int e=0;e<m_elem_count;e++){
+      for (int a = 0; a < m_nodxelem; ++a) {
+          int nid = m_elnod[e*m_nodxelem + a];
+          p_node[nid] += p[e] * vol[e];
+          vol_acc[nid] += vol[e];
+          //atomicAdd(&p_node[nid], p[e] * vol[e]);
+          //atomicAdd(&vol_acc[nid], vol[e]);
+      }
+  }
+
+  par_loop(n, m_node_count) {
+      if (vol_acc[n] > 0.0)
+          p_node[n] /= vol_acc[n];
+  }
+  
+  delete[] vol_acc;
 }
 
 //FROM BENSON 1998
