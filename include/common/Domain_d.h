@@ -86,6 +86,13 @@ namespace MetFEM{
   
 enum DomainType { IMPL, EXPL };
 
+enum class TimeInt {
+    IMPLICIT,       // Implicit time integration
+    EXPLICIT,       // Explicit time integration
+    QUASI_STATIC,   // No inertial effects
+    DYNAMIC         // Generic dynamic (could be either)
+};
+
 struct StabilizationParams {
     double alpha_free;
     double alpha_contact;
@@ -170,6 +177,7 @@ public:
     m_stab.p_pspg_bulkfac   = 0.1;
     
   }
+  TimeInt m_timeint_type;
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
   void SetDimensionImplicit(const int &node_count, const int &elem_count); //TO NOT USE virtual (GPU issues)

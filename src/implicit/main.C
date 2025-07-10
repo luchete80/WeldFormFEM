@@ -122,6 +122,8 @@ int main(int argc, char **argv) {
     //cout << "Slice Angle " << endl;  readValue(domblock[0]["sliceAngle"], 	slice_ang); //0: Box
     //readBoolVector(domblock[0]["sym"], 	sym); //0: Box
   cout << "Domain type: "<<domtype<<endl;
+  dom_d->m_timeint_type = TimeInt::IMPLICIT;
+  
   if (domtype == "File") {
         
     string filename = "";
