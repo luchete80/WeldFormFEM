@@ -17,4 +17,4 @@
 ---------------------------------------------------------------------------------------------------------------------
 20250601 - Fixed nonlinear material code.
          - Adding single element UL mat+geo Nonlinearities python example.
-         
+20250710 - Fixing material assignment in main.C
