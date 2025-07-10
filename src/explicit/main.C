@@ -88,6 +88,8 @@ size_t findLastOccurrence(string str, char ch)
 StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
     StabilizationParams params;
     
+    if (j.contains("Stabilization") && !j["Stabilization"].is_null()) {
+      
     // Accede al objeto "Stabilization" en el JSON
     const nlohmann::json& stab = j["Stabilization"];
     
@@ -100,7 +102,13 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j) {
     params.log_factor       = stab.value("log_factor", 0.8);         // Valor por defecto: 0.8
     params.pspg_scale       = stab.value("pspg_scale", 0.3);         // Valor por defecto: 0.3
     params.p_pspg_bulkfac   = stab.value("p_pspg_bulkfac", 0.1);     // Valor por defecto: 0.1
-    
+    } else {
+        std::cerr << "[WARNING] 'Stabilization' block not found in JSON, using defaults." << std::endl;
+        // Defaults already set by constructor or initializer list
+    }
+
+    return params;
+        
     return params;
 }
  
