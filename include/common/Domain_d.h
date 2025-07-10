@@ -206,6 +206,7 @@ public:
 	dev_t void calcElemStrainRates();
   dev_t void calcElemForces();
   dev_t void calcElemHourglassForces();
+  dev_t void calcElemPressure_Hex(); //FROM STRAIN
   dev_t void calcElemPressure(); //FROM STRAIN
   dev_t void smoothPressureField(double gamma); //Laplace Smooth
   dev_t void calcElemPressureFromJ();
