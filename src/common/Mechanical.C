@@ -562,7 +562,8 @@ dev_t void Domain_d::calcElemPressure() {
     double hg_coeff_contact = 0.08;  // Slightly lower in contact
     const double artvisc_coeff = 0.15;    // Artificial viscosity
     const double log_factor = 0.8;
-    double pspg_scale = 0.1;  // Escalar a 10% del valor original
+    double pspg_scale = 1.5;  // Escalar a 10% del valor original
+    const double p_pspg_bulkfac = 0.08;
     
         
     // 3. Element loop - main computation
@@ -614,7 +615,7 @@ dev_t void Domain_d::calcElemPressure() {
         div_v += dot(gradNa, va);
     }
 
-    double p_pspg = std::min(pspg_scale * tau * div_v, 0.05 * K);  // Límite del 5% de 
+    double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
 
     // Non-negative hourglass (stabilization only)
     double p_hg = (is_contact ? hg_coeff_contact : hg_coeff_free) * K * fabs(J_local - J_avg);
