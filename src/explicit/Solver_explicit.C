@@ -100,7 +100,8 @@ void host_ Domain_d::SolveChungHulbert(){
   
   cout << oss_out.str();
   
-  of << oss_out.str();
+  out_file << oss_out.str();
+  out_file.flush();
   
   //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
