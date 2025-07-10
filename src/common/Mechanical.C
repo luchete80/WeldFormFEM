@@ -558,11 +558,11 @@ dev_t void Domain_d::calcElemPressure() {
     // 2. Material/Stabilization parameters
     const double alpha_contact = 0.7;  
     const double alpha_free = 0.4;      
-    double hg_coeff_free = 0.15;    // TO COMPENSATE LOW ALPHA 0.2 ON FREE ZONES
-    double hg_coeff_contact = 0.08;  // Slightly lower in contact
+    double hg_coeff_free = 0.2;    // TO COMPENSATE LOW ALPHA 0.2 ON FREE ZONES
+    double hg_coeff_contact = 0.1;  // Slightly lower in contact
     const double artvisc_coeff = 0.15;    // Artificial viscosity
     const double log_factor = 0.8;
-    double pspg_scale = 1.5;  // Escalar a 10% del valor original
+    double pspg_scale = 0.3;  // Escalar a 10% del valor original
     const double p_pspg_bulkfac = 0.08;
     
         
@@ -614,7 +614,9 @@ dev_t void Domain_d::calcElemPressure() {
         double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
         div_v += dot(gradNa, va);
     }
-
+    
+    //div_v /= vol1;  // Normalización
+    
     double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
 
     // Non-negative hourglass (stabilization only)
@@ -627,7 +629,7 @@ dev_t void Domain_d::calcElemPressure() {
         double delta_J = 1.0 - J_local;
         double q2 = 0.15 * K * delta_J;  // Volumetric term
         if (is_contact) {
-            p_q = q2;  // Ignora q1 en contacto
+            p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
         } else {
             p_q = std::max(q1, q2);
         }
@@ -637,6 +639,8 @@ dev_t void Domain_d::calcElemPressure() {
     
     // FINAL PRESSURE (contact boosted)
     p[e] = p_physical + p_pspg + p_hg + p_q;
+    p[e] = std::max(-10.0 * K, std::min(2.0 * K, p[e]));  // Límites conservadores
+    
   }
 
   delete[] voln_0;
