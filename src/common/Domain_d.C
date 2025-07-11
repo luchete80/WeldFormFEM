@@ -1093,7 +1093,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         x_h[m_dim*p+1] = Xp.y;
         if (m_dim == 3) x_h[m_dim*p+2] = Xp.z;
         //nod%x(p,:) = Xp(:);
-        cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
+        //cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
         p++;
         Xp.x = Xp.x + 2.0 * r;
       }
@@ -1147,7 +1147,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         elnod_h[ei+2] = nb2 + 1;                    nodel_count_h[nb2+1] ++;      
         elnod_h[ei+3] = (nel[0]+1)*(ey+1) + ex;     nodel_count_h[nb2 ] ++;      
 			
-				 for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
+				//for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
 					//cout << "Nel x : "<<nel[0]<<endl;
 					//cout << "nodes "<<endl;
 					ei += m_nodxelem;
@@ -1203,10 +1203,11 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
               int nb2 = nnodz*ez + (nel[0]+1) * (ey+1) + ex;   
               int nhex[] = {nb1,         nb1+1,        nb2+1, nb2, 
                                           nb1 + nnodz, nb1 + nnodz+1,nb2 + nnodz + 1, nb2 + nnodz};
-              cout << "HEXA NODES "<<endl;
-              for (int i=0;i<8;i++)
-                cout << nhex[i]<<" ";
-              cout <<endl;
+              //cout << "HEXA NODES "<<endl;
+              //for (int i=0;i<8;i++)
+              //  cout << nhex[i]<<" ";
+              //cout <<endl;
+              
               //1st valid decomp
               //0,1,3,4
               //1,3,4,5
@@ -1590,8 +1591,8 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
       if (m_dim == 2){
         double2 x_ = Ptr_vector2(x,m_elnod[nind+i]);
         x2.Set(i,0,x_.x); x2.Set(i,1,x_.y); 
-        printf("x2\n");
-        x2.Print();
+        //printf("x2\n");
+        //x2.Print();
       } else {
         vector_t x_ = Ptr_vector_t(x,m_elnod[nind+i]); 
         x2.Set(i,0,x_.x); x2.Set(i,1,x_.y);        
@@ -2029,7 +2030,12 @@ dev_t void Domain_d::calcMinEdgeLength(){
   m_min_length = sqrt(min_len);
   printf("Min Edge length %lf\n", m_min_length);
 }
+
 */
+inline double length(const double2 &v) {
+    return sqrt(v.x * v.x + v.y * v.y);
+}
+
 // Calculate min edge length and height
 dev_t void Domain_d::calcMinEdgeLength() {
     double min_len = 1.0e6;
@@ -2075,8 +2081,39 @@ dev_t void Domain_d::calcMinEdgeLength() {
             }
             m_elem_length[e] = elem_min_height;
             if (elem_min_height < min_height) min_height = elem_min_height;
+        
+        } else if (m_dim == 2) {  // Triangle in 2D
+            int a = m_elnod[off];
+            int b = m_elnod[off + 1];
+            int c = m_elnod[off + 2];
+
+            double2 A = getPosVec2(a);
+            double2 B = getPosVec2(b);
+            double2 C = getPosVec2(c);
+
+            // Edge lengths
+            double2 edges[3] = {B - A, C - B, A - C};
+            for (int i = 0; i < 3; i++) {
+                double len = length(edges[i]);
+                if (len < min_len) min_len = len;
+            }
+
+            // Compute triangle area and heights
+            double area = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
+            if (area > 1e-12) {
+                double base = length(B - A);
+                double height = 2.0 * area / base;
+                elem_min_height = height;
+                if (height < min_height) min_height = height;
+            }
+
+            m_elem_length[e] = elem_min_height;
         }
-    }
+
+        // Optionally add: else if (m_domtype == _AxiSym_) → treat like 2D but radial weighting
+
+
+    } // 
     m_min_length = min_len;  // Now stores actual length (not squared)
     m_min_height = min_height;
 }

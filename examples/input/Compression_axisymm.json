@@ -1,0 +1,84 @@
+{
+"Configuration":
+{
+  "Nproc":8,
+	"particleRadius": 0.0025, 
+	"hFactor": 1.2,
+  "cflMethod": 1,
+  "cflFactor": 0.7,
+  "autoTS": [false,false,false],
+  "kernelGradCorr": false,  
+  "simTime": 1.0e-2,
+  "artifViscAlpha": 1.0,
+  "artifViscBeta": 0.0,
+  "outTime": 1.0e-4,
+  "domType": "AxiSym",
+  "solver": "Mech-LeapFrog"
+}
+,
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Bilinear",
+  "const": [0.0],
+	"density0": 2700.0,   
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 300.0E6
+}],
+
+"RigidBodies": 
+[{
+	"type": "Line",
+	"zoneId": 10,
+	"start": [0.0, 0.6184999, 0.0],
+  "partSide": 40,
+	"dim":   [0.2, 0.0, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}],
+
+"DomainBlocks": 
+[{
+	"type": "Box",
+	"zoneId": 0,
+	"denseMode": 0,
+	"start": [ 0.01, 0.0, -0.028],
+	"dim": [0.15, 0.616, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}],
+
+"DomainZones": [
+{
+	"id": 5,
+	"start":[-1.0, 0.0,0.0],
+	"end": 	[ 1.0, 0.02000,0.0]
+}
+],
+
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 10.0, 10.0]
+}
+],
+"BoundaryConditions": [
+{
+	"zoneId": 	5,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+	"zoneId": 	10,
+	"valueType": 	0,
+  "amplitudeId" : 1,
+	"value": 		[ 0.0, -10.0, 0.0],
+	"free": 		true
+}
+]
+
+}

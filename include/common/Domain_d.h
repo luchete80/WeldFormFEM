@@ -379,7 +379,10 @@ public:
       }
       return dV;
   }
-
+  void setAxiSymm(){
+    m_dim = 2;
+    m_domtype = _Axi_Symm_;
+  }
   StabilizationParams m_stab;
   
   /////// THERMAL

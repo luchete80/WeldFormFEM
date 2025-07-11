@@ -213,6 +213,13 @@ int main(int argc, char **argv) {
     readVector(config["artifViscCoeffs"], artifvisc);      //Or value linear
     dom_d->m_artifvisc[0] = artifvisc.x;dom_d->m_artifvisc[1] = artifvisc.y;
     
+    string dom_type = "3D";
+    readValue(config["domType"], 	dom_type); 
+    if (dom_type == "AxiSymm"){
+      dom_d->setAxiSymm();
+      cout << "DOMAIN TYPE: AXIS SYMMETRIC"<<endl;
+    }
+    
     #ifdef CUDA_BUILD
     
     #else
@@ -276,7 +283,23 @@ int main(int argc, char **argv) {
   
       
     }//File
+    else if (domtype == "Box"){
+       cout << "Adding Box ..."<<endl;  
+       double3 start,L;
+       double dx = 0.06;
+			readVector(domblock[0]["dim"], 		L);
+			readVector(domblock[0]["start"], 	start);
+      readValue(domblock[0]["elemLength"], 	dx);
+      cout << "Box Start: "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
+      cout << "Box Length : "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
 
+    // Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra)
+    #ifdef CUDA_BUILD
+      cout << "STILL NOT AVAIABLE"<<endl;
+    #else
+      dom_d->AddBoxLength(start, L, dx/2. );	
+    #endif
+    }
 
 		double IniTemp = 20.;
     int ics_count = 0;
@@ -310,7 +333,7 @@ int main(int argc, char **argv) {
       
       
 	//dom_d->AddBoxLength(V,L,r,true);
- 
+  
 
   ////// MATERIAL  
   double E, nu, rho;
