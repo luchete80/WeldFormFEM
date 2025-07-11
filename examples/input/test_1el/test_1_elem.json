@@ -1,0 +1,97 @@
+{
+"Configuration":
+{
+  "Nproc":1,
+	"particleRadius": 0.0075, 
+	"hFactor": 1.2,
+  "cflMethod": 1,
+  "cflFactor": 0.03,
+  "autoTS": [false,false,false],
+  "simTime": 0.0125,
+  "outTime": 1.0e-5,
+  "solver": "Mech-LeapFrog",
+  "thermal":false
+}
+,
+"Stabilization":{
+  "alpha_contact": 0.3,
+  "alpha_free": 0.7,
+  "log_factor": 0.8,
+  "p_pspg_bulkfac": 0.3
+  
+  
+},
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 2700.0, 
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 190.0E6
+}],
+
+"DomainBlocks": 
+[{
+	"type": "File",
+	"fileName": "1_el.k",
+  "scaleFactor": 1.0,
+	"zoneId": 0
+}],
+"RigidBodies": 
+[{
+	"type": "Plane",
+	"zoneId": 10,
+	"start": [-0.02, -0.02, 0.03],
+  "partSide": 20,
+	"dim":   [0.04, 0.04, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+},
+{
+	"type": "Plane",
+	"zoneId": 1,
+  "flipnormals":true,
+	"start": [-0.02, -0.02, 0.0000],
+  "partSide": 20,
+	"dim":   [0.04, 0.04, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}
+],
+"Contact":[ 
+{
+  "fricCoeffStatic": 0.0,
+  "fricCoeffDynamic": 0.0,
+  "penaltyFactor": 0.6,
+  "heatConductance": false,
+  "heatCondCoeff": 0.01
+  
+}],
+
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 1.0, 1.0]
+}
+],
+"BoundaryConditions": [
+{
+	"zoneId": 	1,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+	"zoneId": 	10,
+	"valueType": 	1,
+  "amplitudeId" : 1,
+  "amplitudeFactor": 1.0,
+	"value": 		[ 0.0, 0.0, -1.2]
+}
+]
+
+}

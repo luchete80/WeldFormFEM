@@ -281,7 +281,7 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
     return ret;
   }
   
-	__spec Matrix operator*(const double &c, Matrix &A) {
+	__spec Matrix operator*(const double &c, const Matrix &A) {
 	Matrix ret;
   for (int i=0;i<A.m_row*A.m_col;i++) ret.m_data[i] = A.m_data[i] * c;
 	return ret;

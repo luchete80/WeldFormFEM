@@ -116,6 +116,7 @@ void host_ Domain_d::Solve(){
 
 
     // For each element
+    cout << "1. Calculating F "<<endl;
     for (int e = 0; e < m_elem_count; e++) {
         // 1) Compute deformation gradient F
         Matrix F(m_dim, m_dim); // 3x3 zero initialized
@@ -135,19 +136,33 @@ void host_ Domain_d::Solve(){
             F += MatMul(X, gradN); // F += x_a ⊗ ∇N_a
             F_old += MatMul(X_old, gradN); // F += x_a ⊗ ∇N_a
         }
-
-        // 2) Compute Left Cauchy-Green tensor b = F * F^T
-        Matrix b = MatMul(F, F.Transpose());
-
-        // 3) Compute Almansi strain: e = 0.5 * (I - b^{-1})
-        Matrix I = Identity(m_dim);
-        Matrix b_inv = b.Inv();
-        Matrix e_almansi = (I - b_inv) * 0.5; //almansi
         
-        Matrix L   = 1.0/dt * (MatMul(F,F_old.Inv()) - Identity(m_dim)) ;
-        Matrix sym_L = L + L.Transpose();
-        Matrix eps = 0.5 * sym_L;  // Rate of deformation
+        cout << "F "<<endl;
+        F.Print();
 
+        
+        // // 2) Compute Left Cauchy-Green tensor b = F * F^T
+        // Matrix b = MatMul(F, F.Transpose());
+
+        // // 3) Compute Almansi strain: e = 0.5 * (I - b^{-1})
+        // Matrix I = Identity(m_dim);
+        // Matrix b_inv = b.Inv();
+        // Matrix e_almansi = (I - b_inv) * 0.5; //almansi
+        
+        cout << "2. Calculating Eps "<<endl;
+        Matrix L(m_dim,m_dim);
+        dt = 1.0;
+        //L = 1.0/dt * (/*MatMul(F,F_old.Inv()) - */Identity(m_dim)) ;
+        //Matrix sym_L = L + L.Transpose();
+        Matrix eps(m_dim,m_dim) ;
+        if (step_count == 0) {
+            //eps = Matrix(m_dim, m_dim); // cero
+        } else {
+            Matrix L = 1.0/dt * (MatMul(F, F_old.Inv()) - Identity(m_dim));
+            eps = 0.5 * (L + L.Transpose());
+        }
+
+        cout << "2. Calculating Strain Voight Notation "<<endl;
         // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
         Matrix strain_voigt(6, 1);
         strain_voigt.Set(0, 0, eps.getVal(0, 0));  // ε_xx
@@ -156,7 +171,8 @@ void host_ Domain_d::Solve(){
         strain_voigt.Set(3, 0, 2 * eps.getVal(0, 1)); // γ_xy = 2 * ε_xy
         strain_voigt.Set(4, 0, 2 * eps.getVal(1, 2)); // γ_yz
         strain_voigt.Set(5, 0, 2 * eps.getVal(2, 0)); // γ_zx
-
+        
+        cout << "2. Calculating D "<<endl;
         // 5) Compute stress σ = D * ε
         Matrix D(6,6);
         D =  mat[e]->getElasticMatrix();
