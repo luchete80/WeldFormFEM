@@ -350,4 +350,4 @@ F90 PREVIOUS VERSION
 20250707 - Added contact force reset to remesh
          - FIXED NODAL AREA CALCULATION!! (Problem with .other_face, restored)
          - Added Implicit main loop.
-          
+20250711 - Fixed Nodal mass.

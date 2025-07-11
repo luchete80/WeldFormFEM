@@ -369,6 +369,16 @@ public:
   void Free();
   void calcArtificialViscosity();
 
+  inline double axisymWeight(double r_gp) {
+      return (m_domtype == _Axi_Symm_) ? 2.0 * M_PI * r_gp : 1.0;
+  }
+  inline double computeDV(double detJ, double wgp, double r_gp) {
+      double dV = detJ * wgp;
+      if (m_domtype == _Axi_Symm_) {
+          dV *= 2.0 * M_PI * r_gp;
+      }
+      return dV;
+  }
 
   StabilizationParams m_stab;
   
@@ -635,6 +645,7 @@ inline dev_t void Domain_d::setDerivative(const int &e, const int &gp, Matrix *m
       // else if (i==2)  m_dH_detJ_dx[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + i] = v;
       //else printf ("ERROR: WRONG DERIVATIVE DIMENSION.");
 }
+
 
 
 

@@ -61,18 +61,17 @@ dev_t void Domain_d::calcElemStrainRates(){
         // !!!! TO AVOID ALL MATMULT
         str_rate.Set(0,1, str_rate.getVal(0,1) + f *(getDerivative(e,gp,1,n) * getVElem(e,n,0) +
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
-        rot_rate.Set(0,1, rot_rate.getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) - 
-
-        //!!! er hoop = vr/r
-        //if (dim .eq. 2 .and. bind_dom_type .eq. 3) then 
-        //  ! if (elem%gausspc(e) .eq. 1) then
-        //    elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
-        //  ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
-        //  elem%rot_rate(e,gp, 3,3) = 0.0d0
-        //  ! end if
-        //end if 
-
+        rot_rate.Set(0,1, rot_rate.getVal(0,1) + f* (getDerivative(e,gp,1,n) * getVElem(e,n,0) -
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
+                                                       
+        if (m_domtype == _Axi_Symm_){
+          str_rate.Set(2,2,str_rate.getVal(0,1) + 0.25*getVElem(e,n,0)/getRadius(e,0));//0.25 is shapemat - Vr/r
+          rot_rate.Set(2,2,0.0);
+            // elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
+          // ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
+          // elem%rot_rate(e,gp, 3,3) = 0.0d0
+        }
+                                                       
         if (m_dim == 3) {
           //printf("elem %d velem %f %f %f\n", e, getVElem(e,n,1),getVElem(e,n,1),getVElem(e,n,2));
           //printf("deriv %f\n",getDerivative(e,gp,2,n));
@@ -374,24 +373,44 @@ dev_t void Domain_d::calcElemForces(){
           if (m_domtype != _Axi_Symm_){
           m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
           m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
-          } else {//2D AXISYMM
-//              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
-//              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
- //             !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
-//              !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
-                double fa = 0.25 / m_radius[e] * m_detJ[offset_det + gp];; //TODO: CHANGE According to element data
-//
-                m_f_elem[offset + n*m_dim    ] += getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) - 
-                                                  getSigma(e,gp,0,0) - getSigma(e,gp,2,2);
+          } else {//2D AXISYMM, VOLUMETIRC WEIGHT (ALWAYS)
+                if (m_axisymm_vol_weight) {
+                    double r_gp = m_radius[e];           // r en el punto de integración
+                    double detJ_gp = m_detJ[offset_det + gp];
+                    
+                    double sigma_rr  = getSigma(e, gp, 0, 0);
+                    double sigma_zz  = getSigma(e, gp, 1, 1);
+                    double sigma_tt  = getSigma(e, gp, 2, 2);  // sigma_theta_theta
+                    double sigma_rz  = getSigma(e, gp, 0, 1);
 
-                m_f_elem[offset + n*m_dim    ] += getDerivative(e,gp,0,n) * getSigma(e,gp,0,1) - 
-                                                  getSigma(e,gp,0,1) *fa;
-                                                  
-//              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) - &
-//                                                     (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
-//                                                     
-//              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) - &
-//                                                     elem%sigma (e,gp, 1,2) * fa       
+                    // Fuerza en r
+                    m_f_elem[offset + n*m_dim    ] += 
+                        getDerivative(e, gp, 1, n) * sigma_rz * r_gp + 
+                        0.25 * (sigma_rr - sigma_tt) * detJ_gp;
+
+                    // Fuerza en z
+                    m_f_elem[offset + n*m_dim + 1] += 
+                        getDerivative(e, gp, 0, n) * sigma_rz * r_gp + 
+                        0.25 * sigma_rz * detJ_gp;
+                }else {
+                    double r_gp = m_radius[e];
+                    double detJ_gp = m_detJ[offset_det + gp];
+                    double fa = 0.25 / r_gp * detJ_gp;
+
+                    double sigma_rr  = getSigma(e, gp, 0, 0);
+                    double sigma_tt  = getSigma(e, gp, 2, 2);
+                    double sigma_rz  = getSigma(e, gp, 0, 1);
+
+                    // Fuerza en r
+                    m_f_elem[offset + n*m_dim    ] += 
+                        getDerivative(e, gp, 1, n) * sigma_rz - 
+                        (sigma_rr - sigma_tt) * fa;
+
+                    // Fuerza en z
+                    m_f_elem[offset + n*m_dim + 1] += 
+                        getDerivative(e, gp, 0, n) * sigma_rz - 
+                        sigma_rz * fa;
+                }
             
           }
         } else { //3D
@@ -1073,21 +1092,50 @@ dev_t void Domain_d::CalcNodalVol(){
   //printf("Total vol %f\n",tot_vol);
 }
 
+// //Assuming constant material
+// dev_t void Domain_d::CalcNodalMassFromVol(){
+  // double *rhon = new double [m_node_count];  
+
+  
+  // par_loop(n, m_node_count){
+    // rhon[n]=0.0;
+    // for (int e=0; e<m_nodel_count[n];e++) {    
+      // int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
+      // rhon[n] += rho[eglob]; 
+    // }
+    // m_mdiag[n] = rhon[n]/(double)m_nodel_count[n] * m_voln[n];
+    // //printf("Node %d mass %f rho %f vol %.4e\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
+    
+  // } //NODE LOOP
+  // double tot_mass = 0.0;
+  // for (int n=0;n<m_node_count;n++)
+    // tot_mass +=m_mdiag[n];
+    
+  // printf("Total Nodal Mass: %f\n",tot_mass);
+  // delete rhon;
+// }
+
+
 //Assuming constant material
 dev_t void Domain_d::CalcNodalMassFromVol(){
   double *rhon = new double [m_node_count];  
 
   
   par_loop(n, m_node_count){
-    rhon[n]=0.0;
+    double mass = 0.0;
+    double f = 1.0;
+
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      rhon[n] += rho[eglob]; 
-    }
-    m_mdiag[n] = rhon[n]/(double)m_nodel_count[n] * m_voln[n];
-    //printf("Node %d mass %f rho %f vol %.4e\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
-    
+      if (m_domtype == _Axi_Symm_){
+        f = 1.0/m_radius[e];
+      }
+      mass += f*rho[eglob] * m_voln[n] / m_nodel_count[n];  //BENSON 1992.
+    }    
+    m_mdiag[n] = mass;
   } //NODE LOOP
+    //printf("Node %d mass %f rho %f vol %.4e\n",n,m_mdiag[n],rhon[n]/(double)m_nodel_count[n] , m_voln[n]);
+
   double tot_mass = 0.0;
   for (int n=0;n<m_node_count;n++)
     tot_mass +=m_mdiag[n];
