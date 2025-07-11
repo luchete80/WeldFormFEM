@@ -644,6 +644,15 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   for (int e=0;e<m_elem_count;e++)
     m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
 
+  malloc_t (m_elem_area, double, m_elem_count);
+  //MODIFY THIS!!! IS A LOT OF SPACE
+  malloc_t(faceList, Face, m_elem_count*ELFAC);
+  
+  
+  m_pl_energy = 0.0;
+  
+  malloc_t(m_elem_neigh,        int, m_elem_count*4);
+  malloc_t(m_elem_neigh_count,  int, m_elem_count);
   
 }
 
@@ -1471,7 +1480,10 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
   ///IMPORTANT BEFORE SETDIMENSION, m_gp_count and m_nodxelem must be set
   m_gp_count = 1;
   m_nodxelem = reader.m_elem[0].node.size(); //TO CHANGE (CONSTANT)  
-  this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
+  if (m_timeint_type == TimeInt::IMPLICIT)
+    this->SetDimensionImplicit(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
+  else 
+    this->SetDimension(reader.m_node.size(),reader.m_elem_count);	 //AFTER CREATING DOMAIN
   
   cout << "Allocating "<< reader.m_node.size()<< " nodes "<<endl;
   double *x_H =  new double [m_dim*m_node_count];

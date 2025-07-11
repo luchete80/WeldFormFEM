@@ -122,6 +122,8 @@ int main(int argc, char **argv) {
     //cout << "Slice Angle " << endl;  readValue(domblock[0]["sliceAngle"], 	slice_ang); //0: Box
     //readBoolVector(domblock[0]["sym"], 	sym); //0: Box
   cout << "Domain type: "<<domtype<<endl;
+  dom_d->m_timeint_type = TimeInt::IMPLICIT;
+  
   if (domtype == "File") {
         
     string filename = "";
@@ -214,13 +216,15 @@ int main(int argc, char **argv) {
     material_h->Ep = Ep;
     material_h->Material_model = BILINEAR;
     readValue(material[0]["yieldStress0"], 	material_h->sy0 );
-    // cout << "Material Constants, Et: "<<c[0]<<endl;
+    cout << "Material Constants, Et: "<<c[0]<<endl;
     // material_h->Material_model = BILINEAR;
     // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Bilinear )); //
     // cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(Bilinear), cudaMemcpyHostToDevice);	
 
-    dom_d->AssignMaterial(material_h);
+    dom_d->AssignMaterial(material_h); //Creating materials[] ptr
+
   } 
+  dom_d->AssignMatAddress();  //set each element mat[e] address
   cout << "Done."<<endl;
 
 

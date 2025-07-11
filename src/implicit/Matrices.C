@@ -103,6 +103,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     Matrix D(6,6);
     
     double G  = mat[e]->Elastic().G();
+    cout << "Material G "<<G<<endl;
     double E  = mat[e]->Elastic().E();
     double nu = mat[e]->Elastic().Poisson();
     double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
@@ -115,7 +116,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
     for (int d=3;d<6;d++) D.Set(d,d,G);    
     D.Print();
-    
+    cout << "Doing mat mult "<<endl;
     MatMul(MatMul(BT,D),B, m_Kmat[e]);
     //printf("K ELEM\n");
     //m_Kmat[e]->Print();
@@ -123,10 +124,11 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
     *(m_Kmat[e]) = *(m_Kmat[e]) *vol[e];  // Multiply by element volume (Ve)
     
-    //cout << "KMAT"<<endl;
+    cout << "KMAT"<<endl;
     (m_Kmat[e])->Print();
     
   }//element
+  cout << "Done."<<endl;
   
 }
 

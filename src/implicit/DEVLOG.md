@@ -17,4 +17,5 @@
 ---------------------------------------------------------------------------------------------------------------------
 20250601 - Fixed nonlinear material code.
          - Adding single element UL mat+geo Nonlinearities python example.
-         
+20250710 - Fixing material assignment in main.C
+         - Fixed Domain Type by integration and added set face and ext nodes.

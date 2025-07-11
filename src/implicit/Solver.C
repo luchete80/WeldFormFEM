@@ -161,44 +161,45 @@ void host_ Domain_d::Solve(){
         Matrix D(6,6);
         D =  mat[e]->getElasticMatrix();
         Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x6 elastic stiffness matrix
-
+        cout << "Calculating B "<<endl;
+        
         // 6) Build B matrix (strain-displacement) for the element
         Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
-
+        cout <<"Done."<<endl;
         // 7) Compute internal force: fint = V_e * B^T * σ
         Matrix fint = MatMul(B.Transpose(), stress_voigt);
         fint = fint * vol[e];
 
-        // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
-        Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
-        Kmat = Kmat * vol[e];
+        // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
+        // Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
+        // Kmat = Kmat * vol[e];
 
-        // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
+        // // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
 
-        // 9) Local System: Kmat * Δu_e = fint
-        Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
+        // // 9) Local System: Kmat * Δu_e = fint
+        // Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
 
-        // 10) Distribute Δu_e to nodes
-        for (int a = 0; a < m_nodxelem; ++a) {
-            for (int d = 0; d < m_dim; ++d) {
-                int idx_local = a * m_dim + d;
-                //int idx_global = elem_to_node[e][a] * m_dim + d;
-                int idx_global = getElemNode(e,a) * m_dim + d;
+        // // 10) Distribute Δu_e to nodes
+        // for (int a = 0; a < m_nodxelem; ++a) {
+            // for (int d = 0; d < m_dim; ++d) {
+                // int idx_local = a * m_dim + d;
+                // //int idx_global = elem_to_node[e][a] * m_dim + d;
+                // int idx_global = getElemNode(e,a) * m_dim + d;
 
-                u_accum[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
-                u_count[idx_global] += 1; // acumulás contribuciones
-            }
-        }
+                // u_accum[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
+                // u_count[idx_global] += 1; // acumulás contribuciones
+            // }
+        // }
     
     } // end element loop
     
-    //~ // 11) Average &  actualize nodal pos
-    for (int i = 0; i < m_node_count * m_dim; ++i) {
-        if (u_count[i] > 0) {
-            double delta = u_accum[i] / u_count[i];
-            x[i] += delta; // actualizás posición
-        }
-    }
+    // //~ // 11) Average &  actualize nodal pos
+    // for (int i = 0; i < m_node_count * m_dim; ++i) {
+        // if (u_count[i] > 0) {
+            // double delta = u_accum[i] / u_count[i];
+            // x[i] += delta; // actualizás posición
+        // }
+    // }
 
     // 12) Volver a calcular deformaciones con x actualizado
 
