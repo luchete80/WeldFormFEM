@@ -92,6 +92,7 @@ void host_ Domain_d::Solve(){
   
   Time = 0.0;
   int step_count = 0;
+  dt = 1.0;
   double tout = 0;
   
   bool remesh_ = false;
@@ -149,20 +150,16 @@ void host_ Domain_d::Solve(){
         // Matrix b_inv = b.Inv();
         // Matrix e_almansi = (I - b_inv) * 0.5; //almansi
         
-        cout << "2. Calculating Eps "<<endl;
-        Matrix L(m_dim,m_dim);
-        dt = 1.0;
-        //L = 1.0/dt * (/*MatMul(F,F_old.Inv()) - */Identity(m_dim)) ;
-        //Matrix sym_L = L + L.Transpose();
+        cout << "Calculating Eps "<<endl;
         Matrix eps(m_dim,m_dim) ;
         if (step_count == 0) {
             //eps = Matrix(m_dim, m_dim); // cero
         } else {
             Matrix L = 1.0/dt * (MatMul(F, F_old.Inv()) - Identity(m_dim));
-            eps = 0.5 * (L + L.Transpose());
+            eps = 0.5 * (L + L.getTranspose());
         }
 
-        cout << "2. Calculating Strain Voight Notation "<<endl;
+        cout << "Calculating Strain Voight Notation "<<endl;
         // 4) Convert strain tensor e_almansi (3x3) to 6x1 Voigt vector (engineering strains)
         Matrix strain_voigt(6, 1);
         strain_voigt.Set(0, 0, eps.getVal(0, 0));  // ε_xx
@@ -182,19 +179,28 @@ void host_ Domain_d::Solve(){
         // 6) Build B matrix (strain-displacement) for the element
         Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
         cout <<"Done."<<endl;
+        cout << "B mat "<<endl;
+        B.Print();
+        cout << "m_dim "<<m_dim<<endl;
         // 7) Compute internal force: fint = V_e * B^T * σ
-        Matrix fint = MatMul(B.Transpose(), stress_voigt);
+        cout << "Computing internal force"<<endl;
+        Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
         fint = fint * vol[e];
-
+        cout << "Calculating Kmat "<<endl;
         // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
-        // Matrix Kmat = MatMul(B.Transpose(), MatMul(D, B));
+        Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
         // Kmat = Kmat * vol[e];
-
+        cout << "Kmat "<<endl;
+        Kmat.Print();
+        
         // // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
 
         // // 9) Local System: Kmat * Δu_e = fint
-        // Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
-
+        Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
+        
+        cout << "Delta U "<<endl;
+        delta_u_e.Print();
+        
         // // 10) Distribute Δu_e to nodes
         // for (int a = 0; a < m_nodxelem; ++a) {
             // for (int d = 0; d < m_dim; ++d) {

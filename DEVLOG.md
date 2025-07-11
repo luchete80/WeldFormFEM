@@ -351,3 +351,5 @@ F90 PREVIOUS VERSION
          - FIXED NODAL AREA CALCULATION!! (Problem with .other_face, restored)
          - Added Implicit main loop.
 20250711 - Fixed Nodal mass.
+         - Fixed BC based problems (crashing without contact).
+         - Fixed Transpositions on implicit solver.
