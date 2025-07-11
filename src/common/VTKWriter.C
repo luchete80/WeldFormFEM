@@ -384,6 +384,16 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
+  m_oss<<"SCALARS nod_mass float 1"<<endl;
+  m_oss<<"LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    m_oss << std::scientific<<std::setprecision(4)<<dom->m_mdiag[n]<<endl;    
+  }
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      m_oss << 0.0<<endl;   
+
+
 
   
   m_oss<<"SCALARS stress float 1"<<endl;

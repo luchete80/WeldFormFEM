@@ -222,6 +222,7 @@ dev_t void Domain_d::CalcElemVol(){
     for (int gp=0;gp<m_gp_count;gp++){
       vol[e] += m_detJ[offset] * w;
     }  
+  
     //if (e<10)
     //printf("Element %d Vol %f, det %f\n",e,vol[e],m_detJ[offset]);  
   }//el
@@ -281,9 +282,14 @@ dev_t void Domain_d::CalcElemInitialVol(){
     int offset = m_gp_count * e;
     for (int gp=0;gp<m_gp_count;gp++){
       vol_0[e] = vol[e];
-      //printf ("Elem %d vol %f\n", e, vol_0[e]);
     }      
-  }  
+  }
+  #ifndef CUDA_BUILD
+  double vv = 0.0; 
+  for (int e=0;e<m_elem_count;e++)
+    vv+= vol_0[e];
+  printf("Initial Vol: %.4e\n",vv);
+  #endif
 }
 
 dev_t void Domain_d::calcTotMass(){
@@ -1162,6 +1168,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       tensor3 ShearStress;
       tensor3 Sigma;
       tensor3 Strain_pl_incr;
+      tensor3 Strain;
 
     //printf("calculating sigma %d\n", e);
     for (int gp=0;gp<m_gp_count;gp++){
@@ -1170,6 +1177,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       ShearStress = FromFlatSym(m_tau,          offset_t );
       StrRate     = FromFlatSym(m_str_rate,     offset_t );
       RotRate     = FromFlatAntiSym(m_rot_rate, offset_t );
+      Strain      = FromFlatSym(m_eps,          offset_t );
 
       // printf("TEST PREV SS\n");
       // print(ShearStress);
@@ -1316,6 +1324,9 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       
       } 
       double Ep = 0;
+      Strain = Strain + dt*StrRate;
+      //printf("Strain %.4e\n",Strain.zz);
+      
 			//cout << "dep: "<<dep<<endl;
 			//pl_strain[e] += dep;
 			//delta_pl_strain = dep; // For heating work calculation
@@ -1328,6 +1339,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       //ToFlatSymPtr(Strain, 	strain,6*i);		
       ToFlatSymPtr(ShearStress, m_tau, offset_t);
+      ToFlatSymPtr(Strain,      m_eps, offset_t);
+      ToFlatSymPtr(StrRate,     m_epsr, offset_t);
       
       ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
       
