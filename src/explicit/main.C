@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
   string extension = inputFileName.substr(inputFileName.find_last_of(".") + 1);
 
 	Domain_d *dom_d;
-
+  dom_d->m_timeint_type == TimeInt::EXPLICIT;
   #ifdef CUDA_BUILD
 	report_gpu_mem();
 	gpuErrchk(cudaMallocManaged(&dom_d, sizeof(MetFEM::Domain_d)) );
