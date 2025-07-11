@@ -639,13 +639,13 @@ int main(int argc, char **argv) {
     //~ }     
     //~ //#endif
     
-  }
+  //~ }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
 
 
   
-  cout << "FIXED "<<fixcount<< " NODES"<<endl;  
-  cout << "VEL  "<<velcount<< " NODES"<<endl;  
+  //cout << "FIXED "<<fixcount<< " NODES"<<endl;  
+  //cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
   //AFTER THIS CALL
   dom_d->AllocateBCs();
