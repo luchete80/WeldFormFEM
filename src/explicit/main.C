@@ -596,26 +596,44 @@ int main(int argc, char **argv) {
   
 
   
-  int fixcount =0;
-  int velcount =0;
-  for (int i=0;i<dom_d->getNodeCount();i++){
-    #ifdef CUDA_BUILD
-    #else
-    // if (dom_d->getPosVec3(i).z <0.002) {
-      // for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-      // fixcount++;
-      // //cout << "node "<< i<<" fixed "<<endl;
-    // }
-    #endif
+  //~ int fixcount =0;
+  //~ int velcount =0;
+  //~ for (int i=0;i<dom_d->getNodeCount();i++){
+    //~ #ifdef CUDA_BUILD
+    //~ #else
+    //~ if (dom_d->getPosVec3(i).z <0.0005) {
+       //~ for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
+       //~ fixcount++;
+       //~ //cout << "node "<< i<<" fixed "<<endl;
+     //~ }
+    //~ #endif
+
+    //~ #ifdef CUDA_BUILD
+    //~ #else
+    //~ if (dom_d->getPosVec3(i).x <0.0004) {
+       //~ dom_d->AddBCVelNode(i,0,0);
+       //~ fixcount++;
+       //~ //cout << "node "<< i<<" fixed "<<endl;
+     //~ }
+    //~ #endif
     
+        //~ #ifdef CUDA_BUILD
+    //~ #else
+    //~ if (dom_d->getPosVec3(i).y <0.0004) {
+       //~ dom_d->AddBCVelNode(i,1,0);
+       //~ fixcount++;
+       //~ //cout << "node "<< i<<" fixed "<<endl;
+     //~ }
+    //~ #endif
+        
 
     //~ //#ifdef CUDA_BUILD
     //~ //#else    
-    //~ if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) {
+    //~ if (dom_d->getPosVec3_h(i).z > 0.03-0.0005 ) {
     //~ //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
       //~ dom_d->AddBCVelNode(i,0,-0.0);
       //~ dom_d->AddBCVelNode(i,1,-0.0);
-      //~ dom_d->AddBCVelNode(i,2,-40.0);
+      //~ dom_d->AddBCVelNode(i,2,-1.2);
       //~ //cout << "Node "<<i <<" vel "<<endl;
       //~ velcount++;
     //~ }     

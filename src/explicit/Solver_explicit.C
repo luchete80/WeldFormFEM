@@ -55,10 +55,13 @@ void host_ Domain_d::SolveChungHulbert(){
   
   InitValues();
   
-  ////TEMP; SMOOTH LOAD(ASSUMING CONTSTANT)
-  double3 *m_v_orig = new double3 [trimesh->nodecount];
-  for (int n=0;n<trimesh->nodecount;n++){
-    m_v_orig[n]= trimesh->node_v[n];
+  double3 *m_v_orig;
+  if (contact){
+    ////TEMP; SMOOTH LOAD(ASSUMING CONTSTANT)
+    m_v_orig = new double3 [trimesh->nodecount];
+    for (int n=0;n<trimesh->nodecount;n++){
+      m_v_orig[n]= trimesh->node_v[n];
+    }
   }
   
   for (int d=0;d<m_dim;d++){
@@ -136,7 +139,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemJAndDerivatives();
 
   CalcElemInitialVol(); //ALSO CALC VOL
-
+  
   CalcElemVol();
   printf("calc dens\n");
   calcElemDensity();
@@ -527,6 +530,7 @@ void host_ Domain_d::SolveChungHulbert(){
     //for (int m=0;m<trimesh->mesh_count;m++){
       //printf("Surf Id %d %.4e\n",m, norm(trimesh->react_force[m]));
     //printf("Surf Id %d %.4e\n",m, trimesh->react_p_force[m]);
+    if (contact){
     calcContactForceFromPressure();
     
     of <<std::scientific<<std::setprecision(6)<<", "<<
@@ -534,7 +538,7 @@ void host_ Domain_d::SolveChungHulbert(){
                                                     trimesh->react_p_force[0]<<", "<<
                                                     trimesh->react_force[0].z<<","<<
                                                     trimesh->cont_area;
-
+    }
   double max[]={0.0,0.0,0.0};
 
      for (int e=0;e<m_node_count;e++)
