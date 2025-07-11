@@ -93,7 +93,8 @@ void host_ Domain_d::SolveChungHulbert(){
   oss_out << "alpha_contact "<<m_stab.alpha_contact <<endl;
   oss_out << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
   oss_out << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
-  oss_out << "artvisc_coeff "<<m_stab.artvisc_coeff <<endl;
+  oss_out << "av_coeff_div "<<m_stab.av_coeff_div <<endl;
+  oss_out << "av_coeff_bulk "<<m_stab.av_coeff_bulk <<endl;
   oss_out << "log_factor "<<m_stab.log_factor <<endl;
   oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
   oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
