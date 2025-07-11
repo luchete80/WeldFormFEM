@@ -160,7 +160,7 @@ public:
   Domain_d (std::string);
   Domain_d (){
     m_axisymm_vol_weight = false;
-    m_domtype = _Plane_Strain_;
+    m_domtype = _3D_;
     bc_count[0]=bc_count[1]=bc_count[2]=0;
     contact = false;
     m_thermal = false;
@@ -181,7 +181,8 @@ public:
   }
   TimeInt m_timeint_type;
   void setNproc(const int &n){Nproc=n;}
-  void SetDimension(const int &node_count, const int &elem_count); //ELEM TYPE???
+  void SetDimension(const int &node_count, const int &elem_count); //Common
+  void SetDimensionExplicit(const int &node_count, const int &elem_count); //ELEM TYPE???
   void SetDimensionImplicit(const int &node_count, const int &elem_count); //TO NOT USE virtual (GPU issues)
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);

@@ -250,6 +250,7 @@ int main(int argc, char **argv) {
     #else
     dom_d->SearchExtNodes();
     #endif
+    cout << "Done."<<endl;
     
     TriMesh_d *msh = new TriMesh_d();
     

@@ -633,6 +633,9 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   ////// CONTACT//////////////////////////////////////////////
   malloc_t(ext_nodes, bool, m_node_count);
   malloc_t(contforce, double,node_count*m_dim);
+  malloc_t (node_area,        double, node_count); /////USED FOIR THERMAL CONTACT
+  //TODO: MAYBE THIS COULD BE DISCONTINUED 
+  malloc_t (p_node,        double, node_count); /////USED FOIR THERMAL CONTACT
   
   m_contsurf_count = 0;
 
@@ -655,6 +658,11 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   
   malloc_t(m_elem_neigh,        int, m_elem_count*4);
   malloc_t(m_elem_neigh_count,  int, m_elem_count);
+  
+}
+
+void Domain_d::SetDimensionExplicit(const int &node_count, const int &elem_count){
+  
   
 }
 
