@@ -631,9 +631,9 @@ dev_t void Domain_d::calcElemPressure() {
     if(div_v < 0.0) {
         p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
         //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
-        double q1 = m_stab.artvisc_coeff * rho_e * h * c * (-div_v);
+        double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
         double delta_J = 1.0 - J_local;
-        double q2 = 0.15 * K * delta_J;  // Volumetric term
+        double q2 = m_stab.av_coeff_bulk * K * delta_J;  // Volumetric term
         if (is_contact) {
             p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
         } else {

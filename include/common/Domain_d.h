@@ -91,7 +91,8 @@ struct StabilizationParams {
     double alpha_contact;
     double hg_coeff_free;
     double hg_coeff_contact;
-    double artvisc_coeff;
+    double av_coeff_div;
+    double av_coeff_bulk;
     double log_factor;
     double pspg_scale;
     double p_pspg_bulkfac;
