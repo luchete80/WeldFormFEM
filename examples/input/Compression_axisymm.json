@@ -1,11 +1,8 @@
 {
 "Configuration":
 {
-  "Nproc":8,
-	"particleRadius": 0.0025, 
-	"hFactor": 1.2,
-  "cflMethod": 1,
-  "cflFactor": 0.7,
+  "Nproc":4,
+  "cflFactor": 0.03,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
   "simTime": 1.0e-2,
@@ -27,24 +24,14 @@
 	"yieldStress0": 300.0E6
 }],
 
-"RigidBodies": 
-[{
-	"type": "Line",
-	"zoneId": 10,
-	"start": [0.0, 0.6184999, 0.0],
-  "partSide": 40,
-	"dim":   [0.2, 0.0, 0.0],
-	"translation": [1.0, 0.0, 0.0],
-	"scale": [1, 1, 1]
-}],
-
 "DomainBlocks": 
 [{
 	"type": "Box",
 	"zoneId": 0,
+  "elemLength": 0.0005,
 	"denseMode": 0,
-	"start": [ 0.01, 0.0, -0.028],
-	"dim": [0.15, 0.616, 0.0],
+	"start": [ 0.0001, 0.0, 0.0],
+	"dim": [0.0127, 0.03, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
 }],
