@@ -72,7 +72,7 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
       #else
       x = dom->getPosVec2(i);
       #endif
-      m_oss << x.x <<" "<<x.y <<endl;      
+      m_oss << x.x <<" "<<x.y <<"0.0"<<endl;      
       
     }
     
@@ -249,7 +249,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       //printf("Node %d %f %f %f \n", i, x.x,x.y,x.z);
     } else {
       double2 x = dom->getPosVec2_h(i);
-      m_oss << x.x <<" "<<x.y <<endl;      
+      m_oss << x.x <<" "<<x.y <<" 0.0"<<endl;      
       
     }
     

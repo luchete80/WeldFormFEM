@@ -54,7 +54,7 @@ int main(){
   
 	double r = dx/2.0;
 	
-	dom_d->AddBoxLength(V,make_double3(Lx,Ly,0.0),r,true);
+	dom_d->AddBoxLength(V,make_double3(Lx,Ly,0.0),r);
  
 
   ////// MATERIAL  

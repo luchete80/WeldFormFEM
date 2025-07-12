@@ -218,6 +218,8 @@ int main(int argc, char **argv) {
     if (dom_type == "AxiSymm"){
       dom_d->setAxiSymm();
       cout << "DOMAIN TYPE: AXIS SYMMETRIC"<<endl;
+    } else if (dom_type == "plStrain"){
+      cout << "DOMAIN TYPE: PLAIN STRAIN"<<endl;
     }
     
     #ifdef CUDA_BUILD
@@ -297,7 +299,7 @@ int main(int argc, char **argv) {
     #ifdef CUDA_BUILD
       cout << "STILL NOT AVAIABLE"<<endl;
     #else
-      dom_d->AddBoxLength(start, L, dx/2. );	
+      dom_d->AddBoxLength(start, make_double3(L.x,L.y,0.0), dx/2.,true/*,true*/);	
     #endif
     }
 
@@ -619,9 +621,9 @@ int main(int argc, char **argv) {
   
 
   
-  //~ int fixcount =0;
-  //~ int velcount =0;
-  //~ for (int i=0;i<dom_d->getNodeCount();i++){
+  int fixcount =0;
+  int velcount =0;
+  for (int i=0;i<dom_d->getNodeCount();i++){
     //~ #ifdef CUDA_BUILD
     //~ #else
     //~ if (dom_d->getPosVec3(i).z <0.0005) {
@@ -648,8 +650,28 @@ int main(int argc, char **argv) {
        //~ //cout << "node "<< i<<" fixed "<<endl;
      //~ }
     //~ #endif
-        
 
+    #ifdef CUDA_BUILD
+    #else    
+    if (dom_d->getPosVec3_h(i).z < 0.0005 ) {
+       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
+       cout << "Node "<<i <<" vel "<<endl;
+      fixcount++;
+    }     
+    #endif
+
+        
+    #ifdef CUDA_BUILD
+    #else    
+    if (dom_d->getPosVec3_h(i).z < 0.03-0.0005 ) {
+      dom_d->AddBCVelNode(i,0,-0.0);
+      dom_d->AddBCVelNode(i,1,-1.2); //AXISYMM
+      //dom_d->AddBCVelNode(i,2,-1.2);
+      cout << "Node "<<i <<" vel "<<endl;
+      velcount++;
+    }     
+    #endif
+    
     //~ //#ifdef CUDA_BUILD
     //~ //#else    
     //~ if (dom_d->getPosVec3_h(i).z > 0.03-0.0005 ) {
@@ -662,13 +684,13 @@ int main(int argc, char **argv) {
     //~ }     
     //~ //#endif
     
-  //~ }
+  }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
 
 
   
-  //cout << "FIXED "<<fixcount<< " NODES"<<endl;  
-  //cout << "VEL  "<<velcount<< " NODES"<<endl;  
+  cout << "FIXED "<<fixcount<< " NODES"<<endl;  
+  cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
   //AFTER THIS CALL
   dom_d->AllocateBCs();
