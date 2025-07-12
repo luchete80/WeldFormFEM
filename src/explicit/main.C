@@ -650,27 +650,6 @@ int main(int argc, char **argv) {
        //~ //cout << "node "<< i<<" fixed "<<endl;
      //~ }
     //~ #endif
-
-    #ifdef CUDA_BUILD
-    #else    
-    if (dom_d->getPosVec3_h(i).z < 0.0005 ) {
-       for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-       cout << "Node "<<i <<" vel "<<endl;
-      fixcount++;
-    }     
-    #endif
-
-        
-    #ifdef CUDA_BUILD
-    #else    
-    if (dom_d->getPosVec3_h(i).z < 0.03-0.0005 ) {
-      dom_d->AddBCVelNode(i,0,-0.0);
-      dom_d->AddBCVelNode(i,1,-1.2); //AXISYMM
-      //dom_d->AddBCVelNode(i,2,-1.2);
-      cout << "Node "<<i <<" vel "<<endl;
-      velcount++;
-    }     
-    #endif
     
     //~ //#ifdef CUDA_BUILD
     //~ //#else    
@@ -683,6 +662,25 @@ int main(int argc, char **argv) {
       //~ velcount++;
     //~ }     
     //~ //#endif
+
+    //AXISYMM EXAMPLE-----------------------
+    // #ifdef CUDA_BUILD
+    // #else    
+    // if (dom_d->getPosVec2(i).y < 0.0005 ) {
+       // for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
+       // cout << "Node "<<i <<" vel "<<endl;
+      // fixcount++;
+    // }      
+    // if (dom_d->getPosVec2(i).y < 0.03-0.0005 ) {
+      // dom_d->AddBCVelNode(i,0,-0.0);
+      // dom_d->AddBCVelNode(i,1,-1.2); //AXISYMM
+      // //dom_d->AddBCVelNode(i,2,-1.2);
+      // cout << "Node "<<i <<" vel "<<endl;
+      // velcount++;
+    // }     
+    // #endif
+    ////-------------------------------------
+
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
