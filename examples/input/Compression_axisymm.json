@@ -5,10 +5,10 @@
   "cflFactor": 0.03,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
-  "simTime": 1.0e-2,
+  "simTime": 5.0e-5,
   "artifViscAlpha": 1.0,
   "artifViscBeta": 0.0,
-  "outTime": 1.0e-4,
+  "outTime": 1.0e-5,
   "domType": "AxiSym",
   "solver": "Mech-LeapFrog"
 }
@@ -28,6 +28,7 @@
 [{
 	"type": "Box",
 	"zoneId": 0,
+  "elemType":"TriTet",
   "elemLength": 0.0005,
 	"denseMode": 0,
 	"start": [ 0.0001, 0.0, 0.0],
