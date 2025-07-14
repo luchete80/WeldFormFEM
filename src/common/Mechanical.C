@@ -628,7 +628,7 @@ dev_t void Domain_d::calcElemPressure() {
     //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
+    double p_bulk = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
 
     double p_u_cont =  (mu / K) * (J_bar * J_bar - 1.0);
@@ -636,7 +636,8 @@ dev_t void Domain_d::calcElemPressure() {
   
     
     //double p_physical = -K * log(J_bar);
-    double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
+    double p_physical = -K * (  m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0)  
+                              + (mu / K) * (J_bar * J_bar - 1.0));
 
     //printf ("Bulk press: %.4e Shear Press: %.4e\n", p_physical, p_u_cont);    
     
@@ -1443,7 +1444,8 @@ dev_t void Domain_d:: calcElemHourglassForces()
                 }
 
                 // Calculate characteristic element size
-                double elem_size = pow(vol[e], 1.0/3.0);
+                //double elem_size = pow(vol[e], 1.0/3.0);
+                double elem_size = 2.0 * pow(vol[e] / sqrt(2.0), 1.0/3.0);  // Factor geom
                 
                 // Compute stabilization coefficient
                 double c_h = hourglass_coeff * rho[e] * mat[e]->cs0 * elem_size * elem_size;

@@ -96,8 +96,8 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j,Domain_d *do
     // Carga cada parámetro con valores por defecto si no existen en el JSON
     params.alpha_free       = stab.value("alpha_free", 0.0);         // Valor por defecto: 0.3
     params.alpha_contact    = stab.value("alpha_contact", 0.0);      // Valor por defecto: 0.7
-    params.hg_coeff_free    = stab.value("hg_coeff_free", 0.2);     // Valor por defecto: 0.15
-    params.hg_coeff_contact = stab.value("hg_coeff_contact", 0.08);  // Valor por defecto: 0.08
+    params.hg_coeff_free    = stab.value("hg_coeff_free", 0.05);     // Valor por defecto: 0.15
+    params.hg_coeff_contact = stab.value("hg_coeff_contact", 0.05);  // Valor por defecto: 0.08
     params.av_coeff_div     = stab.value("av_coeff_div",  0.15);     // Valor por defecto: 0.15
     params.av_coeff_bulk    = stab.value("av_coeff_bulk", 0.15);     // Valor por defecto: 0.15
     params.log_factor       = stab.value("log_factor", 0.8);         // Valor por defecto: 0.8
