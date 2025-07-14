@@ -353,3 +353,4 @@ F90 PREVIOUS VERSION
 20250711 - Fixed Nodal mass.
          - Fixed BC based problems (crashing without contact).
          - Fixed Transpositions on implicit solver.
+20250714 - Added XYZ symmetry.

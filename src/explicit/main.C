@@ -215,6 +215,13 @@ int main(int argc, char **argv) {
     
     string dom_type = "3D";
     readValue(config["domType"], 	dom_type); 
+    bool xyzsym[] = {false,false,false};
+    double symtol = 1.0e-6;
+    readValue(config["symtol"],symtol);
+    readValue(config["xSymm"], 	xyzsym[0]);
+    readValue(config["ySymm"], 	xyzsym[1]); 
+    readValue(config["zSymm"], 	xyzsym[2]); 
+     
     if (dom_type == "AxiSymm"){
       dom_d->setAxiSymm();
       cout << "DOMAIN TYPE: AXIS SYMMETRIC"<<endl;
@@ -662,7 +669,23 @@ int main(int argc, char **argv) {
       //~ velcount++;
     //~ }     
     //~ //#endif
-
+    
+    for (int d=0;d<3;d++){
+      if (xyzsym[d]){
+        #ifdef CUDA_BUILD
+        #else
+          double coord;
+          if      (d==0)  coord = dom_d->getPosVec3(i).x;
+          else if (d==1)  coord = dom_d->getPosVec3(i).y;
+          else            coord = dom_d->getPosVec3(i).z;
+          if (coord < symtol ) {
+          dom_d->AddBCVelNode(i,d,0);
+          fixcount++;
+                
+          }
+        #endif
+      }
+    }
     //AXISYMM EXAMPLE-----------------------
     // #ifdef CUDA_BUILD
     // #else    
