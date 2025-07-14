@@ -628,11 +628,11 @@ dev_t void Domain_d::calcElemPressure() {
     //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
+    //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
     //double p_physical = -K * log(J_bar);
 
-    //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
+    double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
 
     // Enhanced PSPG - dynamic tau calculation
     double c = sqrt(K / rho_e);  // Sound speed
