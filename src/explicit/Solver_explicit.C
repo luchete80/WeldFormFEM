@@ -467,7 +467,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   if (contact){
     double f =1.0;
-    const double RAMP_FRACTION = 1.0e-4;  // 0.1% of total time instead of 1%
+    const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
     if(Time < RAMP_FRACTION*end_t) {
         f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
     } else {
