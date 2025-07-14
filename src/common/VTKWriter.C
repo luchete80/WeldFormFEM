@@ -463,6 +463,36 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       for (int t=0;t<3;t++)
         m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
+  avgScalar(dom->m_eps,a,6)
+  
+  //cout << "done"<<endl;
+  m_oss<<"TENSORS EPS float"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    tensor3 eps = FromFlatSym(a,n*6);
+    m_oss << eps.xx << " "<<eps.xy << " "<<eps.xz<<endl;    
+    m_oss << 0.0 << " "<<eps.yy << " "<<eps.yz<<endl;    
+    m_oss << 0.0 << " "<<0.0 << " "<<eps.zz<<endl;        
+  }
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      for (int t=0;t<3;t++)
+        m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+
+
+  avgScalar(dom->m_epsr,a,6)
+  
+  m_oss<<"TENSORS EPSR float"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    tensor3 eps = FromFlatSym(a,n*6);
+    m_oss << eps.xx << " "<<eps.xy << " "<<eps.xz<<endl;    
+    m_oss << 0.0 << " "<<eps.yy << " "<<eps.yz<<endl;    
+    m_oss << 0.0 << " "<<0.0 << " "<<eps.zz<<endl;        
+  }
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      for (int t=0;t<3;t++)
+        m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+
   //cout <<"tensors done "<<endl;
   delete[] a;
 
