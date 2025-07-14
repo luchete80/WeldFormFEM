@@ -631,17 +631,9 @@ dev_t void Domain_d::calcElemPressure() {
     //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
 
-    double p_u_cont =  (mu / K) * (J_bar * J_bar - 1.0);
-    
-  
-    
-    //double p_physical = -K * log(J_bar);
     double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
 
-    //printf ("Bulk press: %.4e Shear Press: %.4e\n", p_physical, p_u_cont);    
-    
     // Enhanced PSPG - dynamic tau calculation
-    
     double c = sqrt(K / rho_e);  // Sound speed
     double tau = h / (2.0 * c);  // Dynamic stabilization
     
@@ -1443,8 +1435,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
                 }
 
                 // Calculate characteristic element size
-                //double elem_size = pow(vol[e], 1.0/3.0);
-                double elem_size = 2.0 * pow(vol[e] / sqrt(2.0), 1.0/3.0);  // Factor geom
+                double elem_size = pow(vol[e], 1.0/3.0);
                 
                 // Compute stabilization coefficient
                 double c_h = hourglass_coeff * rho[e] * mat[e]->cs0 * elem_size * elem_size;
