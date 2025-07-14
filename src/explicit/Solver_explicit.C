@@ -538,7 +538,34 @@ void host_ Domain_d::SolveChungHulbert(){
                                                     trimesh->react_p_force[0]<<", "<<
                                                     trimesh->react_force[0].z<<","<<
                                                     trimesh->cont_area;
-    }
+    } else{
+   bool is_elem_sum[m_elem_count];
+
+   //double pxa_el[m_elem_count];
+
+   double area = 0.0;
+   
+         for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
+      double cfsum = 0.0;
+      for (int i=0;i<m_node_count;i++){
+        if (getNodePos3(i).z-0.0005>0.03){
+          for (int ne=0; ne<m_nodel_count[i];ne++) {
+            int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+            if (!is_elem_sum[e]){
+              //pxa_el[e]+=p[e]*m_elem_area[e];
+              is_elem_sum[e]=true;
+              cfsum += p[e]*m_elem_area[e];
+              area+=m_elem_area[e];
+            }
+              //~ if (!is_node_sum[i]){
+                //~ area+=node_area[i];
+                //~ }
+          }//nodel
+        }//mesh in contact
+        
+      }//Node count      
+      of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
+    } //NOT CONTACT, TO DELETE
   double max[]={0.0,0.0,0.0};
 
      for (int e=0;e<m_node_count;e++)
