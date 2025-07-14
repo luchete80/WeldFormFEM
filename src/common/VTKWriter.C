@@ -344,12 +344,19 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   
   double eps = 1.0e-20;
   m_oss<<"VECTORS Acceleration float"<<endl;
-  for (int n=0;n<dom->m_node_count;n++){
-    vector_t a = dom->getAccVec(n);
-    if (length(a)<eps)
-    m_oss <<0.0<< " "<< 0.0 << " "<<0.0<<endl;
-    else
-    m_oss << std::scientific<<std::setprecision(4)<<a.x <<" "<<a.y <<" " <<a.z<<endl;    
+  for (int n = 0; n < dom->m_node_count; n++) {
+      vector_t a = dom->getAccVec(n);
+
+      // Limpiar componentes individuales si son más chicas que eps
+      if (std::abs(a.x) < eps) a.x = 0.0;
+      if (std::abs(a.y) < eps) a.y = 0.0;
+      if (std::abs(a.z) < eps) a.z = 0.0;
+
+      // También podés aplicar length si querés ignorar todo el vector si es chico
+      if (length(a) < eps)
+          m_oss << "0.0 0.0 0.0" << endl;
+      else
+          m_oss << std::scientific << std::setprecision(4) << a.x << " " << a.y << " " << a.z << endl;
   }
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)

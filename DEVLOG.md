@@ -354,3 +354,4 @@ F90 PREVIOUS VERSION
          - Fixed BC based problems (crashing without contact).
          - Fixed Transpositions on implicit solver.
 20250714 - Added XYZ symmetry.
+20250714 - Fixed small accelerarion export.
