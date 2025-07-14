@@ -680,7 +680,7 @@ dev_t void Domain_d::calcElemPressure() {
     // Contact pressure boost (additional 10-15% in contact zones)
     
     // FINAL PRESSURE (contact boosted)
-    p[e] = p_physical + p_pspg /*+ p_hg + p_q*/;
+    p[e] = p_physical + p_pspg + p_hg + p_q;
     p[e] = std::max(-10.0 * K, std::min(2.0 * K, p[e]));  // Límites conservadores
     
   }
