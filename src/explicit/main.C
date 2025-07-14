@@ -221,6 +221,10 @@ int main(int argc, char **argv) {
     readValue(config["xSymm"], 	xyzsym[0]);
     readValue(config["ySymm"], 	xyzsym[1]); 
     readValue(config["zSymm"], 	xyzsym[2]); 
+    string symaxis[]={"X","Y","Z"};
+    for (int d=0;d<3;d++)
+      if (xyzsym[d])
+        cout << "SYMMETRY ON AXIS "<<symaxis[d]<<endl;
      
     if (dom_type == "AxiSymm"){
       dom_d->setAxiSymm();
@@ -630,6 +634,7 @@ int main(int argc, char **argv) {
   
   int fixcount =0;
   int velcount =0;
+  int xyzfixcount[] = {0,0,0};
   for (int i=0;i<dom_d->getNodeCount();i++){
     //~ #ifdef CUDA_BUILD
     //~ #else
@@ -680,7 +685,7 @@ int main(int argc, char **argv) {
           else            coord = dom_d->getPosVec3(i).z;
           if (coord < symtol ) {
           dom_d->AddBCVelNode(i,d,0);
-          fixcount++;
+          xyzfixcount[d]++;
                 
           }
         #endif
