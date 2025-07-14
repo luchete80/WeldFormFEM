@@ -593,7 +593,8 @@ dev_t void Domain_d::calcElemPressure() {
         
     // 3. Element loop - main computation
   par_loop(e, m_elem_count) {
-    double K = mat[e]->Elastic().BulkMod();
+    double K  = mat[e]->Elastic().BulkMod();
+    double mu = mat[e]->Elastic().G();
     double rho_e = rho[e];
     double vol0 = vol_0[e];
     double vol1 = vol[e];
@@ -627,10 +628,20 @@ dev_t void Domain_d::calcElemPressure() {
     //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
+    //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
 
+    double p_u_cont =  (mu / K) * (J_bar * J_bar - 1.0);
+    
+  
+    
+    //double p_physical = -K * log(J_bar);
+    double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
+
+    //printf ("Bulk press: %.4e Shear Press: %.4e\n", p_physical, p_u_cont);    
+    
     // Enhanced PSPG - dynamic tau calculation
+    
     double c = sqrt(K / rho_e);  // Sound speed
     double tau = h / (2.0 * c);  // Dynamic stabilization
     
@@ -669,7 +680,7 @@ dev_t void Domain_d::calcElemPressure() {
     // Contact pressure boost (additional 10-15% in contact zones)
     
     // FINAL PRESSURE (contact boosted)
-    p[e] = p_physical + p_pspg + p_hg + p_q;
+    p[e] = p_physical + p_pspg /*+ p_hg + p_q*/;
     p[e] = std::max(-10.0 * K, std::min(2.0 * K, p[e]));  // Límites conservadores
     
   }
