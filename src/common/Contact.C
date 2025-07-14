@@ -127,17 +127,24 @@ void dev_t Domain_d::CalcContactForces(){
               double v_reln = dot(v_rel, trimesh->normal[j]);         
               //double F_damp = 0.0;
 
-              //double kcont_geo = 4.0*mat[0]->Elastic().E() * node_area[i] / nodlen;
+              double kcont_geo = 4.0*mat[0]->Elastic().E() * node_area[i] / nodlen;
               //double kcont_geo = mat[0]->Elastic().BulkMod()*nodevol;
-              double kcont_mass = 0.2 * m_mdiag[i] / (dt * dt);
+              double kcont_mass = 0.2*m_mdiag[i] / (dt * dt);
               //double kcont = std::min(kcont_geo, kcont_mass);
+              //printf("KGEO:%.4e KMASS: %.4e\n",kcont_geo,kcont_mass);
+              
               double kcont = kcont_mass;
-              double damping_ratio = 0.01;
+              double damping_ratio = 0.2;
               double omega = sqrt(kcont / m_mdiag[i]);
               double ccrit = 2.0 * m_mdiag[i] * omega;
               double F_damp = damping_ratio * ccrit * v_reln;
+              
+              double penetration_tolerance = 0.01 * nodlen; // 1% de la longitud característica
+              double eff_penet = fmin(d, penetration_tolerance);
+
 
               double F_normal = m_contPF * kcont * d;
+              //double F_normal = m_contPF * kcont * eff_penet;
 
               //double F_damp = beta_d * sqrt(kcont * m_mdiag[i]) * v_reln;
               //printf("KCON geo %f KCON mass %f: \n", kcont, kcont2;
