@@ -1677,7 +1677,7 @@ __device__ void Domain_d::ApplyGlobalSprings() {
 }
 
 
-void Domain_d::ApplyGlobalDamping(int nid, double damping_factor) {
+void Domain_d::ApplyGlobalDamping(double damping_factor) {
   par_loop(nid,m_node_count){
     if (!ext_nodes[nid]) {
         for (int d = 0; d < 3; d++) {

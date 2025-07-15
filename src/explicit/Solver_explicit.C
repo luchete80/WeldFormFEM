@@ -432,6 +432,7 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   UpdateCorrectionAccVel();
   
+  ApplyGlobalDamping(0.1);
   #endif
 
 	// !$omp parallel do num_threads(Nproc) private (n)  

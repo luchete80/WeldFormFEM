@@ -425,6 +425,7 @@ public:
   void setContactPF(const double &pf){m_contPF = pf;}
 
   __device__ void ApplyGlobalSprings();
+  void ApplyGlobalDamping(double damping_factor);
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
