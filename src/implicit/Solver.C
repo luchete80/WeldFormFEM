@@ -202,26 +202,38 @@ void host_ Domain_d::Solve(){
         delta_u_e.Print();
         
         // // 10) Distribute Δu_e to nodes
-        // for (int a = 0; a < m_nodxelem; ++a) {
-            // for (int d = 0; d < m_dim; ++d) {
-                // int idx_local = a * m_dim + d;
-                // //int idx_global = elem_to_node[e][a] * m_dim + d;
-                // int idx_global = getElemNode(e,a) * m_dim + d;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            for (int d = 0; d < m_dim; ++d) {
+                int idx_local = a * m_dim + d;
+                //int idx_global = elem_to_node[e][a] * m_dim + d;
+                int idx_global = getElemNode(e,a) * m_dim + d;
 
-                // u_accum[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
-                // u_count[idx_global] += 1; // acumulás contribuciones
-            // }
-        // }
+                u[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
+                u_count[idx_global] += 1; // acumulás contribuciones
+            }
+        }
     
     } // end element loop
-    
+
+  for (int dim=0;dim<m_dim;dim++){
+    par_loop (n,bc_count[dim]){
+      double val;
+      //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);
+      //printf("BCV dim %d\n", dim);
+      // printf("VEL BC \n");
+      if (dim == 0)       {/*printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]); */ u[m_dim*bcx_nod[n]+dim] = bcx_val[n]; }
+      else if (dim == 1)  {/*printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]);*/ u[m_dim*bcy_nod[n]+dim] = bcy_val[n];}
+      else if (dim == 2)  {/*printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);*/  u[m_dim*bcz_nod[n]+dim] = bcz_val[n]; }
+    }
+  }
     // //~ // 11) Average &  actualize nodal pos
-    // for (int i = 0; i < m_node_count * m_dim; ++i) {
-        // if (u_count[i] > 0) {
-            // double delta = u_accum[i] / u_count[i];
-            // x[i] += delta; // actualizás posición
-        // }
-    // }
+    for (int i = 0; i < m_node_count * m_dim; ++i) {
+        if (u_count[i] > 0) {
+            double delta = u[i] / u_count[i];
+            x[i] += delta; // actualizás posición
+        }
+    }
+
 
     // 12) Volver a calcular deformaciones con x actualizado
 
