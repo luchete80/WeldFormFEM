@@ -1677,6 +1677,20 @@ __device__ void Domain_d::ApplyGlobalSprings() {
 }
 
 
+void Domain_d::ApplyGlobalDamping(int nid, double damping_factor) {
+  par_loop(nid,m_node_count){
+    if (!ext_nodes[nid]) {
+        for (int d = 0; d < 3; d++) {
+            // Amortiguación en velocidades
+            v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
+            
+            //~ // Opcional: aplicar a desplazamientos si es necesario
+            //~ u[3 * nid + d] -= damping_factor * u[3 * nid + d];
+        }
+    }
+  }
+}
+
   /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		
     dom_d->calcElemPressure();
