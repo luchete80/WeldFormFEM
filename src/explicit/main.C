@@ -647,6 +647,17 @@ int main(int argc, char **argv) {
      }
     #endif
 
+    #ifdef CUDA_BUILD
+    #else
+    if (abs(dom_d->getPosVec3(i).x)<0.001 && abs(dom_d->getPosVec3(i).y<0.001 ) ) {
+       for (int d=0;d<2;d++)
+         dom_d->AddBCVelNode(i,d,0);
+       //dom_d->AddBCVelNode(i,2,0);
+       fixcount++;
+       //cout << "node "<< i<<" fixed "<<endl;
+     }
+    #endif
+    
     //~ #ifdef CUDA_BUILD
     //~ #else
     //~ if (dom_d->getPosVec3(i).x <0.0004) {

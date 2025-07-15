@@ -1643,7 +1643,7 @@ __device__ void Domain_d::ApplyGlobalSprings() {
         
         
       // 1. Configuración de parámetros adaptativos
-      double k_base = 0.001 * mat[0]->Elastic().E();  // Valor base (0.1% de E)
+      double k_base = 0.0001 * mat[0]->Elastic().E();  // Valor base (0.1% de E)
       double c_base = 0.01 * sqrt(k_base * m_mdiag[nid]);  // Amortiguamiento
       
       // 2. Factores de ajuste según posición
@@ -1655,13 +1655,13 @@ __device__ void Domain_d::ApplyGlobalSprings() {
       // 3. Aplicación a todos los nodos (excepto fijos)
       if(!ext_nodes[nid]) {
           // Resortes traslacionales
-          for(int d=0; d<3; d++) {
+          for(int d=0; d<2; d++) {
               double k_eff = k_base * position_factor;
               double c_eff = c_base * position_factor;
               
               //atomicAdd(&f[3*nid+d], -k_eff*u[3*nid+d] - c_eff*v[3*nid+d]);
-              for (int d=0;d<3;d++)
-                m_fi[m_dim*nid+d] -= (k_eff*u[m_dim*nid+d] - c_eff*v[m_dim*nid+d]);
+
+                m_fi[m_dim*nid+d] -= k_eff*u[m_dim*nid+d] /*- c_eff*v[m_dim*nid+d])*/;
                 
           }
           
