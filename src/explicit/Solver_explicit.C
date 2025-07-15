@@ -412,6 +412,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //assemblyMassMatrix();  
   
   assemblyForces(); 
+  //ApplyGlobalSprings();
 
   calcAccel();
   

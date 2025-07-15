@@ -289,6 +289,7 @@ public:
     #else
     return make_vector_t (x  [m_dim*n],x  [m_dim*n+1],x  [m_dim*n+2]);      
     #endif
+  
   }
 
 
@@ -422,6 +423,9 @@ public:
   const bool &ifFixedDt()const{return m_fixed_dt;}
   double m_artifvisc[2];
   void setContactPF(const double &pf){m_contPF = pf;}
+
+  __device__ void ApplyGlobalSprings();
+  
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
