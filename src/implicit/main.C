@@ -332,8 +332,22 @@ int main(int argc, char **argv) {
   dom_d->
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
   dom_d->AddBCVelNode(2,2,0);
-
-    
+  // Factorizing
+  // Solution:
+       // 0
+       // 0
+       // 0
+   // 9e-09
+       // 0
+       // 0
+       // 0
+   // 9e-09
+       // 0
+       // 0
+       // 0
+  // -3e-08
+  dom_d->AddBCVelNode(3,2,-3.0e-8);
+  
   //AFTER THIS CALL
   dom_d->AllocateBCs();
   
