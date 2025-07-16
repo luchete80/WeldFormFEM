@@ -1273,7 +1273,9 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         sigma_y[e] = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
       } else if (mat[e]->Material_model == JOHNSON_COOK){
         sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
-        }
+      } else if (mat[e]->Material_model == _GMT_){
+        sigma_y[e] = CalcGMTYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
+      }
         
         //printf("sy %.3f\n",sigma_y[e]);
   // Inside your plasticity block where (sigma_y[e] < sig_trial)
@@ -1304,8 +1306,10 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       // Update tangent modulus if needed
       if(mat[e]->Material_model == HOLLOMON) {
           Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
-      } else if (mat[e]->Material_model == JOHNSON_COOK){
+      } else if (mat[e]->Material_model == JOHNSON_COOK) {
 		  Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+      } else if (mat[e]->Material_model == _GMT_){
+		  Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
       }
 	  
 	  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);

@@ -3,11 +3,13 @@
 
 #include "defs.h"
 #include "Matrix.h"
-class Particle;
 
+
+//TODO: CHANGE TO ENUM
 #define BILINEAR				0
 #define HOLLOMON				1 //POWER LAW
 #define JOHNSON_COOK		2
+#define _GMT_         	3
 
 class Elastic_{
 	private:
@@ -235,7 +237,9 @@ public Material_{
   
 	
 	public:
-	GMT(){}
+	GMT(){
+    Material_model = _GMT_;
+  }
 	//You provide the values of A, B, n, m, 
 	//θmelt, and  θ_transition
 	//as part of the metal plasticity material definition.
@@ -337,7 +341,7 @@ inline double dev_t CalcJohnsonCookTangentModulus(const double &plstrain, const 
 //sy = [A + B(epl^n)] [1 + C ln(e_dot pl/e_dot 0) (1 - pow)]
 ////////////// TEMPERATURE SHOULD BE IN CELSIUS
 
-inline double dev_t CalcYieldStressGMT(const double &strain, const double &strain_rate, const double &temp, Material_ *mat)	{
+inline double dev_t CalcGMTYieldStress(const double &strain, const double &strain_rate, const double &temp, Material_ *mat)	{
   // OLD////////////////////////
 	// double T_h = (temp - T_t) / (T_m - T_t);
 	// double sr = strain_rate;
@@ -374,7 +378,7 @@ inline double dev_t CalcYieldStressGMT(const double &strain, const double &strai
 	return sy;
 }	
 
-inline double dev_t CalcTangentModulusGMT(const double &plstrain, const double &strain_rate, const double &temp, Material_ *mat)	{
+inline double dev_t CalcGMTTangentModulus(const double &plstrain, const double &strain_rate, const double &temp, Material_ *mat)	{
 	double T_h;
   
 	double e,er,T, sy;
