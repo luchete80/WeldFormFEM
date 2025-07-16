@@ -168,16 +168,26 @@ public:
     m_contPF = 0.1;
 
 
-    m_stab.alpha_free       = 0.3;
-    m_stab.alpha_contact    = 0.7;
-    m_stab.hg_coeff_free    = 0.2;
-    m_stab.hg_coeff_contact = 0.08;
-    m_stab.av_coeff_div     = 0.15;
-    m_stab.av_coeff_bulk    = 0.15;
-    m_stab.log_factor       = 0.8;
-    m_stab.pspg_scale       = 0.2;
-    m_stab.p_pspg_bulkfac   = 0.05;
-    
+    //~ m_stab.alpha_free       = 0.3;
+    //~ m_stab.alpha_contact    = 0.7;
+    //~ m_stab.hg_coeff_free    = 0.2;
+    //~ m_stab.hg_coeff_contact = 0.08;
+    //~ m_stab.av_coeff_div     = 0.15;
+    //~ m_stab.av_coeff_bulk    = 0.15;
+    //~ m_stab.log_factor       = 0.8;
+    //~ m_stab.pspg_scale       = 0.2;
+    //~ m_stab.p_pspg_bulkfac   = 0.05;
+
+    m_stab.alpha_free       = 0.0;
+    m_stab.alpha_contact    = 0.0;
+    m_stab.hg_coeff_free    = 0.0;
+    m_stab.hg_coeff_contact = 0.00;
+    m_stab.av_coeff_div     = 0.0;
+    m_stab.av_coeff_bulk    = 0.0;
+    m_stab.log_factor       = 0.0;
+    m_stab.pspg_scale       = 0.0;
+    m_stab.p_pspg_bulkfac   = 0.0;
+        
   }
   TimeInt m_timeint_type;
   void setNproc(const int &n){Nproc=n;}

@@ -36,11 +36,7 @@ class Material_{
 	Elastic_ elastic_m;
 
 	double E_m, nu;	//TODO, move to elastic class
-  
-  double T_min, T_max;
-  double e_min, e_max;
-  double er_min, er_max;
-  
+
   
 	public:
   double cs0;
@@ -55,9 +51,18 @@ class Material_{
 
   ////// NO //virtual FUNCTIONS, JOHNSON COOK MATERIAL ///////
 	double T_t,T_m;	//transition and melting temps
+  
+  double T_min, T_max;
+  double e_min, e_max;
+  double er_min, er_max;
+  
+  //JOHNSON COOK
 	double A, B, C;
 	double n/*, m*/;
 	double eps_0;
+  
+  //GMT
+  double C1, C2, m1, m2, n1,n2, I1,I2;
   
   //THERMAL
   double k_T, cp_T; ///MAYBE MOVE TO element or nodes
@@ -327,6 +332,79 @@ inline double dev_t CalcJohnsonCookTangentModulus(const double &plstrain, const 
   return Et;
 }	
 
-//#include "Material.cu"
+
+///////////////////////////////////////////////////
+//sy = [A + B(epl^n)] [1 + C ln(e_dot pl/e_dot 0) (1 - pow)]
+////////////// TEMPERATURE SHOULD BE IN CELSIUS
+
+inline double dev_t CalcYieldStressGMT(const double &strain, const double &strain_rate, const double &temp, Material_ *mat)	{
+  // OLD////////////////////////
+	// double T_h = (temp - T_t) / (T_m - T_t);
+	// double sr = strain_rate;
+	// if (strain_rate == 0.0)
+		// sr = 1.e-5;
+    
+	// double sy = (A+B*pow(strain, n))*(1.0 + C * log (sr/ eps_0) ) * (1.0 - pow(T_h,m));  
+  
+  // NEW /////////////////////
+	double T_h = (temp - mat->T_t) / (mat->T_m - mat->T_t);
+	double sr = strain_rate;
+  double f = 1.0;
+	// if (strain_rate > eps_0)
+		// f = (1.0 + C * log(strain_rate/eps_0));
+	
+	double e,er,T, sy;
+  e = strain; er = strain_rate; T = temp;
+  if      (e < mat->e_min) e = mat->e_min;
+  else if (e > mat->e_max) e = mat->e_max;
+
+  if      (er < mat->er_min) er = mat->er_min;
+  else if (er > mat->er_max) er = mat->er_max;
+  
+  if      (T < mat->T_min) T = mat->T_min;
+  else if (T > mat->T_max) T = mat->T_max;
+  
+  sy = mat->C1 * exp(mat->C2*T)*pow(e,mat->n1*T + mat->n2) * exp((mat->I1*T + mat->I2)/e) * pow(er,mat->m1 * T + mat->m2);
+  // cout << "n1 n2 C1 c2 m1 m2 I1 i2" << n1 << ", "<<n2 << ", "
+                                    // << C1 << ", "<<C2 << ", "
+                                    // << m1 << ", "<<m2 << ", "
+                                    // << I1 << ", "<<I2 << ", "<<endl;
+  // // cout << "e, er, T " << e <<", "<<er<<", "<<T<<endl; 
+	// cout << "sy GMT"<< sy<<", e, er, T" << e << ", " <<er << ", " <<T<<endl;
+	return sy;
+}	
+
+inline double dev_t CalcTangentModulusGMT(const double &plstrain, const double &strain_rate, const double &temp, Material_ *mat)	{
+	double T_h;
+  
+	double e,er,T, sy;
+  e = plstrain; er = strain_rate; T = temp;
+  if      (plstrain < mat->e_min) e = mat->e_min;
+  else if (plstrain > mat->e_max) e = mat->e_max;
+
+  if      (strain_rate < mat->er_min) er = mat->er_min;
+  else if (strain_rate > mat->er_max) er = mat->er_max;
+
+  if      (temp < mat->T_min) T = mat->T_min;
+  else if (temp > mat->T_max) T = mat->T_max;
+  
+  //double sy = (A+B*pow(strain, n))*(1.0 + C * log (strain_rate/ eps_0) ) * (1.0 - pow(T_h,m));
+  double Et =0.;
+
+	Et = mat->C1*exp(mat->C2*T) * pow(er,mat->m1*T + mat->m2)* //constant part
+       pow(e,T*mat->n1 + mat->n2-2.0)*(-mat->I1*T - mat->I2 + e*(mat->n1*T + mat->n2))*exp((mat->I1*T + mat->I2)/e);
+
+  // if (strain_rate > eps_0)
+		// f = (1.0 + C * log(strain_rate/eps_0));
+   // if (plstrain > 0.)
+    // Et = n * B * pow(plstrain,n-1.) * f * (1.0-pow (T_h,m));
+   // else 
+     // //Et = Elastic().E()*0.1; //ARBITRARY! TODO: CHECK MATHEMATICALLY
+		// Et = Elastic().E();
+	 
+  return Et;
+}	
+
+
 
 #endif

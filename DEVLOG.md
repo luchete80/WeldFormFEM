@@ -355,3 +355,6 @@ F90 PREVIOUS VERSION
          - Fixed Transpositions on implicit solver.
 20250714 - Added XYZ symmetry.
 20250714 - Fixed small accelerarion export.
+20250716 - FIXED Force Calc.
+         - Added GMT Material
+         - Set To Zero Stab Params.
