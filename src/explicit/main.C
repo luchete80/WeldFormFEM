@@ -205,14 +205,18 @@ int main(int argc, char **argv) {
     loadStabilizationParams(j, dom_d); 
 
     double out_time,sim_time;
+    bool fixedTS = false;
+    
     int remesh_interval = -1;
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
     readValue(config["reMeshStepInterval"], remesh_interval);
-
+    readValue(config["fixedTS"], fixedTS);
+    
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
     dom_d->setCFL(cflFactor);
+    if (fixedTS) dom_d->setFixedDt(true);
     
     double3 artifvisc;
     dom_d->m_artifvisc[0] = dom_d->m_artifvisc[1] = 0.0;

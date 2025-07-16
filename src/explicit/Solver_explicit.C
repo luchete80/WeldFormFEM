@@ -255,11 +255,13 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-      calcMinEdgeLength();
-      double minl = getMinLength();
-      dt = m_cfl_factor*minl/(mat_cs);
- 
+  if (!m_fixed_dt){
+    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+    calcMinEdgeLength();
+    double minl = getMinLength();
+    dt = m_cfl_factor*minl/(mat_cs);
+  }
+  
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();

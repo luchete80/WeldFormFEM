@@ -166,7 +166,7 @@ public:
     m_thermal = false;
     m_remesh_interval = 1e10;
     m_contPF = 0.1;
-
+    m_fixed_dt = false;
 
     //~ m_stab.alpha_free       = 0.3;
     //~ m_stab.alpha_contact    = 0.7;
