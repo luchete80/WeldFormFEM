@@ -328,6 +328,23 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   
 
   //cout << "Writing point data "<<endl;
+  double eps = 1.0e-20;
+  m_oss<<"POINT_DATA "<<nc<<endl;  
+  m_oss<<"VECTORS Position float"<<endl;
+  for (int n=0;n<dom->m_node_count;n++){
+    vector_t x = dom->getPosVec3(n);
+    if (std::abs(x.x) < eps) x.x = 0.0;
+    if (std::abs(x.y) < eps) x.y = 0.0;
+    if (std::abs(x.z) < eps) x.z = 0.0;
+      
+    if (norm(x)>1.e-10)
+      m_oss << std::scientific<<std::setprecision(4)<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
+    else
+     m_oss << std::scientific<<std::setprecision(4)<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;      
+  } 
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->nodecount;n++)
+      m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
   m_oss<<"POINT_DATA "<<nc<<endl;  
   m_oss<<"VECTORS DISP float"<<endl;
@@ -342,7 +359,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
   
-  double eps = 1.0e-20;
+
   m_oss<<"VECTORS Acceleration float"<<endl;
   for (int n = 0; n < dom->m_node_count; n++) {
       vector_t a = dom->getAccVec(n);
