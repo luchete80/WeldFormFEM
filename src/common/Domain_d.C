@@ -48,7 +48,23 @@ namespace MetFEM {
 
 
 // Function to compare two faces to check if they are identical
+//// ORIGINAL FOR ONE FACE PER ELEMENT
+//~ bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
+    //~ int matchCount = 0;
+    //~ for (int i = 0; i < FACENOD; i++) {
+        //~ for (int j = 0; j < FACENOD; j++) {
+            //~ if (f1.nodes[i] == f2.nodes[j]) {
+                //~ matchCount++;
+                //~ break;
+            //~ }
+        //~ }
+    //~ }
+    //~ return matchCount == FACENOD;
+//~ }
+
+// Function to compare two faces to check if they are identical (considering orientation)
 bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
+    // First check if they have the same nodes in any order
     int matchCount = 0;
     for (int i = 0; i < FACENOD; i++) {
         for (int j = 0; j < FACENOD; j++) {
@@ -58,11 +74,44 @@ bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
             }
         }
     }
-    return matchCount == FACENOD;
+    if (matchCount != FACENOD) return false;
+    
+    // Now check orientation by finding the order of nodes
+    // Find the position of f1.nodes[0] in f2
+    int start_pos = -1;
+    for (int i = 0; i < FACENOD; i++) {
+        if (f2.nodes[i] == f1.nodes[0]) {
+            start_pos = i;
+            break;
+        }
+    }
+    
+    // Check if nodes are in same order (clockwise)
+    if (f1.nodes[1] == f2.nodes[(start_pos+1)%FACENOD] && 
+        f1.nodes[2] == f2.nodes[(start_pos+2)%FACENOD]) {
+        return true; // Same orientation
+    }
+    
+    // Check if nodes are in reverse order (counter-clockwise)
+    if (f1.nodes[1] == f2.nodes[(start_pos+FACENOD-1)%FACENOD] && 
+        f1.nodes[2] == f2.nodes[(start_pos+FACENOD-2)%FACENOD]) {
+        return true; // Opposite orientation (still same face)
+    }
+    
+    return false;
 }
+
 // Add a face to the face list or increment its count if already present
 void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     for (int i = 0; i < faceCount; i++) {
+        if (areFacesEqual(faceList[i], newFace)) {
+            faceList[i].count++;
+            if (faceList[i].count == 2) {
+                faceList[i].other_elem = newFace.elem_id;
+            }
+            return;
+        }
+        
         if (areFacesEqual(faceList[i], newFace)) {
             faceList[i].count++;
             if (faceList[i].count == 2) {
@@ -205,7 +254,10 @@ dev_t void Domain_d::SearchExtNodes() {
           if (!elem_flags[elem_id]){
             m_elem_area[elem_id] += area;
             elem_flags[elem_id] = true;
-          }
+          } 
+          //~ else {
+            //~ if (area < m_elem_area[elem_id]) m_elem_area[elem_id] = area;
+          //~ }
       }//==1 
     }//Face Count
 	
