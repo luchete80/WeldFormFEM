@@ -379,7 +379,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     
     if (dom->isContactOn())
       for (int n=0;n<dom->getTriMesh()->nodecount;n++)
-        m_oss << fixed<<0.0 <<endl;   
+        m_oss << fixed<<dom->getTriMesh()->T_const <<endl;   
   }
 
   m_oss<<"VECTORS ContForce float"<<endl;
