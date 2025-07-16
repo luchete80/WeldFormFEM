@@ -37,7 +37,10 @@ class Material_{
 
 	double E_m, nu;	//TODO, move to elastic class
   
-
+  double T_min, T_max;
+  double e_min, e_max;
+  double er_min, er_max;
+  
   
 	public:
   double cs0;
@@ -213,6 +216,58 @@ public Material_{
   inline double  dev_t CalcTangentModulus(const double &strain);
 	inline double  dev_t CalcYieldStress(){}	
 	inline double  dev_t CalcYieldStress(const double &strain);	
+};
+
+
+//TODO: derive johnson cook as plastic material flow
+class GMT:
+public Material_{
+	double C1, C2;
+  double n1, n2; //Strain hardening exponent
+	double m1, m2;
+  double I1, I2; //EXPONENTIAL TERMS
+	double eps_0; //ONLY FOR JC DAMAGE , CORRECT THIS
+  
+	
+	public:
+	GMT(){}
+	//You provide the values of A, B, n, m, 
+	//θmelt, and  θ_transition
+	//as part of the metal plasticity material definition.
+	GMT(const Elastic_ &el, 
+              const double &n1_,  const double &n2_,  
+              const double &C1_,  const double &C2_, 
+              const double &m1_,  const double &m2_,
+              const double &I1_,  const double &I2_,
+              const double &e_min_  = 0.0,const double &e_max_  =1.0e10, /*const double &e_0 = 1.0,*/
+              const double &er_min_ = 0.0,const double &er_max_ =1.0e10,
+              const double &T_min_  = 0.0,const double &T_max_  =1.0e10):
+	Material_(el),
+  C1(C1_),C2(C2_),
+  n1(n1_),n2(n2_),
+  m1(m1_),m2(m2_),
+  I1(I1_),I2(I2_)
+  {
+    e_min =e_min_; e_max =e_max_;
+    er_min=er_min_;er_max=er_max_;
+    T_min =T_min_; T_max =T_max_;
+		// T_m=T_m_;
+		// T_t=T_t_;
+	}
+	inline double CalcYieldStress(){return 0.0;}	
+	inline double CalcYieldStress(const double &plstrain){
+     // double Et =0.;
+
+    // if (plstrain > 0.)
+      // Et = n * B * pow(plstrain,n-1.);
+    // else 
+      // Et = Elastic().E()*0.1; //ARBITRARY! TODO: CHECK MATHEMATICALLY
+    // return Et;
+  } //TODO: SEE IF INCLUDE	
+	inline double CalcYieldStress(const double &strain, const double &strain_rate, const double &temp);	
+	inline double CalcTangentModulus(const double &strain, const double &strain_rate, const double &temp);
+  double &getRefStrainRate(){return eps_0;}//only for JC
+  //~JohnsonCook(){}
 };
 
 

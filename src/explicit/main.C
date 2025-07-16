@@ -353,7 +353,11 @@ int main(int argc, char **argv) {
   cout << "Density.."<< endl; readValue(material[0]["density0"], 		rho);
   readValue(material[0]["youngsModulus"], 	E);
   readValue(material[0]["poissonsRatio"], 	nu);
-  
+
+  std::vector<double> e_range (2,0.0);
+  std::vector<double> er_range(2,0.0);
+  std::vector<double> T_range (2,0.0);
+  e_range[1]=er_range[1]=T_range[1]=1.0e10;  
 
   cout << "Setting density"<<endl;
   dom_d->setDensity(rho); //rho_0
@@ -419,14 +423,27 @@ int main(int argc, char **argv) {
   } else if (mattype == "JohnsonCook") {
     // //Order is 
                                // //A(sy0) ,B,  ,C,   m   ,n   ,eps_0,T_m, T_transition
-   Material_ *material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[3],c[2],c[6], c[4],c[5]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
+   material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[3],c[2],c[6], c[4],c[5]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
    cout << "Johnson Cook Material"<<endl; 
    
     // //Only 1 material to begin with
     // //cudaMalloc((void**)&dom_d->materials, 1 * sizeof(JohnsonCook ));
     // //cudaMemcpy(dom_d->materials, material_h, 1 * sizeof(JohnsonCook), cudaMemcpyHostToDevice);	
     // cout << "Material Constants, B: "<<c[0]<<", C: "<<c[1]<<", n: "<<c[2]<<", m: "<<c[3]<<", T_m: "<<c[4]<<", T_t: "<<c[5]<<", eps_0: "<<c[6]<<endl;
-  } else                              
+  } else if (mattype == "GMT") {
+      //Order of input is: n1,n2  c1,c2, m1,m2, I1, I2
+      material_h = new GMT(el,c[0],c[1],c[2],c[3],c[4], c[5],c[6],c[7],
+                       e_range [0],e_range [1],
+                       er_range[0],er_range[1],
+                       T_range [0],T_range [1]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
+      cout << "GMT Material Constants: "<<endl<<
+                                  "n1: "<<c[0]<<", n2: "<<c[1]<<endl<<
+                                  "c1: "<<c[2]<<", c2: "<<c[3]<<endl<<
+                                  "m1: "<<c[4]<<", m2: "<<c[5]<<endl<<
+                                  "I1: "<<c[6]<<", I2: "<<c[7]<<endl;
+    }    
+    
+    else                              //throw new Fatal("Invalid material type.");                            
     printf("ERROR: Invalid material type.\n");
 
   if (material_h){
