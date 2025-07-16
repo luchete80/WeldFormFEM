@@ -92,20 +92,22 @@ void host_ Domain_d::SolveChungHulbert(){
   printf ("gamma %.10e\n", m_gamma);
   
   ostringstream oss_out;
-  oss_out << "alpha_free "<<m_stab.alpha_free <<endl;
-  oss_out << "alpha_contact "<<m_stab.alpha_contact <<endl;
-  oss_out << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
-  oss_out << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
-  oss_out << "av_coeff_div "<<m_stab.av_coeff_div <<endl;
-  oss_out << "av_coeff_bulk "<<m_stab.av_coeff_bulk <<endl;
-  oss_out << "log_factor "<<m_stab.log_factor <<endl;
-  oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
-  oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
   
-  cout << oss_out.str();
-  
-  out_file << oss_out.str();
-  out_file.flush();
+  if (m_press_algorithm==0){
+    oss_out << "alpha_free "<<m_stab.alpha_free <<endl;
+    oss_out << "alpha_contact "<<m_stab.alpha_contact <<endl;
+    oss_out << "hg_coeff_free "<<m_stab.hg_coeff_free <<endl;
+    oss_out << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
+    oss_out << "av_coeff_div "<<m_stab.av_coeff_div <<endl;
+    oss_out << "av_coeff_bulk "<<m_stab.av_coeff_bulk <<endl;
+    oss_out << "log_factor "<<m_stab.log_factor <<endl;
+    oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
+    oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
+    
+    cout << oss_out.str();
+    out_file << oss_out.str();
+    out_file.flush();
+  }
   
   //cout << "Calculating derivatives..."<<endl;
 	#if CUDA_BUILD
@@ -383,7 +385,11 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  calcElemPressure();
+  if      (m_press_algorithm == 0)
+    calcElemPressure();
+  else if (m_press_algorithm == 1)
+    calcElemPressureANP();
+  
   calcNodalPressureFromElemental();
   //smoothPressureField(0.2);
   //calcElemPressure_Hybrid_VolHG();

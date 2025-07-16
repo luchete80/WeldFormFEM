@@ -75,9 +75,10 @@ void Domain_d::ThermalCalcs(){
   }//FOR ELEMENT
   
   
+  ////// ATTENTION! ASSUMING CONSTANT CP, TO MODIFY
   par_loop(n,m_node_count){
 
-    T[n] += q_cont_conv[n]*1.0/(m_mdiag[n] * 960.0)*dt;
+    T[n] += q_cont_conv[n]*1.0/(m_mdiag[n] * mat[0]->cp_T)*dt;
     //printf("Node %d T %f , cond %f\n", n, T[n],q_cont_conv[n]);    
   }
 

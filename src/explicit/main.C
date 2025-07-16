@@ -244,6 +244,18 @@ int main(int argc, char **argv) {
       cout << "DOMAIN TYPE: PLAIN STRAIN"<<endl;
     }
     
+    int press_alg = 0;
+    readValue(config["pressAlgorithm"], 	press_alg); 
+    if (press_alg>0)
+      dom_d->m_press_algorithm = press_alg;
+    
+    dom_d->out_file<<"PRESSURE ALGORITHM IS ";
+    if (press_alg == 0)dom_d->out_file<<"Hybrid-FBAR"<<endl;
+    if (press_alg == 1)dom_d->out_file<<"Bonet  FBAR"<<endl;
+    
+    dom_d->out_file.flush();
+    
+    
     #ifdef CUDA_BUILD
     
     #else

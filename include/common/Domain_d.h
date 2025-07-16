@@ -167,6 +167,7 @@ public:
     m_remesh_interval = 1e10;
     m_contPF = 0.1;
     m_fixed_dt = false;
+    m_press_algorithm = 0;
 
     //~ m_stab.alpha_free       = 0.3;
     //~ m_stab.alpha_contact    = 0.7;
@@ -395,6 +396,7 @@ public:
     m_domtype = _Axi_Symm_;
   }
   StabilizationParams m_stab;
+  int m_press_algorithm;
   
   /////// THERMAL
   void ThermalCalcs();
