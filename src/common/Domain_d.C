@@ -63,56 +63,70 @@ namespace MetFEM {
 //~ }
 
 // Function to compare two faces to check if they are identical (considering orientation)
+// bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
+    // // First check if they have the same nodes in any order
+    // int matchCount = 0;
+    // for (int i = 0; i < FACENOD; i++) {
+        // for (int j = 0; j < FACENOD; j++) {
+            // if (f1.nodes[i] == f2.nodes[j]) {
+                // matchCount++;
+                // break;
+            // }
+        // }
+    // }
+    // if (matchCount != FACENOD) return false;
+    
+    // // Now check orientation by finding the order of nodes
+    // // Find the position of f1.nodes[0] in f2
+    // int start_pos = -1;
+    // for (int i = 0; i < FACENOD; i++) {
+        // if (f2.nodes[i] == f1.nodes[0]) {
+            // start_pos = i;
+            // break;
+        // }
+    // }
+    
+    // // Check if nodes are in same order (clockwise)
+    // if (f1.nodes[1] == f2.nodes[(start_pos+1)%FACENOD] && 
+        // f1.nodes[2] == f2.nodes[(start_pos+2)%FACENOD]) {
+        // return true; // Same orientation
+    // }
+    
+    // // Check if nodes are in reverse order (counter-clockwise)
+    // if (f1.nodes[1] == f2.nodes[(start_pos+FACENOD-1)%FACENOD] && 
+        // f1.nodes[2] == f2.nodes[(start_pos+FACENOD-2)%FACENOD]) {
+        // return true; // Opposite orientation (still same face)
+    // }
+    
+    // return false;
+// }
+
 bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
-    // First check if they have the same nodes in any order
-    int matchCount = 0;
-    for (int i = 0; i < FACENOD; i++) {
-        for (int j = 0; j < FACENOD; j++) {
-            if (f1.nodes[i] == f2.nodes[j]) {
-                matchCount++;
+    // Verificar si los 3 nodos son iguales (en cualquier orden)
+    bool nodes_match[3] = {false, false, false};
+    
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (f1.nodes[i] == f2.nodes[j] && !nodes_match[j]) {
+                nodes_match[j] = true;
                 break;
             }
         }
     }
-    if (matchCount != FACENOD) return false;
     
-    // Now check orientation by finding the order of nodes
-    // Find the position of f1.nodes[0] in f2
-    int start_pos = -1;
-    for (int i = 0; i < FACENOD; i++) {
-        if (f2.nodes[i] == f1.nodes[0]) {
-            start_pos = i;
-            break;
-        }
+    // Not coincident, not the same face
+    if (!nodes_match[0] || !nodes_match[1] || !nodes_match[2]) {
+        return false;
     }
     
-    // Check if nodes are in same order (clockwise)
-    if (f1.nodes[1] == f2.nodes[(start_pos+1)%FACENOD] && 
-        f1.nodes[2] == f2.nodes[(start_pos+2)%FACENOD]) {
-        return true; // Same orientation
-    }
-    
-    // Check if nodes are in reverse order (counter-clockwise)
-    if (f1.nodes[1] == f2.nodes[(start_pos+FACENOD-1)%FACENOD] && 
-        f1.nodes[2] == f2.nodes[(start_pos+FACENOD-2)%FACENOD]) {
-        return true; // Opposite orientation (still same face)
-    }
-    
-    return false;
+    // Si llegamos aquí, es la misma cara (ignorando orientación)
+    return true;
 }
 
 // Add a face to the face list or increment its count if already present
 void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     for (int i = 0; i < faceCount; i++) {
-        if (areFacesEqual(faceList[i], newFace)) {
-            faceList[i].count++;
-            if (faceList[i].count == 2) {
-                faceList[i].other_elem = newFace.elem_id;
-            }
-            return;
-        }
-        
-        if (areFacesEqual(faceList[i], newFace)) {
+        if (areFacesEqual(faceList[i], newFace)) {  // Solo un chequeo
             faceList[i].count++;
             if (faceList[i].count == 2) {
                 faceList[i].other_elem = newFace.elem_id;
@@ -120,10 +134,10 @@ void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
             return;
         }
     }
-    // Add new face
+    // Añadir nueva cara si no existe
     faceList[faceCount] = newFace;
     faceList[faceCount].count = 1;
-    faceList[faceCount].other_elem = -1; // Initialize with no neighbor
+    faceList[faceCount].other_elem = -1;
     faceCount++;
 }
 
@@ -232,6 +246,7 @@ dev_t void Domain_d::SearchExtNodes() {
 
 void Domain_d::CalcExtFaceAreas(){
   
+  int top_faces = 0;
   double top_area=0.0;
    bool elem_flags[m_elem_count];
   for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
@@ -265,10 +280,12 @@ void Domain_d::CalcExtFaceAreas(){
           node_area[n0] += area_share;
           node_area[n1] += area_share;
           node_area[n2] += area_share;
-          
+
+          if (abs(p0.z - 0.03)<5.e-4 || abs(p1.z - 0.03)<5.e-4 || abs(p2.z - 0.03)<5.e-4)
+            top_faces++;          
           int elem_id = faceList[i].elem_id;
           if (!elem_flags[elem_id]){
-            m_elem_area[elem_id] += area;
+            m_elem_area[elem_id] = area;
             elem_flags[elem_id] = true;
             //if (abs(p0.z - 0.03)<5.e-4 || abs(p1.z - 0.03)<5.e-4 || abs(p2.z - 0.03)<5.e-4)
             //top_area +=area;
@@ -279,8 +296,7 @@ void Domain_d::CalcExtFaceAreas(){
           }
       }//==1 
     }//Face Count
-	
-
+    //printf ("Top Faces: %d\n",top_faces);
     //printf("--------------------------TOP AREA %.4e\n",top_area);
   
   
