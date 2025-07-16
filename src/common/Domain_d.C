@@ -216,53 +216,9 @@ dev_t void Domain_d::SearchExtNodes() {
       
       // }
   
+  CalcExtFaceAreas();
   
-  bool elem_flags[m_elem_count];
-  for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
-  ////////////////////////////////////
-  //////// CALCULATE AREA (FOR CONTACT)
-  // Allocate and initialize nodal area array
-  for (int i = 0; i < m_node_count; i++)
-      node_area[i] = 0.0;
-  for (int i = 0; i < m_elem_count; i++)
-    m_elem_area[i] = 0.0;
-  // Compute nodal areas from external triangular faces
-  for (int i = 0; i < m_faceCount; i++) {
-      if (faceList[i].count == 1) { // External face
-          int n0 = faceList[i].nodes[0];
-          int n1 = faceList[i].nodes[1];
-          int n2 = faceList[i].nodes[2];
 
-          // Get coordinates of the nodes
-          double3 p0 = getPosVec3(n0);
-          double3 p1 = getPosVec3(n1);
-          double3 p2 = getPosVec3(n2);
-
-          // Compute face area via cross product
-          double3 v1 = p1 - p0;
-          double3 v2 = p2 - p0;
-          double3 cross_ = cross(v1,v2);
-          double area = 0.5 * norm(cross_);
-
-          // Distribute area equally to the three nodes
-          double area_share = area / 3.0;
-          node_area[n0] += area_share;
-          node_area[n1] += area_share;
-          node_area[n2] += area_share;
-          
-          int elem_id = faceList[i].elem_id;
-          if (!elem_flags[elem_id]){
-            m_elem_area[elem_id] += area;
-            elem_flags[elem_id] = true;
-          } 
-          //~ else {
-            //~ if (area < m_elem_area[elem_id]) m_elem_area[elem_id] = area;
-          //~ }
-      }//==1 
-    }//Face Count
-	
-
-  
 	double area = 0.0;
     for (int i = 0; i < m_node_count; i++)
       if (ext_nodes[i]){
@@ -276,8 +232,8 @@ dev_t void Domain_d::SearchExtNodes() {
 
 void Domain_d::CalcExtFaceAreas(){
   
-  
-  bool elem_flags[m_elem_count];
+  double top_area=0.0;
+   bool elem_flags[m_elem_count];
   for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
   ////////////////////////////////////
   //////// CALCULATE AREA (FOR CONTACT)
@@ -314,10 +270,18 @@ void Domain_d::CalcExtFaceAreas(){
           if (!elem_flags[elem_id]){
             m_elem_area[elem_id] += area;
             elem_flags[elem_id] = true;
+            //if (abs(p0.z - 0.03)<5.e-4 || abs(p1.z - 0.03)<5.e-4 || abs(p2.z - 0.03)<5.e-4)
+            //top_area +=area;
+
+          } 
+          else {
+            if (area > m_elem_area[elem_id]) m_elem_area[elem_id] = area;
           }
       }//==1 
     }//Face Count
 	
+
+    //printf("--------------------------TOP AREA %.4e\n",top_area);
   
   
 }

@@ -346,7 +346,6 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
       m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
-  m_oss<<"POINT_DATA "<<nc<<endl;  
   m_oss<<"VECTORS DISP float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t x = dom->getDispVec(n);
