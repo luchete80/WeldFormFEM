@@ -68,6 +68,8 @@ class TriMesh_d{
   int                 id;
   
   int *ele_mesh_id;
+  double *T;        //if constant
+  double T_const;   //FOR ALL MATS
   //int *nod_mesh_id;
 
   double3 *react_force;   //Per mesh

@@ -214,7 +214,7 @@ void dev_t Domain_d::CalcContactForces(){
               contforce[m_dim * i + 2] += Ft.z;                     
 
 
-              q_cont_conv[i] = trimesh->heat_cond * node_area[i]*(20.0-T[i]);
+              q_cont_conv[i] = trimesh->heat_cond * node_area[i]*(trimesh->T_const - T[i]);
 
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE

@@ -554,10 +554,12 @@ int main(int argc, char **argv) {
 	}
 
   double penaltyfac = -1.0;
+  msh->T_const = 20.;
   
   readValue(contact_[0]["fricCoeffStatic"], 	msh->mu_sta[0]); 
   readValue(contact_[0]["fricCoeffDynamic"], 	msh->mu_dyn[0]); 
   readValue(contact_[0]["heatCondCoeff"], 	  msh->heat_cond);
+  readValue(contact_[0]["dieTemp"], 	  msh->T_const);
   readValue(contact_[0]["penaltyFactor"], 	penaltyfac); 
         
   printf("FRICTION COEFFS %.3e %.3e\n", msh->mu_sta[0],msh->mu_dyn[0]);

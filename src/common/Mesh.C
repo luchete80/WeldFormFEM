@@ -50,6 +50,7 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
     nfar(nullptr), 
     //nod_mesh_id(nullptr), 
     ele_mesh_id(nullptr),
+    T(nullptr),
     nodecount(0), elemcount(0), mesh_count(0),
     current_node_capacity(0), current_elem_capacity(0),
     allocated_meshes(0) {
