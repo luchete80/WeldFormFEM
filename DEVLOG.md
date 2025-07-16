@@ -358,3 +358,4 @@ F90 PREVIOUS VERSION
 20250716 - FIXED Force Calc.
          - Added GMT Material
          - Set To Zero Stab Params.
+         - Fixed critic cp calc (now is dependent on material but constant)
