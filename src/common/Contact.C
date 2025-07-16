@@ -260,9 +260,11 @@ void Domain_d::calcContactForceFromPressure(){
         for (int ne=0; ne<m_nodel_count[i];ne++) {
           int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
           if (!is_elem_sum[e]){
+
             //pxa_el[e]+=p[e]*m_elem_area[e];
             is_elem_sum[e]=true;
-            cfsum += p[e]*m_elem_area[e];
+            //TODO: CRITICAL: ASSUMING ZZ
+            cfsum += m_sigma[6*e+2]*m_elem_area[e];
             area+=m_elem_area[e];
           }
             //~ if (!is_node_sum[i]){
