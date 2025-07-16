@@ -281,8 +281,10 @@ void Domain_d::CalcExtFaceAreas(){
           node_area[n1] += area_share;
           node_area[n2] += area_share;
 
-          if (abs(p0.z - 0.03)<5.e-4 || abs(p1.z - 0.03)<5.e-4 || abs(p2.z - 0.03)<5.e-4)
-            top_faces++;          
+          // if (abs(p0.z - 0.03)<5.e-4 || abs(p1.z - 0.03)<5.e-4 || abs(p2.z - 0.03)<5.e-4){
+            // top_faces++;          
+            // printf("FACE NORMAL %.4e %.4e %.4e\n",cross_.x,cross_.y,cross_.z);
+          // }
           int elem_id = faceList[i].elem_id;
           if (!elem_flags[elem_id]){
             m_elem_area[elem_id] = area;
