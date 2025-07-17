@@ -201,6 +201,7 @@ int main(int argc, char **argv) {
     nlohmann::json contact_ 		= j["Contact"];
 		nlohmann::json bcs 			= j["BoundaryConditions"];
 		nlohmann::json ics 			= j["InitialConditions"];   
+		nlohmann::json mesh 			= j["Meshing"];   
     
     loadStabilizationParams(j, dom_d); 
 
@@ -210,13 +211,24 @@ int main(int argc, char **argv) {
     int remesh_interval = -1;
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
-    readValue(config["reMeshStepInterval"], remesh_interval);
+
+    
     readValue(config["fixedTS"], fixedTS);
     
     double cflFactor = 0.3;
     readValue(config["cflFactor"], cflFactor);
     dom_d->setCFL(cflFactor);
     if (fixedTS) dom_d->setFixedDt(true);
+
+
+    readValue(mesh["stepInterval"], remesh_interval);
+    cout << "MESH INTERVAL: "<<remesh_interval<<endl;
+
+    readValue(mesh["minStrain"], dom_d->m_remesh_min_pl_strain);
+    readValue(mesh["maxStrain"], dom_d->m_remesh_max_pl_strain);
+    readValue(mesh["mapVel"],     dom_d->m_remesh_map_vel);
+    readValue(mesh["mapAcc"],     dom_d->m_remesh_map_acc);
+    readValue(mesh["maxCount"],   dom_d->m_remesh_max_count);
     
     double3 artifvisc;
     dom_d->m_artifvisc[0] = dom_d->m_artifvisc[1] = 0.0;
@@ -655,7 +667,14 @@ int main(int argc, char **argv) {
   #else
   dom_d->calcMinEdgeLength();
   dx = dom_d->getMinLength();
+  double size = 0.0;
+  if(!readValue(mesh["elemSize"], size)){
+    cout << "Setting remesg size at MIN ELEM SIZE:"<<dx<<endl;
   dom_d->setRemeshLength(dx);
+  } else {
+    cout << "Setting remesg size MANUALLY AT "<< size<<endl;    
+    dom_d->setRemeshLength(size);
+  }
   #endif
   
 

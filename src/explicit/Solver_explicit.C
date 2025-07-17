@@ -210,7 +210,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
 
   /////AFTER J AND DERIVATIVES
-  if ( step_count % m_remesh_interval == 0 && step_count  >0 /*&& remesh_count < 2*/)
+  if ( step_count % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
   //if (0) //debug
   {
     //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
@@ -222,7 +222,7 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-      if (max>0.00001){
+      if (max>m_remesh_min_pl_strain){
   //////////////////////////// IF REMESH
       //#########################################################
       cout << "REMESHING "<< " at step "<<step_count<<endl;

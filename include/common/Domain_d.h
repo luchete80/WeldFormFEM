@@ -169,6 +169,12 @@ public:
     m_fixed_dt = false;
     m_press_algorithm = 0;
 
+    m_remesh_min_pl_strain = 1.0e-1;
+    m_remesh_max_pl_strain = 1.0e6;
+    m_remesh_map_vel = false;
+    m_remesh_map_acc = false;
+    m_remesh_max_count  =1e6;
+  
     //~ m_stab.alpha_free       = 0.3;
     //~ m_stab.alpha_contact    = 0.7;
     //~ m_stab.hg_coeff_free    = 0.2;
@@ -438,6 +444,10 @@ public:
 
   __device__ void ApplyGlobalSprings();
   void ApplyGlobalDamping(double damping_factor);
+  
+  double  m_remesh_min_pl_strain,m_remesh_max_pl_strain;
+  bool m_remesh_map_vel,m_remesh_map_acc;
+  int m_remesh_max_count;
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

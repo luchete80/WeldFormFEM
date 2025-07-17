@@ -272,9 +272,12 @@ void ReMesher::WriteDomain(){
   cout <<"MAP NODAL"<<endl;
   //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
-  //MapNodal(vfield,   m_dom->v);
-  //MapNodal(afield,   m_dom->a);
-  //MapNodal(pafield,  m_dom->prev_a);
+  if (m_dom->m_remesh_map_vel)
+    MapNodal(vfield,   m_dom->v);
+  if (m_dom->m_remesh_map_acc){
+    MapNodal(afield,   m_dom->a);
+    MapNodal(pafield,  m_dom->prev_a);
+  }
   
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
