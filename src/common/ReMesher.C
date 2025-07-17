@@ -695,6 +695,10 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
   }
 }
 
+/////////////////////////////
+////// OLD FUNCTION /////////
+//// FIND CLOSEST ////
+
 void ReMesher::FindMapElemClosest() {
 
 
@@ -767,7 +771,93 @@ void ReMesher::FindMapElemClosest() {
     }//elem
 }
 
+/////////////////////NEW 
 
+// void ReMesher::FindMapElemClosest() {
+    // for (int elem = 0; elem < m_elem_count; elem++) {
+        // std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+        
+        // // Calculate barycenter of current new element
+        // for (int en = 0; en < 4; en++) {
+            // int v = m_elnod[elem * 4 + en];
+            // barycenter[0] += m_x[3 * v];
+            // barycenter[1] += m_x[3 * v + 1];
+            // barycenter[2] += m_x[3 * v + 2];
+        // }
+        // barycenter[0] /= 4.0;
+        // barycenter[1] /= 4.0;
+        // barycenter[2] /= 4.0;
+
+        // bool found_containing = false;
+        // int closest_elem = -1;
+        // double min_distance = std::numeric_limits<double>::max();
+        // std::array<double, 3> closest_barycenter;
+
+        // // First pass: Try to find an element that contains the barycenter
+        // for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // int n0 = m_dom->m_elnod[4 * i];
+            // int n1 = m_dom->m_elnod[4 * i + 1];
+            // int n2 = m_dom->m_elnod[4 * i + 2];
+            // int n3 = m_dom->m_elnod[4 * i + 3];
+
+            // std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            // std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            // std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            // std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            // // Reuse your existing barycentric coordinate function
+            // std::array<double, 4> lambdas = stable_barycentric(barycenter, p0, p1, p2, p3);
+
+            // if (lambdas[0] >= -1.0e-4 && lambdas[1] >= -1.0e-4 && 
+                // lambdas[2] >= -1.0e-4 && lambdas[3] >= -1.0e-4) {
+                // m_closest_elem[elem] = i;
+                // found_containing = true;
+                
+                // // Diagnostic output
+                // if (elem < 5) { // Print first few elements for verification
+                    // std::cout << "Element " << elem << " barycenter INSIDE old element " << i 
+                              // << " with barycentric coords: (" 
+                              // << lambdas[0] << ", " << lambdas[1] << ", " 
+                              // << lambdas[2] << ", " << lambdas[3] << ")\n";
+                // }
+                // break;
+            // }
+
+            // // If not inside, compute distance for fallback
+            // std::array<double, 3> old_barycenter = {
+                // (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                // (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                // (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            // };
+
+            // double distance = std::pow(barycenter[0] - old_barycenter[0], 2) +
+                             // std::pow(barycenter[1] - old_barycenter[1], 2) +
+                             // std::pow(barycenter[2] - old_barycenter[2], 2);
+
+            // if (distance < min_distance) {
+                // min_distance = distance;
+                // closest_elem = i;
+                // closest_barycenter = old_barycenter;
+            // }
+        // }
+
+        // // Fallback to closest element if no containing element found
+        // if (!found_containing) {
+            // m_closest_elem[elem] = closest_elem;
+            
+            // // Diagnostic output
+            // if (elem < 5) {
+                // std::cout << "Element " << elem << " barycenter NOT INSIDE any element. "
+                          // << "Using closest element " << closest_elem 
+                          // << " with distance " << std::sqrt(min_distance) << "\n";
+                // std::cout << "New barycenter: (" << barycenter[0] << ", " 
+                          // << barycenter[1] << ", " << barycenter[2] << ")\n";
+                // std::cout << "Old barycenter: (" << closest_barycenter[0] << ", " 
+                          // << closest_barycenter[1] << ", " << closest_barycenter[2] << ")\n";
+            // }
+        // }
+    // }
+// }
 
 
 // 1. Using the keep_classification Option
