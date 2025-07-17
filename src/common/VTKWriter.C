@@ -495,7 +495,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
         m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
 
-  avgScalar(dom->m_epsr,a,6)
+  avgScalar(dom->m_str_rate,a,6)
   
   m_oss<<"TENSORS EPSR float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){

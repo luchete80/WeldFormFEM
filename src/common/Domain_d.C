@@ -486,7 +486,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(m_sigma,     double, 6 * m_elem_count * m_gp_count );   
   malloc_t(m_tau,       double, 6 * m_elem_count * m_gp_count );  
   malloc_t(m_eps,       double, 6 * m_elem_count * m_gp_count ); 
-  malloc_t(m_epsr,       double, 6 * m_elem_count * m_gp_count ); 
+
   
   //FOR PLASTIC STRAIN HEAT GENERATION
   malloc_t(m_strain_pl_incr,  double, 6 * m_elem_count * m_gp_count );     
@@ -748,7 +748,7 @@ void Domain_d::Free(){
   free_t(m_sigma);   
   free_t(m_tau); 
   free_t(m_eps);    
-  free_t(m_epsr);   
+ 
 
   free_t(p); 
   free_t(rho);   

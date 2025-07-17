@@ -222,7 +222,7 @@ void host_ Domain_d::SolveChungHulbert(){
         max = pl_strain[e];
         emin = e;
       }
-      if (max>0.01){
+      if (max>0.00001){
   //////////////////////////// IF REMESH
       //#########################################################
       cout << "REMESHING "<< " at step "<<step_count<<endl;

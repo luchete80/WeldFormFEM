@@ -1403,7 +1403,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       //ToFlatSymPtr(Strain, 	strain,6*i);		
       ToFlatSymPtr(ShearStress, m_tau, offset_t);
       ToFlatSymPtr(Strain,      m_eps, offset_t);
-      ToFlatSymPtr(StrRate,     m_epsr, offset_t);
       
       ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
       
