@@ -243,42 +243,102 @@ void dev_t Domain_d::CalcContactForces(){
 //	std::min(deltat,dt_fext)
 } //Contact Forces
 
-void Domain_d::calcContactForceFromPressure(){
-  
-   bool is_elem_sum[m_elem_count];
-   bool is_node_sum[m_node_count];
-   //double pxa_el[m_elem_count];
-   double cfsum=0.0;
-   double area = 0.0;
-    double cfnsum = 0.0;
-    
-   for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
-   
-    for (int i=0;i<m_node_count;i++){
-      if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
-        cfnsum += p_node[i]*node_area[i];
-        for (int ne=0; ne<m_nodel_count[i];ne++) {
-          int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
-          if (!is_elem_sum[e]){
+////// BUG DETECTED
 
-            //pxa_el[e]+=p[e]*m_elem_area[e];
-            is_elem_sum[e]=true;
-            //TODO: CRITICAL: ASSUMING ZZ
-            cfsum += m_sigma[6*e+2]*m_elem_area[e];
-            area+=m_elem_area[e];
-          }
+//~ void Domain_d::calcContactForceFromPressure(){
+  
+   //~ bool is_elem_sum[m_elem_count];
+   //~ bool is_node_sum[m_node_count];
+   //~ //double pxa_el[m_elem_count];
+   //~ double cfsum=0.0;
+   //~ double area = 0.0;
+    //~ double cfnsum = 0.0;
+    
+   //~ for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
+   
+    //~ for (int i=0;i<m_node_count;i++){
+      //~ if(m_mesh_in_contact[i]>-1 && m_mesh_in_contact[i]<1){
+        //~ cfnsum += p_node[i]*node_area[i];
+        //~ for (int ne=0; ne<m_nodel_count[i];ne++) {
+          //~ int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+          //~ if (!is_elem_sum[e]){
+
+            //~ //pxa_el[e]+=p[e]*m_elem_area[e];
+            //~ is_elem_sum[e]=true;
+            //~ //TODO: CRITICAL: ASSUMING ZZ
+            //~ cfsum += m_sigma[6*e+2]*m_elem_area[e];
+            //~ area+=m_elem_area[e];
+          //~ }
             //~ if (!is_node_sum[i]){
               //~ area+=node_area[i];
               //~ }
-        }//nodel
-      }//mesh in contact
-    }
+        //~ }//nodel
+      //~ }//mesh in contact
+    //~ }
     
   
-  printf("Area %.3e\n", area);
+  //~ printf("Area %.3e\n", area);
+  //~ trimesh->react_p_force[0] = cfsum;
+  //~ trimesh->react_force[0].z = cfnsum;
+   //~ trimesh->cont_area = area;
+//~ }
+
+void Domain_d::calcContactForceFromPressure(){
+  
+  double cfsum = 0.0;
+  double area = 0.0;
+  int facecount = 0;
+  for (int i = 0; i < m_faceCount; i++) {
+      if (faceList[i].count != 1) continue;
+
+      int n0 = faceList[i].nodes[0];
+      int n1 = faceList[i].nodes[1];
+      int n2 = faceList[i].nodes[2];
+      
+      //APPROACH #1: Contact Force
+      //~ // Verificar si los tres nodos tienen fuerza de contacto acumulada
+      //~ if (norm(m_mesh_in_contact[n0]) == -1 ||
+          //~ norm(m_mesh_in_contact[n1]) == -1 ||
+          //~ norm(m_mesh_in_contact[n2]) == -1)
+          //~ continue; // no hay contacto
+      // Verificar si los tres nodos tienen fuerza de contacto acumulada
+      if (m_mesh_in_contact[n0] == 0 &&
+          m_mesh_in_contact[n1] == 0 &&
+          m_mesh_in_contact[n2] == 0)
+      {
+          
+        int e = faceList[i].elem_id;
+        cfsum += m_sigma[6*e+2]*m_elem_area[e];
+        area +=m_elem_area[e];
+        facecount++;
+        
+        //~ // (opcional) Face normal
+        //~ double3 p0 = getPosVec3(n0);
+        //~ double3 p1 = getPosVec3(n1);
+        //~ double3 p2 = getPosVec3(n2);
+
+        //~ double3 v1 = p1 - p0;
+        //~ double3 v2 = p2 - p0;
+        //~ double3 face_normal = normalize(cross(v1, v2));
+
+        //~ // (opcional) Promedio de normales de fuerza en nodos
+        //~ double3 avg_contact_normal = normalize(
+            //~ normalize(contact_force[n0]) +
+            //~ normalize(contact_force[n1]) +
+            //~ normalize(contact_force[n2])
+        //~ );
+
+        //~ // (opcional) Filter by angle
+        //~ if (dot(face_normal, avg_contact_normal) < 0.8) continue;
+
+        // Sumar fuerza: presión * área
+      }
+  }
+  //printf("Contact Area %.3e\n", area);
+  //printf("Contact Face Count: %d\n",facecount);
   trimesh->react_p_force[0] = cfsum;
-  trimesh->react_force[0].z = cfnsum;
-   trimesh->cont_area = area;
+  trimesh->cont_area = area;
+
 }
 
 }; //Namespace
