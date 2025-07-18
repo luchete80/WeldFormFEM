@@ -13,7 +13,94 @@
 // #include "ReMesher.h"
 // #endif
 
+// #include <Eigen/Dense>
+// Matrix Matrix::SolveEigen(const Matrix& b) const {
+    // Eigen::MatrixXd A_eigen(rows, cols);
+    // Eigen::VectorXd b_eigen(rows);
+    
+    // // Copiar datos a Eigen
+    // for (int i = 0; i < rows; ++i) {
+        // b_eigen(i) = b.getVal(i, 0);
+        // for (int j = 0; j < cols; ++j) {
+            // A_eigen(i, j) = getVal(i, j);
+        // }
+    // }
+    
+    // // Resolver con Cholesky (LLT)
+    // Eigen::VectorXd x_eigen = A_eigen.llt().solve(b_eigen);
+    
+    // // Devolver resultado
+    // Matrix x(rows, 1);
+    // for (int i = 0; i < rows; ++i) {
+        // x.Set(i, 0, x_eigen(i));
+    // }
+    // return x;
+// }
+
+/// FOR PRODUCTION (SLOW COMPILATION)
+// // Ejemplo con Eigen (más rápido y robusto)
+// #include <Eigen/Dense>
+
+// //////// PUT CONST
+// Matrix SolveWithEigen( Matrix& A,  Matrix& b) {
+    // Eigen::MatrixXd Aeig(A.m_row, A.m_col);
+    // Eigen::VectorXd beig(b.m_row);
+    
+    // // Copiar datos
+    // for (int i = 0; i < A.m_row; ++i) {
+        // beig(i) = b.getVal(i, 0);
+        // for (int j = 0; j < A.m_col; ++j) {
+            // Aeig(i, j) = A(i, j);
+        // }
+    // }
+    
+    // // Resolver
+    // Eigen::VectorXd xeig = Aeig.partialPivLu().solve(beig);
+    
+    // Matrix x(A.m_row, 1);
+    // for (int i = 0; i < A.m_row; ++i) {
+        // x(i, 0) = xeig(i);
+    // }
+    // return x;
+// }
+
 using namespace std;
+
+// void SolveCholesky(Matrix& K, double* rhs, double* result) {
+    // int n = K.m_row;
+    // Matrix L(n, n);
+
+    // // Cholesky decomposition: K = L * Lᵗ
+    // for (int i = 0; i < n; ++i) {
+        // for (int j = 0; j <= i; ++j) {
+            // double sum = K.getVal(i, j);
+            // for (int k = 0; k < j; ++k)
+                // sum -= L.getVal(i, k) * L.getVal(j, k);
+
+            // if (i == j)
+                // L.Set(i, j, sqrt(sum));
+            // else
+                // L.Set(i, j, sum / L.getVal(j, j));
+        // }
+    // }
+
+    // // Forward substitution: L * y = rhs
+    // std::vector<double> y(n);
+    // for (int i = 0; i < n; ++i) {
+        // double sum = rhs[i];
+        // for (int j = 0; j < i; ++j)
+            // sum -= L.getVal(i, j) * y[j];
+        // y[i] = sum / L.getVal(i, i);
+    // }
+
+    // // Backward substitution: Lᵗ * x = y
+    // for (int i = n - 1; i >= 0; --i) {
+        // double sum = y[i];
+        // for (int j = i + 1; j < n; ++j)
+            // sum -= L.getVal(j, i) * result[j];
+        // result[i] = sum / L.getVal(i, i);
+    // }
+// }
 
 namespace MetFEM{
   
@@ -101,7 +188,14 @@ void host_ Domain_d::Solve(){
   double u_count[m_dim*m_node_count];
   double relax = 0.5;
 
+  contforce[m_dim*3+2] = -1.0e3;
   
+    printf("NODES\n");
+    for (int i=0;i<m_node_count;i++){
+      for (int d=0;d<m_dim;d++)
+        printf("%.4e ", x[m_dim*i+d]);
+      printf("\n");
+    }  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,8 +234,8 @@ void host_ Domain_d::Solve(){
         
         cout << "F "<<endl;
         F.Print();
-
         
+        ///// DERIVATION FOR L IS MORE COMMON
         // // 2) Compute Left Cauchy-Green tensor b = F * F^T
         // Matrix b = MatMul(F, F.Transpose());
 
@@ -173,8 +267,12 @@ void host_ Domain_d::Solve(){
         // 5) Compute stress σ = D * ε
         Matrix D(6,6);
         D =  mat[e]->getElasticMatrix();
-        Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x6 elastic stiffness matrix
+        Matrix stress_voigt = MatMul(D, strain_voigt); // D is 6x1 elastic stiffness matrix
         cout << "Calculating B "<<endl;
+        
+        Matrix sigma = MatMul(D,eps); /// USE VOIGTH TO MARIX
+        //Matrix sigma(3,3);
+        //sigma = VoigtToMatrix(stress_voigt);
         
         // 6) Build B matrix (strain-displacement) for the element
         Matrix B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
@@ -189,14 +287,121 @@ void host_ Domain_d::Solve(){
         cout << "Calculating Kmat "<<endl;
         // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
         Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
+        Kmat = Kmat * vol[e];
         // Kmat = Kmat * vol[e];
         cout << "Kmat "<<endl;
         Kmat.Print();
         
         // // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
 
+
+        double Ve = vol[e]; // Current volume (updated Lagrangian)
+
+        // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
+        //Matrix& Kgeo = *(m_Kgeo[e]);
+        Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
+        Kgeo.SetZero();
+
+        // 3. Loop over node pairs (a, b)
+        for (int a = 0; a < 4; ++a) {
+          // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
+          Matrix grad_a(3, 1);
+          grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
+          grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
+          grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+
+          for (int b = 0; b < 4; ++b) {
+            // ∇Nᵇ in current config
+            Matrix grad_b(3, 1);
+            grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
+            grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
+            grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+
+            // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
+            Matrix sigma_grad_b = MatMul(sigma, grad_b); // σ · ∇Nᵇ (3x1)
+            Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
+            double k_ab = kab.getVal(0, 0) * Ve;
+
+            // Fill 3x3 block (assumes 3 DOF per node)
+            for (int i = 0; i < 3; ++i) {
+              Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
+            }
+          }
+        }
+        
+      
+
+
+
+        // Apply BCs BEFORE the element loop by modifying the element matrices
+        for (int e = 0; e < m_elem_count; e++) {
+            // Get the element stiffness matrix (Kmat) and force vector (fint)
+            //Matrix& K_e = m_Kmat[e];  // Reference to element stiffness
+            //Matrix& f_e = fint[e];    // Reference to element force vector
+
+            // Loop over all BC directions (x, y, z)
+            for (int dim = 0; dim < m_dim; dim++) {
+                // Loop over all BC nodes in this direction
+                for (int n = 0; n < bc_count[dim]; n++) {
+                    // Get the constrained node and DOF
+                    int node = (dim == 0) ? bcx_nod[n] : 
+                              ((dim == 1) ? bcy_nod[n] : bcz_nod[n]);
+                    int constrained_dof_global = node * m_dim + dim;
+
+                    // Check if this element contains the constrained node
+                    for (int ne = 0; ne < m_nodxelem; ne++) {
+                        int elem_node = getElemNode(e, ne);
+                        if (elem_node == node) {
+                            // Local DOF in the element matrix
+                            int constrained_dof_local = ne * m_dim + dim;
+                            double bc_value = (dim == 0) ? bcx_val[n] : 
+                                             ((dim == 1) ? bcy_val[n] : bcz_val[n]);
+                                             
+                            // --- Modify Kmat ---
+                            // Zero out the row and column (except diagonal)
+                            for (int k = 0; k < m_nodxelem * m_dim; k++) {
+                                if (k == constrained_dof_local) {
+                                    Kmat.Set(constrained_dof_local, k, 1.0); // diagonal 1
+                                    Kgeo.Set(constrained_dof_local, k, 0.0);
+                                } else {
+                                    // Primero leemos el valor original antes de modificar
+                                    double kij = Kmat.getVal(k, constrained_dof_local);
+                                    
+                                    // Ajustamos el RHS para mantener el equilibrio
+                                    fint.Set(k, 0, fint.getVal(k, 0) - kij * bc_value);
+
+                                    // Ahora anulamos fila y columna
+                                    Kmat.Set(constrained_dof_local, k, 0.0); // fila
+                                    Kmat.Set(k, constrained_dof_local, 0.0); // columna
+
+                                    Kgeo.Set(constrained_dof_local, k, 0.0);
+                                    Kgeo.Set(k, constrained_dof_local, 0.0);
+                                }
+                            }
+
+                            // Finalmente fijamos el valor impuesto en RHS
+                            fint.Set(constrained_dof_local, 0, bc_value);
+                            // --- Modify fint ---
+                            // Set force to prescribed displacement (if any)
+                            
+
+                            cout << "DOF "<< constrained_dof_local<<"BCVAL "<<bc_value<<endl;
+                            fint.Set(constrained_dof_local, 0, bc_value);
+                        }
+                    }
+                }
+            }
+        }
+        cout << "Kmat reduced"<<endl;
+        Kmat.Print();
+        cout << "F"<<endl;
+        fint.Print();
         // // 9) Local System: Kmat * Δu_e = fint
-        Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
+        //Matrix delta_u_e = MatMul(Kmat.Inv(),fint) * (-1.0);  // Δu = -K⁻¹·fint (¡signo importante!)
+        
+        //Matrix du = SolveWithEigen(Kmat, fint);
+        Matrix delta_u_e = Matrix::SolveLU( Kmat,fint);
+        
         
         cout << "Delta U "<<endl;
         delta_u_e.Print();
@@ -214,18 +419,29 @@ void host_ Domain_d::Solve(){
         }
     
     } // end element loop
-
+  
+  ////// BC application.
   for (int dim=0;dim<m_dim;dim++){
     par_loop (n,bc_count[dim]){
       double val;
       //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);
       //printf("BCV dim %d\n", dim);
       // printf("VEL BC \n");
-      if (dim == 0)       {/*printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]); */ u[m_dim*bcx_nod[n]+dim] = bcx_val[n]; }
-      else if (dim == 1)  {/*printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]);*/ u[m_dim*bcy_nod[n]+dim] = bcy_val[n];}
-      else if (dim == 2)  {/*printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);*/  u[m_dim*bcz_nod[n]+dim] = bcz_val[n]; }
-    }
-  }
+
+      if (dim == 0)       {
+        int ind = m_dim*bcx_nod[n]+dim; 
+        u[ind] = bcx_val[n]; 
+        u_count[ind]=1;}
+      else if (dim == 1)  {
+        int ind = m_dim*bcy_nod[n]+dim;
+        u[ind] = bcy_val[n];}
+      else if (dim == 2)  {
+        int ind = m_dim*bcz_nod[n]+dim;
+        u[ind] = bcz_val[n]; 
+        u_count[ind]=1;}
+    }// Node loop
+  }//dim loop
+  
     // //~ // 11) Average &  actualize nodal pos
     for (int i = 0; i < m_node_count * m_dim; ++i) {
         if (u_count[i] > 0) {
@@ -233,7 +449,13 @@ void host_ Domain_d::Solve(){
             x[i] += delta; // actualizás posición
         }
     }
-
+    
+    printf("DISPLACEMENTS\n");
+    for (int i=0;i<m_node_count;i++){
+      for (int d=0;d<m_dim;d++)
+        printf("%.4e ", u[m_dim*i+d]);
+      printf("\n");
+    }
 
     // 12) Volver a calcular deformaciones con x actualizado
 

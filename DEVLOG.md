@@ -359,3 +359,8 @@ F90 PREVIOUS VERSION
          - Added GMT Material
          - Set To Zero Stab Params.
          - Fixed critic cp calc (now is dependent on material but constant)
+20250717 - Fixed Contact Area Calculation (Common)
+20250718 - Added Some remeshing improvements and settings. 
+         - IMPLICIT SOLVER
+         - Fixed element volume mult on K
+         - 

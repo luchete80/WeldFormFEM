@@ -107,6 +107,8 @@ public:
         return *this;
     }
 
+  __spec static Matrix SolveLU(Matrix& A, Matrix& b);
+
   // Move Constructor
   __spec Matrix(Matrix&& other) noexcept
       : m_data(other.m_data), m_row(other.m_row), m_col(other.m_col), m_dim(other.m_dim) {
@@ -308,6 +310,80 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
 
 }
 
+__spec Matrix Matrix::SolveLU(Matrix& A, Matrix& b) {
+    // Validación de dimensiones básica
+    if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
+        // Alternativa a std::invalid_argument: devolver matriz vacía o setear flag de error
+        Matrix empty;
+        //empty.setErrorFlag(1); // Suponiendo que tengas un método para manejar errores
+        return empty;
+    }
+
+    int n = A.m_row;
+    Matrix LU = A;  // Copia de A para la factorización
+    Matrix x(n, 1);
+    int pivot[n];    // Arreglo nativo en lugar de std::vector
+
+    // --- Factorización LU con pivoteo parcial ---
+    for (int i = 0; i < n; ++i) {
+        // Pivoteo parcial
+        int max_row = i;
+        double max_val = fabs(LU(i, i));
+        for (int k = i + 1; k < n; ++k) {
+            double current_val = fabs(LU(k, i));
+            if (current_val > max_val) {
+                max_val = current_val;
+                max_row = k;
+            }
+        }
+        pivot[i] = max_row;
+
+        // Intercambio de filas (sin std::swap)
+        if (max_row != i) {
+            for (int j = 0; j < n; ++j) {
+                double temp = LU(i, j);
+                LU(i, j) = LU(max_row, j);
+                LU(max_row, j) = temp;
+            }
+            double temp_b = b(i, 0);
+            b(i, 0) = b(max_row, 0);
+            b(max_row, 0) = temp_b;
+        }
+
+        // Verificar singularidad (sin excepciones)
+        if (fabs(LU(i, i)) < 1e-12) {
+            Matrix empty;
+            //empty.setErrorFlag(2); // Código de error para matriz singular
+            return empty;
+        }
+
+        // Eliminación gaussiana
+        for (int k = i + 1; k < n; ++k) {
+            LU(k, i) /= LU(i, i);
+            for (int j = i + 1; j < n; ++j) {
+                LU(k, j) -= LU(k, i) * LU(i, j);
+            }
+        }
+    }
+
+    // --- Sustitución hacia adelante (Ly = Pb) ---
+    for (int i = 0; i < n; ++i) {
+        x(i, 0) = b(pivot[i], 0);
+        for (int j = 0; j < i; ++j) {
+            x(i, 0) -= LU(i, j) * x(j, 0);
+        }
+    }
+
+    // --- Sustitución hacia atrás (Ux = y) ---
+    for (int i = n - 1; i >= 0; --i) {
+        for (int j = i + 1; j < n; ++j) {
+            x(i, 0) -= LU(i, j) * x(j, 0);
+        }
+        x(i, 0) /= LU(i, i);
+    }
+
+    return x;
+}
 
 
 // subroutine M33INV (A, AINV, OK_FLAG)
@@ -709,5 +785,35 @@ __spec Matrix operator+(const Matrix &A, const Matrix &B) {
 
     return C;
 }
+
+
+// __spec Matrix VoigtToMatrix(const Matrix& voigt) {
+    // Matrix mat(3, 3);
+    // // Componentes normales
+    // mat.Set(0, 0, voigt.getVal(0, 0)); // σ_xx
+    // mat.Set(1, 1, voigt.getVal(1, 0)); // σ_yy
+    // mat.Set(2, 2, voigt.getVal(2, 0)); // σ_zz
+    // // Componentes cortantes (simétricos)
+    // mat.Set(0, 1, voigt.getVal(3, 0)); // σ_xy
+    // mat.Set(1, 0, voigt.getVal(3, 0)); // σ_yx
+    // mat.Set(1, 2, voigt.getVal(4, 0)); // σ_yz
+    // mat.Set(2, 1, voigt.getVal(4, 0)); // σ_zy
+    // mat.Set(0, 2, voigt.getVal(5, 0)); // σ_xz
+    // mat.Set(2, 0, voigt.getVal(5, 0)); // σ_zx
+    // return mat;
+// }
+
+// __spec Matrix MatrixToVoigt(const Matrix& mat) {
+    // Matrix voigt(6, 1);
+    // // Componentes normales
+    // voigt.Set(0, 0, mat.getVal(0, 0)); // ε_xx
+    // voigt.Set(1, 0, mat.getVal(1, 1)); // ε_yy
+    // voigt.Set(2, 0, mat.getVal(2, 2)); // ε_zz
+    // // Componentes cortantes (ingeniería: γ = 2ε)
+    // voigt.Set(3, 0, mat.getVal(0, 1) + mat.getVal(1, 0)); // γ_xy = 2ε_xy
+    // voigt.Set(4, 0, mat.getVal(1, 2) + mat.getVal(2, 1)); // γ_yz = 2ε_yz
+    // voigt.Set(5, 0, mat.getVal(0, 2) + mat.getVal(2, 0)); // γ_xz = 2ε_xz
+    // return voigt;
+// }
 
 #endif

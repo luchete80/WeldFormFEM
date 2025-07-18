@@ -182,9 +182,9 @@ int main(int argc, char **argv) {
 
   ////// MATERIAL  
   double E, nu, rho;
-  E   = 70.0e9;
+  E   = 200.0e9;
   nu  = 0.3;
-  rho = 2700.0;
+  rho = 7850.0;
   
 
   cout << "Setting density"<<endl;
