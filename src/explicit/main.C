@@ -212,7 +212,12 @@ int main(int argc, char **argv) {
     readValue(config["outTime"], out_time);
     readValue(config["simTime"], sim_time);
 
+    readValue(config["plHeatFrac"], dom_d->m_plheatfraction);
     
+    dom_d->out_file << "Plastic Heat Fraction Coeff: " <<dom_d->m_plheatfraction<<endl;
+    dom_d->out_file.flush(); // Optional
+    
+        
     readValue(config["fixedTS"], fixedTS);
     
     double cflFactor = 0.3;

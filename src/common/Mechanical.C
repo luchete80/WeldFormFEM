@@ -1371,15 +1371,17 @@ dev_t void Domain_d::CalcStressStrain(double dt){
           //~ // // Double inner product, Fraser 3-106
           //printf("depdt %.3e\n", depdt);
           //~ // //cout << depdt<<endl;
-          m_q_plheat[e] 	= 
+          m_q_plheat[e] 	= m_plheatfraction *(
             Sigma.xx * depdt.xx + 
             2.0*Sigma.xy * depdt.yx + 2.0 * Sigma.xz*depdt.zx +              //~ // ;
             Sigma.yy*depdt.yy +      //~ // //cout << "plastic heat "<<q_plheat<<endl;
             2.0*Sigma.yz*depdt.yz +     //~ // ps_energy[e] += q_plheat * dt;
-            Sigma.zz*depdt.zz; //Parallel
+            Sigma.zz*depdt.zz
+            
+            ); //Parallel
           //~ if (m_q_plheat[e]>1.0e-5)
             //~ printf("m_q_plheat %.3e\n",m_q_plheat[e]);
-        
+            
               
             //printf("plastic heat per element %.3e\n",m_q_plheat[e]*vol[e]);
           
