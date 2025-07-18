@@ -272,6 +272,11 @@ void ReMesher::WriteDomain(){
   cout <<"MAP NODAL"<<endl;
   //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
+  /////// IF MAP VEL DIRECTLY
+  /////if (!m_map_momentum)
+  //if (m_dom->m_remesh_map_vel)
+  ///// ATTENTION, MAP VELOCITY IS MANDATORY; IS BETTER TO MAP IT
+  ///// THE PROBLEM IS THAT IS BENEFIT A LITTLE DAMPING
   MapNodal(vfield,   m_dom->v); //DOES NOT CONS MOMENTUM
   
   if (m_dom->m_remesh_map_acc){
@@ -346,7 +351,7 @@ void ReMesher::WriteDomain(){
       old_p_field[m_dom->m_dim*i+d] = m_dom->v[m_dom->m_dim*i+d]*m_dom->m_mdiag[i];
   
   ////IF MAP MOMENTUM
-  //MapNodal(vfield,   old_p_field); 
+  ////MapNodal(vfield,   old_p_field); 
   
   
   ////BEFORE REWRITE
@@ -383,8 +388,8 @@ void ReMesher::WriteDomain(){
     
 
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);    
-  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);    
+  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);   
+  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
   memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->contforce,cforce, sizeof(double) * m_dom->m_node_count * 3);
@@ -423,7 +428,10 @@ void ReMesher::WriteDomain(){
     for (int d=0;d<m_dom->m_dim;d++)
       vfield[m_dom->m_dim*i+d] /=m_dom->m_mdiag[i];
   }
-  //memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+  
+  //// RECALCULATED FROM MOMENTUM
+  ///////if (m_dom->m_remesh_map_vel)
+  /////memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
           
     
   
