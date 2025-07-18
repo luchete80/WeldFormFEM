@@ -1144,7 +1144,7 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
   for (int n=0;n<m_node_count;n++)
     tot_mass +=m_mdiag[n];
     
-  printf("Total Nodal Mass: %f\n",tot_mass);
+  //printf("Total Nodal Mass: %f\n",tot_mass);
   delete rhon;
 }
 
