@@ -449,7 +449,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if (remesh_){
     //if (Time > RAMP_FRACTION*end_t)
-    ApplyGlobalDamping(0.02);
+    ApplyGlobalDamping(m_remesh_damp_vel);
   }
 
   //ApplyGlobalDamping(0.1);

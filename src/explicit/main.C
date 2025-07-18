@@ -234,6 +234,7 @@ int main(int argc, char **argv) {
     readValue(mesh["mapVel"],     dom_d->m_remesh_map_vel);
     readValue(mesh["mapAcc"],     dom_d->m_remesh_map_acc);
     readValue(mesh["maxCount"],   dom_d->m_remesh_max_count);
+    readValue(mesh["dampFactor"],   dom_d->m_remesh_damp_vel);
     
     double3 artifvisc;
     dom_d->m_artifvisc[0] = dom_d->m_artifvisc[1] = 0.0;

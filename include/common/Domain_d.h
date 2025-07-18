@@ -175,6 +175,8 @@ public:
     m_remesh_map_acc = false;
     m_remesh_max_count  =1e6;
     
+    m_remesh_damp_vel = 0.02;
+    
     m_plheatfraction = 0.9;
   
     //~ m_stab.alpha_free       = 0.3;
@@ -450,7 +452,7 @@ public:
   double  m_remesh_min_pl_strain,m_remesh_max_pl_strain;
   bool m_remesh_map_vel,m_remesh_map_acc;
   int m_remesh_max_count;
-  
+  double m_remesh_damp_vel;
   
   double m_plheatfraction;
   
