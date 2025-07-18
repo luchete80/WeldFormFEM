@@ -371,6 +371,12 @@ void ReMesher::WriteDomain(){
     m_dom->vol  [e] = volumes[e];
   }
   
+  ///// TO MOMENTUM CONSERVATION
+  m_dom->CalcNodalVol();
+  m_dom->CalcNodalMassFromVol();
+  
+  
+  
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
   memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);    
   memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);    
