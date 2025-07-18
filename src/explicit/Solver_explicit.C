@@ -315,8 +315,8 @@ void host_ Domain_d::SolveChungHulbert(){
   cudaDeviceSynchronize();
   
   #else
+  calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
-    calcElemJAndDerivatives();
     CalcElemVol();  
     CalcNodalVol();
     CalcNodalMassFromVol();
