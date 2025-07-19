@@ -438,7 +438,7 @@ public:
 	void ElasticIncSolve(); ///TESTING INCREMENTAL ELASTIC ALL IN ONE FUNCTION
 	void ElasticSolve();
   
-  void SolveImplicitDefault(); /////LEGACY 
+  void SolveImplicitGlobalMatrix();
    
   //--------------------------------------------------------------------------------------------------------------------------------
 

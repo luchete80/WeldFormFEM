@@ -21,6 +21,8 @@ void Solver_Eigen::Allocate(){
   
 }
 
+///// RELIES ON MEMORY SAVED Kelemen.
+
 void Solver_Eigen::assemblyGlobalMatrix() {
     int ndof = m_dom->m_nodxelem * m_dom->m_dim; // DOFs per element
     cout << "ndof "<<ndof <<endl;
@@ -207,5 +209,26 @@ int Solver_Eigen::Solve(){
   
   
 }
+
+    void Solver_Eigen::assembleElement(int e, const Matrix& Ke) {
+        std::vector<int> global_dofs(m_dom->m_nodxelem * m_dom->m_dim);
+        
+        // Compute global DOFs for this element
+        for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            const int node = m_dom->getElemNode(e, a);
+            for (int i = 0; i < m_dom->m_dim; ++i) {
+                global_dofs[a * m_dom->m_dim + i] = node * m_dom->m_dim + i;
+            }
+        }
+        
+        addElementToTriplets(Ke, global_dofs, m_triplets);
+    }
+
+    // Finalize the assembly
+    void Solver_Eigen::finalizeAssembly() {
+        K.setFromTriplets(m_triplets.begin(), m_triplets.end());
+        K.makeCompressed();
+        m_triplets.clear(); // Free memory
+    }
 
 };
