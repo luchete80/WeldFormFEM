@@ -104,39 +104,11 @@ using namespace std;
 
 namespace MetFEM{
   
-//~ void radialReturnJ2(const Matrix& D, double dt, 
-                 //~ const Matrix& sigma_old, double ep_old,
-                 //~ const MaterialProps& props,
-                 //~ Matrix& sigma_new, double& ep_new,
-                 //~ Matrix& C_ep) {
-  
-  //~ // Elastic predictor
-  //~ Matrix deps = D * dt;
-  //~ Matrix sigma_trial = sigma_old + 2*props.G*deviatoric(deps) 
-                     //~ + props.K*trace(deps)*Matrix::Identity();
-  
-  //~ // Check yield condition
-  //~ double f_trial = equivalentStress(sigma_trial) 
-                 //~ - props.yieldStress(ep_old);
-  
-  //~ if (f_trial <= 0) {
-      //~ // Elastic step
-      //~ sigma_new = sigma_trial;
-      //~ ep_new = ep_old;
-      //~ C_ep = elasticTangent(props);
-  //~ } else {
-      //~ // Plastic correction
-      //~ double delta_gamma = f_trial / (3*props.G + props.H);
-      //~ Matrix n = deviatoric(sigma_trial) / equivalentStress(sigma_trial);
-      //~ sigma_new = sigma_trial - 2*props.G*delta_gamma*n;
-      //~ ep_new = ep_old + sqrt(2.0/3.0)*delta_gamma;
-      
-      //~ // Consistent tangent
-      //~ C_ep = consistentTangent(props, sigma_trial, delta_gamma);
-  //~ }
-//~ }
 
-void host_ Domain_d::Solve(){
+////////////////////////////////////////
+/////// ONLY FOR TESTING  ELASTIC
+////////////////////////////////////////
+void host_ Domain_d::ElasticIncSolve(){
   WallTimer timer;
 
   AssignMatAddress();

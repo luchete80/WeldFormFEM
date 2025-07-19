@@ -113,7 +113,9 @@ set (SOURCES
                         #ImpDomain_d.C
                         Matrices.C
                         Solver.C
+                        Solver_Implicit.C
                         Solver_Eigen.C
+                        
                           
                    )
 add_library (implicit STATIC "${SOURCES}")                   

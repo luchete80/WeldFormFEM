@@ -132,6 +132,44 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   
 }
 
+
+/////// MATRIC CALC MAIN FUNCTION
+/////// KTG AND KGEO IN ONE PLACE
+
+// #ifndef BUILD_GPU
+// // THREAD STORAGE (AVOIDS CPU OVERHEAD!!!) (ej. con OpenMP)
+// std::vector<Matrix> Kmat_per_thread(num_threads);
+// std::vector<Matrix> Kgeo_per_thread(num_threads);
+
+// #pragma omp parallel for
+// for (int e = 0; e < m_elem_count; e++) {
+    // int tid = omp_get_thread_num();
+    // Matrix& Kmat = Kmat_per_thread[tid]; // Reutiliza memoria
+    // Matrix& Kgeo = Kgeo_per_thread[tid];
+    
+    // computeElementMatrices(e, Kmat, Kgeo); // Rellena matrices
+    // // ... resto del cálculo ...
+// }
+//#else
+// Si usas GPU:
+// cpp
+// // Kernel CUDA/HIP (sin almacenamiento global)
+// __global__ void computeElements(Matrix* global_fint, double* u) {
+    // int e = blockIdx.x * blockDim.x + threadIdx.x;
+    // if (e >= m_elem_count) return;
+
+    // // Matrices locales en registros/memoria compartida
+    // Matrix Kmat(24,24); 
+    // Matrix Kgeo(24,24);
+    
+    // // Cálculos
+    // computeElementMatrices(e, Kmat, Kgeo, u);
+    // // ... scatter a global_fint ...
+// }
+
+
+
+
 /*
 void Domain_d::CalcGeomStiffElementMatrix() {
   par_loop(e, m_elem_count) {

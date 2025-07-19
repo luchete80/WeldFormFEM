@@ -435,8 +435,10 @@ public:
   void CalcMaterialStiffElementMatrix();
   void CalcGeomStiffElementMatrix();  
   void CalcElemIntForces();
-	void Solve();
+	void ElasticIncSolve(); ///TESTING INCREMENTAL ELASTIC ALL IN ONE FUNCTION
 	void ElasticSolve();
+  
+  void SolveImplicitDefault(); /////LEGACY 
    
   //--------------------------------------------------------------------------------------------------------------------------------
 
