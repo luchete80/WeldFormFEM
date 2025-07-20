@@ -464,7 +464,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           cout << "m_dim "<<m_dim<<endl;
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
-          Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+          
+          //Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+          
+          
           fint = fint * vol[e];
           cout << "Calculating Kmat "<<endl;
           ///TANGENT!
@@ -521,14 +524,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           
 
-          solver.assembleElement(e, K);
-
-          ////// Use velocity formulation instead of displacements:
-          //////Matrix v_new = Matrix::Solve(K, (F_ext - F_int) / (beta * dt));
-
-          //Matrix du = SolveWithEigen(Kmat, fint);
-          Matrix delta_u_e = 1.0/(beta*dt)*Matrix::SolveLU( Kmat,fint);
+          solver->assembleElement(e, K);
           
+          //for (int i=0;i<m_nodxelem;i++)
+            
+
           
           r_global =r_global + MatMul(K,WHICH MATRIX?);
           cout << "Delta U "<<endl;

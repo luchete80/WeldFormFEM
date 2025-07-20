@@ -69,7 +69,28 @@ public:
         //~ iterative->setTolerance(tol);
         //~ solver = std::move(iterative);
     //~ }
-    
+    void assembleResidual(int e, const Matrix& Re) {
+        const int ndof = m_dom->m_nodxelem * m_dom->m_dim;
+        std::vector<int> global_dofs(ndof);
+        
+        // Precompute DOF mapping - helps compiler optimize
+        //#pragma unroll(4) // Encourage loop unrolling for small elements
+        for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            const int node = m_dom->getElemNode(e, a);
+            const int base = a * m_dom->m_dim;
+            for (int i = 0; i < m_dom->m_dim; ++i) {
+                global_dofs[base + i] = node * m_dom->m_dim + i;
+            }
+        }
+
+        // Atomic adds for thread safety in parallel loops
+        //#pragma omp parallel for if(ndof > 128) // Threshold for parallelization
+        for (int i = 0; i < ndof; ++i) {
+            #pragma omp atomic update
+            R(global_dofs[i]) += Re.getVal(i, 0);
+        }
+}
+
 protected:
   typedef Eigen::SparseMatrix<double> SpMat;
   typedef Eigen::Triplet<double> T;
