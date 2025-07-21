@@ -210,7 +210,7 @@ int Solver_Eigen::Solve(){
   
 }
 
-    void Solver_Eigen::assembleElement(int e, const Matrix& Ke) {
+    void Solver_Eigen::assembleElement(int e, /*const*/ Matrix& Ke) {
         std::vector<int> global_dofs(m_dom->m_nodxelem * m_dom->m_dim);
         
         // Compute global DOFs for this element

@@ -367,7 +367,8 @@ int main(int argc, char **argv) {
   
   ////// ELASTIC TEST
   //dom_d->Solve();
-  dom_d->ElasticIncSolve();
+  //dom_d->ElasticIncSolve();
+  dom_d->SolveImplicitGlobalMatrix();
 	//dom_d->Solve ();
   
   

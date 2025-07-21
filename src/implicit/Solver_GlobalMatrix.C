@@ -550,6 +550,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           
 
           solver->assembleElement(e, K);
+          solver->assembleResidual(e,fint);//SHOULD BE NEGATIVE!
           
           //for (int i=0;i<m_nodxelem;i++)
             

@@ -7,6 +7,9 @@
 #include <unordered_map>  // For triplet storage
 
 #include "defs.h"
+#include "Domain_d.h"
+
+class Matrix;
 
 using namespace std;
 
@@ -35,7 +38,7 @@ public:
     }
 
     // Add a single element to the assembly (NOT NEED TO BE STORED!)
-    void assembleElement(int e, const Matrix& Ke);
+    void assembleElement(int e, /*const*/ Matrix& Ke);
 
     // Finalize the assembly
     void finalizeAssembly();
