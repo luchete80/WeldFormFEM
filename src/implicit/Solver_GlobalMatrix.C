@@ -18,6 +18,8 @@
 
 #include <omp.h>
 
+#include "Solver_Eigen.h"
+
 using namespace std;
 
 
@@ -465,13 +467,31 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
           
-          //Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
+          //CHANGE TO FORCES TO MATRIX! already calculated
+          Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+          /////COMPARE WITH ELEMENT FORCES
+          //
+          // Matrix fint;
           
+          // for (int e=0;)
+          // // Componentes normales
+          // voigt.Set(0, 0, mat.getVal(0, 0)); // ε_xx
+          // voigt.Set(1, 0, mat.getVal(1, 1)); // ε_yy
+          // voigt.Set(2, 0, mat.getVal(2, 2)); // ε_zz
+          // // Componentes cortantes (ingeniería: γ = 2ε)
+          // voigt.Set(3, 0, mat.getVal(0, 1) + mat.getVal(1, 0)); // γ_xy = 2ε_xy
+          // voigt.Set(4, 0, mat.getVal(1, 2) + mat.getVal(2, 1)); // γ_yz = 2ε_yz
+          // voigt.Set(5, 0, mat.getVal(0, 2) + mat.getVal(2, 0)); // γ_xz = 2ε_xz
+          // return voigt;
           
           fint = fint * vol[e];
           cout << "Calculating Kmat "<<endl;
           ///TANGENT!
           // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
+          Matrix D(6,6);
+          D =  mat[e]->getElasticMatrix();
+          
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
           Kmat = Kmat * vol[e];
           // Kmat = Kmat * vol[e];
@@ -483,6 +503,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
+
+          ///////////////////////////////////////////////////
+          /////////// IMPORTANT!!! --MUCH-- LESS PRODUCTS THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
           //Matrix& Kgeo = *(m_Kgeo[e]);
           Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
@@ -504,7 +527,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
 
               // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
-              Matrix sigma_grad_b = MatMul(sigma, grad_b); // σ · ∇Nᵇ (3x1)
+              Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
               Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
               double k_ab = kab.getVal(0, 0) * Ve;
 
@@ -517,6 +540,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         
 
           Matrix K = Kgeo + Kmat;
+          double beta = 0.25;
+          
           // Add mass scaling for stability (FORGE does this)
           for (int i = 0; i < m_nodxelem*m_dim; i++) {
               //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
@@ -530,21 +555,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             
 
           
-          r_global =r_global + MatMul(K,WHICH MATRIX?);
-          cout << "Delta U "<<endl;
-          delta_u_e.Print();
-          
-          // // // 10) Distribute Δu_e to nodes
-          // for (int a = 0; a < m_nodxelem; ++a) {
-              // for (int d = 0; d < m_dim; ++d) {
-                  // int idx_local = a * m_dim + d;
-                  // //int idx_global = elem_to_node[e][a] * m_dim + d;
-                  // int idx_global = getElemNode(e,a) * m_dim + d;
+          //r_global =r_global + MatMul(K,WHICH MATRIX?);
 
-                  // u[idx_global] += relax * delta_u_e.getVal(idx_local, 0); // acumulás con relajación
-                  // u_count[idx_global] += 1; // acumulás contribuciones
-              // }
-          // }
+          cout << "Delta U "<<endl;
+          //delta_u_e.Print();
+          
       
       } // end par element loop
       

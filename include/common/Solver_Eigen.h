@@ -69,7 +69,7 @@ public:
         //~ iterative->setTolerance(tol);
         //~ solver = std::move(iterative);
     //~ }
-    void assembleResidual(int e, const Matrix& Re) {
+    void assembleResidual(int e, /*const */ Matrix& Re) {
         const int ndof = m_dom->m_nodxelem * m_dom->m_dim;
         std::vector<int> global_dofs(ndof);
         

@@ -803,17 +803,39 @@ __spec Matrix operator+(const Matrix &A, const Matrix &B) {
     // return mat;
 // }
 
-// __spec Matrix MatrixToVoigt(const Matrix& mat) {
-    // Matrix voigt(6, 1);
-    // // Componentes normales
-    // voigt.Set(0, 0, mat.getVal(0, 0)); // ε_xx
-    // voigt.Set(1, 0, mat.getVal(1, 1)); // ε_yy
-    // voigt.Set(2, 0, mat.getVal(2, 2)); // ε_zz
-    // // Componentes cortantes (ingeniería: γ = 2ε)
-    // voigt.Set(3, 0, mat.getVal(0, 1) + mat.getVal(1, 0)); // γ_xy = 2ε_xy
-    // voigt.Set(4, 0, mat.getVal(1, 2) + mat.getVal(2, 1)); // γ_yz = 2ε_yz
-    // voigt.Set(5, 0, mat.getVal(0, 2) + mat.getVal(2, 0)); // γ_xz = 2ε_xz
-    // return voigt;
-// }
+__spec Matrix MatrixToVoigt(/*const*/ Matrix& mat) {
+    Matrix voigt(6, 1);
+    // Componentes normales
+    voigt.Set(0, 0, mat.getVal(0, 0)); // ε_xx
+    voigt.Set(1, 0, mat.getVal(1, 1)); // ε_yy
+    voigt.Set(2, 0, mat.getVal(2, 2)); // ε_zz
+    // Componentes cortantes (ingeniería: γ = 2ε)
+    voigt.Set(3, 0, mat.getVal(0, 1) + mat.getVal(1, 0)); // γ_xy = 2ε_xy
+    voigt.Set(4, 0, mat.getVal(1, 2) + mat.getVal(2, 1)); // γ_yz = 2ε_yz
+    voigt.Set(5, 0, mat.getVal(0, 2) + mat.getVal(2, 0)); // γ_xz = 2ε_xz
+    return voigt;
+}
+
+
+////S
+__spec Matrix FlatSymToVoigt(double flat[], const int &m_dim, const int &m_nodxelem){
+	Matrix ret(3*m_nodxelem,1);
+  for (int i=0;i<m_dim*m_nodxelem;i++)
+    ret.Set(i,0,flat[i]);		
+	
+	return ret;
+}
+
+//Converts tensor to flat symm
+//TODO: CHECK IF THE RETURN VALUE IS IN PARAMETERS THIS IS FASTER
+__spec Matrix FlatSymToMatrix(double flat[]){
+	Matrix ret(3,3);
+  for (int i=0;i<3;i++) ret.Set(i,i,flat[i]);
+  ret.Set(0,1,flat[3]); ret.Set(1,0,flat[3]);
+  ret.Set(1,2,flat[4]); ret.Set(2,1,flat[4]);  
+  ret.Set(0,2,flat[5]); ret.Set(2,1,flat[5]);
+  
+	return ret;
+}
 
 #endif
