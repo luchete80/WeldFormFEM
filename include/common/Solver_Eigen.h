@@ -29,6 +29,17 @@ public:
   virtual void applyDirichletBCs();
   virtual void SetRDOF(const int &, const double &val);
 
+  // void getElementDisplacements(int e, Eigen::VectorXd& u_e) {
+      // u_e.resize(m_dom->m_nodxelem * m_dom->m_dim);
+      // for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+          // int node = m_dom->getElemNode(e, a);
+          // for (int i = 0; i < m_dom->m_dim; ++i) {
+              // u_e(a * m_dom->m_dim + i) = U(node * m_dom->m_dim + i);
+          // }
+      // }
+  // }
+  //inline double getUNode(const int&n,){return U[m_dim*]};
+
     // Main assembly function that can be called element-by-element
     void beginAssembly() {
         const int ndof = m_dom->m_nodxelem * m_dom->m_dim;

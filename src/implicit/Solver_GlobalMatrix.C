@@ -440,18 +440,22 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   calcArtificialViscosity(); //Added to Sigma
   
-  calcElemForces();
-  calcElemHourglassForces();
   
-  if (contact)
-    CalcContactForces();
-
-
-  bool end_it = false;
-  
-  Matrix r_global(m_nodxelem*m_dim,1);
+    // Newton-Raphson loop
+  for (int iter = 0; iter < 10; iter++) {
     
-  solver->beginAssembly();
+    calcElemForces();  ///// INTERNAL FORCES
+    calcElemHourglassForces();
+    
+    if (contact)
+      CalcContactForces();
+
+
+    bool end_it = false;
+    
+    Matrix r_global(m_nodxelem*m_dim,1);
+      
+    solver->beginAssembly();
   
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
@@ -540,13 +544,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         
 
           Matrix K = Kgeo + Kmat;
-          double beta = 0.25;
           
-          // Add mass scaling for stability (FORGE does this)
-          for (int i = 0; i < m_nodxelem*m_dim; i++) {
-              //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
-              K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
-          }
+          //double beta = 0.25;
+          // // Add mass scaling for stability (FORGE does this)
+          // for (int i = 0; i < m_nodxelem*m_dim; i++) {
+              // //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
+              // K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
+          // }
           
 
           solver->assembleElement(e, K);
@@ -563,10 +567,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           
       
       } // end par element loop
-      
+
+      m_solver->applyDirichletBCs();
+      cout << "Solving system"<<endl;      
       solver->finalizeAssembly();
 
-
+      m_solver->Solve();
+  
+  }//NR ITER 
 
   
   ///assemblyForces(); 
