@@ -154,6 +154,9 @@ int main(int argc, char **argv) {
   solver->Solve();
 
 
+  //GLOBAL MATRIX NONLINEAR METHOD
+  
+
 	// cout << "Program ended."<<endl;
       
 

@@ -62,7 +62,9 @@ public:
   virtual void applyDirichletBCs(){}
 
   virtual ~Solver(){}
+  virtual inline const double & getU(int node, int dim) const {}
 
+  virtual inline void addToU(int node, int dim, double delta) {};
 protected:
   //Vec3D vtol;     //
   double ptol;    //

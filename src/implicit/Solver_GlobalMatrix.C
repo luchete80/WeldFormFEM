@@ -441,8 +441,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   calcArtificialViscosity(); //Added to Sigma
   
   
-    // Newton-Raphson loop
-  for (int iter = 0; iter < 10; iter++) {
+  // Newton-Raphson loop
+  double tolerance = 1e-6;
+  int max_iter = 10;
+  bool converged = false;
+
+  for (int iter = 0; iter < max_iter && !converged; iter++) {
     
     calcElemForces();  ///// INTERNAL FORCES
     calcElemHourglassForces();
@@ -573,7 +577,35 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       solver->finalizeAssembly();
 
       m_solver->Solve();
-  
+    
+    // Update displacements and check convergence
+    double max_residual = 0.0;
+    for (int n = 0; n < m_node_count; n++) {
+        for (int d = 0; d < m_dim; d++) {
+            int idx = n * m_dim + d;
+            double du = m_solver->getU(n,d);
+            
+            // Update displacement and position
+            //m_solver->addToU(n, d, du);
+            u[idx]+=du;x[idx]+=du;
+           
+            // Track maximum residual
+            max_residual = std::max(max_residual, std::abs(du));
+        }
+    }
+    
+    // Check convergence
+    if (max_residual < tolerance) {
+        converged = true;
+        if (step_count % 10 == 0) {
+            std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
+        }
+    }
+    
+    if (iter == max_iter-1 && !converged) {
+        std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
+    }
+    
   }//NR ITER 
 
   

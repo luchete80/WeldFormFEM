@@ -22,7 +22,7 @@ public:
   virtual int Solve();
   virtual ~Solver_Eigen(){}
 
-  inline double getU(int node, int dim) const {
+  inline const double & getU(int node, int dim) const {
       return U[node * m_dom->m_dim + dim]; 
   }
 
