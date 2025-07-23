@@ -581,7 +581,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
               K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
           }
-          
+
+
+          ////// Residual forces (with inertial term)
+          Matrix R = f_ext - f_int;
+          for (int i = 0; i < m_nodxelem * m_dim; i++) {
+              int node = getElemNode(e, i % m_nodxelem);
+              R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
+          }
           
           solver->assembleElement(e, K);
           solver->assembleResidual(e,fint);//SHOULD BE NEGATIVE!
@@ -613,7 +620,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             
             v[idx] += dv;
             // Update acceleration using Newmark-beta
-            a[idx] = (v[idx] - v_prev[idx]) / (gamma * delta_t) 
+            a[idx] = (v[idx] - prev_v[idx]) / (gamma * dt) 
                    - (1.0 - gamma)/gamma * a_prev[idx];
                    
             // Update displacement and position
