@@ -338,6 +338,24 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     for (int i = 0; i < m_node_count * m_dim; i++) {
         v[i] = prev_v[i] + delta_v[i];
     }
+    
+    //Rewrite BCs
+    for (int d=0;d<m_dim;d++){
+      
+      #ifdef CUDA_BUILD
+      ////REMAINS TO INIT VELOCITIES
+      N = bc_count[d];
+      blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+      ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+      cudaDeviceSynchronize();
+      #else
+        for (int n=0;n<m_node_count*m_dim;n++){
+          v[n]=a[n]=u[n]=0.0;
+        }
+         ImposeBCV(d);
+      #endif
+    }
+    
 
     // (2) Update displacements (u += dt * delta_v) and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -512,8 +530,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
           Kmat = Kmat * vol[e];
           // Kmat = Kmat * vol[e];
-          cout << "Kmat "<<endl;
-          Kmat.Print();
+          //cout << "Kmat "<<endl;
+          //Kmat.Print();
           
           // // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
 
@@ -568,7 +586,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
                   K.Set(idx, idx, K.getVal(idx, idx) + mass_term);
               }
           }
-          cout <<"DONE"<<endl;
+          cout <<"CHECKING INTERNAL FORCES"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
           for (int i = 0; i < m_nodxelem * m_dim; i++) {
