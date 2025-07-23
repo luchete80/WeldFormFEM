@@ -326,7 +326,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   bool converged = false;
 
 
-  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0;
+  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=prev_v[i];
   
   cout <<"Newton Rhapson Loop"<<endl;
   ////////////////////////////////////////////////////////////
@@ -356,9 +356,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     // (2) Update displacements (u += dt * delta_v) and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        u[i] += dt * delta_v[i];       // Incremental update
+        u[i] = dt * delta_v[i];       // Incremental update(delta_v is already increasing)
         //x[i] = x_initial[i] + u[i];    // Total position
-        x[i] = x_initial[i] + dt * delta_v[i];    // Total position
+        x[i] = x_initial[i] + u;    // Total position
     }
 
     // (3) Recompute acceleration (a) from Newmark-β
@@ -648,8 +648,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
     }
     
+    for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
+    
   }//NR ITER 
-
+  
+  
   
   ///assemblyForces(); 
   //ApplyGlobalSprings();
