@@ -648,7 +648,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
     }
     
-    for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
+
     
   }//NR ITER 
   
