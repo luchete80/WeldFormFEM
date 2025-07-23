@@ -468,12 +468,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
     solver->beginAssembly();
     
-    
+    cout << "Element Loop"<<endl;
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
           
           // 6) Build B matrix (strain-displacement) for the element
           int tid = omp_get_thread_num();
+          cout << "Thread id"<<tid << "Of "<<Nproc<<endl;
           Matrix &B = Bmat_per_thread[tid];
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           cout <<"Done."<<endl;
@@ -482,7 +483,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           cout << "m_dim "<<m_dim<<endl;
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
-          
+          cout <<"Stress to voight"<<endl; 
           Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
@@ -519,7 +520,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
-
+          cout << "Calculating Kgeo"<<endl;
           ///////////////////////////////////////////////////
           /////////// IMPORTANT!!! --MUCH-- LESS PRODUCTS THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
@@ -553,16 +554,21 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               }
             }
           }
-        
+          cout <<"Done."<<endl;
 
           Matrix K = Kgeo + Kmat;
-          
+          cout<<"Velocity factor"<<endl;
           double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)
-          for (int i = 0; i < m_nodxelem*m_dim; i++) {
-              //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
-              K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
+          for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
+              int node = getElemNode(e, i);        // Get global node number
+              for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
+                  int idx = i*m_dim + d;           // Local DOF index
+                  double mass_term = m_mdiag[node] / (beta * dt * dt);
+                  K.Set(idx, idx, K.getVal(idx, idx) + mass_term);
+              }
           }
+          cout <<"DONE"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
           for (int i = 0; i < m_nodxelem * m_dim; i++) {
