@@ -349,10 +349,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
       cudaDeviceSynchronize();
       #else
-        for (int n=0;n<m_node_count*m_dim;n++){
-          v[n]=a[n]=u[n]=0.0;
-        }
-         ImposeBCV(d);
+      ImposeBCV(d);
       #endif
     }
     
@@ -589,9 +586,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           cout <<"CHECKING INTERNAL FORCES"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
-          for (int i = 0; i < m_nodxelem * m_dim; i++) {
+          for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
-            R.Set(i,0,-fint.getVal(i,0)); //ADD EXTERNAL ELEMENT FORCES
+            for (int d=0;d<m_dim;d++){
+              int offset = e*m_nodxelem*m_dim;
+            cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[offset+i*m_dim+d]<<endl;
+            R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
+            }
           }
           ////// Residual forces (with inertial term)
           //Matrix R = f_ext - fint;
