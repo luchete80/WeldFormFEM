@@ -200,10 +200,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->Allocate();
   
   
-  double *delta_v;
+  double *delta_v, *x_initial;
   
   #ifndef BUILD_GPU
-    delta_v = new double [m_dim * m_node_count];
+    delta_v   = new double [m_dim * m_node_count];
+    x_initial = new double [m_dim * m_node_count];
   #else
   
   #endif
@@ -227,8 +228,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   
   cout << "Storing previous values"<<endl;
-  memcpy(prev_v, v, sizeof(double) * m_node_count * m_dim);
-  memcpy(prev_a, a, sizeof(double) * m_node_count * m_dim);
+  memcpy(prev_v,    v, sizeof(double) * m_node_count * m_dim);
+  memcpy(prev_a,    a, sizeof(double) * m_node_count * m_dim);
+  memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
   cout << "Done."<<endl;
   
   cout << "Calc External Faces"<<endl;
@@ -316,6 +318,40 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
+
+
+  // Newton-Raphson loop
+  double tolerance = 1e-6;
+  int max_iter = 10;
+  bool converged = false;
+
+
+  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0;
+  
+  cout <<"Newton Rhapson Loop"<<endl;
+  ////////////////////////////////////////////////////////////
+  ////////////////////////// NR LOOP /////////////////////////
+  for (int iter = 0; iter < max_iter && !converged; iter++) {
+
+    const double gamma = 0.5;   // Newmark parameter
+    // (1) Update velocities (v = prev_v + delta_v)
+    for (int i = 0; i < m_node_count * m_dim; i++) {
+        v[i] = prev_v[i] + delta_v[i];
+    }
+
+    // (2) Update displacements (u += dt * delta_v) and positions (x = x_initial + u)
+    for (int i = 0; i < m_node_count * m_dim; i++) {
+        u[i] += dt * delta_v[i];       // Incremental update
+        //x[i] = x_initial[i] + u[i];    // Total position
+        x[i] = x_initial[i] + dt * delta_v[i];    // Total position
+    }
+
+    // (3) Recompute acceleration (a) from Newmark-β
+    for (int i = 0; i < m_node_count * m_dim; i++) {
+        a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
+    }
+
+
   
   #ifdef CUDA_BUILD
   N = getElemCount();
@@ -418,19 +454,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   //calcArtificialViscosity(); //Added to Sigma
   
   
-  // Newton-Raphson loop
-  double tolerance = 1e-6;
-  int max_iter = 10;
-  bool converged = false;
-
-
-  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0;
-  
-  cout <<"Newton Rhapson Loop"<<endl;
-  ////////////////////////////////////////////////////////////
-  ////////////////////////// NR LOOP /////////////////////////
-  for (int iter = 0; iter < max_iter && !converged; iter++) {
-  
+    
     calcElemForces();  ///// INTERNAL FORCES
     calcElemHourglassForces();
     
@@ -601,47 +625,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
   }//NR ITER 
 
-  // After NR loop converges:
-  for (int n = 0; n < m_node_count; n++) {
-      for (int d = 0; d < m_dim; d++) {
-          int idx = n * m_dim + d;
-          // Update velocity (v_new = v_prev + Δv)
-          v[idx] = prev_v[idx] +  delta_v[idx];
-      }
-  }
-
-  for (int d=0;d<m_dim;d++){
-    
-    #ifdef CUDA_BUILD
-    N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-    cudaDeviceSynchronize();
-    #else
-      ImposeBCV(d);
-    #endif
-  }
-  /// AND AFTER REINFORCE Velocity BCs
-  const double gamma = 0.5;   // Newmark parameter
-  // After NR loop converges:
-  for (int n = 0; n < m_node_count; n++) {
-      for (int d = 0; d < m_dim; d++) {
-          int idx = n * m_dim + d;
-
-          a[idx] = (v[idx] - prev_v[idx]) / (gamma * dt) 
-                 - (1.0 - gamma)/gamma * prev_a[idx];
-          // Update displacement (u_new = u_prev + Δt * v_new)
-          u[idx] += dt * v[idx];
-          x[idx] = x[idx] + delta_v[idx]*dt;  // Ensure x is synced with u
-      }
-  }
-
-
-  // Store values for next step
-  for (int n = 0; n < m_node_count * m_dim; n++) {
-      prev_v[n] = v[n];
-      prev_a[n] = a[n];
-  }
   
   ///assemblyForces(); 
   //ApplyGlobalSprings();
