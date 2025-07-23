@@ -1210,7 +1210,7 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
 // !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 dev_t void Domain_d::CalcStressStrain(double dt){
-
+  
   par_loop(e,m_elem_count){
       //printf("calculating sigma \n");
         // Jaumann rate terms
@@ -1267,7 +1267,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                                      
                     );
       double sig_trial = sqrt(3.0*J2);
-      
+      cout <<"Check yield"<<endl;
       
       if(mat[e]->Material_model == HOLLOMON ){
         sigma_y[e] = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
@@ -1388,6 +1388,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
           }
       
       } 
+
       double Ep = 0;
       Strain = Strain + dt*StrRate;
       //printf("Strain %.4e\n",Strain.zz);
@@ -1413,6 +1414,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     // end do !gauss point
   // end do
   //printf("ELEMENT %d SIGMA\n");
+  
+  cout << "Done."<<endl;
  
 }
 

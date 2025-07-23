@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
   dom_d->SetEndTime (0.01);
   solver->SetRDOF(11,0.0);
   dom_d->AddBCVelNode(3,2,-1.0);
-  
+  dom_d->SetDT(0.001); 
   
   //GLOBAL MATRIX NONLINEAR METHOD
   dom_d->SolveImplicitGlobalMatrix();

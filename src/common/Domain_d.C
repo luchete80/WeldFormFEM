@@ -583,6 +583,8 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (x_old,      double,node_count*m_dim);
   
   malloc_t (prev_a, double,node_count*m_dim);  
+  malloc_t (prev_v, double,node_count*m_dim);  ///////ONLY USED ON IMPLICIT
+  
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_fi,double,node_count*m_dim); //Internal forces
   malloc_t (m_fe,double,node_count*m_dim);
@@ -625,6 +627,10 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t(m_rot_rate,  double, 6 * m_elem_count * m_gp_count );     
   malloc_t(m_sigma,     double, 6 * m_elem_count * m_gp_count );   
   malloc_t(m_tau,       double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_eps,       double, 6 * m_elem_count * m_gp_count );   
+  //FOR PLASTIC STRAIN HEAT GENERATION
+  malloc_t(m_strain_pl_incr,  double, 6 * m_elem_count * m_gp_count );     
+  malloc_t(m_q_plheat,        double,     m_elem_count * m_gp_count );       
   
   ///// ELEMENTAL VALUES
   // cudaMalloc((void **)&p,         m_elem_count * m_gp_count * sizeof (double)); 

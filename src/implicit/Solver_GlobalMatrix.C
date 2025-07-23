@@ -56,57 +56,6 @@ namespace MetFEM{
     // return base_dt;
 // }
 
-// Matrix ComputeGlobalResidual() {
-    // Matrix r_global(m_node_count * m_dim, 1);
-    // r_global.SetZero();
-
-    // par_loop(e, m_elem_count) {
-        // // 1. Compute element contribution
-        // Matrix B = getElemBMatrix(e);
-        // Matrix f_int_e = MatMul(B.Transpose(), stress_voigt) * vol[e];
-        
-        // // 2. Compute K_e * u_e (stiffness action)
-        // Matrix u_e = gatherElementDisplacements(e);
-        // Matrix K_e = MatMul(B.Transpose(), MatMul(D, B)) * vol[e];
-        // Matrix Ku_e = MatMul(K_e, u_e);
-        
-        // // 3. Scatter to global residual
-        // scatterAdd(r_global, Ku_e - f_int_e, e);
-    // }
-    
-    // return r_global - f_ext_global;
-// }
-
-
-// ///// MATRIX FREE STYLE PRECONDITIONED
-// void SolveImplicitStep() {
-    // // FORGE-style parameters
-    // double beta = 0.25;  // Mass scaling factor
-    // double dt = 1.0;     // Pseudo-time step
-    
-    // Matrix u(m_node_count * m_dim, 1); 
-    // Matrix v(m_node_count * m_dim, 1);
-
-    // for (int iter = 0; iter < max_iter; iter++) {
-        // // 1. Compute residual
-        // Matrix r = ComputeGlobalResidual();
-        
-        // // 2. FORGE-style mass preconditioning
-        // Matrix z(m_node_count * m_dim, 1);
-        // for (int n = 0; n < m_node_count; n++) {
-            // Matrix r_n = gatherNodalResidual(n, r);
-            // z_n = m_mdiag[n].Inv() * r_n / (beta * dt * dt);
-            // scatter(z, z_n, n);
-        // }
-        
-        // // 3. Update velocities and positions
-        // v += z;
-        // u += dt * v;
-        
-        // // 4. Check convergence
-        // if (r.Norm() < tolerance) break;
-    // }
-// }
 
 
 void host_ Domain_d::SolveImplicitGlobalMatrix(){
@@ -165,9 +114,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   }
   cout << "done"<<endl;
 
-  double rho_b = 0.818200;  // DEFAULT SPECTRAL RADIUS
   
-
   ostringstream oss_out;
   
   
@@ -253,7 +200,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->Allocate();
   
   
-  dt = end_t/10.0;
+  double *delta_v;
+  
+  #ifndef BUILD_GPU
+    delta_v = new double [m_dim * m_node_count];
+  #else
+  
+  #endif
+  
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -269,12 +224,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
+
   
+  cout << "Storing previous values"<<endl;
+  memcpy(prev_v, v, sizeof(double) * m_node_count * m_dim);
+  memcpy(prev_a, a, sizeof(double) * m_node_count * m_dim);
+  cout << "Done."<<endl;
+  
+  cout << "Calc External Faces"<<endl;
   if (step_count % 10 == 0){
     //cout << "Calc ExtFace Areas"<<endl;
     CalcExtFaceAreas();
     //cout << "Done"<<endl;
     }
+  cout << "Done"<<endl;
   
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
@@ -328,33 +291,16 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   }
 
-  if (!m_fixed_dt){
-    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-    calcMinEdgeLength();
-    double minl = getMinLength();
-    dt = m_cfl_factor*minl/(mat_cs);
-  }
+  // if (!m_fixed_dt){
+    // cout << "Calculate min length"<<endl;
+    // double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+    // calcMinEdgeLength();
+    // double minl = getMinLength();
+    // dt = m_cfl_factor*minl/(mat_cs);
+  // }
   
-  //printf("Prediction ----------------\n");
-  #if CUDA_BUILD
-  N = getNodeCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  #endif
-  #if CUDA_BUILD
-
-  #else
-
-  #endif
-  
-  // !!! PREDICTION PHASE
-  // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
-  // !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
-  // nod%v = nod%v + (1.0d0-gamma)* dt * prev_a
-  // nod%a = 0.0d0
-  
-  // call impose_bcv !!!REINFORCE VELOCITY BC
-  // TO NOT INTERFERE WITH DIFF THREADS AND DIMENSIONS
-  
+  cout << "Imposing BCs"<<endl;
+  //// NECESARY FOR Strain Calc
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD
@@ -366,7 +312,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       ImposeBCV(d);
     #endif
   }
-  //cout <<"Done."<<endl;
+  cout <<"Done."<<endl;
   //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
@@ -385,12 +331,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   cudaDeviceSynchronize();
   
   #else
+    cout <<"Calc derivatives and volume"<<endl;
   calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
     CalcElemVol();  
     CalcNodalVol();
     CalcNodalMassFromVol();
   }
+  cout << "Done."<<endl;
   #endif
    
 
@@ -448,23 +396,26 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   #else
   //SECOND TIME
     //STRESSES CALC
+    cout << "Calc Strains "<<endl;
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
+    cout << "Done. Calc Pressure "<<endl;
   if      (m_press_algorithm == 0)
     calcElemPressure();
   else if (m_press_algorithm == 1)
     calcElemPressureANP();
-  
+  cout << "Done. "<<endl;
   calcNodalPressureFromElemental();
 
+  cout << "Calc Stresses "<<endl;
   CalcStressStrain(dt);
+  cout << "Done"<<endl;
 
-
-  calcArtificialViscosity(); //Added to Sigma
+  //calcArtificialViscosity(); //Added to Sigma
   
   
   // Newton-Raphson loop
@@ -472,8 +423,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   int max_iter = 10;
   bool converged = false;
 
+
+  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0;
+  
+  cout <<"Newton Rhapson Loop"<<endl;
+  ////////////////////////////////////////////////////////////
+  ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
-    
+  
     calcElemForces();  ///// INTERNAL FORCES
     calcElemHourglassForces();
     
@@ -486,7 +443,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     Matrix r_global(m_nodxelem*m_dim,1);
       
     solver->beginAssembly();
-  
+    
+    
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
           
@@ -582,12 +540,17 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
           }
 
-
+          Matrix R(m_dim*m_nodxelem,1);
+          for (int i = 0; i < m_nodxelem * m_dim; i++) {
+            //int node = getElemNode(e, i % m_nodxelem);
+            R.Set(i,0,-fint.getVal(i,0)); //ADD EXTERNAL ELEMENT FORCES
+          }
           ////// Residual forces (with inertial term)
-          Matrix R = f_ext - f_int;
+          //Matrix R = f_ext - fint;
           for (int i = 0; i < m_nodxelem * m_dim; i++) {
               int node = getElemNode(e, i % m_nodxelem);
-              R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
+              //R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
+              R.Set(i,0,R.getVal(i,0)-m_mdiag[node] * a[node] / (beta * dt));
           }
           
           solver->assembleElement(e, K);
@@ -605,7 +568,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
       } // end par element loop
 
-      m_solver->applyDirichletBCs();
+      m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
       cout << "Solving system"<<endl;      
       solver->finalizeAssembly();
 
@@ -613,22 +576,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     // Update displacements and check convergence
     double max_residual = 0.0;
+
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
             int idx = n * m_dim + d;
             double dv = m_solver->getU(n,d);
-            
-            v[idx] += dv;
-            // Update acceleration using Newmark-beta
-            a[idx] = (v[idx] - prev_v[idx]) / (gamma * dt) 
-                   - (1.0 - gamma)/gamma * a_prev[idx];
-                   
-            // Update displacement and position
-            //m_solver->addToU(n, d, du);
-            u[idx]+=du;x[idx]+=du;
-           
+            delta_v[idx] += dv;
             // Track maximum residual
-            max_residual = std::max(max_residual, std::abs(du));
+            max_residual = std::max(max_residual, std::abs(dv));
         }
     }
     
@@ -646,10 +601,46 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
   }//NR ITER 
 
+  // After NR loop converges:
+  for (int n = 0; n < m_node_count; n++) {
+      for (int d = 0; d < m_dim; d++) {
+          int idx = n * m_dim + d;
+          // Update velocity (v_new = v_prev + Δv)
+          v[idx] = prev_v[idx] +  delta_v[idx];
+      }
+  }
+
+  for (int d=0;d<m_dim;d++){
+    
+    #ifdef CUDA_BUILD
+    N = bc_count[d];
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+    cudaDeviceSynchronize();
+    #else
+      ImposeBCV(d);
+    #endif
+  }
+  /// AND AFTER REINFORCE Velocity BCs
+  const double gamma = 0.5;   // Newmark parameter
+  // After NR loop converges:
+  for (int n = 0; n < m_node_count; n++) {
+      for (int d = 0; d < m_dim; d++) {
+          int idx = n * m_dim + d;
+
+          a[idx] = (v[idx] - prev_v[idx]) / (gamma * dt) 
+                 - (1.0 - gamma)/gamma * prev_a[idx];
+          // Update displacement (u_new = u_prev + Δt * v_new)
+          u[idx] += dt * v[idx];
+          x[idx] = x[idx] + delta_v[idx]*dt;  // Ensure x is synced with u
+      }
+  }
+
+
   // Store values for next step
   for (int n = 0; n < m_node_count * m_dim; n++) {
-      v_prev[n] = v[n];
-      a_prev[n] = a[n];
+      prev_v[n] = v[n];
+      prev_a[n] = a[n];
   }
   
   ///assemblyForces(); 
@@ -680,39 +671,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   #endif
 
 
-  
 
-  
-  
-  #ifdef CUDA_BUILD  
-  N = getNodeCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  // UpdateCorrectionPosKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	// cudaDeviceSynchronize();   psfield
-  #else
+  // if (contact){
+    // double f =1.0;
 
-  //IMPLICIT DIFFERENCE
-  // Simple position update based on velocities
-  for (int i = 0; i < m_node_count * m_dim; i++) {
-      x[i] += v[i] * dt;
-      
-  }
-
-  #endif  
-
-  if (contact){
-    double f =1.0;
-
-    if(Time < RAMP_FRACTION*end_t) {
-        f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
-    } else {
-        f = 1.0;
-    }
-    for (int n=0;n<trimesh->nodecount;n++){
-      trimesh->node_v[n] = f*m_v_orig[n];
-      }
-      //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
-    }
+    // if(Time < RAMP_FRACTION*end_t) {
+        // f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
+    // } else {
+        // f = 1.0;
+    // }
+    // for (int n=0;n<trimesh->nodecount;n++){
+      // trimesh->node_v[n] = f*m_v_orig[n];
+    // }
+      // //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
+  // }
     
   
   if (contact){
@@ -924,83 +896,3 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 };
 
 
-
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// /////////////////////////////////// MAIN SOLVER LOOP (FORGE-STYLE) //////////////////////////////////////////
-// //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// cout << "Main Loop----" << endl;
-
-// // FORGE-STYLE: Add diagonal mass matrix (lumped)
-// Matrix M(m_node_count * m_dim, m_node_count * m_dim);
-// M.SetZero();
-// for (int e = 0; e < m_elem_count; e++) {
-    // for (int n = 0; n < m_nodxelem; n++) {
-        // int node = getElemNode(e, n);
-        // for (int d = 0; d < m_dim; d++) {
-            // int dof = node * m_dim + d;
-            // M.Set(dof, dof, M.getVal(dof, dof) + vol[e] * mat[e]->density() / m_nodxelem);
-        // }
-    // }
-// }
-
-// while (Time < end_t) {
-    // if (step_count % 10000 == 0)
-        // printf("Step %d, Time %f\n", step_count, Time);  
-
-    // // FORGE-STYLE: Store previous configuration
-    // for (int n = 0; n < m_node_count; n++)
-        // x_old[n] = x[n];  
-
-    // // FORGE-STYLE: Solve for velocities instead of displacements
-    // Matrix v(m_node_count * m_dim, 1); // Velocity vector
-    // v.SetZero();
-
-    // // Element loop to compute residual
-    // for (int e = 0; e < m_elem_count; e++) {
-        // // Compute F, strain, stress as before...
-        // // ... [keep your existing strain/stress calculation] ...
-
-        // // Compute internal force (same as before)
-        // Matrix fint_elem = MatMul(B.getTranspose(), stress_voigt) * vol[e];
-
-        // // Scatter to global residual
-        // for (int a = 0; a < m_nodxelem; a++) {
-            // int node = getElemNode(e, a);
-            // for (int d = 0; d < m_dim; d++) {
-                // int dof = node * m_dim + d;
-                // v.Set(dof, 0, v.getVal(dof, 0) + fint_elem.getVal(a * m_dim + d, 0));
-            // }
-        // }
-    // }
-
-    // // FORGE-STYLE: Solve M*v = f_ext - f_int (simplified)
-    // for (int i = 0; i < m_node_count * m_dim; i++) {
-        // if (M.getVal(i, i) > 0) {
-            // v.Set(i, 0, (f_ext[i] - v.getVal(i, 0)) / M.getVal(i, i));
-        // }
-    // }
-
-    // // Apply velocity BCs (replace displacement BCs)
-    // for (int dim = 0; dim < m_dim; dim++) {
-        // for (int n = 0; n < bc_count[dim]; n++) {
-            // int node = (dim == 0) ? bcx_nod[n] : ((dim == 1) ? bcy_nod[n] : bcz_nod[n]);
-            // int dof = node * m_dim + dim;
-            // v.Set(dof, 0, bc_value / dt); // Convert displacement BC to velocity
-        // }
-    // }
-
-    // // Update positions
-    // for (int i = 0; i < m_node_count * m_dim; i++) {
-        // x[i] += v.getVal(i, 0) * dt;
-    // }
-
-    // // Optional: Check velocity convergence
-    // double max_v = 0.0;
-    // for (int i = 0; i < m_node_count * m_dim; i++) {
-        // max_v = max(max_v, abs(v.getVal(i, 0)));
-    // }
-    // if (max_v < velocity_tol) break;
-
-    // step_count++;
-    // Time += dt;
-// }
