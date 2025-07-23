@@ -30,6 +30,31 @@ std::string m_fname;
 
 namespace MetFEM{
 
+// double Domain_d::calculatePhysicsBasedTimeStep() {
+    // // Base time step on physical phenomena
+    // double base_dt = end_t / 100.0; // Default: 100 steps total
+    
+    // // Option 1: Based on maximum velocity
+    // double max_vel = 0.0;
+    // for(int n=0; n<m_node_count; n++) {
+        // double v_mag = sqrt(v[n*m_dim+0]*v[n*m_dim+0] + 
+                       // v[n*m_dim+1]*v[n*m_dim+1] + 
+                       // v[n*m_dim+2]*v[n*m_dim+2]);
+        // max_vel = std::max(max_vel, v_mag);
+    // }
+    // if(max_vel > 1e-6) {
+        // double vel_based_dt = 0.1 * (domain_size / max_vel);
+        // base_dt = std::min(base_dt, vel_based_dt);
+    // }
+    
+    // // Option 2: Based on loading rate
+    // if(loading_rate > 0) {
+        // double loading_dt = 0.1 * (total_displacement / loading_rate);
+        // base_dt = std::min(base_dt, loading_dt);
+    // }
+    
+    // return base_dt;
+// }
 
 // Matrix ComputeGlobalResidual() {
     // Matrix r_global(m_node_count * m_dim, 1);
@@ -182,17 +207,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   CalcElemVol();
   printf("calc dens\n");
   calcElemDensity();
-
+  cout <<"Done."<<endl;
   // if (m_dim == 3 && m_nodxelem ==4){
   // //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
   // cout << "Calc tetra vol"<<endl;
-    CalcNodalVol(); //To calc nodal mass
-    CalcNodalMassFromVol(); //Repla
-
-  for(int n=0;n<m_node_count;n++)
-    for (int d=0;d<m_dim;d++)
-      ut_prev[m_dim*n+d]=0.0;
+  cout <<"Calc Nodal Volume"<<endl;
+  CalcNodalVol(); //To calc nodal mass
+  CalcNodalMassFromVol(); //Repla
   
+  cout << "Done."<<endl;
   
   #endif
 	//cout << "Done. "<<endl;
@@ -230,9 +253,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->Allocate();
   
   
+  dt = end_t/10.0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  cout << "------------------------MAIN LOOP---------------------------"<<endl;
+  cout << "Time: "<<Time <<", End Time "<< end_t<<endl;
   while (Time < end_t) {
       
   ////// OR TIME
@@ -549,14 +575,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           Matrix K = Kgeo + Kmat;
           
-          //double beta = 0.25;
+          double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)
-          // for (int i = 0; i < m_nodxelem*m_dim; i++) {
-              // //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
-              // K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
-          // }
+          for (int i = 0; i < m_nodxelem*m_dim; i++) {
+              //////    K[i][i] += M_diag[i] / (beta * dt * dt); // beta = 0.25 typically
+              K.Set(i,i,K.getVal(i,i)+ m_mdiag[getElemNode(e,i)] / (beta * dt * dt)); // beta = 0.25 typically
+          }
           
-
+          
           solver->assembleElement(e, K);
           solver->assembleResidual(e,fint);//SHOULD BE NEGATIVE!
           
@@ -583,8 +609,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
             int idx = n * m_dim + d;
-            double du = m_solver->getU(n,d);
+            double dv = m_solver->getU(n,d);
             
+            v[idx] += dv;
+            // Update acceleration using Newmark-beta
+            a[idx] = (v[idx] - v_prev[idx]) / (gamma * delta_t) 
+                   - (1.0 - gamma)/gamma * a_prev[idx];
+                   
             // Update displacement and position
             //m_solver->addToU(n, d, du);
             u[idx]+=du;x[idx]+=du;
@@ -608,6 +639,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
   }//NR ITER 
 
+  // Store values for next step
+  for (int n = 0; n < m_node_count * m_dim; n++) {
+      v_prev[n] = v[n];
+      a_prev[n] = a[n];
+  }
   
   ///assemblyForces(); 
   //ApplyGlobalSprings();

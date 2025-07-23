@@ -470,7 +470,7 @@ protected:
   unsigned int   *m_elnodoffset; //FROM FIRST ELEMENT NODE
 	
 	double 				 *x, *x_h; //Vector is double, x_h is used only on host
-	double 				 *v; //CHANGED TO DOUBLE
+	double 				 *v, *prev_v; //PREV_V IS ONLY USED ON IMPLICIT ANALYSIS
 	double 				 *a, *prev_a;
 	double         *u, *u_dt;
   double         *v_h,*u_h, *a_h;

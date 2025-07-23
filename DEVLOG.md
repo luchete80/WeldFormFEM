@@ -363,4 +363,4 @@ F90 PREVIOUS VERSION
 20250718 - Added Some remeshing improvements and settings. 
          - IMPLICIT SOLVER
          - Fixed element volume mult on K
-         - 
+20250723 - Added Implicit ficticious velocities assembly

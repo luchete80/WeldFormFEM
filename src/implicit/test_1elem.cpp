@@ -153,9 +153,14 @@ int main(int argc, char **argv) {
   solver->SetRDOF(11,-1.0e3);
   solver->Solve();
 
-
-  //GLOBAL MATRIX NONLINEAR METHOD
+  ////// BACK TO ZERO EXTERNAL FORCE
+  dom_d->SetEndTime (0.01);
+  solver->SetRDOF(11,0.0);
+  dom_d->AddBCVelNode(3,2,-1.0);
   
+  
+  //GLOBAL MATRIX NONLINEAR METHOD
+  dom_d->SolveImplicitGlobalMatrix();
 
 	// cout << "Program ended."<<endl;
       
