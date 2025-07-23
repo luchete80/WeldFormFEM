@@ -358,7 +358,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     for (int i = 0; i < m_node_count * m_dim; i++) {
         u[i] = dt * delta_v[i];       // Incremental update(delta_v is already increasing)
         //x[i] = x_initial[i] + u[i];    // Total position
-        x[i] = x_initial[i] + u;    // Total position
+        x[i] = x_initial[i] + u[i];    // Total position
     }
 
     // (3) Recompute acceleration (a) from Newmark-β
