@@ -21,6 +21,15 @@ public Solver{
 public: 
   virtual int Solve();
   virtual ~Solver_Eigen(){}
+
+  inline double getU(int node, int dim) const {
+      return U[node * m_dom->m_dim + dim]; 
+  }
+
+  inline void addToU(int node, int dim, double delta) {
+      m_dom->u[node * m_dom->m_dim + dim] += delta;
+      m_dom->x[node * m_dom->m_dim + dim] += delta; // Update position as well
+  }
   
   // THIS REQUIRES ALL ELEMENT MATRICES TO BE STORED!!!
   virtual void assemblyGlobalMatrix();
