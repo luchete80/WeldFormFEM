@@ -120,7 +120,9 @@ int main(int argc, char **argv) {
   dom_d->
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
   dom_d->AddBCVelNode(2,2,0);
-
+  
+  dom_d->AddBCVelNode(3,2,-1.0e-3);
+  
       //cout << "node "<< i<<" fixed "<<endl;
     
   //if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) 
@@ -150,7 +152,8 @@ int main(int argc, char **argv) {
   
   solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  solver->SetRDOF(11,-1.0e3);
+  //solver->SetRDOF(11,-1.0e3); // EITHER FORCE OR DISP HERE
+  
   solver->Solve();
 
   ////// BACK TO ZERO EXTERNAL FORCE
