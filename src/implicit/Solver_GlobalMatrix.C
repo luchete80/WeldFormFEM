@@ -520,21 +520,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
-          /////COMPARE WITH ELEMENT FORCES
-          //
-          // Matrix fint;
-          
-          // for (int e=0;)
-          // // Componentes normales
-          // voigt.Set(0, 0, mat.getVal(0, 0)); // ε_xx
-          // voigt.Set(1, 0, mat.getVal(1, 1)); // ε_yy
-          // voigt.Set(2, 0, mat.getVal(2, 2)); // ε_zz
-          // // Componentes cortantes (ingeniería: γ = 2ε)
-          // voigt.Set(3, 0, mat.getVal(0, 1) + mat.getVal(1, 0)); // γ_xy = 2ε_xy
-          // voigt.Set(4, 0, mat.getVal(1, 2) + mat.getVal(2, 1)); // γ_yz = 2ε_yz
-          // voigt.Set(5, 0, mat.getVal(0, 2) + mat.getVal(2, 0)); // γ_xz = 2ε_xz
-          // return voigt;
-          
+ 
           fint = fint * vol[e];
           cout << "Calculating Kmat "<<endl;
           ///TANGENT!
@@ -544,12 +530,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
           Kmat = Kmat * vol[e];
-          // Kmat = Kmat * vol[e];
-          //cout << "Kmat "<<endl;
-          //Kmat.Print();
-          
-          // // 8.2) (Optional) Compute geometric stiffness Kgeo if needed
-
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
