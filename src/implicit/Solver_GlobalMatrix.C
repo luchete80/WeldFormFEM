@@ -114,6 +114,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   }
   cout << "done"<<endl;
 
+    cout <<"VELOCITIES"<<endl;
+    for (int i = 0; i < m_node_count; i++){ 
+      for (int d=0;d<m_dim;d++){
+      
+        cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
+    }    
+    cout <<endl;
+    }
+
   
   ostringstream oss_out;
   
@@ -354,7 +363,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       ImposeBCV(d);
       #endif
     }
-    
+
+    cout <<"VELOCITIES"<<endl;
+    for (int i = 0; i < m_node_count; i++){ 
+      for (int d=0;d<m_dim;d++){
+      
+        cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
+    }    
+    cout <<endl;
+    }
 
     // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -640,6 +657,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             max_f_residual = std::max(max_residual, std::abs(df));
         }
     }
+    
+    cout << "MAX Residuals, DV: "<< max_residual<<", DF: "<<max_f_residual<<endl;
     
     // Check convergence
     if (max_residual < tolerance && max_f_residual < ftol) {

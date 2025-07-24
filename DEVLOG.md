@@ -364,4 +364,6 @@ F90 PREVIOUS VERSION
          - IMPLICIT SOLVER
          - Fixed element volume mult on K
 20250723 - Added Implicit ficticious velocities assembly
-         - Working on NR Solver 
+         - Working on NR Solver
+         - Fixed Dirichlet (symmetry and simple problems) application         
+         - Fixed Main NR solver loop vars.
