@@ -321,12 +321,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
   // Newton-Raphson loop
-  double tolerance = 1e-6;
+  double tolerance = 1e-6; //dv tol
+  double ftol = 1e-6;
   int max_iter = 10;
   bool converged = false;
 
 
-  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=prev_v[i];
+  ////delta_v: Pure NR correction term
+  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
   
   cout <<"Newton Rhapson Loop"<<endl;
   ////////////////////////////////////////////////////////////
@@ -336,7 +338,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     const double gamma = 0.5;   // Newmark parameter
     // (1) Update velocities (v = prev_v + delta_v)
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        v[i] = prev_v[i] + delta_v[i];
+        v[i] = prev_v[i] + delta_v[i]; ///v: Current total velocity 
     }
     
     //Rewrite BCs
@@ -354,10 +356,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     }
     
 
-    // (2) Update displacements (u += dt * delta_v) and positions (x = x_initial + u)
+    // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        u[i] = dt * delta_v[i];       // Incremental update(delta_v is already increasing)
-        //x[i] = x_initial[i] + u[i];    // Total position
+        u[i] = dt * v[i];       // Incremental update
         x[i] = x_initial[i] + u[i];    // Total position
     }
 
@@ -625,19 +626,22 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     // Update displacements and check convergence
     double max_residual = 0.0;
+    double max_f_residual = 0.0;
 
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
             int idx = n * m_dim + d;
             double dv = m_solver->getU(n,d);
+            double df = m_solver->getR(n,d);
             delta_v[idx] += dv;
             // Track maximum residual
             max_residual = std::max(max_residual, std::abs(dv));
+            max_f_residual = std::max(max_residual, std::abs(df));
         }
     }
     
     // Check convergence
-    if (max_residual < tolerance) {
+    if (max_residual < tolerance && max_f_residual < ftol) {
         converged = true;
         if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
@@ -651,8 +655,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     
   }//NR ITER 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   
-  
+  // After NR converges:
+  for (int i = 0; i < m_node_count * m_dim; i++) {
+      prev_v[i] = v[i];  // Save converged velocity
+      prev_a[i] = a[i];  // Save acceleration
+  }
   
   ///assemblyForces(); 
   //ApplyGlobalSprings();

@@ -26,6 +26,10 @@ public:
       return U[node * m_dom->m_dim + dim]; 
   }
 
+  inline const double & getR(int node, int dim) const {
+      return R[node * m_dom->m_dim + dim]; 
+  }
+  
   inline void addToU(int node, int dim, double delta) {
       m_dom->u[node * m_dom->m_dim + dim] += delta;
       m_dom->x[node * m_dom->m_dim + dim] += delta; // Update position as well

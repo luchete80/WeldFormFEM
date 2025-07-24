@@ -63,7 +63,8 @@ public:
 
   virtual ~Solver(){}
   virtual inline const double & getU(int node, int dim) const {}
-
+  virtual inline const double & getR(int node, int dim) const {}
+  
   virtual inline void addToU(int node, int dim, double delta) {};
 protected:
   //Vec3D vtol;     //
