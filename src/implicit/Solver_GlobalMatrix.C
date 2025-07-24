@@ -614,14 +614,17 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           ////// Residual forces (with inertial term)
           //Matrix R = f_ext - fint;
-          for (int i = 0; i < m_nodxelem * m_dim; i++) {
-              int node = getElemNode(e, i % m_nodxelem);
+          for (int i = 0; i < m_nodxelem; i++) {
+              int node = getElemNode(e, i);
+              for (int d=0;d<m_dim;d++){
+                int gdof = m_dim*i+d;
               //R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
-              R.Set(i,0,R.getVal(i,0)-m_mdiag[node] * a[node] / (beta * dt));
+                R.Set(gdof,0,R.getVal(gdof,0)-m_mdiag[node] * a[gdof] / (beta * dt));
+              }
           }
           
           solver->assembleElement(e, K);
-          solver->assembleResidual(e,fint);//SHOULD BE NEGATIVE!
+          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!
           
           //for (int i=0;i<m_nodxelem;i++)
             
