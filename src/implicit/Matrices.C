@@ -55,7 +55,7 @@ Matrix Domain_d::getElemBMatrix(const int &e){
       double dN_dz = getDerivative(e, 0, 2, i);
       
       /// BATHE'S ORDER, FOR tau exx eyy ezz exy eyz ezx
-      cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
+      //cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
       B.Set(0, base + 0, dN_dx);  // ε_xx
       B.Set(1, base + 1, dN_dy);  // ε_yy
       B.Set(2, base + 2, dN_dz);  // ε_zz

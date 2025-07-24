@@ -88,31 +88,99 @@ void Solver_Eigen::assemblyGlobalMatrix() {
 //~ }
 
 ///// TODO: MODIFY WITH EIGEN MAP FOR PERFORMANCE: 
+//// ERROR: THIS DOES NOT DEAL WITH NONZERO VALS
 ///// Eigen::Map<Eigen::VectorXi> bc_nodes(m_dom->bcx_nod, m_dom->bc_count[0]);
-void Solver_Eigen::applyDirichletBCs() {
-    // Phase 1: Identify all BC DOFs (parallel marking)
-    std::vector<bool> is_bc_dof(m_dof, false);
+// void Solver_Eigen::applyDirichletBCs() {
+    // // Phase 1: Identify all BC DOFs (parallel marking)
+    // std::vector<bool> is_bc_dof(m_dof, false);
     
-    #pragma omp parallel for
-    for (int dim = 0; dim < m_dom->m_dim; ++dim) {
-        int* nodes = nullptr;
-        int count = m_dom->bc_count[dim];
-        cout << "DIM "<< dim << " BC Count: "<<count<<endl;
-        if (dim == 0) nodes = m_dom->bcx_nod;
-        else if (dim == 1) nodes = m_dom->bcy_nod;
-        else if (dim == 2) nodes = m_dom->bcz_nod;
+    // #pragma omp parallel for
+    // for (int dim = 0; dim < m_dom->m_dim; ++dim) {
+        // int* nodes = nullptr;
+        // int count = m_dom->bc_count[dim];
+        // cout << "DIM "<< dim << " BC Count: "<<count<<endl;
+        // if (dim == 0) nodes = m_dom->bcx_nod;
+        // else if (dim == 1) nodes = m_dom->bcy_nod;
+        // else if (dim == 2) nodes = m_dom->bcz_nod;
 
-        for (int i = 0; i < count; ++i) {
-            int dof = nodes[i] * m_dom->m_dim + dim;
-            is_bc_dof[dof] = true;  // Thread-safe for distinct DOFs
-        }
+        // for (int i = 0; i < count; ++i) {
+            // int dof = nodes[i] * m_dom->m_dim + dim;
+            // is_bc_dof[dof] = true;  // Thread-safe for distinct DOFs
+        // }
+    // }
+
+    // // Phase 2: Apply BCs (serial but efficient)
+    // for (int dim = 0; dim < m_dom->m_dim; ++dim) {
+        // int* nodes = nullptr;
+        // double* values = nullptr;
+        // int count = m_dom->bc_count[dim];
+
+        // if (dim == 0) {
+            // nodes = m_dom->bcx_nod;
+            // values = m_dom->bcx_val;
+        // } else if (dim == 1) {
+            // nodes = m_dom->bcy_nod;
+            // values = m_dom->bcy_val;
+        // } else if (dim == 2) {
+            // nodes = m_dom->bcz_nod;
+            // values = m_dom->bcz_val;
+        // }
+
+        // for (int i = 0; i < count; ++i) {
+            // int dof = nodes[i] * m_dom->m_dim + dim;
+            // double value = values[i];
+            // cout << "dof: "<<dof<<", "<<value<<endl;
+            
+       // // Clear row
+       // //// THE SAME AS FOR COLUMN IMPLEMENTED WITH ROW DOES NOT WORK.
+        // for (int k = K.outerIndexPtr()[dof]; k < K.outerIndexPtr()[dof + 1]; ++k) {
+            // if (K.innerIndexPtr()[k] != dof)
+                // K.valuePtr()[k] = 0.0;
+        // }
+
+        // // Clear column
+        // for (int col = 0; col < K.outerSize(); ++col) {
+            // for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+                // if (it.row() == dof && it.col() != dof) {
+                    // //cout << "clear row "<<it.row() <<", "<<it.col()<<endl; 
+                    // it.valueRef() = 0.0;
+                // }
+            // }
+        // }
+
+            // // Set diagonal and RHS
+            // K.coeffRef(dof, dof) = 1.0;
+            // R[dof] = value;
+        // }
+    // }
+    
+    
+    // //~ R[dof] = value;
+    // //~ R[dof] = value;
+    // //~ R[dof] = value;
+    
+    // // Optional but recommended for performance
+    // K.makeCompressed();
+    // std::cout << "Matrix mat:\n" << K << std::endl;
+    
+// }
+
+void Solver_Eigen::applyDirichletBCs() {
+    // Phase 1: Mark all BC DOFs (parallel)
+    std::vector<std::pair<int, double>> bc_dofs;
+    
+    // Pre-count total BCs to avoid reallocations
+    int total_bcs = 0;
+    for (int dim = 0; dim < m_dom->m_dim; ++dim) {
+        total_bcs += m_dom->bc_count[dim];
     }
+    bc_dofs.reserve(total_bcs);
 
-    // Phase 2: Apply BCs (serial but efficient)
+    // Collect all BC DOFs with their values
     for (int dim = 0; dim < m_dom->m_dim; ++dim) {
-        int* nodes = nullptr;
-        double* values = nullptr;
-        int count = m_dom->bc_count[dim];
+        const int count = m_dom->bc_count[dim];
+        const int* nodes = nullptr;
+        const double* values = nullptr;
 
         if (dim == 0) {
             nodes = m_dom->bcx_nod;
@@ -126,42 +194,55 @@ void Solver_Eigen::applyDirichletBCs() {
         }
 
         for (int i = 0; i < count; ++i) {
-            int dof = nodes[i] * m_dom->m_dim + dim;
-            double value = values[i];
-            cout << "dof: "<<dof<<", "<<value<<endl;
-            
-       // Clear row
-       //// THE SAME AS FOR COLUMN IMPLEMENTED WITH ROW DOES NOT WORK.
-        for (int k = K.outerIndexPtr()[dof]; k < K.outerIndexPtr()[dof + 1]; ++k) {
-            if (K.innerIndexPtr()[k] != dof)
-                K.valuePtr()[k] = 0.0;
+            const int dof = nodes[i] * m_dom->m_dim + dim;
+            bc_dofs.emplace_back(dof, values[i]);
+        }
+    }
+
+    // Phase 2: Apply BCs (optimized for Eigen sparse matrices)
+    K.makeCompressed(); // Must be compressed for direct access
+    
+    // Create a mapping of constrained DOFs for quick lookup
+    std::unordered_map<int, double> bc_map(bc_dofs.begin(), bc_dofs.end());
+
+    // Modify matrix and RHS
+    for (const auto& [dof, value] : bc_dofs) {
+        // Clear row (except diagonal)
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
+            if (it.col() != dof) {
+                it.valueRef() = 0.0;
+            }
         }
 
-        // Clear column
+        // Clear column (except diagonal) - requires visiting all nonzeros
         for (int col = 0; col < K.outerSize(); ++col) {
             for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
                 if (it.row() == dof && it.col() != dof) {
-                    cout << "clear row "<<it.row() <<", "<<it.col()<<endl; 
                     it.valueRef() = 0.0;
                 }
             }
         }
 
-            // Set diagonal and RHS
-            K.coeffRef(dof, dof) = 1.0;
-            R[dof] = value;
+        // Set diagonal and RHS
+        K.coeffRef(dof, dof) = 1.0;
+        R[dof] = value;
+    }
+
+    // Phase 3: Adjust RHS for non-zero BCs
+    // This accounts for terms like K_ij * u_j where u_j is prescribed
+    for (int col = 0; col < K.outerSize(); ++col) {
+        // Skip if this column corresponds to a BC DOF
+        if (bc_map.find(col) != bc_map.end()) continue;
+
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+            const int row = it.row();
+            if (bc_map.find(row) != bc_map.end()) {
+                R[col] -= it.value() * bc_map.at(row);
+            }
         }
     }
     
-    
-    //~ R[dof] = value;
-    //~ R[dof] = value;
-    //~ R[dof] = value;
-    
-    // Optional but recommended for performance
-    K.makeCompressed();
-    std::cout << "Matrix mat:\n" << K << std::endl;
-    
+    K.makeCompressed(); // Recompress after modifications
 }
 
 void Solver_Eigen::SetRDOF(const int &dof, const double &val){

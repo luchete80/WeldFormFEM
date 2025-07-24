@@ -494,8 +494,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix &B = Bmat_per_thread[tid];
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           cout <<"Done."<<endl;
-          cout << "B mat "<<endl;
-          B.Print();
+          //cout << "B mat "<<endl;
+          //B.Print();
           cout << "m_dim "<<m_dim<<endl;
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
@@ -618,10 +618,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
       } // end par element loop
 
+      solver->finalizeAssembly();
+      //AFTER ASSEMBLY!
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
       cout << "Solving system"<<endl;      
-      solver->finalizeAssembly();
-
+      
       m_solver->Solve();
     
     // Update displacements and check convergence
