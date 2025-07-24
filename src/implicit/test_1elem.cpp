@@ -159,8 +159,8 @@ int main(int argc, char **argv) {
   ////// BACK TO ZERO EXTERNAL FORCE
   dom_d->SetEndTime (0.001);
   solver->SetRDOF(11,0.0);
-  dom_d->AddBCVelNode(3,2,-1.0);
-  dom_d->AllocateBCs();
+  //dom_d->AddBCVelNode(3,2,-1.0);
+  //dom_d->AllocateBCs();
   
   dom_d->SetDT(0.001); 
 
