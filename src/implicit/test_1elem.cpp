@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
   dom_d->AddBCVelNode(2,2,0);
   
-  dom_d->AddBCVelNode(3,2,-1.0e-6);
+  //dom_d->AddBCVelNode(3,2,-1.0e-6);
   
       //cout << "node "<< i<<" fixed "<<endl;
     
@@ -152,15 +152,15 @@ int main(int argc, char **argv) {
   
   solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  //solver->SetRDOF(11,-1.0e3); // EITHER FORCE OR DISP HERE
+  solver->SetRDOF(11,-1.0e3); // EITHER FORCE OR DISP HERE
   
   solver->Solve();
 
   ////// BACK TO ZERO EXTERNAL FORCE
   dom_d->SetEndTime (0.001);
   solver->SetRDOF(11,0.0);
-  //dom_d->AddBCVelNode(3,2,-1.0);
-  //dom_d->AllocateBCs();
+  dom_d->AddBCVelNode(3,2,-1.0);
+  dom_d->AllocateBCs();
   
   dom_d->SetDT(0.001); 
 
