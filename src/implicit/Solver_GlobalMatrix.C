@@ -555,7 +555,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           cout << "Calculating Kgeo"<<endl;
           ///////////////////////////////////////////////////
-          /////////// IMPORTANT!!! --MUCH-- LESS PRODUCTS THAN: Kgeo = G^T sigma G
+          /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
           //Matrix& Kgeo = *(m_Kgeo[e]);
           Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
@@ -609,7 +609,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             for (int d=0;d<m_dim;d++){
               int offset = e*m_nodxelem*m_dim;
             cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[offset+i*m_dim+d]<<endl;
-            R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
+            //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
+            R.Set(i,0,-m_f_elem[offset+i*m_dim+d]); //ADD EXTERNAL ELEMENT FORCES
             }
           }
           ////// Residual forces (with inertial term)
@@ -624,18 +625,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           
           solver->assembleElement(e, K);
-          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!
-          
-          //for (int i=0;i<m_nodxelem;i++)
-            
-
-          
-          //r_global =r_global + MatMul(K,WHICH MATRIX?);
-
-          cout << "Delta U "<<endl;
-          //delta_u_e.Print();
-          
-      
+          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
+              
       } // end par element loop
 
       solver->finalizeAssembly();
