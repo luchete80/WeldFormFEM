@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
   dom_d->AddBCVelNode(2,2,0);
   
-  dom_d->AddBCVelNode(3,2,-1.0e-3);
+  dom_d->AddBCVelNode(3,2,-1.0e-6);
   
       //cout << "node "<< i<<" fixed "<<endl;
     
@@ -136,41 +136,33 @@ int main(int argc, char **argv) {
   //THIS IS LIKE SOLVE
   dom_d->AssignMatAddress();
 
-
-
-
+  dom_d->calcElemJAndDerivatives();
+  dom_d->CalcElemVol();
 
   //IMPLICIT 
-  //dom_d->CalcMaterialStiffElementMatrix();
+  dom_d->CalcMaterialStiffElementMatrix();
   
   Solver_Eigen *solver = new Solver_Eigen();
   
   solver->setDomain(dom_d);
   solver->Allocate();
+  cout << "Assemblying matrix "<<endl;
+  solver->assemblyGlobalMatrix();
+  cout << "Done."<<endl;
   
-  /////////////// ELASTIC SIMPLE
-  // dom_d->calcElemJAndDerivatives();
-  // dom_d->CalcElemVol();
-  // cout << "Assemblying matrix "<<endl;
-  // solver->assemblyGlobalMatrix();
-  // cout << "Done."<<endl;
+  solver->applyDirichletBCs();
+  // cout << "Solving system"<<endl;
+  //solver->SetRDOF(11,-1.0e3); // EITHER FORCE OR DISP HERE
   
-  // solver->applyDirichletBCs();
-  // // cout << "Solving system"<<endl;
-  // //solver->SetRDOF(11,-1.0e3); // EITHER FORCE OR DISP HERE
-  
-  // solver->Solve();
-  //////////////////////////////////////////////////
-  
-  
-  
+  solver->Solve();
+
   ////// BACK TO ZERO EXTERNAL FORCE
-  dom_d->SetEndTime (1.0);
+  dom_d->SetEndTime (0.001);
   solver->SetRDOF(11,0.0);
   //dom_d->AddBCVelNode(3,2,-1.0);
   //dom_d->AllocateBCs();
   
-  dom_d->SetDT(1.0); 
+  dom_d->SetDT(0.001); 
 
   
   //GLOBAL MATRIX NONLINEAR METHOD
