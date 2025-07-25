@@ -533,7 +533,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
-          cout << "Calculating Kgeo"<<endl;
+          //cout << "Calculating Kgeo"<<endl;
           ///////////////////////////////////////////////////
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
@@ -569,7 +569,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           cout <<"Done."<<endl;
 
-          Matrix K = Kgeo + Kmat;
+          Matrix K = dt*(Kgeo + Kmat);
           cout<<"Velocity factor"<<endl;
           double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)
@@ -577,7 +577,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               int node = getElemNode(e, i);        // Get global node number
               for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
                   int idx = i*m_dim + d;           // Local DOF index
-                  double mass_term = m_mdiag[node] / (beta * dt * dt);
+                  double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
                   K.Set(idx, idx, K.getVal(idx, idx) + mass_term);
               }
           }
@@ -600,7 +600,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               for (int d=0;d<m_dim;d++){
                 int gdof = m_dim*i+d;
               //R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
-                R.Set(gdof,0,R.getVal(gdof,0)-m_mdiag[node] * a[gdof] / (beta * dt));
+                R.Set(gdof,0,R.getVal(gdof,0)-m_mdiag[node] * a[gdof]);
               }
           }
           
