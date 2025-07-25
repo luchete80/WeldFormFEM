@@ -525,7 +525,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
  
-          fint = fint * vol[e];
+          fint = fint * (1.0/6.0);
           cout << "Calculating Kmat "<<endl;
           ///TANGENT!
           // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
