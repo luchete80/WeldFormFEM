@@ -368,4 +368,6 @@ F90 PREVIOUS VERSION
          - Fixed Dirichlet (symmetry and simple problems) application         
          - Fixed Main NR solver loop vars.
 20250725 - FIXED Element Forces (and hence contact forces) in 3D tetras.
-         
+         - Fixed Kmat to be affected by 1/detJ (derivatives are in fact BxdetJ)
+         - Corrected also  Kgeo
+         - Reset K and r after each NR iteration.

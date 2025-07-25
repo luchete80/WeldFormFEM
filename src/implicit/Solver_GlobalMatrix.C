@@ -525,6 +525,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     Matrix r_global(m_nodxelem*m_dim,1);
       
+    solver->setZero(); //RESET K and R matrices.
     solver->beginAssembly();
     
     cout << "Element Loop"<<endl;
@@ -535,6 +536,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           int tid = omp_get_thread_num();
           cout << "Thread id"<<tid << "Of "<<Nproc<<endl;
           Matrix &B = Bmat_per_thread[tid];
+          //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           cout <<"Done."<<endl;
           //cout << "B mat "<<endl;
@@ -555,7 +557,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           D =  mat[e]->getElasticMatrix();
           
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          Kmat = Kmat * vol[e];
+          Kmat = Kmat * (vol[e] * 1.0/m_detJ[e]); // B is B x detJ
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
@@ -566,8 +568,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           //Matrix& Kgeo = *(m_Kgeo[e]);
           Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
           Kgeo.SetZero();
-
+          
           // 3. Loop over node pairs (a, b)
+          // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
           for (int a = 0; a < 4; ++a) {
             // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
             Matrix grad_a(3, 1);
@@ -594,7 +597,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             }
           }
           cout <<"Done."<<endl;
-
+          
+          Kgeo = Kgeo * (vol[e] * 1.0/m_detJ[e]);
+          
           Matrix K = Kgeo + Kmat;
           K = K*dt;
           

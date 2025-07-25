@@ -34,7 +34,10 @@ public:
       m_dom->u[node * m_dom->m_dim + dim] += delta;
       m_dom->x[node * m_dom->m_dim + dim] += delta; // Update position as well
   }
-  
+  void setZero(){
+    R.setZero();
+    K.setZero(); //May be not necesary since is made from triplets
+    }
   // THIS REQUIRES ALL ELEMENT MATRICES TO BE STORED!!!
   virtual void assemblyGlobalMatrix();
   ////////////////////////////////////
