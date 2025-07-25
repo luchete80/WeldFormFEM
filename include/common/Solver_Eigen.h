@@ -116,7 +116,12 @@ public:
             #pragma omp atomic update
             R(global_dofs[i]) += Re.getVal(i, 0);
         }
-}
+  }
+
+  inline void addToR(int global_dof, double value) {
+      #pragma omp atomic update  // For thread safety if using OpenMP
+      R(global_dof) += value;
+  }
 
 protected:
   typedef Eigen::SparseMatrix<double> SpMat;

@@ -340,10 +340,18 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
   
   cout <<"Newton Rhapson Loop"<<endl;
+  
+  contforce[3*m_dim+2]  = -1000.0;
+  
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
-
+    cout <<"DELTA V----"<<endl;
+    for (int i = 0; i < m_node_count;i++){
+      for (int d=0;d<3;d++)
+        cout <<delta_v[m_dim*i+d]<<", ";
+      cout <<endl;
+    }
     const double gamma = 0.5;   // Newmark parameter
     // (1) Update velocities (v = prev_v + delta_v)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -384,6 +392,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
+    cout <<"ACCELS----"<<endl;
+    for (int i = 0; i < m_node_count;i++){
+      for (int d=0;d<3;d++)
+        cout <<a[m_dim*i+d]<<", ";
+      cout <<endl;
+    }
 
   
   #ifdef CUDA_BUILD
@@ -614,7 +628,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
               
       } // end par element loop
-
+      
+      for (int n = 0; n < m_node_count*m_dim; n++)      
+        solver->addToR(n,contforce[n]); //EXTERNAL FORCES
+      
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS

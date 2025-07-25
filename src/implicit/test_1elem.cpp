@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
   dom_d->
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
-  dom_d->AddBCVelNode(2,2,0);
+  dom_d->AddBCVelNode(2,0,0);dom_d->AddBCVelNode(2,2,0);
   
   //dom_d->AddBCVelNode(3,2,-1.0e-6);
   
@@ -159,8 +159,8 @@ int main(int argc, char **argv) {
   ////// BACK TO ZERO EXTERNAL FORCE
   dom_d->SetEndTime (0.001);
   solver->SetRDOF(11,0.0);
-  dom_d->AddBCVelNode(3,2,-1.0);
-  dom_d->AllocateBCs();
+  //dom_d->AddBCVelNode(3,2,-1.0);
+  //dom_d->AllocateBCs();
   
   dom_d->SetDT(0.001); 
 
