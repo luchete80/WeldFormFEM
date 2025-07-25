@@ -392,6 +392,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
+    cout <<"POSITIONS----"<<endl;
+    for (int i = 0; i < m_node_count;i++){
+      for (int d=0;d<3;d++)
+        cout <<x[m_dim*i+d]<<", ";
+      cout <<endl;
+    }
+
+
     cout <<"ACCELS----"<<endl;
     for (int i = 0; i < m_node_count;i++){
       for (int d=0;d<3;d++)
@@ -610,7 +618,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               int offset = e*m_nodxelem*m_dim;
             cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[offset+i*m_dim+d]<<endl;
             //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
-            R.Set(i,0,-m_f_elem[offset+i*m_dim+d]); //ADD EXTERNAL ELEMENT FORCES
+            R.Set(i,0,-m_f_elem[offset+i*m_dim+d]+m_f_elem_hg [offset + i*m_dim + d]); //ADD EXTERNAL ELEMENT FORCES
             }
           }
           ////// Residual forces (with inertial term)
