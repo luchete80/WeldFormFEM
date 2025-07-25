@@ -152,10 +152,17 @@ void host_ Domain_d::SolveChungHulbert(){
     CalcNodalVol(); //To calc nodal mass
     CalcNodalMassFromVol(); //Repla
   //ONLY FOR 4 elem cube
-  //for(int n=0;n<m_node_count;n++)
-  //  m_mdiag[n]=7.85/m_node_count;
+  double totmass = 0.0;
+  double totvol= 0.0;
+  for(int n=0;n<m_node_count;n++)
+   totmass +=m_mdiag[n];
+ 
+   for(int e=0;e<m_elem_count;e++)
+   totvol +=vol[e];
     
-  // } else{
+  
+  cout << "TOTAL MASS: "<<totmass<<endl;
+  cout << "TOTAL VOL: "<<totvol<<endl;  
 
     // calcElemMassMat();
     // assemblyMassMatrix();    

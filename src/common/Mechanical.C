@@ -1106,7 +1106,7 @@ dev_t void Domain_d::CalcNodalVol(){
     //printf("Node %d vol %f ne count %d\n",n,m_voln[n],m_nodel_count[n]);
     tot_vol+=m_voln[n];
   } //NODE LOOP
-  //printf("Total vol %f\n",tot_vol);
+  // printf("Total vol %f\n",tot_vol);
 }
 
 // //Assuming constant material
