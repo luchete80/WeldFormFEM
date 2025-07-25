@@ -210,10 +210,14 @@ dev_t void Domain_d::CalcElemVol(){
     double w;
     //TODO: CHANGE WEIGHT TO ARRAY
     if (m_gp_count == 1) {
-      if (m_dim == 2) w = 4;//w = pow(2.0, m_dim);
-      if (m_dim == 3)     
+      if (m_dim == 2){
+        if      (m_nodxelem == 4) w = 4;//w = pow(2.0, m_dim);
+        else if (m_nodxelem == 3) w = 1.0/2.0;
+      }
+      if (m_dim == 3){ 
         if      (m_nodxelem == 4)  w = 1.0/6.0;
         else if (m_nodxelem == 8)  w = 8.0;
+      }
     } else                  w = 1.0;
     
     int offset = m_gp_count * e;
@@ -312,7 +316,16 @@ dev_t void Domain_d::calcElemForces(){
   par_loop(e,m_elem_count){
     int offset = e*m_nodxelem*m_dim;
     double w = 1.;
-    if (m_gp_count == 1) w = pow(2.0,m_dim);
+    if (m_gp_count == 1) {
+      if (m_dim == 2){
+        if      (m_nodxelem == 4) w = 4;//w = pow(2.0, m_dim);
+        else if (m_nodxelem == 3) w = 1.0/2.0;
+      }
+      if (m_dim == 3){ 
+        if      (m_nodxelem == 4)  w = 1.0/6.0;
+        else if (m_nodxelem == 8)  w = 8.0;
+      }
+    }
 
     
     for (int n=0; n<m_nodxelem;n++) 
@@ -1267,7 +1280,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                                      
                     );
       double sig_trial = sqrt(3.0*J2);
-      cout <<"Check yield"<<endl;
       
       if(mat[e]->Material_model == HOLLOMON ){
         sigma_y[e] = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
@@ -1414,8 +1426,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     // end do !gauss point
   // end do
   //printf("ELEMENT %d SIGMA\n");
-  
-  cout << "Done."<<endl;
  
 }
 

@@ -484,6 +484,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   CalcStressStrain(dt);
   cout << "Done"<<endl;
 
+  // If not inertia terms.
+  // for (int i=0;i<m_node_count;i++)
+    // m_mdiag[i] = 1.0e-10;
+
   //calcArtificialViscosity(); //Added to Sigma
   
   
@@ -533,7 +537,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
-          //cout << "Calculating Kgeo"<<endl;
+          cout << "Calculating Kgeo"<<endl;
           ///////////////////////////////////////////////////
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
@@ -569,7 +573,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           cout <<"Done."<<endl;
 
-          Matrix K = dt*(Kgeo + Kmat);
+          Matrix K = Kgeo + Kmat;
+          K = K*dt;
+          
           cout<<"Velocity factor"<<endl;
           double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)

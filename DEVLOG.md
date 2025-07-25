@@ -367,4 +367,5 @@ F90 PREVIOUS VERSION
          - Working on NR Solver
          - Fixed Dirichlet (symmetry and simple problems) application         
          - Fixed Main NR solver loop vars.
+20250725 - FIXED Element Forces (and hence contact forces) in 3D tetras.
          
