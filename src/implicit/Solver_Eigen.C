@@ -214,14 +214,20 @@ void Solver_Eigen::applyDirichletBCs() {
             }
         }
 
-        // Clear column (except diagonal) - requires visiting all nonzeros
-        for (int col = 0; col < K.outerSize(); ++col) {
-            for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
-                if (it.row() == dof && it.col() != dof) {
-                    it.valueRef() = 0.0;
-                }
-            }
+        // // Clear column (except diagonal) - requires visiting all nonzeros
+        // for (int col = 0; col < K.outerSize(); ++col) {
+            // for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+                // if (it.row() == dof && it.col() != dof) {
+                    // it.valueRef() = 0.0;
+                // }
+            // }
+        // }
+ 
+        for (int k = 0; k < K.rows(); ++k) {
+            K.coeffRef(dof, k) = 0.0;
+            K.coeffRef(k, dof) = 0.0;
         }
+ 
 
         // Set diagonal and RHS
         K.coeffRef(dof, dof) = 1.0;

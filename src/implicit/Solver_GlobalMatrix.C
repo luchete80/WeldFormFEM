@@ -654,10 +654,16 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
 
+
       for (int n = 0; n < m_node_count; n++){   
-        for (int d=0;d<m_dim;d++)        
-        solver->addToR(n,-m_mdiag[n] * a[m_dim*n+d]); //EXTERNAL FORCES
+        for (int d=0;d<m_dim;d++){        
+          int gdof = m_dim*n+d;
+          solver->addToR(gdof,-m_mdiag[n] * a[gdof]); //EXTERNAL FORCES
+        }
       }    
+      cout <<"R AFTER INERTIA AND CONTACT"<<endl;
+      solver->printR();
+      
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
       cout <<"K BEFORE  Dirichlet"<<endl;
