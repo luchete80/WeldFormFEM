@@ -876,7 +876,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
   }//NR ITER 
   /////////////////////////////////////////////////////////////////////////////////////////////////
-  
+
+  // ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+  // //ToFlatSymPtr(Strain, 	strain,6*i);		
+  // ToFlatSymPtr(ShearStress, m_tau, offset_t);
+      
   // After NR converges:
   for (int i = 0; i < m_node_count * m_dim; i++) {
       prev_v[i] = v[i];  // Save converged velocity
