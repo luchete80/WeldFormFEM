@@ -346,6 +346,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
+    cout <<"ITER "<<iter<<endl;
     cout <<"DELTA V----"<<endl;
     for (int i = 0; i < m_node_count;i++){
       for (int d=0;d<3;d++)
