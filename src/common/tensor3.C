@@ -433,6 +433,38 @@ __spec void print(const tensor3 &m_data){
 	m_data.zx,m_data.zy,m_data.zz);
 }
 
+__spec tensor3 Inv(const tensor3& T) {
+    tensor3 inv;
+    
+    // Calcular determinante
+    double det = T.xx * (T.yy*T.zz - T.yz*T.zy) 
+               - T.xy * (T.yx*T.zz - T.yz*T.zx) 
+               + T.xz * (T.yx*T.zy - T.yy*T.zx);
+    
+    // Comprobar si la matriz es invertible
+    if (fabs(det) < 1e-15) {
+        // Matriz singular, devolver identidad como fallback
+        return Identity();
+    }
+    
+    double inv_det = 1.0 / det;
+    
+    // Calcular la matriz adjunta (transpuesta de la matriz de cofactores)
+    inv.xx =  (T.yy*T.zz - T.zy*T.yz) * inv_det;
+    inv.xy = -(T.xy*T.zz - T.zy*T.xz) * inv_det;
+    inv.xz =  (T.xy*T.yz - T.yy*T.xz) * inv_det;
+    
+    inv.yx = -(T.yx*T.zz - T.zx*T.yz) * inv_det;
+    inv.yy =  (T.xx*T.zz - T.zx*T.xz) * inv_det;
+    inv.yz = -(T.xx*T.yz - T.yx*T.xz) * inv_det;
+    
+    inv.zx =  (T.yx*T.zy - T.zx*T.yy) * inv_det;
+    inv.zy = -(T.xx*T.zy - T.zx*T.xy) * inv_det;
+    inv.zz =  (T.xx*T.yy - T.yx*T.xy) * inv_det;
+    
+    return inv;
+}
+
 #undef __spec
 
 #endif

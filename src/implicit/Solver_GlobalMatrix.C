@@ -24,7 +24,37 @@
 using namespace std;
 
 
-
+ tensor3 Inv(const tensor3& T) {
+    tensor3 inv;
+    
+    // Calcular determinante
+    double det = T.xx * (T.yy*T.zz - T.yz*T.zy) 
+               - T.xy * (T.yx*T.zz - T.yz*T.zx) 
+               + T.xz * (T.yx*T.zy - T.yy*T.zx);
+    
+    // Comprobar si la matriz es invertible
+    if (fabs(det) < 1e-15) {
+        // Matriz singular, devolver identidad como fallback
+        return Identity();
+    }
+    
+    double inv_det = 1.0 / det;
+    
+    // Calcular la matriz adjunta (transpuesta de la matriz de cofactores)
+    inv.xx =  (T.yy*T.zz - T.zy*T.yz) * inv_det;
+    inv.xy = -(T.xy*T.zz - T.zy*T.xz) * inv_det;
+    inv.xz =  (T.xy*T.yz - T.yy*T.xz) * inv_det;
+    
+    inv.yx = -(T.yx*T.zz - T.zx*T.yz) * inv_det;
+    inv.yy =  (T.xx*T.zz - T.zx*T.xz) * inv_det;
+    inv.yz = -(T.xx*T.yz - T.yx*T.xz) * inv_det;
+    
+    inv.zx =  (T.yx*T.zy - T.zx*T.yy) * inv_det;
+    inv.zy = -(T.xx*T.zy - T.zx*T.xy) * inv_det;
+    inv.zz =  (T.xx*T.yy - T.yx*T.xy) * inv_det;
+    
+    return inv;
+}
 std::ostringstream m_oss;
 std::string m_fname;
 
@@ -347,6 +377,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   cout <<"Newton Rhapson Loop"<<endl;
   
   contforce[3*m_dim+2]  = -1000.0;
+  double flat_fold[6*m_elem_count];
+  
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
@@ -532,48 +564,66 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     //// 2) Calcular deformación total (Green-Lagrange)
     //Matrix E = 0.5 * (MatMul(F.getTranspose(), F) - Identity(m_dim));
     
-    tensor3 F = {0};  // Inicializa a cero
-    double f = 1.0/m_detJ[e];
-    for (int n = 0; n < m_nodxelem; n++) {
-        // Posición actual del nodo n (x_a)
-        double x_a[3] = {
-            x[e * m_nodxelem * m_dim + n * m_dim + 0],
-            x[e * m_nodxelem * m_dim + n * m_dim + 1],
-            x[e * m_nodxelem * m_dim + n * m_dim + 2]
-        };
+    // tensor3 F = {0};  // Inicializa a cero
+    // tensor3 F_old; // 3x3 zero initialized
+    // double f = 1.0/m_detJ[e];
+    // for (int n = 0; n < m_nodxelem; n++) {
+        // // Posición actual del nodo n (x_a)
+        // double x_a[3] = {
+            // x[e * m_nodxelem * m_dim + n * m_dim + 0],
+            // x[e * m_nodxelem * m_dim + n * m_dim + 1],
+            // x[e * m_nodxelem * m_dim + n * m_dim + 2]
+        // };
 
-        // Gradiente de la función de forma ∇N_a(X) (configuración inicial)
-        double gradN_X[3] = {
-            getDerivative(e, 0, 0, n)*f,  // ∂N/∂X
-            getDerivative(e, 0, 1, n)*f,  // ∂N/∂Y
-            getDerivative(e, 0, 2, n)*f   // ∂N/∂Z
-        };
+        // // Gradiente de la función de forma ∇N_a(X) (configuración inicial)
+        // double gradN_X[3] = {
+            // getDerivative(e, 0, 0, n)*f,  // ∂N/∂X
+            // getDerivative(e, 0, 1, n)*f,  // ∂N/∂Y
+            // getDerivative(e, 0, 2, n)*f   // ∂N/∂Z
+        // };
 
-        // Producto diádrico (x_a ⊗ ∇N_a): F += x_a[i] * gradN_X[j]
-        F.xx += x_a[0] * gradN_X[0];  // F_11
-        F.xy += x_a[0] * gradN_X[1];  // F_12
-        F.xz += x_a[0] * gradN_X[2];  // F_13
+        // // Producto diádrico (x_a ⊗ ∇N_a): F += x_a[i] * gradN_X[j]
+        // F.xx += x_a[0] * gradN_X[0];  // F_11
+        // F.xy += x_a[0] * gradN_X[1];  // F_12
+        // F.xz += x_a[0] * gradN_X[2];  // F_13
 
-        F.yx += x_a[1] * gradN_X[0];  // F_21
-        F.yy += x_a[1] * gradN_X[1];  // F_22
-        F.yz += x_a[1] * gradN_X[2];  // F_23
+        // F.yx += x_a[1] * gradN_X[0];  // F_21
+        // F.yy += x_a[1] * gradN_X[1];  // F_22
+        // F.yz += x_a[1] * gradN_X[2];  // F_23
 
-        F.zx += x_a[2] * gradN_X[0];  // F_31
-        F.zy += x_a[2] * gradN_X[1];  // F_32
-        F.zz += x_a[2] * gradN_X[2];  // F_33
-    }
+        // F.zx += x_a[2] * gradN_X[0];  // F_31
+        // F.zy += x_a[2] * gradN_X[1];  // F_32
+        // F.zz += x_a[2] * gradN_X[2];  // F_33
+    // }
+    // F_old = FromFlatSym(flat_fold,6*e);
+    
+    // // 2) Calcular deformación total (Green-Lagrange)
+    // tensor3 E;
 
-    // 2) Calcular deformación total (Green-Lagrange)
-    tensor3 E = 0.5 * ( (Trans(F)* F) - Identity());
-
-    tensor3 E_dev = E - (1.0/3.0) * Trace(E) * Identity(); // Parte deviatorica
-    tensor3 sigma_dev_trial = 2.0 * mat[e]->Elastic().G() * E_dev; // Shear stress trial (deviatorico)
+      // if (iter == 0) {
+          // //eps = Matrix(m_dim, m_dim); // cero
+      // } else {
+          // //tensor3 L = 1.0/dt * (MatMul(F, F_old.Inv()) - Identity());
+          // tensor3 L = (1.0/dt*(F - F_old) )* Inv(F_old);
+          // E = 0.5 * (L + Trans(L));
+      // }
+      
+    // ToFlatSymPtr(F, flat_fold, 6*e);
+    tensor3 StrRate;
+    tensor3 ShearStress;
+    tensor3 Sigma;      
+    int offset_t = 6*e;
+    StrRate     = FromFlatSym(m_str_rate,     offset_t );
+    ShearStress = FromFlatSym(m_tau,          offset_t );
+      
+    ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) /*+ SRT+RS*/);
+      
+    //tensor3 E_dev = E - (1.0/3.0) * Trace(E) * Identity(); // Parte deviatorica
+    //tensor3 sigma_dev_trial = 2.0 * mat[e]->Elastic().G() * E_dev; // Shear stress trial (deviatorico)
 
     // 3. Total trial (before plasticity)
-    tensor3 sigma_trial = -p[e] * Identity() + sigma_dev_trial;
+    tensor3 sigma_trial = -p[e] * Identity() + ShearStress;
 
-    printf("F\n");
-    print(F);
     
     printf("Sigma\n");
     print(sigma_trial);      
