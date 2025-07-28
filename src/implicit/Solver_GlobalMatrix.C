@@ -400,6 +400,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       cout <<endl;
     }
 
+    cout <<"DISPLACEMENTS----"<<endl;
+    for (int i = 0; i < m_node_count;i++){
+      for (int d=0;d<3;d++)
+        cout <<u[m_dim*i+d]<<", ";
+      cout <<endl;
+    }
 
     cout <<"ACCELS----"<<endl;
     for (int i = 0; i < m_node_count;i++){
