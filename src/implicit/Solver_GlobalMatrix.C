@@ -560,7 +560,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           D =  mat[e]->getElasticMatrix();
           
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          Kmat = Kmat * (vol[e] * 1.0/m_detJ[e]); // B is B x detJ
+          Kmat = Kmat * (1.0/(6.0*m_detJ[e])); // B is B x detJ
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
@@ -601,7 +601,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
           cout <<"Done."<<endl;
           
-          Kgeo = Kgeo * (vol[e] * 1.0/m_detJ[e]);
+          Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           
           Matrix K = Kgeo + Kmat;
           K = K*dt;
