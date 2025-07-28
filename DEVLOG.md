@@ -376,3 +376,4 @@ F90 PREVIOUS VERSION
          - Working on relative tolerances.
          - Added diagonal regularization
          - Fixed sigma entirely
+20250728 - Fixed derivatives in Fcalculation (were affected by detJ)

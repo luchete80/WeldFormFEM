@@ -533,6 +533,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     //Matrix E = 0.5 * (MatMul(F.getTranspose(), F) - Identity(m_dim));
     
     tensor3 F = {0};  // Inicializa a cero
+    double f = 1.0/m_detJ[e];
     for (int n = 0; n < m_nodxelem; n++) {
         // Posición actual del nodo n (x_a)
         double x_a[3] = {
@@ -543,9 +544,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
         // Gradiente de la función de forma ∇N_a(X) (configuración inicial)
         double gradN_X[3] = {
-            getDerivative(e, 0, 0, n),  // ∂N/∂X
-            getDerivative(e, 0, 1, n),  // ∂N/∂Y
-            getDerivative(e, 0, 2, n)   // ∂N/∂Z
+            getDerivative(e, 0, 0, n)*f,  // ∂N/∂X
+            getDerivative(e, 0, 1, n)*f,  // ∂N/∂Y
+            getDerivative(e, 0, 2, n)*f   // ∂N/∂Z
         };
 
         // Producto diádrico (x_a ⊗ ∇N_a): F += x_a[i] * gradN_X[j]
@@ -570,6 +571,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     // 3. Total trial (before plasticity)
     tensor3 sigma_trial = -p[e] * Identity() + sigma_dev_trial;
+
+    printf("F\n");
+    print(F);
+    
+    printf("Sigma\n");
+    print(sigma_trial);      
     
     ToFlatSymPtr(sigma_trial, m_sigma,e*6);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
       
@@ -780,11 +787,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     double max_f_residual = 0.0;
 
 
-    if (iter >0){
-      double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
-      alpha_damp = std::min(1.0, 1.0 / (1.0 + 1000.0 * residual_ratio));    
-      cout << "Using alpha damp: "<<alpha_damp<<endl;
-    }
+    // if (iter >0){
+      // double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
+      // alpha_damp = std::min(1.0, 1.0 / (1.0 + 1000.0 * residual_ratio));    
+      // cout << "Using alpha damp: "<<alpha_damp<<endl;
+    // }
     prev_Rnorm = m_solver->getRNorm();    
     
     for (int n = 0; n < m_node_count; n++) {
