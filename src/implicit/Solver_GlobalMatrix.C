@@ -334,7 +334,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   double ftol = 1e-6;
   int max_iter = 10;
   bool converged = false;
-
+  
+  double prev_Rnorm;
+  double alpha_damp= 1.0;
 
   ////delta_v: Pure NR correction term
   for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
@@ -342,7 +344,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   cout <<"Newton Rhapson Loop"<<endl;
   
   contforce[3*m_dim+2]  = -1000.0;
-  
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
@@ -494,24 +495,22 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   #else
   //SECOND TIME
     //STRESSES CALC
-    cout << "Calc Strains "<<endl;
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-    cout << "Done. Calc Pressure "<<endl;
+
   if      (m_press_algorithm == 0)
     calcElemPressure();
   else if (m_press_algorithm == 1)
     calcElemPressureANP();
-  cout << "Done. "<<endl;
+
   calcNodalPressureFromElemental();
 
-  cout << "Calc Stresses "<<endl;
   CalcStressStrain(dt);
-  cout << "Done"<<endl;
+
 
   // If not inertia terms.
   // for (int i=0;i<m_node_count;i++)
@@ -536,31 +535,28 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
     solver->beginAssembly();
     
-    cout << "Element Loop"<<endl;
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
           
           // 6) Build B matrix (strain-displacement) for the element
           int tid = omp_get_thread_num();
-          cout << "Thread id"<<tid << "Of "<<Nproc<<endl;
+
           Matrix &B = Bmat_per_thread[tid];
           //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           B = B *(1.0/m_detJ[e]);
-          cout <<"Det J"<<m_detJ[e]<<endl;
-          cout <<"Done."<<endl;
+
           //cout << "B mat "<<endl;
           //B.Print();
-          cout << "m_dim "<<m_dim<<endl;
+
           // 7) Compute internal force: fint = V_e * B^T * σ
-          cout << "Computing internal force"<<endl;
-          cout <<"Stress to voight"<<endl; 
+
           Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
  
           fint = fint * (1.0/6.0);
-          cout << "Calculating Kmat "<<endl;
+
           ///TANGENT!
           // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
           Matrix D(6,6);
@@ -571,7 +567,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
-          cout << "Calculating Kgeo"<<endl;
           ///////////////////////////////////////////////////
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
@@ -613,7 +608,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix K = Kgeo + Kmat;
           K = K*dt;
           
-          cout<<"Velocity factor"<<endl;
           double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)
           for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
@@ -673,8 +667,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
-      cout <<"K BEFORE  Dirichlet"<<endl;
-      solver->printK();
+      // cout <<"K BEFORE  Dirichlet"<<endl;
+      // solver->printK();
 
       
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
@@ -686,18 +680,27 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     double max_residual = 0.0;
     double max_f_residual = 0.0;
 
+
+    if (iter >0){
+      double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
+      alpha_damp = std::min(1.0, 1.0 / (1.0 + 10.0 * residual_ratio));    
+      cout << "Using alpha damp: "<<alpha_damp<<endl;
+    }
+    prev_Rnorm = m_solver->getRNorm();    
+    
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
             int idx = n * m_dim + d;
             double dv = m_solver->getU(n,d);
             double df = m_solver->getR(n,d);
-            delta_v[idx] += dv;
+            delta_v[idx] += alpha_damp*dv;
             // Track maximum residual
             max_residual = std::max(max_residual, std::abs(dv));
             max_f_residual = std::max(max_residual, std::abs(df));
         }
     }
     
+      
     cout << "MAX Residuals, DV: "<< max_residual<<", DF: "<<max_f_residual<<endl;
     
     // Check convergence
