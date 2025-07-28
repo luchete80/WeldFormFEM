@@ -533,8 +533,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     Matrix r_global(m_nodxelem*m_dim,1);
       
     solver->setZero(); //RESET K and R matrices.
-    cout <<"R AFTER SET ZERO"<<endl;
-    solver->printR();
       
     solver->beginAssembly();
     
@@ -551,8 +549,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           B = B *(1.0/m_detJ[e]);
           cout <<"Det J"<<m_detJ[e]<<endl;
           cout <<"Done."<<endl;
-          cout << "B mat "<<endl;
-          B.Print();
+          //cout << "B mat "<<endl;
+          //B.Print();
           cout << "m_dim "<<m_dim<<endl;
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
