@@ -25,14 +25,14 @@ void Solver_Eigen::Allocate(){
 
 void Solver_Eigen::assemblyGlobalMatrix() {
     int ndof = m_dom->m_nodxelem * m_dom->m_dim; // DOFs per element
-    cout << "ndof "<<ndof <<endl;
+    //cout << "ndof "<<ndof <<endl;
     std::vector<T> triplets;
     triplets.reserve(m_dom->m_elem_count * ndof * ndof);
 
     for (int e = 0; e < m_dom->m_elem_count; ++e) {
-        cout << "positioning "<<endl;
+        //cout << "positioning "<<endl;
         Matrix *Ke = m_dom->m_Kmat[e];
-        cout <<"endl"<<endl;
+        //cout <<"endl"<<endl;
         std::vector<int> global_dofs(ndof);  // <<--- FIXED
         //cout <<"set"<<endl;
         for (int a = 0; a < m_dom->m_nodxelem; ++a) {
@@ -260,8 +260,8 @@ void Solver_Eigen::SetRDOF(const int &dof, const double &val){
 int Solver_Eigen::Solve(){
 
 
-    std::cout << "Matrix mat:\n" << K << std::endl;
-    std::cout << "Vector mat:\n" << R << std::endl;
+    // std::cout << "Matrix mat:\n" << K << std::endl;
+    // std::cout << "Vector mat:\n" << R << std::endl;
     
     //R << 1, -2, 0;
     std::cout << "K norm: " << K.norm() << std::endl;

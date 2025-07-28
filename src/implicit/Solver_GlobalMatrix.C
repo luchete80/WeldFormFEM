@@ -617,13 +617,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
                   K.Set(idx, idx, K.getVal(idx, idx) + mass_term);
               }
           }
-          cout <<"CHECKING INTERNAL FORCES"<<endl;
+          //cout <<"CHECKING INTERNAL FORCES"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
           for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
             for (int d=0;d<m_dim;d++){
-            cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
+            //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
             //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
             R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
@@ -644,13 +644,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->assembleElement(e, K);
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
       
-        cout << "Element R "<<endl;
-        R.Print();
+        // cout << "Element R "<<endl;
+        // R.Print();
       } // end par element loop
       
       
-      cout <<"R BEFORE Cont and Dirichlet"<<endl;
-      solver->printR();
+      // cout <<"R BEFORE Cont and Dirichlet"<<endl;
+      // solver->printR();
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
 
@@ -661,17 +661,17 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->addToR(gdof,-m_mdiag[n] * a[gdof]); //EXTERNAL FORCES
         }
       }    
-      cout <<"R AFTER INERTIA AND CONTACT"<<endl;
-      solver->printR();
+      // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
+      // solver->printR();
       
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
-      cout <<"K BEFORE  Dirichlet"<<endl;
-      solver->printK();
+      // cout <<"K BEFORE  Dirichlet"<<endl;
+      // solver->printK();
 
       
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
-      cout << "Solving system"<<endl;      
+      //cout << "Solving system"<<endl;      
       
       m_solver->Solve();
     
