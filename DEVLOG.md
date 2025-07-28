@@ -375,3 +375,4 @@ F90 PREVIOUS VERSION
          - Added selective damping based on residuals.
          - Working on relative tolerances.
          - Added diagonal regularization
+         - Fixed sigma entirely

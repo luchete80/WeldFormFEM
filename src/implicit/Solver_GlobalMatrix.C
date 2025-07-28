@@ -19,6 +19,7 @@
 #include <omp.h>
 
 #include "Solver_Eigen.h"
+#include "tensor3.C"
 
 using namespace std;
 
@@ -511,7 +512,103 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   calcNodalPressureFromElemental();
 
-  CalcStressStrain(dt);
+  ///CalcStressStrain(dt);
+  par_loop(e,m_elem_count){
+    // // 1) Calcular F (updated Lagrangian: F = ∑ x_a ⊗ ∇N_a(X))
+    // Matrix F(m_dim, m_dim);
+    // Matrix F_old(m_dim, m_dim);
+    // for (int n = 0; n < m_nodxelem; n++) {
+        // Matrix X(m_dim, 1);      // Posición actual (x)
+        // Matrix gradN_ref(1, m_dim); // ∇N(X)
+
+        // for (int d = 0; d < m_dim; d++) {
+            // X.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]);
+            // gradN_ref.Set(0, d, getDerivative(e, 0, d, n)); // Asegurar que es ∇N(X)
+        // }
+        // F += MatMul(X, gradN_ref);       // F = ∑ x ⊗ ∇N(X)
+
+    // }
+
+    //// 2) Calcular deformación total (Green-Lagrange)
+    //Matrix E = 0.5 * (MatMul(F.getTranspose(), F) - Identity(m_dim));
+    
+    tensor3 F = {0};  // Inicializa a cero
+    for (int n = 0; n < m_nodxelem; n++) {
+        // Posición actual del nodo n (x_a)
+        double x_a[3] = {
+            x[e * m_nodxelem * m_dim + n * m_dim + 0],
+            x[e * m_nodxelem * m_dim + n * m_dim + 1],
+            x[e * m_nodxelem * m_dim + n * m_dim + 2]
+        };
+
+        // Gradiente de la función de forma ∇N_a(X) (configuración inicial)
+        double gradN_X[3] = {
+            getDerivative(e, 0, 0, n),  // ∂N/∂X
+            getDerivative(e, 0, 1, n),  // ∂N/∂Y
+            getDerivative(e, 0, 2, n)   // ∂N/∂Z
+        };
+
+        // Producto diádrico (x_a ⊗ ∇N_a): F += x_a[i] * gradN_X[j]
+        F.xx += x_a[0] * gradN_X[0];  // F_11
+        F.xy += x_a[0] * gradN_X[1];  // F_12
+        F.xz += x_a[0] * gradN_X[2];  // F_13
+
+        F.yx += x_a[1] * gradN_X[0];  // F_21
+        F.yy += x_a[1] * gradN_X[1];  // F_22
+        F.yz += x_a[1] * gradN_X[2];  // F_23
+
+        F.zx += x_a[2] * gradN_X[0];  // F_31
+        F.zy += x_a[2] * gradN_X[1];  // F_32
+        F.zz += x_a[2] * gradN_X[2];  // F_33
+    }
+
+    // 2) Calcular deformación total (Green-Lagrange)
+    tensor3 E = 0.5 * ( (Trans(F)* F) - Identity());
+
+    tensor3 E_dev = E - (1.0/3.0) * Trace(E) * Identity(); // Parte deviatorica
+    tensor3 sigma_dev_trial = 2.0 * mat[e]->Elastic().G() * E_dev; // Shear stress trial (deviatorico)
+
+    // 3. Total trial (before plasticity)
+    tensor3 sigma_trial = -p[e] * Identity() + sigma_dev_trial;
+    
+    ToFlatSymPtr(sigma_trial, m_sigma,e*6);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      
+    // 3) Calc σ (sin depender de tasas)
+    //Matrix sigma_trial = MatMul(C, E); // C: tensor elástico
+        
+    
+    // // 4) Opcional: Usar D solo para σ_y (ej. Johnson-Cook)
+    // Matrix L = (1.0/dt) * (MatMul(F, F_old.Inv()) - Identity(m_dim));
+    // Matrix D = 0.5 * (L + L.Transpose());
+    // double eff_strain_rate = sqrt(2.0/3.0 * D.DoubleContract(D));
+
+    // sigma_y = johnson_cook_model(eff_strain_rate, ...);
+    // if (J2(sigma_trial) > sigma_y) {
+        // sigma_trial = project_to_yield_surface(sigma_trial, sigma_y);
+    // }
+
+
+    // // 4. Calcular J2 y tensión equivalente trial
+    // double J2 = 0.5 * sigma_dev_trial.DoubleContract(sigma_dev_trial); // J2 = 1/2 s:s
+    // double sigma_eq_trial = sqrt(3.0 * J2); // Tensión equivalente (von Mises)
+
+    // // 5. Obtener sigma_y (dependiente de la tasa si es necesario)
+    // double eff_strain_rate = computeEffectiveStrainRate(D); // D ya calculado
+    // double sigma_y = computeYieldStress(pl_strain[e], eff_strain_rate, T[e]);
+
+    // // 6. Radial return: Proyectar al yield surface si hay plasticidad
+    // if (sigma_eq_trial > sigma_y) {
+        // double scale = sigma_y / sigma_eq_trial;
+        // sigma_dev = sigma_dev_trial * scale; // Escalar el deviatorico
+        // pl_strain[e] += (sigma_eq_trial - sigma_y) / (3.0 * mat[e]->ShearMod()); // Actualizar eps_p
+    // }
+
+    // // 7. Tensión final corregida
+    // Matrix sigma_final = -p * Identity(m_dim) + sigma_dev;
+
+  } //ELEMENT LOOP
+
+
 
 
   // If not inertia terms.
@@ -557,7 +654,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
  
-          fint = fint * (1.0/6.0);
+          fint = fint * vol[e];
 
           ///TANGENT!
           // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
@@ -578,34 +675,34 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           
           // // 3. Loop over node pairs (a, b)
           // // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
-          // for (int a = 0; a < 4; ++a) {
-            // // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
-            // Matrix grad_a(3, 1);
-            // grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
-            // grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
-            // grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+          for (int a = 0; a < 4; ++a) {
+            // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
+            Matrix grad_a(3, 1);
+            grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
+            grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
+            grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
 
-            // for (int b = 0; b < 4; ++b) {
-              // // ∇Nᵇ in current config
-              // Matrix grad_b(3, 1);
-              // grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
-              // grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
-              // grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+            for (int b = 0; b < 4; ++b) {
+              // ∇Nᵇ in current config
+              Matrix grad_b(3, 1);
+              grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
+              grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
+              grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
 
-              // // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
-              // Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
-              // Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
-              // double k_ab = kab.getVal(0, 0) * Ve;
+              // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
+              Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
+              Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
+              double k_ab = kab.getVal(0, 0) * Ve;
 
-              // // Fill 3x3 block (assumes 3 DOF per node)
-              // for (int i = 0; i < 3; ++i) {
-                // Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
-              // }
-            // }
-          // }
-          // cout <<"Done."<<endl;
+              // Fill 3x3 block (assumes 3 DOF per node)
+              for (int i = 0; i < 3; ++i) {
+                Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
+              }
+            }
+          }
+          cout <<"Done."<<endl;
           
-          // Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
+          Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           
           Matrix K = Kgeo + Kmat;
           K = K*dt;
@@ -626,7 +723,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
             for (int d=0;d<m_dim;d++){
-            //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
+            cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
             //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
             R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
@@ -648,13 +745,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->assembleElement(e, K);
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
       
-        // cout << "Element R "<<endl;
-        // R.Print();
+        cout << "Element R "<<endl;
+        R.Print();
       } // end par element loop
       
       
-      // cout <<"R BEFORE Cont and Dirichlet"<<endl;
-      // solver->printR();
+
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
 
@@ -665,8 +761,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->addToR(gdof,-m_mdiag[n] * a[gdof] ); //EXTERNAL FORCES
         }
       }    
-      // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
-      // solver->printR();
+      cout <<"R AFTER INERTIA AND CONTACT"<<endl;
+      solver->printR();
       
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
@@ -686,7 +782,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     if (iter >0){
       double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
-      alpha_damp = std::min(1.0, 1.0 / (1.0 + 100.0 * residual_ratio));    
+      alpha_damp = std::min(1.0, 1.0 / (1.0 + 1000.0 * residual_ratio));    
       cout << "Using alpha damp: "<<alpha_damp<<endl;
     }
     prev_Rnorm = m_solver->getRNorm();    
