@@ -249,14 +249,17 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
   #endif
   
-
+  double tau_old[m_elem_count*6];
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "------------------------MAIN LOOP---------------------------"<<endl;
   cout << "Time: "<<Time <<", End Time "<< end_t<<endl;
   while (Time < end_t) {
-      
+
+  for (int i=0;i<m_elem_count*6;i++)
+    tau_old[i] = m_tau[i];
+  
   ////// OR TIME
   if (step_count % 100 == 0){
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
@@ -544,127 +547,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   calcNodalPressureFromElemental();
 
-  ///CalcStressStrain(dt);
-  par_loop(e,m_elem_count){
-    // // 1) Calcular F (updated Lagrangian: F = ∑ x_a ⊗ ∇N_a(X))
-    // Matrix F(m_dim, m_dim);
-    // Matrix F_old(m_dim, m_dim);
-    // for (int n = 0; n < m_nodxelem; n++) {
-        // Matrix X(m_dim, 1);      // Posición actual (x)
-        // Matrix gradN_ref(1, m_dim); // ∇N(X)
-
-        // for (int d = 0; d < m_dim; d++) {
-            // X.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]);
-            // gradN_ref.Set(0, d, getDerivative(e, 0, d, n)); // Asegurar que es ∇N(X)
-        // }
-        // F += MatMul(X, gradN_ref);       // F = ∑ x ⊗ ∇N(X)
-
-    // }
-
-    //// 2) Calcular deformación total (Green-Lagrange)
-    //Matrix E = 0.5 * (MatMul(F.getTranspose(), F) - Identity(m_dim));
-    
-    // tensor3 F = {0};  // Inicializa a cero
-    // tensor3 F_old; // 3x3 zero initialized
-    // double f = 1.0/m_detJ[e];
-    // for (int n = 0; n < m_nodxelem; n++) {
-        // // Posición actual del nodo n (x_a)
-        // double x_a[3] = {
-            // x[e * m_nodxelem * m_dim + n * m_dim + 0],
-            // x[e * m_nodxelem * m_dim + n * m_dim + 1],
-            // x[e * m_nodxelem * m_dim + n * m_dim + 2]
-        // };
-
-        // // Gradiente de la función de forma ∇N_a(X) (configuración inicial)
-        // double gradN_X[3] = {
-            // getDerivative(e, 0, 0, n)*f,  // ∂N/∂X
-            // getDerivative(e, 0, 1, n)*f,  // ∂N/∂Y
-            // getDerivative(e, 0, 2, n)*f   // ∂N/∂Z
-        // };
-
-        // // Producto diádrico (x_a ⊗ ∇N_a): F += x_a[i] * gradN_X[j]
-        // F.xx += x_a[0] * gradN_X[0];  // F_11
-        // F.xy += x_a[0] * gradN_X[1];  // F_12
-        // F.xz += x_a[0] * gradN_X[2];  // F_13
-
-        // F.yx += x_a[1] * gradN_X[0];  // F_21
-        // F.yy += x_a[1] * gradN_X[1];  // F_22
-        // F.yz += x_a[1] * gradN_X[2];  // F_23
-
-        // F.zx += x_a[2] * gradN_X[0];  // F_31
-        // F.zy += x_a[2] * gradN_X[1];  // F_32
-        // F.zz += x_a[2] * gradN_X[2];  // F_33
-    // }
-    // F_old = FromFlatSym(flat_fold,6*e);
-    
-    // // 2) Calcular deformación total (Green-Lagrange)
-    // tensor3 E;
-
-      // if (iter == 0) {
-          // //eps = Matrix(m_dim, m_dim); // cero
-      // } else {
-          // //tensor3 L = 1.0/dt * (MatMul(F, F_old.Inv()) - Identity());
-          // tensor3 L = (1.0/dt*(F - F_old) )* Inv(F_old);
-          // E = 0.5 * (L + Trans(L));
-      // }
-      
-    // ToFlatSymPtr(F, flat_fold, 6*e);
-    tensor3 StrRate;
-    tensor3 ShearStress;
-    tensor3 Sigma;      
-    int offset_t = 6*e;
-    StrRate     = FromFlatSym(m_str_rate,     offset_t );
-    ShearStress = FromFlatSym(m_tau,          offset_t );
-      
-    ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) /*+ SRT+RS*/);
-      
-    //tensor3 E_dev = E - (1.0/3.0) * Trace(E) * Identity(); // Parte deviatorica
-    //tensor3 sigma_dev_trial = 2.0 * mat[e]->Elastic().G() * E_dev; // Shear stress trial (deviatorico)
-
-    // 3. Total trial (before plasticity)
-    tensor3 sigma_trial = -p[e] * Identity() + ShearStress;
-
-    
-    printf("Sigma\n");
-    print(sigma_trial);      
-    
-    ToFlatSymPtr(sigma_trial, m_sigma,e*6);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
-      
-    // 3) Calc σ (sin depender de tasas)
-    //Matrix sigma_trial = MatMul(C, E); // C: tensor elástico
-        
-    
-    // // 4) Opcional: Usar D solo para σ_y (ej. Johnson-Cook)
-    // Matrix L = (1.0/dt) * (MatMul(F, F_old.Inv()) - Identity(m_dim));
-    // Matrix D = 0.5 * (L + L.Transpose());
-    // double eff_strain_rate = sqrt(2.0/3.0 * D.DoubleContract(D));
-
-    // sigma_y = johnson_cook_model(eff_strain_rate, ...);
-    // if (J2(sigma_trial) > sigma_y) {
-        // sigma_trial = project_to_yield_surface(sigma_trial, sigma_y);
-    // }
-
-
-    // // 4. Calcular J2 y tensión equivalente trial
-    // double J2 = 0.5 * sigma_dev_trial.DoubleContract(sigma_dev_trial); // J2 = 1/2 s:s
-    // double sigma_eq_trial = sqrt(3.0 * J2); // Tensión equivalente (von Mises)
-
-    // // 5. Obtener sigma_y (dependiente de la tasa si es necesario)
-    // double eff_strain_rate = computeEffectiveStrainRate(D); // D ya calculado
-    // double sigma_y = computeYieldStress(pl_strain[e], eff_strain_rate, T[e]);
-
-    // // 6. Radial return: Proyectar al yield surface si hay plasticidad
-    // if (sigma_eq_trial > sigma_y) {
-        // double scale = sigma_y / sigma_eq_trial;
-        // sigma_dev = sigma_dev_trial * scale; // Escalar el deviatorico
-        // pl_strain[e] += (sigma_eq_trial - sigma_y) / (3.0 * mat[e]->ShearMod()); // Actualizar eps_p
-    // }
-
-    // // 7. Tensión final corregida
-    // Matrix sigma_final = -p * Identity(m_dim) + sigma_dev;
-
-  } //ELEMENT LOOP
-
+  
+  CalcStressStrain(dt);
+  
 
 
 
@@ -872,6 +757,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
     }
     
+    //SWITCH BACK TO PREVIOUS STRESS STATE, WHICH IS TAKEN BY calcStressStrain
+    if (!converged){
+      for (int i=0;i<m_elem_count*6;i++)
+        m_tau[i] = tau_old[i];
+    }
 
     
   }//NR ITER 
