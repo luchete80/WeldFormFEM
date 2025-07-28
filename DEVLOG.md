@@ -371,4 +371,7 @@ F90 PREVIOUS VERSION
          - Fixed Kmat to be affected by 1/detJ (derivatives are in fact BxdetJ)
          - Corrected also  Kgeo
          - Reset K and r after each NR iteration.
-20250728 - Added selective damping based on residuals.
+20250728 - Fixed assembly (wrong on residuals)
+         - Added selective damping based on residuals.
+         - Working on relative tolerances.
+         - Added diagonal regularization

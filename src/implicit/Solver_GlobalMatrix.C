@@ -334,6 +334,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   double ftol = 1e-6;
   int max_iter = 10;
   bool converged = false;
+  double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
+  
   
   double prev_Rnorm;
   double alpha_damp= 1.0;
@@ -615,7 +617,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
                   int idx = i*m_dim + d;           // Local DOF index
                   double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
-                  K.Set(idx, idx, K.getVal(idx, idx) + mass_term);
+                  K.Set(idx, idx, (K.getVal(idx, idx) + mass_term) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
               }
           }
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
@@ -629,6 +631,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
           }
+
           // cout <<"INTERTIA TERMS OF RESIDUAL"<<endl;
           // ////// Residual forces (with inertial term)
           // //Matrix R = f_ext - fint;
@@ -659,7 +662,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       for (int n = 0; n < m_node_count; n++){   
         for (int d=0;d<m_dim;d++){        
           int gdof = m_dim*n+d;
-          solver->addToR(gdof,-m_mdiag[n] * a[gdof]); //EXTERNAL FORCES
+          solver->addToR(gdof,-m_mdiag[n] * a[gdof] ); //EXTERNAL FORCES
         }
       }    
       // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
@@ -683,7 +686,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     if (iter >0){
       double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
-      alpha_damp = std::min(1.0, 1.0 / (1.0 + 10.0 * residual_ratio));    
+      alpha_damp = std::min(1.0, 1.0 / (1.0 + 100.0 * residual_ratio));    
       cout << "Using alpha damp: "<<alpha_damp<<endl;
     }
     prev_Rnorm = m_solver->getRNorm();    
@@ -701,10 +704,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     }
     
       
-    cout << "MAX Residuals, DV: "<< max_residual<<", DF: "<<max_f_residual<<endl;
+    cout << "MAX Residuals, DV: "<< max_residual<<
+    ", DF ABS: "<<max_f_residual<<endl;
     
     // Check convergence
-    if (max_residual < tolerance && max_f_residual < ftol) {
+    if (max_residual/m_solver->getUNorm() < tolerance && max_f_residual/m_solver->getRNorm() < ftol) {
         converged = true;
         if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;

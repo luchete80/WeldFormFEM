@@ -110,6 +110,8 @@ public:
         //~ solver = std::move(iterative);
     //~ }
     virtual double getRNorm(){return R.norm();}
+    virtual double getUNorm(){return U.norm();}
+    ///virtual double getCondNumber(){return K.norm() * K.inverse().norm();} //PROHIBITIVE
     void assembleResidual(int e, /*const */ Matrix& Re) {
         const int ndof = m_dom->m_nodxelem * m_dom->m_dim;
         std::vector<int> global_dofs(ndof);
