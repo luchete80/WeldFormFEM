@@ -96,6 +96,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
       B.Set(5, base + 0, dN_dz);
     }
   }
+    B = B *(1.0/m_detJ[e]);
+    
     printf ("BMAT\n");
     B.Print();
     Matrix BT(m_nodxelem* m_dim,2*m_dim);
@@ -122,7 +124,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     //m_Kmat[e]->Print();
 
     // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
-    *(m_Kmat[e]) = *(m_Kmat[e]) * (vol[e]* 1.0/m_detJ[e]);  // Multiply by element volume (Ve)
+    *(m_Kmat[e]) = *(m_Kmat[e]) * vol[e];  // Multiply by element volume (Ve)
     
     cout << "KMAT"<<endl;
     (m_Kmat[e])->Print();

@@ -48,9 +48,9 @@ int main(int argc, char **argv) {
   dom_d->SetDimensionImplicit(m_node_count,m_elem_count);	 //AFTER CREATING DOMAIN
   cout << "Done. Setting nodes..."<<endl; 
   dom_d->setNode(0,0,0,0);
-  dom_d->setNode(1,1,0,0);
-  dom_d->setNode(2,0,1,0);
-  dom_d->setNode(3,0,0,1);
+  dom_d->setNode(1,0.1,0,0);
+  dom_d->setNode(2,0,0.1,0);
+  dom_d->setNode(3,0,0,0.1);
   cout << "Done "<<endl;
   
   ////#ifdef CUDA

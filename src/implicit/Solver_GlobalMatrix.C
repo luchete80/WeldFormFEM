@@ -542,9 +542,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix &B = Bmat_per_thread[tid];
           //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
+          B = B *(1.0/m_detJ[e]);
+          cout <<"Det J"<<m_detJ[e]<<endl;
           cout <<"Done."<<endl;
-          //cout << "B mat "<<endl;
-          //B.Print();
+          cout << "B mat "<<endl;
+          B.Print();
           cout << "m_dim "<<m_dim<<endl;
           // 7) Compute internal force: fint = V_e * B^T * σ
           cout << "Computing internal force"<<endl;
@@ -561,7 +563,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           D =  mat[e]->getElasticMatrix();
           
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          Kmat = Kmat * (1.0/(6.0*m_detJ[e])); // B is B x detJ
+          Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
@@ -573,36 +575,36 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
           Kgeo.SetZero();
           
-          // 3. Loop over node pairs (a, b)
-          // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
-          for (int a = 0; a < 4; ++a) {
-            // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
-            Matrix grad_a(3, 1);
-            grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
-            grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
-            grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+          // // 3. Loop over node pairs (a, b)
+          // // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
+          // for (int a = 0; a < 4; ++a) {
+            // // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
+            // Matrix grad_a(3, 1);
+            // grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
+            // grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
+            // grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
 
-            for (int b = 0; b < 4; ++b) {
-              // ∇Nᵇ in current config
-              Matrix grad_b(3, 1);
-              grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
-              grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
-              grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+            // for (int b = 0; b < 4; ++b) {
+              // // ∇Nᵇ in current config
+              // Matrix grad_b(3, 1);
+              // grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
+              // grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
+              // grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
 
-              // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
-              Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
-              Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
-              double k_ab = kab.getVal(0, 0) * Ve;
+              // // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
+              // Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
+              // Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
+              // double k_ab = kab.getVal(0, 0) * Ve;
 
-              // Fill 3x3 block (assumes 3 DOF per node)
-              for (int i = 0; i < 3; ++i) {
-                Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
-              }
-            }
-          }
-          cout <<"Done."<<endl;
+              // // Fill 3x3 block (assumes 3 DOF per node)
+              // for (int i = 0; i < 3; ++i) {
+                // Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
+              // }
+            // }
+          // }
+          // cout <<"Done."<<endl;
           
-          Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
+          // Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           
           Matrix K = Kgeo + Kmat;
           K = K*dt;
@@ -667,8 +669,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
-      // cout <<"K BEFORE  Dirichlet"<<endl;
-      // solver->printK();
+      cout <<"K BEFORE  Dirichlet"<<endl;
+      solver->printK();
 
       
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
