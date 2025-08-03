@@ -400,10 +400,11 @@ int main(int argc, char **argv) {
   
 
   cout<< "Min length: "<<dx<<endl;
-	double dt = cflFactor * dx/(mat_cs);
+	//double dt = cflFactor * dx/(mat_cs);
+  double dt = sim_time/100.0;
   //double dt = 0.800e-5;
   cout << "Time Step "<<dt<<endl;
-  dom_d->SetDT(dt); 
+  dom_d->SetDT(sim_time/100.0); 
   cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
   dom_d->setdtOut(out_time);
@@ -440,16 +441,16 @@ int main(int argc, char **argv) {
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
 
-  //AddBCVelNode(Node,axis,val)
-  for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
-  dom_d->
-  AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
-  dom_d->AddBCVelNode(2,2,0);
+  // //AddBCVelNode(Node,axis,val)
+  // for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
+  // dom_d->
+  // AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
+  // dom_d->AddBCVelNode(2,2,0);
   
-  dom_d->AddBCVelNode(3,2,-3.0e-8);
+  // dom_d->AddBCVelNode(3,2,-3.0e-8);
   
-  //AFTER THIS CALL
-  dom_d->AllocateBCs();
+  // //AFTER THIS CALL
+  // dom_d->AllocateBCs();
   
  
     

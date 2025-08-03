@@ -111,10 +111,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   AssignMatAddress();
   #endif
 
-  cout << "done"<<endl;
 
-
-  cout << "Imposing BCS"<<endl;
   
   
   InitValues();
@@ -344,7 +341,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // dt = m_cfl_factor*minl/(mat_cs);
   // }
   
-  cout << "Imposing BCs"<<endl;
+
   //// NECESARY FOR Strain Calc
   for (int d=0;d<m_dim;d++){
     
@@ -357,7 +354,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       ImposeBCV(d);
     #endif
   }
-  cout <<"Done."<<endl;
+
   //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
@@ -366,7 +363,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   // Newton-Raphson loop
   double tolerance = 1e-6; //dv tol
   double ftol = 1e-6;
-  int max_iter = 10;
+  int max_iter = 20;
   bool converged = false;
   double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
   
@@ -376,8 +373,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   ////delta_v: Pure NR correction term
   for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
-  
-  cout <<"Newton Rhapson Loop"<<endl;
+ 
   
   double flat_fold[6*m_elem_count];
   
@@ -467,7 +463,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   cudaDeviceSynchronize();
   
   #else
-
   calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
     CalcElemVol();  
@@ -566,7 +561,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if (contact)
       CalcContactForces();
 
-
     bool end_it = false;
     
     Matrix r_global(m_nodxelem*m_dim,1);
@@ -641,7 +635,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               }
             }
           }
-          cout <<"Done."<<endl;
+
           
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           
@@ -702,8 +696,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->addToR(gdof,-m_mdiag[n] * a[gdof] ); //EXTERNAL FORCES
         }
       }    
-      cout <<"R AFTER INERTIA AND CONTACT"<<endl;
-      solver->printR();
+      // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
+      // solver->printR();
       
       solver->finalizeAssembly();
       //AFTER ASSEMBLY!
