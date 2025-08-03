@@ -377,3 +377,4 @@ F90 PREVIOUS VERSION
          - Added diagonal regularization
          - Fixed sigma entirely
 20250728 - Fixed derivatives in Fcalculation (were affected by detJ)
+         - Fixed Element Kgeo dimensions.

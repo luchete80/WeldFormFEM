@@ -606,7 +606,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
           //Matrix& Kgeo = *(m_Kgeo[e]);
-          Matrix Kgeo(m_dim*m_node_count,m_dim*m_node_count);
+          Matrix Kgeo(m_dim*m_nodxelem,m_dim*m_nodxelem);
           Kgeo.SetZero();
           
           // // 3. Loop over node pairs (a, b)
@@ -637,9 +637,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             }
           }
 
-          
+          cout << "Kgeo row col "<<Kgeo.m_row<<","<<Kgeo.m_col<<endl;
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           cout <<"sum "<<endl;
+          cout << "Kmat row col "<<Kmat.m_row<<","<<Kmat.m_col<<endl;
           Matrix K = Kgeo + Kmat;
           cout << "done"<<endl;
           K = K*dt;
