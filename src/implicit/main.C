@@ -401,10 +401,10 @@ int main(int argc, char **argv) {
 
   cout<< "Min length: "<<dx<<endl;
 	//double dt = cflFactor * dx/(mat_cs);
-  double dt = sim_time/100.0;
+  double dt = sim_time;
   //double dt = 0.800e-5;
   cout << "Time Step "<<dt<<endl;
-  dom_d->SetDT(sim_time/100.0); 
+  dom_d->SetDT(sim_time/1000.0); 
   cout << "End Time: "<<sim_time<<endl;
   dom_d->SetEndTime (sim_time);
   dom_d->setdtOut(out_time);

@@ -235,6 +235,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver = solver;
   m_solver->setDomain(this);
   m_solver->Allocate();
+
+  double dt_initial = end_t / 100.0; // Initial guess
+  double dt_min = end_t / 10000.0;   // Minimum allowable
+  double dt_max = end_t / 10.0;      // Maximum allowable
+  double dt = dt_initial/10.;
   
   
   double *delta_v, *x_initial;
@@ -252,7 +257,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "------------------------MAIN LOOP---------------------------"<<endl;
   cout << "Time: "<<Time <<", End Time "<< end_t<<endl;
-  while (Time < end_t) {
+  bool end_all = false;
+  while (Time < end_t && !end_all) {
 
   for (int i=0;i<m_elem_count*6;i++)
     tau_old[i] = m_tau[i];
@@ -363,7 +369,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   // Newton-Raphson loop
   double tolerance = 1e-6; //dv tol
   double ftol = 1e-6;
-  int max_iter = 20;
+  int max_iter = 200;
   bool converged = false;
   double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
   
@@ -377,9 +383,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
   double flat_fold[6*m_elem_count];
   
+  int nr_iterations = 0;
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
+    nr_iterations++;
     cout <<"ITER "<<iter<<endl;
     // cout <<"DELTA V----"<<endl;
     // for (int i = 0; i < m_node_count;i++){
@@ -761,6 +769,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     
   }//NR ITER 
+
+  
+  
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   // ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
