@@ -772,7 +772,7 @@ __spec Matrix FromFlatSymMat(double* flat, int initial) {
 // Matrix multiplication operator: C = A * B
 __spec Matrix operator+(const Matrix &A, const Matrix &B) {
     if (A.m_row != B.m_row || A.m_col != B.m_col) {
-        printf("Matrix dimension mismatch in operator*\n");
+        printf("Matrix dimension mismatch in operator+\n");
         return Matrix(); // return empty matrix
     }
 

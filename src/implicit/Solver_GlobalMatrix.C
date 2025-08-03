@@ -639,8 +639,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
-          
+          cout <<"sum "<<endl;
           Matrix K = Kgeo + Kmat;
+          cout << "done"<<endl;
           K = K*dt;
           
           double beta = 0.25;
