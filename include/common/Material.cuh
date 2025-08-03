@@ -126,7 +126,7 @@ class Material_{
       D.Set(1,0, lambda);               D.Set(1,2, lambda);
       D.Set(2,0, lambda);               D.Set(2,1, lambda);
       
-      printf("Cmat\n");
+      //printf("Cmat\n");
       
       for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
       for (int d=3;d<6;d++) D.Set(d,d,G);    

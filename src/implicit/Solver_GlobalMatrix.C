@@ -571,7 +571,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
-          cout << "Element "<<e<<endl;
+          //cout << "Element "<<e<<endl;
           
           // 6) Build B matrix (strain-displacement) for the element
           int tid = omp_get_thread_num();
@@ -637,12 +637,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             }
           }
 
-          cout << "Kgeo row col "<<Kgeo.m_row<<","<<Kgeo.m_col<<endl;
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
-          cout <<"sum "<<endl;
-          cout << "Kmat row col "<<Kmat.m_row<<","<<Kmat.m_col<<endl;
           Matrix K = Kgeo + Kmat;
-          cout << "done"<<endl;
+
           K = K*dt;
           
           double beta = 0.25;
