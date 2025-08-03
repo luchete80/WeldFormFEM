@@ -165,6 +165,8 @@ int main(int argc, char **argv) {
   dom_d->SetDT(0.001); 
 
   
+  dom_d->setContForceVec(3,2,-1000.0);
+  
   //GLOBAL MATRIX NONLINEAR METHOD
   dom_d->SolveImplicitGlobalMatrix();
 

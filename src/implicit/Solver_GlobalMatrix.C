@@ -379,7 +379,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
   cout <<"Newton Rhapson Loop"<<endl;
   
-  contforce[3*m_dim+2]  = -1000.0;
   double flat_fold[6*m_elem_count];
   
   ////////////////////////////////////////////////////////////
