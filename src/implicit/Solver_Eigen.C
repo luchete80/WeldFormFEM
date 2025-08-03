@@ -290,7 +290,7 @@ int Solver_Eigen::Solve(){
       return -1;
     }
 
-    std::cout << "Solution:\n" << std::setprecision(8) <<U << std::endl; // Should print [1, -1, -2]
+    //std::cout << "Solution:\n" << std::setprecision(8) <<U << std::endl; // Should print [1, -1, -2]
 
     return 0;
   

@@ -386,12 +386,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   ////////////////////////// NR LOOP /////////////////////////
   for (int iter = 0; iter < max_iter && !converged; iter++) {
     cout <<"ITER "<<iter<<endl;
-    cout <<"DELTA V----"<<endl;
-    for (int i = 0; i < m_node_count;i++){
-      for (int d=0;d<3;d++)
-        cout <<delta_v[m_dim*i+d]<<", ";
-      cout <<endl;
-    }
+    // cout <<"DELTA V----"<<endl;
+    // for (int i = 0; i < m_node_count;i++){
+      // for (int d=0;d<3;d++)
+        // cout <<delta_v[m_dim*i+d]<<", ";
+      // cout <<endl;
+    // }
     const double gamma = 0.5;   // Newmark parameter
     // (1) Update velocities (v = prev_v + delta_v)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -412,14 +412,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       #endif
     }
 
-    cout <<"VELOCITIES"<<endl;
-    for (int i = 0; i < m_node_count; i++){ 
-      for (int d=0;d<m_dim;d++){
+    // cout <<"VELOCITIES"<<endl;
+    // for (int i = 0; i < m_node_count; i++){ 
+      // for (int d=0;d<m_dim;d++){
       
-        cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
-    }    
-    cout <<endl;
-    }
+        // cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
+    // }    
+    // cout <<endl;
+    // }
 
     // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -432,26 +432,26 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
-    cout <<"POSITIONS----"<<endl;
-    for (int i = 0; i < m_node_count;i++){
-      for (int d=0;d<3;d++)
-        cout <<x[m_dim*i+d]<<", ";
-      cout <<endl;
-    }
+    // cout <<"POSITIONS----"<<endl;
+    // for (int i = 0; i < m_node_count;i++){
+      // for (int d=0;d<3;d++)
+        // cout <<x[m_dim*i+d]<<", ";
+      // cout <<endl;
+    // }
 
-    cout <<"DISPLACEMENTS----"<<endl;
-    for (int i = 0; i < m_node_count;i++){
-      for (int d=0;d<3;d++)
-        cout <<u[m_dim*i+d]<<", ";
-      cout <<endl;
-    }
+    // cout <<"DISPLACEMENTS----"<<endl;
+    // for (int i = 0; i < m_node_count;i++){
+      // for (int d=0;d<3;d++)
+        // cout <<u[m_dim*i+d]<<", ";
+      // cout <<endl;
+    // }
 
-    cout <<"ACCELS----"<<endl;
-    for (int i = 0; i < m_node_count;i++){
-      for (int d=0;d<3;d++)
-        cout <<a[m_dim*i+d]<<", ";
-      cout <<endl;
-    }
+    // cout <<"ACCELS----"<<endl;
+    // for (int i = 0; i < m_node_count;i++){
+      // for (int d=0;d<3;d++)
+        // cout <<a[m_dim*i+d]<<", ";
+      // cout <<endl;
+    // }
 
   
   #ifdef CUDA_BUILD
@@ -468,14 +468,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   cudaDeviceSynchronize();
   
   #else
-    cout <<"Calc derivatives and volume"<<endl;
+
   calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
     CalcElemVol();  
     CalcNodalVol();
     CalcNodalMassFromVol();
   }
-  cout << "Done."<<endl;
+
   #endif
    
 
@@ -665,7 +665,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
             for (int d=0;d<m_dim;d++){
-            cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
+            //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
             //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
             R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
@@ -687,8 +687,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           solver->assembleElement(e, K);
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
       
-        cout << "Element R "<<endl;
-        R.Print();
+        //cout << "Element R "<<endl;
+        //R.Print();
       } // end par element loop
       
       
@@ -745,8 +745,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     cout << "MAX Residuals, DV: "<< max_residual<<
     ", DF ABS: "<<max_f_residual<<endl;
     
+    cout << "Urel "<<max_residual/m_solver->getUNorm()<<"U Norm "<<m_solver->getUNorm()<<endl;
+    cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
+    
     // Check convergence
-    if (max_residual/m_solver->getUNorm() < tolerance && max_f_residual/m_solver->getRNorm() < ftol) {
+    if (max_residual < tolerance && max_f_residual < ftol) {
         converged = true;
         if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
