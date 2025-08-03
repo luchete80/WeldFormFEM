@@ -571,6 +571,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     /////////////////////// THIS IS BEB
     par_loop(e,m_elem_count){
+          cout << "Element "<<e<<endl;
           
           // 6) Build B matrix (strain-displacement) for the element
           int tid = omp_get_thread_num();
