@@ -7,6 +7,7 @@ $#   nid               x               y               z      tc      rc
        2            0.10             0.0            0.00       0       0
        3            0.00             0.1            0.00       0       0
        4            0.00             0.0            0.10       0       0
+       5            0.10             0.1            0.00       0       0
 *PART
 $#                                                                         title
 New part from tetrahedron mesher
@@ -15,4 +16,5 @@ $#     pid     secid       mid     eosid      hgid      grav    adpopt      tmid
 *ELEMENT_SOLID
 $#   eid     pid      n1      n2      n3      
        1       1       1       2       3       4       4       4       4       4
+       2       1       3       2       5       4       4       4       4       4
 *END

@@ -234,6 +234,8 @@ public:
 
   inline vector_t getAccVec (const int &n){return make_double3(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};  
   inline vector_t getContForceVec(const int &n){return make_vector_t(contforce[m_dim*n], contforce[m_dim*n+1], contforce[m_dim*n+2]);}
+
+  void setContForceVec(const int &n, const int &d, const double &v){contforce[m_dim*n+d]=v;}
   
   #ifdef CUDA_BUILD
   inline vector_t getDispVec(const int &n){return make_vector_t(u_h[m_dim*n], u_h[m_dim*n+1], u_h[m_dim*n+2]);};
