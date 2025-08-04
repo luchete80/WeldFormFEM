@@ -16,7 +16,8 @@ Solid mechanics under large strains
 Custom research on material behavior
 
 ## Key Features
-- Explicit dynamic integration
+- Implicit Velocity-Based Quasi-Static Solver (IVBQS)
+- Explicit Dynamic Time integration
 - Plasticity and large deformation support
 - Remeshing for element quality preservation
 - Graphical User Interface (GUI) in active development
