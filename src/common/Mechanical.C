@@ -217,7 +217,6 @@ dev_t void Domain_d::CalcElemVol(){
         
         if (m_domtype == _Axi_Symm_ && m_axisymm_vol_weight){
           f = m_radius[m_gp_count * e];
-          printf("VOL!!!!!, %.4e\n", f);
         }
       }
       if (m_dim == 3){ 
@@ -384,7 +383,7 @@ dev_t void Domain_d::calcElemForces(){
           //printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
       //  }
       double fc = 1.0;
-      if (m_domtype == _Axi_Symm_ && m_axisymm_vol_weight)
+      if (m_dim == 2 && m_domtype == _Axi_Symm_ && m_axisymm_vol_weight)
         fc = m_radius[e];
       for (int n=0; n<m_nodxelem;n++) {
         for (int d=0;d<m_dim;d++){

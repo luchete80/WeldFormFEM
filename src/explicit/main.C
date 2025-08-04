@@ -255,7 +255,7 @@ int main(int argc, char **argv) {
       if (xyzsym[d])
         cout << "SYMMETRY ON AXIS "<<symaxis[d]<<endl;
      
-    if (dom_type == "AxiSymm"){
+    if (dom_type == "AxiSymm" || dom_type == "AxiSym"){
       dom_d->setAxiSymm();
       cout << "DOMAIN TYPE: AXIS SYMMETRIC"<<endl;
     } else if (dom_type == "plStrain"){

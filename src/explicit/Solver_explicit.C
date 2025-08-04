@@ -140,6 +140,9 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   calcElemJAndDerivatives();
 
+  if (m_dim == 2 && m_domtype == _Axi_Symm_)
+    Calc_Element_Radius();
+  
   CalcElemInitialVol(); //ALSO CALC VOL
   
   CalcElemVol();
@@ -324,6 +327,9 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
+    if (m_dim == 2 && m_domtype == _Axi_Symm_)
+      Calc_Element_Radius();
+    
     CalcElemVol();  
     CalcNodalVol();
     CalcNodalMassFromVol();
