@@ -1,19 +1,20 @@
-#WeldFormFEM – Open-Source FEM Solver for Large Deformation Processes
+# WeldFormFEM – Open-Source FEM Solver for Large Deformation Processes
 
 WeldFormFEM is an open-source Finite Element solver designed for nonlinear solid mechanics simulations 
 involving large deformations, contact, and material plasticity.
 
 Originally developed for forging simulations, the solver is modular and extensible, making it suitable for a wide range of forming and manufacturing processes such as:
 
-Forging
+Updated Lagrangian Implicit & Explicit Finite Element Method (FEM) CPU/GPU based solver. \
+WeldFormFEM works both on Ubuntu and Windows. \
+You can select to build it to CPU and GPU only by changing a single CMAKE var. \
 
-Extrusion and stamping
 
-Indentation and hardness tests
-
-Solid mechanics under large strains
-
-Custom research on material behavior
+- Forging
+- Extrusion and stamping
+- Indentation and hardness tests
+- Solid mechanics under large strains
+- Custom research on material behavior
 
 ## Key Features
 - Implicit Velocity-Based Quasi-Static Solver (IVBQS)
@@ -27,19 +28,6 @@ Custom research on material behavior
 
 Use cases
 Whether you're a researcher, engineer, or student, WeldFormFEM offers a sandbox for developing and understanding FEM solvers tailored to high-deformation processes. New capabilities like remeshing, GUI-based workflows, and scripting are actively being developed.
-
-
-
-
-# WeldFormFEM
-Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver. \
-WeldFormFEM is aimed to solve solid mechanics large strain problems, such as metal forming. \
-The idea is to work via 2 different solvers:
-1 - Pure lagrangian with rezoning (adaptive mesh refinement or AMR), Work In Progress as first option \
-2 - Coupled Eulerian (fixed mesh or Arbitrarian Eulerian Lagrangian) Lagrangian solver based on Benson works. \
-WeldFormFEM works both on Ubuntu and Windows.
-you can select to build it to CPU and GPU only by changing a single CMAKE var.
-
 
 
 ## Features
