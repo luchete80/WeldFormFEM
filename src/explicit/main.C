@@ -419,9 +419,12 @@ int main(int argc, char **argv) {
   // dom%mat_K = mat_modK !!!TODO CREATE MATERIAL
   
   double mat_cs = sqrt(mat_modK/rho);
-  
-  
-  
+
+  readArray(material[0]["strRange"],  e_range );
+  readArray(material[0]["strdotRange"], er_range);
+  readArray(material[0]["tempRange"],   T_range );  
+
+      
   string mattype = "Bilinear";
   cout << "Type: "; 
   readValue(material[0]["type"], 		mattype);
@@ -482,6 +485,11 @@ int main(int argc, char **argv) {
                                   "c1: "<<c[2]<<", c2: "<<c[3]<<endl<<
                                   "m1: "<<c[4]<<", m2: "<<c[5]<<endl<<
                                   "I1: "<<c[6]<<", I2: "<<c[7]<<endl;
+
+      cout << "Strain Range: "      <<material_h->e_min<<", "<<material_h->e_max <<endl;
+      cout << "Strain Rate Range: " <<material_h->er_min<<", "<<material_h->er_max <<endl;
+      cout << "Temp   Range: "      <<material_h->T_min<<", "<<material_h->T_max <<endl;
+
     }    
     
     else                              //throw new Fatal("Invalid material type.");                            
