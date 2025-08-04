@@ -1145,7 +1145,7 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
       if (m_domtype == _Axi_Symm_){
-        f = 1.0/m_radius[e];
+        f = m_radius[e]; // VOLUME WEIGHT,for a
       }
       mass += f*rho[eglob] * m_voln[n] / m_nodel_count[n];  //BENSON 1992.
     }    
