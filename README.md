@@ -15,22 +15,16 @@ Solid mechanics under large strains
 
 Custom research on material behavior
 
-💡 Key Features
-✅ Explicit dynamic integration
+## Key Features
+- Explicit dynamic integration
+- Plasticity and large deformation support
+- Remeshing for element quality preservation
+- Graphical User Interface (GUI) in active development
+- Written in C++, with clean modular design
+- Integration with VTK, OpenCascade, and other libraries
+- Ideal for experimentation, research, and education
 
-✅ Plasticity and large deformation support
-
-✅ Remeshing for element quality preservation
-
-✅ Graphical User Interface (GUI) in active development
-
-✅ Written in C++, with clean modular design
-
-⚙️ Integration with VTK, OpenCascade, and other libraries
-
-🧪 Ideal for experimentation, research, and education
-
-🧱 Use cases
+Use cases
 Whether you're a researcher, engineer, or student, WeldFormFEM offers a sandbox for developing and understanding FEM solvers tailored to high-deformation processes. New capabilities like remeshing, GUI-based workflows, and scripting are actively being developed.
 
 
@@ -112,32 +106,4 @@ Cuurrently working axisymmetric with hourglass for area weight in F90 version
   nod%is_fix(:,3) = .true.
  
  
-Then in calc elem forces:
 
-'''
-if Area weight
-#-------------
-
-              fa = 0.25d0/elem%radius(e,gp) * elem%detJ(e,gp) !!! THEN IS WEIGHTED BY 4 in case of gauss point =1
-              !!! AREA WEIGHTED, BENSON EQN 2.4.3.2
-              !!! 2.4.3.2 remains sig * Area/(4 r0), which is (4detJ)/(4r0) = detJ /r0
-              !!! LATER IS MULTIPLIED BY WEIGHT WICH GIVES THE AREA
-
-              elem%f_int(e,n,1) = elem%f_int(e,n,1) + elem%dHxy_detJ(e,gp,2,n) * elem%sigma (e,gp, 1,2) - &
-                                                     (elem%sigma (e,gp, 1,1) - elem%sigma (e,gp, 3,3) ) * fa
-                                                     
-              elem%f_int(e,n,2) = elem%f_int(e,n,2) + elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2) - &
-                                                     elem%sigma (e,gp, 1,2) * fa          
-              ! print *, "fa ", elem%dHxy_detJ(e,gp,1,n) * elem%sigma (e,gp, 1,2)
-              ! print *, "term 2 ", elem%sigma (e,gp, 1,2) * fa    
-              
-'''
-
-| Feature         | **Density**                                             | **Pointwise**                                       |
-|-----------------|---------------------------------------------------------|----------------------------------------------------|
-| **Purpose**     | Controls the global mesh density, used for element size adjustment across the entire mesh. | Defines a more localized mesh refinement, typically used for adapting based on certain criteria (e.g., features or user-defined conditions). |
-| **Usage**       | Typically used to control mesh coarseness or refinement globally, usually through tags like "density" to apply a global criterion for mesh density. | Used for more detailed control, typically in localized regions or based on features in the mesh, allowing for finer resolution in specific areas. |
-| **Method**      | A global parameter that can influence the entire mesh structure based on a density tag. | Localized refinements applied to the mesh based on specific criteria (e.g., pointwise data). |
-| **Application** | Mesh refinement across the entire mesh; can be used to prevent overly large elements and ensure smoother transitions. | Localized refinement; commonly used to refine areas of interest such as regions with high gradients, features, or areas requiring higher accuracy. |
-| **Example**     | "mesh.add_tag(VERT, 'density', 1, Reals(mesh.nelems(), 1.0));" | "mesh.add_tag(VERT, 'pointwise', 1, Reals(mesh.nverts(), some_local_condition));" |
-| **Effect**      | Affects mesh element size globally (entire mesh can get finer or coarser depending on density values). | Affects only specified points or elements based on conditions, like features, threshold values, or other user-defined criteria. |
