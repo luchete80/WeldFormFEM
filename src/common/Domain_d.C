@@ -1083,7 +1083,10 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
   cout << "Mesh dimension is: "<<m_dim<<endl;
   if (m_dim == 2){
     nel[2] = 1;
-    m_nodxelem = 4;
+    if (!tritetra)
+      m_nodxelem = 4;
+    else 
+      m_nodxelem = 3;
     cout << "ne "<<m_nodxelem<<endl;
     if (!red_int) m_gp_count = 4;
   } else {
@@ -1186,13 +1189,14 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     
     cout << "Allocating element nodes.."<<endl;
 		int ex, ey, ez;
-		std::vector <int> n;
+    
     if (m_dim == 2) {
-			n.resize(4);
+
+      if (!tritetra){
       int ei = 0;
       for (int ey = 0; ey < nel[1];ey++){
         for (int ex = 0; ex < nel[0];ex++){
-        int iv[4];
+
         int nb1 = (nel[0]+1)* ey    + ex;    
         int nb2 = (nel[0]+1)*(ey+1) + ex;
         elnod_h[ei  ] = nb1;                        nodel_count_h[nb1  ] ++;             
@@ -1205,7 +1209,32 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
 					//cout << "nodes "<<endl;
 					ei += m_nodxelem;
 					 }
-      } 
+      }
+      }else {//tritetra
+        int ei = 0;
+        for (int ey = 0; ey < nel[1];ey++){
+          for (int ex = 0; ex < nel[0];ex++){
+
+          int nb1 = (nel[0]+1)* ey    + ex;    
+          int nb2 = (nel[0]+1)*(ey+1) + ex;
+          // |\
+          // | \
+          // ----
+          elnod_h[ei  ] = nb1;                        nodel_count_h[nb1  ] ++;             
+          elnod_h[ei+1] = nb1 + 1;                    nodel_count_h[nb1+1] ++;             
+          elnod_h[ei+2] = nb2;                        nodel_count_h[nb2]   ++;  
+
+          elnod_h[ei  ] = nb1 + 1;                    nodel_count_h[nb1+1] ++;             
+          elnod_h[ei+1] = nb2 + 1;                    nodel_count_h[nb2+1] ++;            
+          elnod_h[ei+3] = nb2;                        nodel_count_h[nb2  ] ++;      
+        
+          //for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
+            //cout << "Nel x : "<<nel[0]<<endl;
+            //cout << "nodes "<<endl;
+            ei += 4; 
+             }
+        }      
+      }//tritetra
     } else { //dim: 3
       if (!tritetra) {
         int ei = 0; //ELEMENT INTERNAL NODE (GLOBAL INDEX)
@@ -1334,8 +1363,8 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
     for (int n=0;n<m_node_count;n++){
       nodel_offset_h[n] = nodel_tot;
       nodel_tot        += nodel_count_h[n];
-      cout << "NodEL tot " << nodel_tot<<endl;
-      cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
+      //cout << "NodEL tot " << nodel_tot<<endl;
+      //cout << "Node "<< n << " Shared elements: "<<nodel_count_h[n]<<endl;
 
     }
     cout << "Size of Nodal shared Elements vector "<< nodel_tot<<endl;
