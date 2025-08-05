@@ -137,7 +137,10 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   m_oss <<  "        <DataArray type=\"Int32\" Name=\"types\" Format=\"ascii\">"  <<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     if (dom->m_dim==2){ //TODO: CHANGE 
-      m_oss <<  "9 ";
+      if (dom->m_nodxelem == 4)
+        m_oss <<  "9 ";
+      else
+        m_oss <<  "5 ";
     }else if (dom->m_dim==3){
       if (dom->m_nodxelem==8)
         m_oss <<  "12 ";
@@ -310,7 +313,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int e=0;e<dom->m_elem_count;e++){
     //cout << "Element "<<e<<endl;
     if (dom->m_dim==2){ //TODO: CHANGE 
-      m_oss <<  "9 ";
+      if (dom->m_nodxelem == 4)
+        m_oss <<  "9 ";
+      else
+        m_oss <<  "5 ";
     }else if (dom->m_dim==3){
       if (dom->m_nodxelem==8)
         m_oss <<  "12 ";

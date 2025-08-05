@@ -1223,15 +1223,16 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
           elnod_h[ei  ] = nb1;                        nodel_count_h[nb1  ] ++;             
           elnod_h[ei+1] = nb1 + 1;                    nodel_count_h[nb1+1] ++;             
           elnod_h[ei+2] = nb2;                        nodel_count_h[nb2]   ++;  
-
+          ei += 3;
+            
           elnod_h[ei  ] = nb1 + 1;                    nodel_count_h[nb1+1] ++;             
           elnod_h[ei+1] = nb2 + 1;                    nodel_count_h[nb2+1] ++;            
-          elnod_h[ei+3] = nb2;                        nodel_count_h[nb2  ] ++;      
+          elnod_h[ei+2] = nb2;                        nodel_count_h[nb2  ] ++;      
         
           //for (int i=0;i<m_nodxelem;i++)cout << elnod_h[ei+i]<<", ";
             //cout << "Nel x : "<<nel[0]<<endl;
             //cout << "nodes "<<endl;
-            ei += 4; 
+          ei += 3; 
              }
         }      
       }//tritetra

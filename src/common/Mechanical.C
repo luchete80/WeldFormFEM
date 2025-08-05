@@ -65,7 +65,9 @@ dev_t void Domain_d::calcElemStrainRates(){
                                                        getDerivative(e,gp,0,n) * getVElem(e,n,1)));
                                                        
         if (m_domtype == _Axi_Symm_){
-          str_rate.Set(2,2,str_rate.getVal(0,1) + 0.25*getVElem(e,n,0)/getRadius(e,0));//0.25 is shapemat - Vr/r
+          double f = 0.25;
+          if (m_nodxelem == 3) f  = 0.3;
+          str_rate.Set(2,2,str_rate.getVal(0,1) + f*getVElem(e,n,0)/getRadius(e,0));//0.25 is shapemat - Vr/r
           rot_rate.Set(2,2,0.0);
             // elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
           // ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
@@ -408,14 +410,14 @@ dev_t void Domain_d::calcElemForces(){
                     // Fuerza en r
                     m_f_elem[offset + n*m_dim    ] += 
                         getDerivative(e, gp, 1, n) * sigma_rz * r_gp + 
-                        0.25 * (sigma_rr - sigma_tt) * detJ_gp; //NOT FROM Bt x sig, not x radius
+                        1.0/m_nodxelem * (sigma_rr - sigma_tt) * detJ_gp; //NOT FROM Bt x sig, not x radius
 
                     // Fuerza en z
                     m_f_elem[offset + n*m_dim + 1] += 
                         getDerivative(e, gp, 0, n) * sigma_rz * r_gp + 
-                        0.25 * sigma_rz * detJ_gp;    //NOT FROM Bt x sig, not x radius
+                        1.0/m_nodxelem * sigma_rz * detJ_gp;    //NOT FROM Bt x sig, not x radius
                 }else {
-                    double fa = 0.25 / r_gp * detJ_gp;
+                    double fa = 1.0/m_nodxelem / r_gp * detJ_gp;
 
                     // Fuerza en r
                     m_f_elem[offset + n*m_dim    ] += 
