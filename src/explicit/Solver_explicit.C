@@ -497,8 +497,13 @@ void host_ Domain_d::SolveChungHulbert(){
   ImposeBCVAllDim();
   //DAMPING
   if (m_domtype == _Axi_Symm_){
+    double xmin = 1000.0;
+    for (int i=0;i<getNodeCount();i++)
+      if (getPosVec2(i).x < xmin)
+        xmin = getPosVec2(i).x;
+        
     for (int i=0;i<getNodeCount();i++){
-      if (getPosVec2(i).x < 0.0015)
+      if (getPosVec2(i).x < xmin)
         a[m_dim*i] *= 0.01;
         v[m_dim*i] *= 0.01;
     }//nodes
