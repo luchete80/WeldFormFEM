@@ -268,6 +268,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
+
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
@@ -494,6 +495,14 @@ void host_ Domain_d::SolveChungHulbert(){
   
 
   ImposeBCVAllDim();
+  //DAMPING
+  if (m_domtype == _Axi_Symm_){
+    for (int i=0;i<getNodeCount();i++){
+      if (getPosVec2(i).x < 0.0015)
+        a[m_dim*i] *= 0.01;
+        v[m_dim*i] *= 0.01;
+    }//nodes
+  }
   
   #ifdef CUDA_BUILD  
   N = getNodeCount();
@@ -543,7 +552,7 @@ void host_ Domain_d::SolveChungHulbert(){
     //calcInelasticHeatFraction(); //Before thermal calc
     ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
 
-}
+  }
 
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
