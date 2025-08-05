@@ -653,10 +653,10 @@ void host_ Domain_d::SolveChungHulbert(){
 
   //////////////////////////// IF REMESH
   #ifdef BUILD_REMESH
-  ReMesher remesh(this);
+  //ReMesher remesh(this);
   
-  remesh.Generate_mmg();
-  remesh.m_type = MMG;
+  //remesh.Generate_mmg();
+  //remesh.m_type = MMG;
   #endif
   //////////////////////////////////////
   

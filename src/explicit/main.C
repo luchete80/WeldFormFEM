@@ -683,10 +683,10 @@ int main(int argc, char **argv) {
   dx = dom_d->getMinLength();
   double size = 0.0;
   if(!readValue(mesh["elemSize"], size)){
-    cout << "Setting remesg size at MIN ELEM SIZE:"<<dx<<endl;
+    cout << "Setting remesh size at MIN ELEM SIZE:"<<dx<<endl;
   dom_d->setRemeshLength(dx);
   } else {
-    cout << "Setting remesg size MANUALLY AT "<< size<<endl;    
+    cout << "Setting remesh size MANUALLY AT "<< size<<endl;    
     dom_d->setRemeshLength(size);
   }
   #endif
