@@ -103,6 +103,7 @@ struct StabilizationParams {
     double log_factor;
     double pspg_scale;
     double p_pspg_bulkfac;
+    double J_min;
 };
 
  
@@ -193,12 +194,13 @@ public:
     m_stab.alpha_free       = 0.0;
     m_stab.alpha_contact    = 0.0;
     m_stab.hg_coeff_free    = 0.0;
-    m_stab.hg_coeff_contact = 0.00;
+    m_stab.hg_coeff_contact = 0.0;
     m_stab.av_coeff_div     = 0.0;
     m_stab.av_coeff_bulk    = 0.0;
     m_stab.log_factor       = 0.0;
     m_stab.pspg_scale       = 0.0;
     m_stab.p_pspg_bulkfac   = 0.0;
+    m_stab.J_min            = 0.0;
         
   }
   TimeInt m_timeint_type;

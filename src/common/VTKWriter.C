@@ -544,6 +544,13 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   // printDummyElem(dom,m_oss);
 
+  m_oss << "SCALARS J float 1"<<endl;
+  m_oss << "LOOKUP_TABLE default"<<endl;
+  for (int n=0;n<dom->m_elem_count;n++)
+    m_oss <<dom->vol[n]/dom->vol_0[n]<<endl;  
+
+  printDummyElem(dom,m_oss);
+
   m_oss << "SCALARS Vol float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)

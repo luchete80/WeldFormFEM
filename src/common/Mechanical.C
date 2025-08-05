@@ -643,6 +643,9 @@ dev_t void Domain_d::calcElemPressure() {
     double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
     //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
+    if (J_bar < m_stab.J_min)
+      J_bar = 0.2;
+      
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
     double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 

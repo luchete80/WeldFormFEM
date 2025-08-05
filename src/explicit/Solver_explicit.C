@@ -103,7 +103,8 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "log_factor "<<m_stab.log_factor <<endl;
     oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
     oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
-    
+    oss_out << "p_pspg_bulkfac "<<m_stab.J_min <<endl;
+        
     cout << oss_out.str();
     out_file << oss_out.str();
     out_file.flush();

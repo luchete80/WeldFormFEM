@@ -101,7 +101,8 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j,Domain_d *do
     params.av_coeff_bulk    = stab.value("av_coeff_bulk", 0.0);    
     params.log_factor       = stab.value("log_factor", 0.0);        
     params.p_pspg_bulkfac   = stab.value("p_pspg_bulkfac", 0.0);     
-    
+    params.J_min            = stab.value("J_min", 0.0);    
+        
         //~ params.alpha_free       = stab.value("alpha_free", 0.0);         
     //~ params.alpha_contact    = stab.value("alpha_contact", 0.0);      
     //~ params.hg_coeff_free    = stab.value("hg_coeff_free", 0.05);     
@@ -245,7 +246,7 @@ int main(int argc, char **argv) {
     string dom_type = "3D";
     readValue(config["domType"], 	dom_type); 
     bool xyzsym[] = {false,false,false};
-    double symtol = 1.0e-6;
+    double symtol = 1.0e-4;
     readValue(config["symtol"],symtol);
     readValue(config["xSymm"], 	xyzsym[0]);
     readValue(config["ySymm"], 	xyzsym[1]); 
@@ -779,21 +780,21 @@ int main(int argc, char **argv) {
       }
     }
     ///////AXISYMM EXAMPLE-----------------------
-    // #ifdef CUDA_BUILD
-    // #else    
-    // if (dom_d->getPosVec2(i).y < 0.0005 ) {
-       // for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
-       // cout << "Node "<<i <<" vel "<<endl;
-      // fixcount++;
-    // }      
-    // if (dom_d->getPosVec2(i).y < 0.03-0.0005 ) {
-      // dom_d->AddBCVelNode(i,0,-0.0);
-      // dom_d->AddBCVelNode(i,1,-1.2); //AXISYMM
-      // //dom_d->AddBCVelNode(i,2,-1.2);
-      // cout << "Node "<<i <<" vel "<<endl;
-      // velcount++;
-    // }     
-    // #endif
+    #ifdef CUDA_BUILD
+    #else    
+    if (dom_d->getPosVec2(i).y < 0.0001 ) {
+       for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
+       cout << "Node "<<i <<" vel "<<endl;
+      fixcount++;
+    }      
+    else if (dom_d->getPosVec2(i).y < (0.03+0.0001) && dom_d->getPosVec2(i).y > 0.03-0.0001) {
+      dom_d->AddBCVelNode(i,0,-0.0);
+      dom_d->AddBCVelNode(i,1,-1.2); //AXISYMM
+      //dom_d->AddBCVelNode(i,2,-1.2);
+      cout << "Node "<<i <<" vel "<<endl;
+      velcount++;
+    }     
+    #endif
     // //-------------------------------------
 
     
