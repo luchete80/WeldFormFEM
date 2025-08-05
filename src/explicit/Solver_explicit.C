@@ -496,6 +496,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   ImposeBCVAllDim();
   //DAMPING
+  int nc_axis=0;
   if (m_domtype == _Axi_Symm_){
     double xmin = 1000.0;
     for (int i=0;i<getNodeCount();i++)
@@ -503,11 +504,15 @@ void host_ Domain_d::SolveChungHulbert(){
         xmin = getPosVec2(i).x;
         
     for (int i=0;i<getNodeCount();i++){
-      if (getPosVec2(i).x < xmin)
-        a[m_dim*i] *= 0.01;
-        v[m_dim*i] *= 0.01;
+      if (getPosVec2(i).x <= xmin+1.e-6){
+        a[m_dim*i] = 0.0;
+        v[m_dim*i] = 0.0;
+        nc_axis++;
+      }
     }//nodes
+    //cout << "nc  axis  "<< nc_axis<<endl;
   }
+
   
   #ifdef CUDA_BUILD  
   N = getNodeCount();
