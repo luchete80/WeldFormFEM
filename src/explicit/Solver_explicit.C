@@ -273,6 +273,9 @@ void host_ Domain_d::SolveChungHulbert(){
     double minl = getMinLength();
     dt = m_cfl_factor*minl/(mat_cs);
   }
+  if (remesh_){
+      cout << "New dt: "<< dt<<endl;
+  }
   
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
