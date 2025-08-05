@@ -378,3 +378,6 @@ F90 PREVIOUS VERSION
          - Fixed sigma entirely
 20250728 - Fixed derivatives in Fcalculation (were affected by detJ)
          - Fixed Element Kgeo dimensions.
+20250805 - Fixed axisymmetric vol weight calcs.
+20250805 - Working on AxiSymmetric, added tri/tetra domain.
+         - Corrected Axisymm weight in strain and forces calc to tri/tetras
