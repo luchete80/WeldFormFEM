@@ -128,7 +128,7 @@ void dev_t Domain_d::CalcContactForces(){
               double v_reln = dot(v_rel, trimesh->normal[j]);         
               //double F_damp = 0.0;
 
-              double kcont_geo = 4.0*mat[0]->Elastic().E() * node_area[i] / nodlen;
+              double kcont_geo = mat[0]->Elastic().E() * node_area[i] / nodlen;
               //double kcont_geo = mat[0]->Elastic().BulkMod()*nodevol;
               double kcont_mass = 0.2*m_mdiag[i] / (dt * dt);
               double kcont = std::min(kcont_geo, kcont_mass);
