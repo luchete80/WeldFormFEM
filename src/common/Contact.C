@@ -37,6 +37,7 @@ void dev_t Domain_d::CalcContactForces(){
   */
   //~ par_loop(i,m_dim*m_node_count)
     //~ contforce[i]=0.0;
+  double cfn[m_node_count];
   par_loop(i,m_node_count){
     m_mesh_in_contact[i]=-1;
     pxa[i]=0.0;
@@ -130,10 +131,10 @@ void dev_t Domain_d::CalcContactForces(){
               double kcont_geo = 4.0*mat[0]->Elastic().E() * node_area[i] / nodlen;
               //double kcont_geo = mat[0]->Elastic().BulkMod()*nodevol;
               double kcont_mass = 0.2*m_mdiag[i] / (dt * dt);
-              //double kcont = std::min(kcont_geo, kcont_mass);
+              double kcont = std::min(kcont_geo, kcont_mass);
               //printf("KGEO:%.4e KMASS: %.4e\n",kcont_geo,kcont_mass);
               
-              double kcont = kcont_mass;
+              //double kcont = kcont_mass;
               double damping_ratio = 0.2;
               double omega = sqrt(kcont / m_mdiag[i]);
               double ccrit = 2.0 * m_mdiag[i] * omega;
@@ -151,6 +152,7 @@ void dev_t Domain_d::CalcContactForces(){
               pxa[i] = p_node[i] * node_area[i];
               //printf("Nodal pressure %.4e\n",p_node[i]);
               //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);
+              cfn[i] = norm(cf);
               
               //printf("MESHIN CONTACT %d\n",trimesh->ele_mesh_id[j]);
               m_mesh_in_contact[i]=trimesh->ele_mesh_id[j];
@@ -185,6 +187,13 @@ void dev_t Domain_d::CalcContactForces(){
 
               double Ft_mag = length(Ft_trial);
               double3 Fn = dot(cf,trimesh->normal[j])*trimesh->normal[j];
+
+
+              ////// THIS IS TO SMOOTH STICK-SLIP TRANSITION
+              //~ double v_crit = 1e-3; // Umbral de velocidad (ajustable)  
+              //~ double mu_eff = trimesh->mu_dyn[0] + (trimesh->mu_sta[0] - trimesh->mu_dyn[0]) * exp(-norm(v_tan) / v_crit);  
+              //~ double Ft_max = mu_eff * norm(Fn);  
+
               double Ft_max = trimesh->mu_sta[0] * norm(Fn); // norm(Fn) is magnitude of normal force
               
 
@@ -204,6 +213,10 @@ void dev_t Domain_d::CalcContactForces(){
               else {
                   double Ft_max_dynamic =  trimesh->mu_dyn[0] * norm(Fn);
                   Ft = -Ft_max_dynamic * v_tan/norm(v_tan);  // Use velocity direction now
+
+                  //~ double decay_factor = 0.5; // Ajustable (0 = reset completo, 1 = sin cambio)  
+                  //~ for (int d = 0; d < m_dim; d++) ut_prev[m_dim*i + d] *= decay_factor;  
+    
                   for (int d=0;d<3;d++)ut_prev[m_dim*i+d] = 0;  // Optional: reset accumulation when sliding
               }              
 
@@ -235,8 +248,10 @@ void dev_t Domain_d::CalcContactForces(){
   
     }//external nodes
   } //i<first fem index
-
-   
+    
+    trimesh->react_force[0].z = 0.0;
+   for (int i=0;i<m_node_count;i++)
+    trimesh->react_force[0].z+=cfn[i];
     
   #endif 
 	//Correct time step!

@@ -195,7 +195,7 @@ void host_ Domain_d::SolveChungHulbert(){
   bool remesh_ = false;
   int remesh_count = 0;
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
-  of << "t,f,area"<<endl;
+  of << "t,f,fc,area"<<endl;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -594,7 +594,7 @@ void host_ Domain_d::SolveChungHulbert(){
     of <<std::scientific<<std::setprecision(6)<<", "<<
                                                     //trimesh->react_p_force[m]<<
                                                     trimesh->react_p_force[0]<<", "<<
-                                                    //trimesh->react_force[0].z<<","<<
+                                                    trimesh->react_force[0].z<<","<<
                                                     trimesh->cont_area;
     } else{
    bool is_elem_sum[m_elem_count];
