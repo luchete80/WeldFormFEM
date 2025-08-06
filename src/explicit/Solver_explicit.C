@@ -433,13 +433,6 @@ void host_ Domain_d::SolveChungHulbert(){
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
-  double cfsum=0.0;
-  for (int e=0;e<m_elem_count;e++){
-    if (elem_test[e]){
-      cfsum += m_sigma[6*e+2]*m_elem_area[e];
-    }
-  }
-  cout << "cfsum "<<cfsum<<endl;
     
 
   
@@ -614,6 +607,17 @@ void host_ Domain_d::SolveChungHulbert(){
     //for (int m=0;m<trimesh->mesh_count;m++){
       //printf("Surf Id %d %.4e\n",m, norm(trimesh->react_force[m]));
     //printf("Surf Id %d %.4e\n",m, trimesh->react_p_force[m]);
+
+    /////////////// TEST NO CONTACT
+    double cfsum=0.0;
+    for (int e=0;e<m_elem_count;e++){
+      if (elem_test[e]){
+        cfsum += m_sigma[6*e+2]*m_elem_area[e];
+      }
+    }
+    cout << "cfsum "<<cfsum<<endl;
+    //// TEST
+
     if (contact){
     calcContactForceFromPressure();
     
