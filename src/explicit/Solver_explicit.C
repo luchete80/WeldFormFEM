@@ -55,6 +55,22 @@ void host_ Domain_d::SolveChungHulbert(){
   
   InitValues();
   
+  bool elem_test[m_elem_count];
+  
+  double cfsum=0.0;
+  for (int e=0;e<m_elem_count;e++){
+     elem_test[e] = false;
+    bool inside = 0;
+    for (int ne=0;ne<m_nodxelem;ne++){
+      if (getPosVec3(m_elnod[e*m_nodxelem+ne]).z > 0.03 -0.0001 )
+        elem_test[e] = true;
+    }
+    if (elem_test[e]){
+      cfsum += m_sigma[6*e+2]*m_elem_area[e];
+      
+    }
+  }
+  
   double3 *m_v_orig;
   if (contact){
     ////TEMP; SMOOTH LOAD(ASSUMING CONTSTANT)
@@ -416,6 +432,16 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureFromJ();
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
+
+  double cfsum=0.0;
+  for (int e=0;e<m_elem_count;e++){
+    if (elem_test[e]){
+      cfsum += m_sigma[6*e+2]*m_elem_area[e];
+    }
+  }
+  cout << "cfsum "<<cfsum<<endl;
+    
+
   
   calcElemForces();
   calcElemHourglassForces();
