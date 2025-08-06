@@ -1,0 +1,74 @@
+{
+"Configuration":
+{
+	"particleRadius": 0.0075, 
+	"hFactor": 1.2,
+  "cflMethod": 1,
+  "autoTS": [false,false,false],
+  "kernelGradCorr": true,  
+  "simTime": 0.02,
+  "outTime": 1.0e-5,
+  "cflFactor": 0.1,
+  "solver": "Mech-LeapFrog",
+  "reMeshStepInterval": 5 
+}
+,
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 27000.0, 
+  "thermalHeatCap": 87.50,
+  "thermalCond": 190.0,
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 190.4E6
+}],
+
+"DomainBlocks": 
+[{
+	"type": "File",
+	"fileName": "cyl_hex.k",
+  "scaleFactor": 1.0,
+	"zoneId": 10
+}],
+
+"DomainZones": [
+{
+	"id": 2,
+	"start":[-1.0,-1.0, -0.03],
+	"end": 	[ 1.0, 1.0, 0.0000]
+},
+{
+	"id": 3,
+	"start":[-1.0,-1.0, 0.56],
+	"end": 	[ 1.0, 1.0, 1.0000]
+}
+],
+
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 1.0, 1.0]
+}
+],
+"BoundaryConditions": [
+{
+	"zoneId": 	2,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+	"zoneId": 	3,
+	"valueType": 	1,
+  "amplitudeId" : 1,
+  "amplitudeFactor": 1.0,
+	"value": 		[ 0.0, 0.0, -10.0]
+}
+]
+
+}
