@@ -27,7 +27,7 @@
 "DomainBlocks": 
 [{
 	"type": "File",
-	"fileName": "tetra_cyl.k",
+	"fileName": "cyl_hex.k",
   "scaleFactor": 1.0,
 	"zoneId": 10
 }],
