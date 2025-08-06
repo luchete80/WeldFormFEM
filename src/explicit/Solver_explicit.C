@@ -100,10 +100,10 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "hg_coeff_contact "<<m_stab.hg_coeff_contact <<endl;
     oss_out << "av_coeff_div "<<m_stab.av_coeff_div <<endl;
     oss_out << "av_coeff_bulk "<<m_stab.av_coeff_bulk <<endl;
-    oss_out << "log_factor "<<m_stab.log_factor <<endl;
-    oss_out << "pspg_scale "<<m_stab.pspg_scale <<endl;
+    oss_out << "log_factor     "<<m_stab.log_factor <<endl;
+    oss_out << "pspg_scale     "<<m_stab.pspg_scale <<endl;
     oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
-    oss_out << "p_pspg_bulkfac "<<m_stab.J_min <<endl;
+    oss_out << "J_min          "<<m_stab.J_min <<endl;
         
     cout << oss_out.str();
     out_file << oss_out.str();
