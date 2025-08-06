@@ -886,7 +886,7 @@ dev_t void Domain_d::calcElemPressureANP(){
    par_loop(e,m_elem_count){
      for (int ne=0;ne<m_nodxelem;ne++) //I.E. 4 
        p[e] += pn[m_elnod[e * m_nodxelem+ne]];    
-     p[e] *= 0.25;
+     p[e] *= 1.0/m_nodxelem;
    }
    delete []pn;
    delete []voln_0;
