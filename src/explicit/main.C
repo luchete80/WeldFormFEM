@@ -715,10 +715,12 @@ int main(int argc, char **argv) {
   
 
   
-  // int fixcount =0;
-  // int velcount =0;
-  // int xyzfixcount[] = {0,0,0};
-  // for (int i=0;i<dom_d->getNodeCount();i++){
+  int fixcount =0;
+  int velcount =0;
+  int xyzfixcount[] = {0,0,0};
+
+  for (int i=0;i<dom_d->getNodeCount();i++){
+     
      // #ifdef CUDA_BUILD
      // #else
      // if (dom_d->getPosVec3(i).z <0.0005) {
