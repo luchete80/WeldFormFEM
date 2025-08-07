@@ -1469,7 +1469,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
                         for (int j = 0; j < 4; j++) {
                             force -= hmod[d][j] * Sig[j][n];
                         }
-                        m_f_elem_hg[offset + n * m_dim + d] = - c_h * force; //NEGATIVE T SOFTEN TETRA LOCKING
+                        m_f_elem_hg[offset + n * m_dim + d] = c_h * force; //NEGATIVE T SOFTEN TETRA LOCKING
                     }
                 }
             }
