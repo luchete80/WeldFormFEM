@@ -233,6 +233,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int remesh_count = 0;
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
   of << "t,f,fc,area"<<endl;
+  int last_step_remesh=1e10;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,6 +300,7 @@ void host_ Domain_d::SolveChungHulbert(){
       remesh_ = true;  
       #endif
       remesh_count++;
+      last_step_remesh = step_count;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -312,8 +314,11 @@ void host_ Domain_d::SolveChungHulbert(){
     double minl = getMinLength();
     dt = m_cfl_factor*minl/(mat_cs);
   }
-  if (remesh_){
+  if (step_count < last_step_remesh +10 ){
+    dt = (step_count-last_step_remesh)/10.0*dt;
       cout << "New dt: "<< dt<<endl;
+
+  
   }
   
   //printf("Prediction ----------------\n");
@@ -508,9 +513,14 @@ void host_ Domain_d::SolveChungHulbert(){
     //ApplyGlobalDamping(0.02);
   }
   
-  if (remesh_){
+  if (step_count < last_step_remesh +5 ){
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping(m_remesh_damp_vel);
+    for (int i=0;i<m_node_count;i++)
+      for (int d=0;d<m_dim;d++)
+        // if(abs(a[m_dim*i+d])>1.0e4)
+          a[m_dim*i+d] = 0.1*a[m_dim*i+d];
+
   }
 
   //ApplyGlobalDamping(0.1);
