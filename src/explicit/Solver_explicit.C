@@ -233,7 +233,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int remesh_count = 0;
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
   of << "t,f,fc,area"<<endl;
-  int last_step_remesh=1e10;
+  int last_step_remesh=-1e10;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -307,26 +307,23 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-
-  double dt_new;
-  
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
     double minl = getMinLength();
-    dt_new = m_cfl_factor*minl/(mat_cs);
+    dt = m_cfl_factor*minl/(mat_cs);
   
   
-    if (dt_new > 1.0e-20)
-      dt = dt_new;
-    else{
-      ////DIVERGENCE
-      cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
+    // if (dt_new > 1.0e-20)
+      // dt = dt_new;
+    // else{
+      // ////DIVERGENCE
+      // cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
       
-    }
+    // }
   }
   
-  const int STEP_RECOV = 20;
+  const int STEP_RECOV = 5;
   if (step_count < last_step_remesh +STEP_RECOV ){
     dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
       cout << "New dt: "<< dt<<endl;
