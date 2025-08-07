@@ -308,11 +308,22 @@ void host_ Domain_d::SolveChungHulbert(){
   }
 
 
+  double dt_new;
+  
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
     double minl = getMinLength();
-    dt = m_cfl_factor*minl/(mat_cs);
+    dt_new = m_cfl_factor*minl/(mat_cs);
+  
+  
+    if (dt_new > 1.0e-10)
+      dt = dt_new;
+    else{
+      ////DIVERGENCE
+      cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
+      
+    }
   }
   if (step_count < last_step_remesh +10 ){
     dt = (step_count-last_step_remesh)/10.0*dt;
@@ -518,8 +529,8 @@ void host_ Domain_d::SolveChungHulbert(){
     ApplyGlobalDamping(m_remesh_damp_vel);
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++)
-        // if(abs(a[m_dim*i+d])>1.0e4)
-          a[m_dim*i+d] = 0.1*a[m_dim*i+d];
+        if(abs(a[m_dim*i+d])>1.0e6)
+          a[m_dim*i+d] = 1.0e-4*a[m_dim*i+d];
 
   }
 
