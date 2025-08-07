@@ -317,7 +317,7 @@ void host_ Domain_d::SolveChungHulbert(){
     dt_new = m_cfl_factor*minl/(mat_cs);
   
   
-    if (dt_new > 1.0e-10)
+    if (dt_new > 1.0e-20)
       dt = dt_new;
     else{
       ////DIVERGENCE
@@ -325,11 +325,11 @@ void host_ Domain_d::SolveChungHulbert(){
       
     }
   }
-  if (step_count < last_step_remesh +10 ){
-    dt = (step_count-last_step_remesh)/10.0*dt;
-      cout << "New dt: "<< dt<<endl;
-
   
+  const int STEP_RECOV = 20;
+  if (step_count < last_step_remesh +STEP_RECOV ){
+    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
+      cout << "New dt: "<< dt<<endl;
   }
   
   //printf("Prediction ----------------\n");
