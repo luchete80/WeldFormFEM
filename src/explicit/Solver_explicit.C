@@ -324,10 +324,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   const int STEP_RECOV = 5;
-  if (step_count < last_step_remesh +STEP    for (int i=0;i<m_node_count;i++)
-      for (int d=0;d<m_dim;d++)
-        //if(abs(a[m_dim*i+d])>1.0e4)
-          a[m_dim*i+d] = 0.0001*a[m_dim*i+d];_RECOV ){
+  if (step_count < last_step_remesh +STEP_RECOV ){
     dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
       cout << "New dt: "<< dt<<endl;
   }
@@ -529,7 +526,7 @@ void host_ Domain_d::SolveChungHulbert(){
     ApplyGlobalDamping(m_remesh_damp_vel);
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++)
-        if(abs(a[m_dim*i+d])>1.0e6)
+        //if(abs(a[m_dim*i+d])>1.0e6)
           a[m_dim*i+d] = 1.0e-4*a[m_dim*i+d];
 
   }
