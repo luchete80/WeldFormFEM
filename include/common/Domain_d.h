@@ -104,6 +104,7 @@ struct StabilizationParams {
     double pspg_scale;
     double p_pspg_bulkfac;
     double J_min;
+    double hg_forces;
 };
 
  
@@ -201,6 +202,7 @@ public:
     m_stab.pspg_scale       = 0.0;
     m_stab.p_pspg_bulkfac   = 0.0;
     m_stab.J_min            = 0.0;
+    m_stab.hg_forces        = 0.0;
         
   }
   TimeInt m_timeint_type;

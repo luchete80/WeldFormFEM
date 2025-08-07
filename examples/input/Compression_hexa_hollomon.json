@@ -7,13 +7,14 @@
   "autoTS": [false,false,false],
   "kernelGradCorr": true,  
   "simTime": 0.02,
-  "outTime": 1.0e-5,
+  "outTime": 5.0e-5,
   "cflFactor": 0.1,
   "solver": "Mech-LeapFrog",
-  "pressAlgorithm": 1,
-  "reMeshStepInterval": 5 
+  "reMeshStepInterval": 5
 }
-,
+,"Stabilization":{
+  "alpha_free":1.0,
+},
 "Materials":[ 
 {
 	"id": "Solid",

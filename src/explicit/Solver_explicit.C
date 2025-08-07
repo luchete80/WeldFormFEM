@@ -55,21 +55,41 @@ void host_ Domain_d::SolveChungHulbert(){
   
   InitValues();
   
-  bool elem_test[m_elem_count];
   
-  double cfsum=0.0;
-  for (int e=0;e<m_elem_count;e++){
-     elem_test[e] = false;
-    bool inside = 0;
-    for (int ne=0;ne<m_nodxelem;ne++){
-      if (getPosVec3(m_elnod[e*m_nodxelem+ne]).z > 0.03 -0.0001 )
-        elem_test[e] = true;
-    }
-    if (elem_test[e]){
-      cfsum += m_sigma[6*e+2]*m_elem_area[e];
-      
-    }
-  }
+  //////////// TEST ; TO DELETE /////
+  bool elem_test[m_elem_count];
+  for (int e=0;e<m_elem_count;e++)elem_test[e]=false;
+
+
+   //double pxa_el[m_elem_count];
+  double zmax = 0.0;
+      for (int i=0;i<m_node_count;i++)
+        if (getNodePos3(i).z>zmax)
+          zmax = getNodePos3(i).z;
+        
+    int ecount = 0;
+   double area = 0.0;
+   
+
+  double cfsum = 0.0;
+  for (int i=0;i<m_node_count;i++){
+    if (abs(getNodePos3(i).z-zmax)<1.0e-5){
+      for (int ne=0; ne<m_nodel_count[i];ne++) {
+        int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+        if (!elem_test[e]){
+          //pxa_el[e]+=p[e]*m_elem_area[e];
+          elem_test[e]=true;
+          cfsum += p[e]*m_elem_area[e];
+          area+=m_elem_area[e];
+          //cout << "element "<<e<<endl;
+          ecount++;
+        }
+      }//nodel
+    }//if inside
+  }//node
+  cout << "UPPER ELEMENT COUNT"<<ecount<<endl;
+
+  ///////////////// END TEST ///
   
   double3 *m_v_orig;
   if (contact){
@@ -120,7 +140,8 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "pspg_scale     "<<m_stab.pspg_scale <<endl;
     oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
     oss_out << "J_min          "<<m_stab.J_min <<endl;
-        
+    oss_out << "hg_forces      "<<m_stab.hg_forces <<endl;
+            
     cout << oss_out.str();
     out_file << oss_out.str();
     out_file.flush();
@@ -608,15 +629,7 @@ void host_ Domain_d::SolveChungHulbert(){
       //printf("Surf Id %d %.4e\n",m, norm(trimesh->react_force[m]));
     //printf("Surf Id %d %.4e\n",m, trimesh->react_p_force[m]);
 
-    /////////////// TEST NO CONTACT
-    double cfsum=0.0;
-    for (int e=0;e<m_elem_count;e++){
-      if (elem_test[e]){
-        cfsum += m_sigma[6*e+2]*m_elem_area[e];
-      }
-    }
-    cout << "cfsum "<<cfsum<<endl;
-    //// TEST
+
 
     if (contact){
     calcContactForceFromPressure();
@@ -627,6 +640,24 @@ void host_ Domain_d::SolveChungHulbert(){
                                                     trimesh->react_force[0].z<<","<<
                                                     trimesh->cont_area;
     } else{
+
+
+    /////////////// TEST NO CONTACT
+    double cfs=0.0;
+    double cfa = 0.0;
+    for (int e=0;e<m_elem_count;e++){
+      double f = 1.0;
+      if (m_nodxelem == 8) f = 2.0;
+      if (elem_test[e]){
+        cfa += f*m_elem_area[e];
+        cfs += m_sigma[6*e+2]*f*m_elem_area[e];
+      }
+    }
+    
+    cout << "cfs "<<cfs<<", cfa "<<cfa;
+    //// TEST
+    of << ", "<<cfs<<","<<cfa;
+    
    bool is_elem_sum[m_elem_count];
 
    //double pxa_el[m_elem_count];
@@ -658,8 +689,8 @@ void host_ Domain_d::SolveChungHulbert(){
         }//mesh in contact
         
       }//Node count    
-      cout << "Cont Elements"<<ecount<<endl;
-      of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
+      //cout << "Cont Elements"<<ecount<<endl;
+      //of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
     } //NOT CONTACT, TO DELETE
   double max[]={0.0,0.0,0.0};
 

@@ -1449,7 +1449,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
                 double elem_size = pow(vol[e], 1.0/3.0);
                 
                 // Compute stabilization coefficient
-                double c_h = hourglass_coeff * rho[e] * mat[e]->cs0 * elem_size * elem_size;
+                double c_h = m_stab.hg_forces * rho[e] * mat[e]->cs0 * elem_size * elem_size;
                 
                 // Compute hourglass modes (4 modes for tetrahedra)
                 double hmod[3][4] = {0}; // [dim][mode]
@@ -1469,7 +1469,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
                         for (int j = 0; j < 4; j++) {
                             force -= hmod[d][j] * Sig[j][n];
                         }
-                        m_f_elem_hg[offset + n * m_dim + d] = c_h * force;
+                        m_f_elem_hg[offset + n * m_dim + d] = - c_h * force; //NEGATIVE T SOFTEN TETRA LOCKING
                     }
                 }
             }
