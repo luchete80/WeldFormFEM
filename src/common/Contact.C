@@ -251,7 +251,8 @@ void dev_t Domain_d::CalcContactForces(){
     
     trimesh->react_force[0].z = 0.0;
    for (int i=0;i<m_node_count;i++)
-    trimesh->react_force[0].z+=cfn[i];
+    if (m_mesh_in_contact[i]==0)
+      trimesh->react_force[0].z+=cfn[i];
     
   #endif 
 	//Correct time step!
