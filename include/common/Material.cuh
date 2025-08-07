@@ -260,6 +260,7 @@ public Material_{
     e_min =e_min_; e_max =e_max_;
     er_min=er_min_;er_max=er_max_;
     T_min =T_min_; T_max =T_max_;
+    Material_model = _GMT_;
 		// T_m=T_m_;
 		// T_t=T_t_;
 	}
@@ -336,7 +337,7 @@ inline double dev_t CalcJohnsonCookTangentModulus(const double &plstrain, const 
   return Et;
 }	
 
-
+#include <iostream>
 ///////////////////////////////////////////////////
 //sy = [A + B(epl^n)] [1 + C ln(e_dot pl/e_dot 0) (1 - pow)]
 ////////////// TEMPERATURE SHOULD BE IN CELSIUS
@@ -374,7 +375,7 @@ inline double dev_t CalcGMTYieldStress(const double &strain, const double &strai
                                     // << m1 << ", "<<m2 << ", "
                                     // << I1 << ", "<<I2 << ", "<<endl;
   // // cout << "e, er, T " << e <<", "<<er<<", "<<T<<endl; 
-	// cout << "sy GMT"<< sy<<", e, er, T" << e << ", " <<er << ", " <<T<<endl;
+	//std::cout << "sy GMT"<< sy<<", e, er, T" << e << ", " <<er << ", " <<T<<std::endl;
 	return sy;
 }	
 
