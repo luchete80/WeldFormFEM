@@ -14,8 +14,8 @@
 }
 ,
 "Meshing":{
-  "minStrain":1.0e-3,
-  "stepInterval": 4000,
+  "minStrain":0.2,
+  "stepInterval": 1000,
   "maxCount":100000
 },
 "Materials":[ 
