@@ -445,6 +445,9 @@ void host_ Domain_d::SolveChungHulbert(){
   else if (m_press_algorithm == 1)
     calcElemPressureANP();
   
+  //if (step_count%5 == 0)
+    //smoothPressureLaplacian();
+  
   calcNodalPressureFromElemental();
   //smoothPressureField(0.2);
   //calcElemPressure_Hybrid_VolHG();

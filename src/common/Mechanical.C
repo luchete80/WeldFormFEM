@@ -703,6 +703,47 @@ dev_t void Domain_d::calcElemPressure() {
   delete[] voln;
 }
 
+void Domain_d::smoothPressureLaplacian() {
+  // 1. Crear campo temporal para presión suavizada
+  double* p_temp = new double[m_elem_count];
+  memcpy(p_temp, p, m_elem_count*sizeof(double));
+
+  // 2. Parámetros del filtro
+  const double alpha = 0.3;  // Factor de suavizado (0.2-0.4)
+  const int iterations = 2;  // 1-3 iteraciones son suficientes
+
+  for (int iter = 0; iter < iterations; ++iter) {
+    par_loop(e, m_elem_count) {
+      double p_sum = 0.0;
+      int neighbor_count = 0;
+
+      // Buscar elementos vecinos (comparten al menos 2 nodos)
+      for (int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        for (int i = 0; i < m_nodel_count[nid]; ++i) {
+          int e_neigh = m_nodel[m_nodel_offset[nid] + i];
+          if (e_neigh != e) {
+            p_sum += p_temp[e_neigh];
+            neighbor_count++;
+          }
+        }
+      }
+
+      // Aplicar suavizado solo si hay vecinos
+      if (neighbor_count > 0) {
+        double p_avg = p_sum / neighbor_count;
+        p[e] = (1.0 - alpha) * p_temp[e] + alpha * p_avg;
+      }
+    }
+
+    // Actualizar para la próxima iteración
+    if (iter < iterations - 1) {
+      memcpy(p_temp, p, m_elem_count*sizeof(double));
+    }
+  }
+
+  delete[] p_temp;
+}
 
 void Domain_d::smoothPressureField(double gamma) {
   std::vector<double> p_new(m_elem_count, 0.0);

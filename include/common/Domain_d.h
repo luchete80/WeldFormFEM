@@ -270,6 +270,7 @@ public:
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure_Hex(); //FROM STRAIN
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void smoothPressureLaplacian();
   dev_t void smoothPressureField(double gamma); //Laplace Smooth
   dev_t void calcElemPressureFromJ();
   dev_t void calcElemPressureANP(); //AVERAGE NODAL POINT
