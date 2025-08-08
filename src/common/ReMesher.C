@@ -228,9 +228,28 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
     return std::abs(volume);
 }
 
+//~ void LaplacianFilter(double* field, int* elnod, int elem_count, int nodxelem) {
+  //~ std::vector<double> sum_field(m_node_count, 0.0);
+  //~ std::vector<int> count(m_node_count, 0);
+
+  //~ for (int e = 0; e < elem_count; e++) {
+    //~ for (int a = 0; a < nodxelem; a++) {
+      //~ int i = elnod[e * nodxelem + a];
+      //~ sum_field[i] += field[i];
+      //~ count[i]++;
+    //~ }
+  //~ }
+
+  //~ for (int i = 0; i < m_node_count; i++) {
+    //~ if (count[i] > 0)
+      //~ field[i] = 0.5 * field[i] + 0.5 * (sum_field[i] / count[i]); // blend original + average
+  //~ }
+//~ }
 
 void ReMesher::WriteDomain(){
-
+  
+  bool m_map_momentum = false;
+  
   cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
   #ifdef REMESH_OMEGA_H
     m_node_count = m_mesh.nverts();
@@ -273,11 +292,12 @@ void ReMesher::WriteDomain(){
   //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
   /////// IF MAP VEL DIRECTLY
-  /////if (!m_map_momentum)
+  
   //if (m_dom->m_remesh_map_vel)
   ///// ATTENTION, MAP VELOCITY IS MANDATORY; IS BETTER TO MAP IT
   ///// THE PROBLEM IS THAT IS BENEFIT A LITTLE DAMPING
-  MapNodal(vfield,   m_dom->v); //DOES NOT CONS MOMENTUM
+  if (!m_map_momentum)
+    MapNodal(vfield,   m_dom->v); //DOES NOT CONS MOMENTUM
   
   if (m_dom->m_remesh_map_acc){
     MapNodal(afield,   m_dom->a);
@@ -345,14 +365,15 @@ void ReMesher::WriteDomain(){
   for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
   
   /// BEFORE DELETE, SAVE MASS FOR CONSERVATION
+  if (m_map_momentum){
   double old_p_field[m_dom->m_dim*m_dom->m_node_count];
   for (int i=0;i<m_dom->m_node_count;i++)
     for (int d=0;d<m_dom->m_dim; d++)
       old_p_field[m_dom->m_dim*i+d] = m_dom->v[m_dom->m_dim*i+d]*m_dom->m_mdiag[i];
   
   ////IF MAP MOMENTUM
-  ////MapNodal(vfield,   old_p_field); 
-  
+  MapNodal(vfield,   old_p_field); 
+  }
   
   ////BEFORE REWRITE
   //// WRITE
@@ -424,9 +445,11 @@ void ReMesher::WriteDomain(){
   m_dom->CalcNodalMassFromVol();
   //if (m_dom->m_remesh_map_vel)
  cout << "recovering velocities"<<endl;
-  for (int i=0;i<m_node_count;i++){ //Or already dom_d->m_node_count since domain changed
-    for (int d=0;d<m_dom->m_dim;d++)
-      vfield[m_dom->m_dim*i+d] /=m_dom->m_mdiag[i];
+  if (m_map_momentum){
+    for (int i=0;i<m_node_count;i++){ //Or already dom_d->m_node_count since domain changed
+      for (int d=0;d<m_dom->m_dim;d++)
+        vfield[m_dom->m_dim*i+d] /=m_dom->m_mdiag[i];
+    }
   }
   
   //// RECALCULATED FROM MOMENTUM
