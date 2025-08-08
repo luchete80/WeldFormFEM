@@ -263,6 +263,7 @@ public:
   
   dev_t void calcElemJacobian ();
   dev_t void calcElemJAndDerivatives/*_FullInt*/();
+  dev_t void calcElemJAndDerivatives_Tet_SSRI();
   dev_t void calcElemMassMat();
 
 	dev_t void calcElemStrainRates();

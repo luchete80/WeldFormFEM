@@ -1965,6 +1965,56 @@ dev_t void Domain_d::calcElemJAndDerivatives () {
 
 }
 
+// dev_t void Domain_d::calcElemJAndDerivatives_Tet_SSRI() {
+    // // Coordenadas naturales de los puntos de Gauss
+    // const double a = 0.58541020;
+    // const double b = 0.13819660;
+    // double gpc[4][3] = { {a,b,b}, {b,a,b}, {b,b,a}, {b,b,b} };
+    
+    // par_loop(e, m_elem_count) {
+        // Matrix x2(4,3); // Coordenadas nodales
+        
+        // // 1. Obtener coordenadas nodales
+        // for(int i=0; i<4; i++) {
+            // int nid = m_elnod[e*4+i];
+            // x2.Set(i,0, x[nid].x);
+            // x2.Set(i,1, x[nid].y);
+            // x2.Set(i,2, x[nid].z);
+        // }
+        
+        // // 2. Calcular en 4 puntos desviadores
+        // for(int gp=0; gp<4; gp++) {
+            // Matrix dHrs(3,4); // Derivadas naturales
+            
+            // // Derivadas de funciones de forma en punto gp
+            // double r = gpc[gp][0], s = gpc[gp][1], t = gpc[gp][2];
+            // dHrs.Set(0,0, -1.0); dHrs.Set(0,1, 1.0); dHrs.Set(0,2, 0.0); dHrs.Set(0,3, 0.0);
+            // dHrs.Set(1,0, -1.0); dHrs.Set(1,1, 0.0); dHrs.Set(1,2, 1.0); dHrs.Set(1,3, 0.0);
+            // dHrs.Set(2,0, -1.0); dHrs.Set(2,1, 0.0); dHrs.Set(2,2, 0.0); dHrs.Set(2,3, 1.0);
+            
+            // // Jacobiano y derivadas cartesianas
+            // Matrix jacob = MatMul(dHrs, x2);
+            // Matrix inv_j = Invert(jacob);
+            // Matrix dHxy = MatMul(inv_j, dHrs);
+            
+            // // Almacenar derivadas para este punto GP
+            // for(int n=0; n<4; n++) {
+                // setDerivative(e,gp,0,n, dHxy(0,n));
+                // setDerivative(e,gp,1,n, dHxy(1,n));
+                // setDerivative(e,gp,2,n, dHxy(2,n));
+            // }
+            // m_detJ[e*5 + gp] = Det(jacob); // 4 primeros puntos
+        // }
+        
+        // // 3. Punto volumétrico (centroide)
+        // Matrix dHrs_vol(3,4);
+        // dHrs_vol.SetAll(-0.25); // Valor constante en centroide
+        
+        // Matrix jacob_vol = MatMul(dHrs_vol, x2);
+        // m_detJ[e*5 + 4] = Det(jacob_vol); // 5to punto
+    // }
+// }
+
 // __device__ double & Domain_d::getDerivative(const int &e, const int &gp, const int &i, const int &j){
   // //int offset = m_nodxelem * m_gp_count;
   // //if (e < m_elem_count) {
