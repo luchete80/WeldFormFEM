@@ -703,6 +703,114 @@ dev_t void Domain_d::calcElemPressure() {
   delete[] voln;
 }
 
+
+dev_t void Domain_d::calcElemPressureCaylak() {
+  
+  // 1. Calcular volúmenes nodales acumulados
+  double *voln_0 = new double[m_node_count];
+  double *voln   = new double[m_node_count];
+
+ // 1. Compute nodal volumes - parallel optimized
+  par_loop(n, m_node_count) {
+    voln_0[n] = voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];
+      voln[n]   += vol[e];
+    }
+  }
+
+    // 3. Element loop - main computation
+  par_loop(e, m_elem_count) {
+    double K  = mat[e]->Elastic().BulkMod();
+    double mu = mat[e]->Elastic().G();
+    double rho_e = rho[e];
+    double vol0 = vol_0[e];
+    double vol1 = vol[e];
+    double J_local = vol1 / vol0;
+    double h = pow(vol1, 1.0/3.0);
+    
+
+    // F-bar adaptive blending
+    double J_avg = 0.0;
+    for(int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        J_avg += voln[nid] / voln_0[nid];
+    }
+    J_avg /= m_nodxelem;
+
+    // Aplicar el método de Caylak: Filtrado local de J_avg
+    double J_bar = J_avg; // Alpha = 0 (como quieres)
+    if (pl_strain[e] > sigma_y[e]) {
+        // Suavizado adicional para plasticidad (Caylak Eq. 12)
+        double J_filtered = 0.0;
+        int neighbor_count = 0;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int nid = m_elnod[e*m_nodxelem + a];
+            for (int i = 0; i < m_nodel_count[nid]; ++i) {
+                int e_neigh = m_nodel[m_nodel_offset[nid] + i];
+                if (e_neigh != e) {
+                    J_filtered += vol[e_neigh] / vol_0[e_neigh];
+                    neighbor_count++;
+                }
+            }
+        }
+        if (neighbor_count > 0) {
+            J_bar = 0.7 * J_avg + 0.3 * (J_filtered / neighbor_count); // Mezcla suave
+        }
+    }
+
+    // Critical: Contact-adaptive blending
+    //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
+    //double alpha = m_stab.alpha_free;  // More local in contact
+    //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
+    //double J_bar = alpha*J_local + (1-alpha)*J_avg;
+    if (J_bar < m_stab.J_min)
+      J_bar = 0.2;
+      
+     // IMPROVED PHYSICAL PRESSURE (Hybrid model)
+    double p_physical = -K * (log(J_bar) + (mu / K) * (1.0 - 1.0/J_bar)); // Caylak Eq. 9
+
+
+    //double p_physical = -K * log(J_bar);
+
+    //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
+
+    // Enhanced PSPG - dynamic tau calculation
+    double c = sqrt(K / rho_e);  // Sound speed
+    double tau = h / (2.0 * c);  // Dynamic stabilization
+    
+    // Velocity divergence
+    double div_v = 0.0;
+    for(int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        double3 va = getVelVec(nid);
+        double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+        div_v += dot(gradNa, va);
+    }
+    
+    
+    // Artificial viscosity - compression only
+    double p_q = 0.0;
+    if(div_v < 0.0) {
+      double delta_J = 1.0 - J_bar;
+      double q = rho_e * h * (0.1*c*abs(div_v) + 0.15*c*delta_J*delta_J); // Caylak Eq. 15
+      p_q = q;
+      p_q = std::min(q, 0.1 * K);  // Limita al 10% del módulo bulk
+    }
+
+    // Contact pressure boost (additional 10-15% in contact zones)
+    
+    // FINAL PRESSURE (contact boosted)
+    p[e] = p_physical + p_q;
+    //p[e] = std::max(-10.0 * K, std::min(2.0 * K, p[e]));  // Límites conservadores
+    
+  }
+
+  delete[] voln_0;
+  delete[] voln;
+}
+
 void Domain_d::smoothPressureLaplacian() {
   // 1. Crear campo temporal para presión suavizada
   double* p_temp = new double[m_elem_count];
