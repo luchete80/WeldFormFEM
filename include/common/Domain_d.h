@@ -270,6 +270,7 @@ public:
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure_Hex(); //FROM STRAIN
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void calcElemPressureLocal(); //SF Style
   dev_t void calcElemPressureCaylak();
   dev_t void smoothPressureLaplacian();
   dev_t void smoothPressureField(double gamma); //Laplace Smooth
@@ -278,6 +279,7 @@ public:
   dev_t void calcElemPressureElementBased();
   dev_t void calcElemPressureANP_Nodal();
   dev_t void calcElemPressureANP_Nodal_HG();
+  dev_t void calcElemPressureANP_Nodal_Stab();
   
   dev_t void calcElemPressure_Hybrid();
   dev_t void calcElemPressure_Hybrid_VolHG();

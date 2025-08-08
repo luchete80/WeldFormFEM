@@ -945,7 +945,7 @@ dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
     double p_hg = hg_coeff * K * (J_elem - J_nod);  // HG pressure correction
 
     // ---- Final Blended Pressure ----
-    p[e] = 0.7 * p_elem + 0.3 * (K * (1.0 - J_nod)) + p_hg;  // 80% elemental, 20% nodal + HG
+    p[e] = 0.5 * p_elem + 0.35* (K * (1.0 - J_nod)) /*+ p_hg*/;  // 80% elemental, 20% nodal + HG
   }
 
   delete[] voln_0;
@@ -955,7 +955,7 @@ dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
 //Computational Methods in lagfangian & Eulerian Hydrocodes
 //From Benson 1992
 // Equation 1.3.12
-//~ dev_t void Domain_d::calcElemPressureFromJ(){
+//~ dev_t void Domain_d::calcElemPressureLocal(){
 
   //~ par_loop(e,m_elem_count){
     //~ p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
@@ -1090,6 +1090,101 @@ dev_t void Domain_d::calcElemPressureANP_Nodal() {
   delete[] voln_0;
   delete[] voln;
 }
+
+//// SIMUFACT STYLE
+dev_t void Domain_d::calcElemPressureANP_Nodal_Stab() {
+    double *pn = new double[m_node_count];
+    double *voln_0 = new double[m_node_count];
+    double *voln = new double[m_node_count];
+
+    // 1. Calcular volúmenes nodales iniciales y actuales
+    par_loop(n, m_node_count) {
+        voln_0[n] = 0.0;
+        voln[n]   = 0.0;
+        pn[n]     = 0.0;
+
+        for (int i = 0; i < m_nodel_count[n]; ++i) {
+            int e = m_nodel[m_nodel_offset[n] + i];
+            voln_0[n] += vol_0[e] / 4.0;  // tetra
+            voln[n]   += vol[e]   / 4.0;
+        }
+
+        // Presión nodal tipo ANP
+        if (voln_0[n] > 1e-12) {
+            double Jn = voln[n] / voln_0[n];
+            double K = mat[0]->Elastic().BulkMod();
+            pn[n] = -K * (Jn - 1.0);  // signo negativo = compresión positiva
+        }
+        p_node[n] = pn[n];
+    }
+
+    // 2. Promediar presiones nodales para presión base elemental
+    par_loop(e, m_elem_count) {
+        double K  = mat[e]->Elastic().BulkMod();
+        double mu = mat[e]->Elastic().G();
+        double rho_e = rho[e];
+        double vol0 = vol_0[e];
+        double vol1 = vol[e];
+        double J_local = vol1 / vol0;
+        double h = pow(vol1, 1.0/3.0);
+
+        // Presión base = promedio nodal
+        double p_base = 0.0;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int nid = m_elnod[e*m_nodxelem + a];
+            p_base += pn[nid];
+        }
+        p_base /= m_nodxelem;
+
+        // === ESTABILIZACIÓN NO LINEAL ===
+
+        // Contact detection
+        bool is_contact = false;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int nid = m_elnod[e*m_nodxelem + a];
+            double3 cf = make_double3(contforce[m_dim*nid],
+                                      contforce[m_dim*nid+1],
+                                      contforce[m_dim*nid+2]);
+            if (dot(cf,cf) > 0) {
+                is_contact = true;
+                break;
+            }
+        }
+
+        // Divergencia de velocidad
+        double div_v = 0.0;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int nid = m_elnod[e*m_nodxelem + a];
+            double3 va = getVelVec(nid);
+            double3 gradNa = make_double3(getDerivative(e,0,0,a),
+                                          getDerivative(e,0,1,a),
+                                          getDerivative(e,0,2,a));
+            div_v += dot(gradNa, va);
+        }
+
+        // Sound speed y tau para PSPG
+        double c = sqrt(K / rho_e);
+        double tau = h / (2.0 * c);
+
+
+        // Viscosidad artificial no lineal (solo compresión)
+        double p_q = 0.0;
+        if (div_v < 0.0) {
+            double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
+            double delta_J = 1.0 - J_local;
+            double q2 = m_stab.av_coeff_bulk * K * delta_J;
+            p_q = is_contact ? 0.5 * (q1 + q2) : std::max(q1, q2);
+        }
+
+        // 3. Presión final elemental
+        p[e] = p_base /*+ p_pspg + p_hg */+ p_q;
+    }
+
+    delete[] pn;
+    delete[] voln_0;
+    delete[] voln;
+}
+
 
 dev_t void Domain_d::calcElemPressureANP_Nodal_HG() {
   double *pn = new double[m_node_count];

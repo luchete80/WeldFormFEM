@@ -453,10 +453,13 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  if      (m_press_algorithm == 0)
-    calcElemPressure();
-  else if (m_press_algorithm == 1)
-    calcElemPressureANP();
+  // if      (m_press_algorithm == 0)
+    // calcElemPressure();
+  // else if (m_press_algorithm == 1)
+    // calcElemPressureANP();
+
+  //calcElemPressureANP_Nodal();
+  calcElemPressureANP_Nodal_Stab();
   
   //if (step_count%5 == 0)
     //smoothPressureLaplacian();
