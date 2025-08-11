@@ -377,48 +377,7 @@ dev_t void Domain_d::calcElemForces(){
     int offset_det = m_gp_count * e;
     
     for (int gp=0;gp<m_gp_count;gp++){
-      
-      // tensor3 sigma     = FromFlatSym(m_sigma, e*m_gp_count+gp);
-  // // integer :: e, i,j,k, gp,n, d
-      // //printf("SIGMA\n");print(sigma);
-  // real(fp_kind), dimension(dim*nodxelem,1) ::f
-  // real(fp_kind) :: w
-  // !TESTING
-  // real (fp_kind) :: sigma_test(6,1) !ORDERED
-  // real(fp_kind) :: test(24,1) !ifwanted to test in tensor form
-  // elem%f_int = 0.0d0
-  // w = 1.0d0 !!! Full integration
-	
-	// ! !$omp parallel do num_threads(Nproc) private (e,gp,d, w,n) 
-  // do e=1, elem_count
-    // if (elem%gausspc(e) .eq. 1) then
-      // w = 2.0d0**dim
-    // end if
-    // do gp = 1, elem%gausspc(e)
-      // !print *, "elem%dHxy_detJ(e,gp,1", elem%dHxy_detJ(e,gp,1,:)
-      // !print *, "elem%dHxy_detJ(e,gp,2", elem%dHxy_detJ(e,gp,2,:)
-      // ! sigma_test (:,1)=[elem%sigma (e,gp, 1,1),elem%sigma (e,gp, 2,2),elem%sigma (e,gp, 3,3),&
-                        // ! elem%sigma (e,gp, 1,2),elem%sigma (e,gp, 2,3),elem%sigma (e,gp, 3,1)]
-      // ! test = w*matmul(transpose(elem%bl(e,gp,:,:)),sigma_test)  ! (24x6)(6x1)
-      // !print *, "test force", test
-      
-      // !print *, "dHdxy, 1", elem%dHxy_detJ(e,gp,1,:)
-      // !print *, "dHdxy, 2", elem%dHxy_detJ(e,gp,2,:)
-      // !print *, "dHdxy, 3", elem%dHxy_detJ(e,gp,1,:)
-      
-      
-      // do n=1, nodxelem
-      // !Is only linear matrix?    
-      // !elem%f_int(e,n,d) =  
-      // !f (:,:) = matmul(transpose(elem%bl(e,gp,:,:)),elem%sigma (e,:,:))
-      // !!!! TO AVOID MATRIX MULTIPLICATIONS (8x6 = 48 in bathe notation with several nonzeros)
-      // !!!!! F = BT x sigma = [dh1/dx dh1/dy ] x [ sxx sxy]
-      // !!!!!                = [dh2/dx dh2/dy ]   [ syx syy]
-      // !!!!! 
-      //for (int i=0;i<3;i++)
-      //  for (int j=0;j<3;j++){
-          //printf("SIGMA %d %d %.6e\n",i,j,getSigma(e,gp,i,j));
-      //  }
+    
       double fc = 1.0;
       if (m_dim == 2 && m_domtype == _Axi_Symm_ && m_axisymm_vol_weight)
         fc = m_radius[e];
@@ -1521,7 +1480,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
       //tensor3 test = StrRate - 1.0/3.0*Trace(StrRate) * Identity();
       
-      ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT+RS);
+      ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT + RS);
       
       //TODO: SAVE IN DOMAIN?
       double eff_strain_rate = sqrt ( 	0.5*( (StrRate.xx-StrRate.yy)*(StrRate.xx-StrRate.yy) +

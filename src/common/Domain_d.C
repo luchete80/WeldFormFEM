@@ -550,7 +550,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   
   m_pl_energy = 0.0;
   
-  malloc_t(m_elem_neigh,        int, m_elem_count*4);
+  malloc_t(m_elem_neigh,        int, m_elem_count*m_nodxelem);
   malloc_t(m_elem_neigh_count,  int, m_elem_count);
   
   
