@@ -730,7 +730,7 @@ dev_t void Domain_d::calcElemPressure() {
     
     // FINAL PRESSURE (contact boosted)
     p[e] = p_physical + p_pspg + p_hg + p_q;
-    p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
+    //p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
     //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
     
   }

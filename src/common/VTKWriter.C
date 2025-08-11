@@ -485,6 +485,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       for (int t=0;t<3;t++)
         m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
+
   avgScalar(dom->m_eps,a,6)
   
   //cout << "done"<<endl;
@@ -550,6 +551,22 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   // printDummyElem(dom,m_oss);
 
+  m_oss<<"TENSORS DDEVT float"<<endl;    
+    for (int e=0;e<dom->m_elem_count;e++){
+    tensor3 D_local= FromFlatSym(dom->m_str_rate, 6*e);
+
+     double tr_local = Trace(D_local);
+      tensor3 dev_local = D_local - Identity() * (tr_local / 3.0);
+      m_oss << D_local.xx << " "<<D_local.xy << " "<<D_local.xz<<endl;    
+      m_oss << 0.0 << " "<<D_local.yy << " "<<D_local.yz<<endl;    
+      m_oss << 0.0 << " "<<0.0 << " "<<D_local.zz<<endl;        
+    }
+
+  if (dom->isContactOn())
+    for (int n=0;n<dom->getTriMesh()->elemcount;n++)
+      for (int t=0;t<3;t++)
+        m_oss <<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+        
   m_oss << "SCALARS J float 1"<<endl;
   m_oss << "LOOKUP_TABLE default"<<endl;
   for (int n=0;n<dom->m_elem_count;n++)
