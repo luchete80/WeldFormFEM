@@ -490,148 +490,172 @@ dev_t void Domain_d::calcElemPressure_Hex(){
    //~ } // e< elem_count
 }
 
+// ////// ORIGINAL WITH ABSOLUTE PRESSURE
+// dev_t void Domain_d::calcElemPressure() {
+  
+  // // 1. Calcular volúmenes nodales acumulados
+  // double *voln_0 = new double[m_node_count];
+  // double *voln   = new double[m_node_count];
 
+    // // 2. Material/Stabilization parameters
+    // //~ const double alpha_contact = 0.5;  
+    // //~ const double alpha_free = 0.2;      
+    // //~ double hg_coeff_free = 0.2;    // 
+    // //~ double hg_coeff_contact = 0.1;  // Slightly lower in contact
+    // //~ const double artvisc_coeff = 0.15;    // Artificial viscosity
+    // //~ const double log_factor = 0.8;
+    // //~ double pspg_scale = 0.5;  // Escalar a 10% del valor original
+    // //~ const double p_pspg_bulkfac = 0.1;
+    
+        
+    // // 3. Element loop - main computation
+  // par_loop(e, m_elem_count) {
+    // double K  = mat[e]->Elastic().BulkMod();
+    // double mu = mat[e]->Elastic().G();
+    // double rho_e = rho[e];
+    // double vol0 = vol_0[e];
+    // double vol1 = vol[e];
+    // double J_local = vol1 / vol0;
+    // double h = pow(vol1, 1.0/3.0);
+    
+    // // Contact detection
+    // double contact_weight = 0.0;
+    // bool is_contact = false;
+    // for(int a = 0; a < m_nodxelem; ++a) {
+      // int nid = m_elnod[e*m_nodxelem + a];
+      // double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
+        // if(dot(cf,cf) > 0) {
+            // is_contact = true;
+            // break;
+        // }
+        // //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
+    // }
+
+    // // F-bar adaptive blending
+    // double J_avg = 0.0;
+    // for(int a = 0; a < m_nodxelem; ++a) {
+        // int nid = m_elnod[e*m_nodxelem + a];
+        // J_avg += voln[nid] / voln_0[nid];
+    // }
+    // ///// ORIGINAL
+    // J_avg /= m_nodxelem;
+
+
+    // // Critical: Contact-adaptive blending
+    // //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
+    // double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
+    // //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
+    // double J_bar = alpha*J_local + (1-alpha)*J_avg;
+    // if (J_bar < m_stab.J_min)
+      // J_bar = 0.2;
+
+    // //cout << "J_bar_el "<<J_bar_el<<"jbar "<<J_bar<<"pl_strain"<<pl_strain[e]<<"Javg el "<<J_avg_elastic<<endl;
+     // // IMPROVED PHYSICAL PRESSURE (Hybrid model)
+    
+    
+    // double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0)); 
+
+    // //double p_physical = -K * log(J_bar);
+
+    // //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
+
+    // // Enhanced PSPG - dynamic tau calculation
+    // double c = sqrt(K / rho_e);  // Sound speed
+    // double tau = h / (2.0 * c);  // Dynamic stabilization
+    
+    // // Velocity divergence
+    // double div_v = 0.0;
+    // for(int a = 0; a < m_nodxelem; ++a) {
+        // int nid = m_elnod[e*m_nodxelem + a];
+        // double3 va = getVelVec(nid);
+        // double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+        // div_v += dot(gradNa, va);
+    // }
+    
+    // //div_v /= vol1;  // Normalización
+    
+    // double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
+    // //double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+            
+    // // Non-negative hourglass (stabilization only)
+    // double p_hg = (is_contact ? m_stab.hg_coeff_contact : m_stab.hg_coeff_free) * K * fabs(J_local - J_avg);
+    
+    // // Artificial viscosity - compression only
+    // double p_q = 0.0;
+    // if(div_v < 0.0) {
+        // p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
+        // //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
+        // double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
+        // double delta_J = 1.0 - J_local;
+        // double q2 = m_stab.av_coeff_bulk * K * delta_J;  // Volumetric term
+        // if (is_contact) {
+            // p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
+        // } else {
+            // p_q = std::max(q1, q2);
+        // }
+    // }
+
+    // // Contact pressure boost (additional 10-15% in contact zones)
+    
+    // // FINAL PRESSURE (contact boosted)
+    // p[e] = p_physical + p_pspg + p_hg + p_q;
+    // //p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
+    // //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
+    
+  // }
+
+  // delete[] voln_0;
+  // delete[] voln;
+// }
+///// INCREMENTAL 
 dev_t void Domain_d::calcElemPressure() {
   
   // 1. Calcular volúmenes nodales acumulados
-  double *voln_0 = new double[m_node_count];
-  double *voln   = new double[m_node_count];
-  double *J_pln   = new double[m_node_count];
+  double *J_eln   = new double[m_node_count];
 
  // 1. Compute nodal volumes - parallel optimized
   par_loop(n, m_node_count) {
-    voln_0[n] = voln[n] = J_pln[n] = 0.0;
+    J_eln[n] = 0.0;
     for (int i = 0; i < m_nodel_count[n]; ++i) {
       int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n]   += vol[e];
-      J_pln[n]  += m_Jpl[e];
+      J_eln[n] += m_Jel[e];
     }
-    
-    J_pln[n] /= m_nodel_count[n];
+    J_eln[n] /=m_nodel_count[n];
   }
 
-    // 2. Material/Stabilization parameters
-    //~ const double alpha_contact = 0.5;  
-    //~ const double alpha_free = 0.2;      
-    //~ double hg_coeff_free = 0.2;    // 
-    //~ double hg_coeff_contact = 0.1;  // Slightly lower in contact
-    //~ const double artvisc_coeff = 0.15;    // Artificial viscosity
-    //~ const double log_factor = 0.8;
-    //~ double pspg_scale = 0.5;  // Escalar a 10% del valor original
-    //~ const double p_pspg_bulkfac = 0.1;
-    
+  
         
     // 3. Element loop - main computation
   par_loop(e, m_elem_count) {
     double K  = mat[e]->Elastic().BulkMod();
-    double mu = mat[e]->Elastic().G();
-    double rho_e = rho[e];
-    double vol0 = vol_0[e];
-    double vol1 = vol[e];
-    double J_local = vol1 / vol0;
-    double h = pow(vol1, 1.0/3.0);
-    
-    // Contact detection
-    double contact_weight = 0.0;
-    bool is_contact = false;
-    for(int a = 0; a < m_nodxelem; ++a) {
-      int nid = m_elnod[e*m_nodxelem + a];
-      double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
-        if(dot(cf,cf) > 0) {
-            is_contact = true;
-            break;
-        }
-        //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
-    }
 
-    // F-bar adaptive blending
-    double J_avg = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        J_avg += voln[nid] / voln_0[nid];
-    }
-    ///// ORIGINAL
-    J_avg /= m_nodxelem;
-
+       // F-bar adaptive blending
 
 
     double J_avg_elastic = 0.0;
     for(int a = 0; a < m_nodxelem; ++a) {
         int nid = m_elnod[e*m_nodxelem + a];
-        J_avg_elastic += voln[nid] / (voln_0[nid] * J_pln[nid]); // Necesitarías calcular J_plastic por nodo
+        J_avg_elastic += J_eln[nid]; // Necesitarías calcular J_plastic por nodo
     }
     J_avg_elastic /= m_nodxelem;
 
 
     // Critical: Contact-adaptive blending
-    //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
-    double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
-    //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
-    double J_bar = alpha*J_local + (1-alpha)*J_avg;
-    if (J_bar < m_stab.J_min)
-      J_bar = 0.2;
+
+    double alpha = m_stab.alpha_free;  // More local in contact
 
     double J_bar_el = alpha*m_Jel[e] + (1-alpha)*J_avg_elastic;
-    //cout << "J_bar_el "<<J_bar_el<<"jbar "<<J_bar<<"pl_strain"<<pl_strain[e]<<"Javg el "<<J_avg_elastic<<endl;
-     // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    
-    
-    //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
-    double p_physical = -K * (m_stab.log_factor*log(J_bar_el) + (1.0-m_stab.log_factor)*(J_bar_el - 1.0));    
 
-    //double p_physical = -K * log(J_bar);
+    double p_physical = -K * (J_bar_el-1.0);    
 
-    //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
-
-    // Enhanced PSPG - dynamic tau calculation
-    double c = sqrt(K / rho_e);  // Sound speed
-    double tau = h / (2.0 * c);  // Dynamic stabilization
-    
-    // Velocity divergence
-    double div_v = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        double3 va = getVelVec(nid);
-        double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
-        div_v += dot(gradNa, va);
-    }
-    
-    //div_v /= vol1;  // Normalización
-    
-    double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
-    //double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
-            
-    // Non-negative hourglass (stabilization only)
-    double p_hg = (is_contact ? m_stab.hg_coeff_contact : m_stab.hg_coeff_free) * K * fabs(J_local - J_avg);
-    
-    // Artificial viscosity - compression only
-    double p_q = 0.0;
-    if(div_v < 0.0) {
-        p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
-        //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
-        double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
-        double delta_J = 1.0 - J_local;
-        double q2 = m_stab.av_coeff_bulk * K * delta_J;  // Volumetric term
-        if (is_contact) {
-            p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
-        } else {
-            p_q = std::max(q1, q2);
-        }
-    }
-
-    // Contact pressure boost (additional 10-15% in contact zones)
-    
-    // FINAL PRESSURE (contact boosted)
-    p[e] = p_physical + p_pspg + p_hg + p_q;
-    //p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
-    //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
-    
+    p[e] = p_physical ;
+    //cout << "Javg el "<<J_avg_elastic<<",pe"<<p[e]<<endl;    
   }
 
-  delete[] voln_0;
-  delete[] voln;
+  delete[] J_eln;
 }
+
+ 
 
 dev_t void Domain_d::calcElemPressureCaylak() {
   
@@ -1488,21 +1512,15 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
       // Update plastic strain
     pl_strain[e] += dep;
-    double nu = mat[e]->Elastic().Poisson();
-    
-    double plastic_vol_strain = dep * (1 - 2*nu) / (3*(1 + nu)); //Volumetric pl vol increment
-    double J_plastic = 1.0 + plastic_vol_strain;  // J_plastic ≈ 1 + tr(εp)
-    m_Jel[e] = vol[e]/(vol_0[e]*m_Jpl[e]);
-    
-    m_Jpl[e] = J_plastic;
+    //m_Jel[e] = 0.0;
 
   }//IF PLASTIC
   else {
     
-    m_Jel[e] = vol[e]/(vol_0[e]);
+    //m_Jel[e] = m_detJ[e];
+    m_Jel[e] += (vol[e]-vol_prev[e])/vol_0[e];
+    
     }
-
-
 
       
       //printf("Shear Stress\n");
