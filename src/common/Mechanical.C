@@ -496,20 +496,6 @@ dev_t void Domain_d::calcElemPressure() {
   // 1. Calcular volúmenes nodales acumulados
   double *voln_0 = new double[m_node_count];
   double *voln   = new double[m_node_count];
-  double *J_pln   = new double[m_node_count];
-
- // 1. Compute nodal volumes - parallel optimized
-  par_loop(n, m_node_count) {
-    voln_0[n] = voln[n] = J_pln[n] = 0.0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n]   += vol[e];
-      J_pln[n]  += m_Jpl[e];
-    }
-    
-    J_pln[n] /= m_nodel_count[n];
-  }
 
     // 2. Material/Stabilization parameters
     //~ const double alpha_contact = 0.5;  
@@ -556,14 +542,6 @@ dev_t void Domain_d::calcElemPressure() {
 
 
 
-    double J_avg_elastic = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        J_avg_elastic += voln[nid] / (voln_0[nid] * J_pln[nid]); // Necesitarías calcular J_plastic por nodo
-    }
-    J_avg_elastic /= m_nodxelem;
-
-
     // Critical: Contact-adaptive blending
     //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
     double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
@@ -572,13 +550,11 @@ dev_t void Domain_d::calcElemPressure() {
     if (J_bar < m_stab.J_min)
       J_bar = 0.2;
 
-    double J_bar_el = alpha*m_Jel[e] + (1-alpha)*J_avg_elastic;
     //cout << "J_bar_el "<<J_bar_el<<"jbar "<<J_bar<<"pl_strain"<<pl_strain[e]<<"Javg el "<<J_avg_elastic<<endl;
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
     
     
-    //double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
-    double p_physical = -K * (m_stab.log_factor*log(J_bar_el) + (1.0-m_stab.log_factor)*(J_bar_el - 1.0));    
+    double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
     //double p_physical = -K * log(J_bar);
 
