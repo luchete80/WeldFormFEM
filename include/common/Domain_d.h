@@ -489,7 +489,7 @@ protected:
   double         *v_h,*u_h, *a_h;
   double         *m_mglob, *m_mdiag, *m_ematm; //Global Matrix (TODO: MAKE SPARSE) and Diagonal masses, and element masses
   
-	double 					*p, *rho, *rho_0;
+	double 					*p, *rho, *rho_0, *p_prev, *vol_prev;
   
   double          *ut_prev;   //FOR HISTORICAL CONTACT
   

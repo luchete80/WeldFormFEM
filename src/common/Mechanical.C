@@ -1518,10 +1518,10 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   else {
     
     //m_Jel[e] = m_detJ[e];
-    m_Jel[e] += (vol[e]-vol_prev[e])/vol_0[e];
     
     }
 
+    m_Jel[e] += (vol[e]-vol_prev[e])/vol_0[e];
       
       //printf("Shear Stress\n");
       //print(ShearStress);
