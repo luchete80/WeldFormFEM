@@ -38,24 +38,12 @@ dev_t void Domain_d::calcElemStrainRates(){
       //double test = 0.0;
       for (int n=0; n<m_nodxelem;n++) {
 
-        // double vele[3];
-        // vele[0] = vele3.x;        vele[1] = vele3.y;        vele[2] = vele3.z;
-        // do d=1, dim
-          // !print *, "node dim dHxy vele", n,d,temp(d,n) , elem%vele (e,dim*(n-1)+d,1) 
-          // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
-          // elem%rot_rate(e,gp, d,d) = 0.0d0
-        // end do
-        //test += getDerivative(e,gp,2,n) * f * getVElem(e,n,2);
-        // printf("n %d deriv %f vele %f\n",n, getDerivative(e,gp,2,n),  getVElem(e,n,2));
-        // printf ("Nod %d, vel %.6e  %.6e  %.6e \n", n, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2));
         for (int d=0;d<m_dim;d++){
           //printf("d %d n %d deriv %f vele %f\n",d, n, getDerivative(e,gp,d,n)*f,  getVElem(e,n,d));
           
           str_rate.Set(d,d, str_rate.getVal(d,d) + getDerivative(e,gp,d,n) * f * getVElem(e,n,d));
           rot_rate.Set(d,d, 0.0);
 
-          // elem%str_rate(e,gp, d,d) = elem%str_rate(e,gp, d,d) + temp(d,n) * elem%vele (e,dim*(n-1)+d,1) 
-          // elem%rot_rate(e,gp, d,d) = 0.0d0
           
         }//dim
         // !!!! TO AVOID ALL MATMULT
@@ -110,36 +98,83 @@ dev_t void Domain_d::calcElemStrainRates(){
       str_rate.ToFlatSymPtr(m_str_rate, offset);
       rot_rate.ToFlatSymPtr(m_rot_rate, offset); //UPPER PART
 
-       //printf("Strain Rate\n");
-       //str_rate.Print();
 
-      // printf("Rot Rate\n");
-      // str_rate.Print();
-      
-      // !elem%str_rate(e,gp,:,:) = matmul(elem%bl(e,gp,:,:),elem%vele (e,:,:)) 
-      // !print *, "simlpified strain rate "
-
-      //Inverse test
-      // Matrix *test = new Matrix(3,3);
-      // Matrix *invtest = new Matrix(3,3);
-      // //printf("A\n");
-      // test.Set(0,0,1);test.Set(0,1,1);test.Set(0,2,1);
-      // test.Set(1,0,1);test.Set(1,1,2);test.Set(1,2,2);      
-      // test.Set(2,0,1);test.Set(2,1,2);test.Set(2,2,3);
-      // InvMat(*test,invtest);
-      // ////printf("inv A\n");
-      // test.Print();
-      // invtest.Print();
-        // delete test, invtest;
       } // Gauss Point
 
     }//if e<elem_count
     
 
 } //calcElemStrains
+
+/// FBar to Dev to avoid shear locking
+
+dev_t void Domain_d::smoothDevStrainRates(double beta)
+{
+    // beta = 1.0 -> nada de suavizado
+    // beta = 0.0 -> todo suavizado (no recomendado)
+    // precomputar neighborElems[e] en inicialización
+
+    tensor3 D_local, D_avg, dev_local, dev_avg;
+
+    par_loop(e, m_elem_count)
+    {
+        for (int gp=0; gp<m_gp_count; gp++)
+        {
+            int offset_t = (e * m_gp_count + gp) * 6; // sym tensor
+            D_local = FromFlatSym(m_str_rate, offset_t);
+
+            // -------------------------
+            // PROMEDIO ENTRE VECINOS
+            // -------------------------
+            //D_avg.SetZero();
+            clear(D_avg);            
+            double vol_sum = 0.0;
+
+            int neighbor_count = 0;
+            for (int a = 0; a < m_nodxelem; ++a) {
+                int nid = m_elnod[e*m_nodxelem + a];
+                for (int i = 0; i < m_nodel_count[nid]; ++i) {
+                    int e_neigh = m_nodel[m_nodel_offset[nid] + i];
+                    if (e_neigh != e) {
+                      int off_n = (e_neigh * m_gp_count + gp) * 6;
+                      tensor3 D_neigh = FromFlatSym(m_str_rate, off_n);
+
+                      //D_avg = D_avg  + D_neigh * vol[e_neigh];
+                      D_avg = D_avg  + D_neigh;
+                      vol_sum += vol[e_neigh];
+                      neighbor_count++;
+                    }
+                }
+            }
+            
+            //if (vol_sum > 0.0)
+            if (neighbor_count>0)
+                //D_avg = 1.0/vol_sum * D_avg;
+                D_avg = 1.0/neighbor_count * D_avg;
+            else
+                D_avg = D_local; // sin vecinos => sin cambio
+
+            // -------------------------
+            // PARTES DESVIADORAS
+            // -------------------------
+            double tr_local = Trace(D_local);
+            double tr_avg   = Trace(D_avg);
+
+            dev_local = D_local - Identity() * (tr_local / 3.0);
+            dev_avg   = D_avg   - Identity() * (tr_avg   / 3.0);
+
+            // Mezcla suavizada
+            tensor3 dev_bar = dev_local * beta + dev_avg * (1.0 - beta);
+
+            // Reconstrucción manteniendo tr_local
+            tensor3 D_bar = dev_bar + Identity() * (tr_local / 3.0);
+
+            // Guardar de nuevo en m_str_rate
+            ToFlatSymPtr(D_bar, m_str_rate, offset_t);
+        }
+    }
+}
   
-
-
 ////// STRAIN RATE CALC: SLOWER VARIANT 
 
 // dev_t void Domain_d::calcElemStrainRates(){
@@ -696,7 +731,7 @@ dev_t void Domain_d::calcElemPressure() {
     // FINAL PRESSURE (contact boosted)
     p[e] = p_physical + p_pspg + p_hg + p_q;
     p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
-    //p[e] = std::max(-10.0 * K, std::min(2.0 * K, p[e]));  // Límites conservadores
+    //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
     
   }
 

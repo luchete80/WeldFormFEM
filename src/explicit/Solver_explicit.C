@@ -448,6 +448,8 @@ void host_ Domain_d::SolveChungHulbert(){
   //SECOND TIME
     //STRESSES CALC
   calcElemStrainRates();
+  //smoothDevStrainRates(1.0);
+
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
   //calcElemPressureANP_Nodal();

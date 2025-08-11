@@ -340,6 +340,7 @@ public:
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
   void AssignMatAddress_(); //Assign particle data to material array to zero array
   
+  dev_t void smoothDevStrainRates(double beta);
   dev_t void CalcStressStrain(double dt);
   dev_t void Calc_Elastic_Stress (const double dt);
   
