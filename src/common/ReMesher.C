@@ -277,7 +277,10 @@ void ReMesher::WriteDomain(){
   double *vol_0 = new double [m_elem_count];    
   double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
   
+  double *Tfield  = new double [m_dom->m_node_count];
+  
   double rho_0 = m_dom->rho_0[0];
+  
   
   for (int i=0;i<3*m_node_count;i++){
     afield[i]=0.0;
@@ -427,6 +430,12 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
     
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
+  
+  if (m_dom->m_thermal){
+    memcpy_t(m_dom->T,        Tfield, sizeof(double) * m_dom->m_node_count);     
+    
+  }
+
    
   m_dom->AssignMatAddress();
   const Material_ *matt  = &m_dom->materials[0];
@@ -468,6 +477,7 @@ void ReMesher::WriteDomain(){
   delete [] esfield,pfield,sigfield, syfield, psfield;
   delete [] str_rate,rot_rate, tau,rho,vol_0,idetF;
   delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
+  delete [] Tfield;
   cout << "MESH CHANGED"<<endl;
 
   //AFTER MAP

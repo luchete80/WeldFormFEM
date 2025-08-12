@@ -531,9 +531,11 @@ void host_ Domain_d::SolveChungHulbert(){
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping(m_remesh_damp_vel);
     for (int i=0;i<m_node_count;i++)
-      for (int d=0;d<m_dim;d++)
+      for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
-          a[m_dim*i+d] = 1.0e-4*a[m_dim*i+d];
+          a[m_dim*i+d] = (1.0e-4)*double(step_count-last_step_remesh)/STEP_RECOV*a[m_dim*i+d];
+          a[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/STEP_RECOV;
+      }
 
   }
 
