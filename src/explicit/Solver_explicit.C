@@ -328,7 +328,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   const int STEP_RECOV = 20;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
+    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.75;
       cout << "New dt: "<< dt<<endl;
   }
   
@@ -534,7 +534,7 @@ void host_ Domain_d::SolveChungHulbert(){
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
           a[m_dim*i+d] = (1.0e-4)*double(step_count-last_step_remesh)/STEP_RECOV*a[m_dim*i+d];
-          a[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/STEP_RECOV;
+          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/STEP_RECOV;
       }
 
   }
