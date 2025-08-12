@@ -310,11 +310,17 @@ void host_ Domain_d::SolveChungHulbert(){
   //cout << "Done"<<endl;
   }
 
+  double max_vel=0.0;
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
     double minl = getMinLength();
-    dt = m_cfl_factor*minl/(mat_cs);
+    for (int i=0;i<m_node_count;i++){
+      vector_t v = getVelVec(i);
+      if(norm(v)>max_vel)
+        max_vel = norm(v);
+    }
+    dt = m_cfl_factor*minl/(mat_cs+max_vel);
   
   
     // if (dt_new > 1.0e-20)
@@ -330,6 +336,7 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count < last_step_remesh +STEP_RECOV ){
     dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.75;
       cout << "New dt: "<< dt<<endl;
+      cout << "Max vel "<<max_vel<<endl;
   }
   
   //printf("Prediction ----------------\n");

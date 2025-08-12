@@ -529,7 +529,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
           if (vert == 0)
             std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
           
-          for (int d=0;d<3;d++) vfield[dim*vert+d] = o_field[dim*v+d];
+          for (int d=0;d<dim;d++) vfield[dim*vert+d] = o_field[dim*v+d];
         }                
       }//node
       
@@ -567,12 +567,12 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
                 // Interpolate vector values for displacement (if needed)
                 std::array<double, 3> disp[4];
                 for (int n=0;n<4;n++)
-                  for (int d=0;d<3;d++)
-                    disp[n][d] = o_field[3*m_dom->m_elnod[4*i+n]+d];
+                  for (int d=0;d<dim;d++)
+                    disp[n][d] = o_field[dim*m_dom->m_elnod[4*i+n]+d];
                 
                 //cout << "Interp disp"<<endl;
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
-                for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
+                for (int d=0;d<dim;d++) vfield[dim*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
                 if (vert == 0)  {
                 std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
