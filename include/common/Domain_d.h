@@ -566,7 +566,7 @@ protected:
   double          *m_Jel; // Almacenar J elástico por elemento
   double          *m_Jpl;  // J plástico por elemento (para cálculo nodal)
   double          *m_F;
-  double          *m_Fpl;
+  double          *m_Fp;
   
   //Updated lagrangian formulation
   //real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy

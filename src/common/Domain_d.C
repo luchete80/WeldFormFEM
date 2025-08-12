@@ -564,7 +564,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (m_Jel,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_Jpl,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_F,        	  double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
-  malloc_t (m_Fpl,        	double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
+  malloc_t (m_Fp,        	double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
   
 
 }
@@ -718,7 +718,7 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (m_Jel,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_Jpl,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_F,        	  double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
-  malloc_t (m_Fpl,        	double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
+  malloc_t (m_Fp,        	double, m_elem_count*9); /////USED FOIR THERMAL CONTACT
   
   
 }

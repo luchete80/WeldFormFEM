@@ -225,10 +225,23 @@ void host_ Domain_d::SolveChungHulbert(){
     printf ("elem  %d %f\n",e,getVElem(e,n,0));  
   */
   
+  /// NEW, TO DECOMPOSE ELASTIC/PLASTIC
   for (int e=0;e<m_elem_count;e++){
     m_Jel[e] = 1.0;
     m_Jpl[e] = 1.0;
   }
+  
+  for (int e=0;e<m_elem_count;e++){
+    int offset = m_dim*m_dim*e;
+    for (int i = 0; i < m_dim; i++) {
+      for (int j = 0; j < m_dim; j++) {
+        double val = (i == j) ? 1.0 : 0.0;
+        m_Fp[offset+i * m_dim + j] = val;
+        m_F [offset+i * m_dim + j] = val;
+      }
+    }
+  }
+          
   
   Time = 0.0;
   int step_count = 0;
@@ -475,6 +488,8 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP_Nodal_HG();
   
   //calcElemPressureFromJ();
+  calcElemStrGradF();
+  
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
