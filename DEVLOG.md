@@ -381,3 +381,4 @@ F90 PREVIOUS VERSION
 20250805 - Fixed axisymmetric vol weight calcs.
 20250805 - Working on AxiSymmetric, added tri/tetra domain.
          - Corrected Axisymm weight in strain and forces calc to tri/tetras
+20250812 - Rolling back to previous Pressure with J total calculation.
