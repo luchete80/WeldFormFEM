@@ -256,7 +256,7 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
 
 void ReMesher::WriteDomain(){
   
-  bool m_map_momentum = false;
+  bool m_map_momentum = true;
   
   cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
   #ifdef REMESH_OMEGA_H
