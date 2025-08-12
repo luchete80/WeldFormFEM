@@ -1461,18 +1461,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       // Scale the entire deviatoric stress tensor
       ShearStress = ShearStress * scale_factor;
       
-      // Reconstruct the full stress tensor
-      //Sigma = -p[offset_s] * Identity() + ShearStress;
-      
-
-      
-      // Calculate new equivalent stress for verification
-      //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
-      //~ double J2_new = 0.5*(s_new.xx*s_new.xx + 2.0*s_new.xy*s_new.xy + 
-                          //~ 2.0*s_new.xz*s_new.xz + s_new.yy*s_new.yy +  
-                          //~ 2.0*s_new.yz*s_new.yz + s_new.zz*s_new.zz);
-      //~ double sig_new = sqrt(3.0*J2_new);
-      
 
       
       // Update tangent modulus if needed
@@ -1498,27 +1486,71 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 
     // Actualizar Fp
     tensor3 Dp = N * gamma_dot;
+    if (fabs(Trace(Dp)) > 0.0) {
+        Dp = Dp - (Trace(Dp)/3.0) * Identity();
+    }
+
     tensor3 Delta_Fp = Identity() + Dp * dt;
     
     
     Matrix mfp(3,3);
     mfp = Tensor2Matrix(Delta_Fp);
 
+    double detDelta = mfp.calcDet();
+  
+    if (!isfinite(detDelta) || detDelta <= 0.0) {
+        if (e==0) cout << "Warning: det(Delta_Fp) inválido: " << detDelta << " -> fallback a Identity\n";
+        // fallback seguro: no introducir cambio plástico volumétrico.
+        // Opción A: usar identidad (evita corrupto)
+        for (int i=0;i<m_dim;i++)
+          for (int j=0;j<m_dim;j++)
+            mfp.Set(i,j, (i==j)? 1.0 : 0.0);
+    } else {
+        // normalizar isocóricamente (det -> 1)
+        double c = pow(detDelta, 1.0/3.0);
+        if (!isfinite(c) || fabs(c) < 1e-16) {
+            if (e==0) cout << "Warning: cube root inválido, usando c=1\n";
+            c = 1.0;
+        }
+        for (int i = 0; i < m_dim; ++i)
+          for (int j = 0; j < m_dim; ++j)
+            mfp.Set(i,j, mfp(i,j) / c);
+    }
+
     //SEPARATE ELASTIC/PLASTIC
     Matrix Fp(m_dim,m_dim);
     Matrix Fp_n(m_dim,m_dim);
 
-    
     int offset = m_dim*m_dim*e;
     for (int i = 0; i < m_dim; i++) {
       for (int j = 0; j < m_dim; j++) {
-          double val = (i == j) ? 1.0 : 0.0;
           Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
         }
       }
-     
+    
     Fp_n = MatMul(mfp,Fp);
 
+
+    double detFp = Fp_n.calcDet();
+    if (fabs(detFp) < 1e-12) {
+      // regulariza Fp (ej: añadir epsilon a la diagonal) o reiniciar a identidad
+      for (int i=0;i<m_dim;i++) Fp_n.Set(i,i, Fp_n(i,i) + 1e-8);
+      if (e==0) std::cout<<"Warning: det(Fp) muy pequeño, regularizando.\n";
+    }
+
+      
+
+    if (e==0){
+      cout << "Delta FP"<<endl;
+      cout <<Delta_Fp.xx<<", "<<Delta_Fp.xy<<", "<<Delta_Fp.xz<<endl;
+      cout <<Delta_Fp.yx<<", "<<Delta_Fp.yy<<", "<<Delta_Fp.yz<<endl; 
+      cout <<Delta_Fp.zx<<", "<<Delta_Fp.zy<<", "<<Delta_Fp.zz<<endl;
+                 
+      cout << "dp"<<dep<<"FPn "<<mfp.calcDet()<<endl;
+      cout << "Fp "<<Fp_n.calcDet()<<endl;
+      cout << "det CurrFp "<<Fp.calcDet()<<endl;
+    }
+    
     ///////@TODO: Put it in a function
     int offset_f = m_dim*m_dim*e;
     for (int i = 0; i < m_dim; i++) {
@@ -1802,7 +1834,10 @@ dev_t void Domain_d::calcElemStrGradF(){
 
     // 3. Inv (I - ∇x u) to obtain F
     Matrix F = I_minus_grad_u_x.Inv(); // Necesitas una función de inversión de matrices
-
+    
+    if (e ==0)
+    if (pl_strain[e]>0.0)
+    cout << "detJ TOTAL"<< F.calcDet()<<"Jel"<<m_Jel[e]<<"pl_strain"<<endl;
     // 4. Guarda F
     for (int i = 0; i < m_dim; i++) {
         for (int j = 0; j < m_dim; j++) {
@@ -1824,7 +1859,6 @@ dev_t void Domain_d::calcElemElasticJ(){
     int offset = m_dim*m_dim*e;
     for (int i = 0; i < m_dim; i++) {
       for (int j = 0; j < m_dim; j++) {
-          double val = (i == j) ? 1.0 : 0.0;
           F.Set (i,j,m_F  [offset+i * m_dim + j]);
           Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
         }
@@ -1833,7 +1867,10 @@ dev_t void Domain_d::calcElemElasticJ(){
     Fe = MatMul(F,Fp.Inv());
     
     m_Jel[e] = Fe.calcDet();  
-    //cout << "detJel "<<m_Jel[e]<<endl;     
+    if (e==0 && pl_strain[e]>0)
+      cout << "detJel "<<m_Jel[e]<<", Jpl"<<Fp.calcDet()<<endl;     
+    //m_Jel[e] = F.calcDet();   ////// TO TEST
+
 
     //m_Jel[e] = vol[e]/vol_0[e];         
   

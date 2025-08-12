@@ -237,7 +237,6 @@ void host_ Domain_d::SolveChungHulbert(){
       for (int j = 0; j < m_dim; j++) {
         double val = (i == j) ? 1.0 : 0.0;
         m_Fp[offset+i * m_dim + j] = val;
-        m_F [offset+i * m_dim + j] = val;
       }
     }
   }
