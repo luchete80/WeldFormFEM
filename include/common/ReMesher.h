@@ -51,10 +51,12 @@ class ReMesher{
   void Generate_mmg();
   
   //dest,origin,switches between mesher
-  void MapNodal(double *vfield, double *o_field);
+  void MapNodal(double *vfield, double *o_field); //VECTORIAL @TODO: ADD TEMPLATE
+  void MapNodalScalar(double *vfield, double *o_field);
   void MapElem(double *vfield, double *o_field, int field_dim=1);
   
   //THIS USES m_x,m_elnod,m_xx_count as output mesh data
+  template <int dim>
   void MapNodalVectorRaw(double *vfield, double *o_field); //
   void MapElemVectorRaw  (double *vfield, double *o_field, int field_dim); ///
   

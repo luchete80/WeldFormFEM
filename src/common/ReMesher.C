@@ -199,9 +199,17 @@ for (int v=0;v<size;v++)
 
 void ReMesher::MapNodal(double *vfield, double *o_field){
   #ifndef REMESH_OMEGA_H
-  MapNodalVectorRaw        (vfield, o_field);
+  MapNodalVectorRaw<3>        (vfield, o_field);
   #else              
   MapNodalVector<3> (m_mesh, vfield, o_field); 
+  #endif
+  
+}
+void ReMesher::MapNodalScalar(double *vfield, double *o_field){
+  #ifndef REMESH_OMEGA_H
+  MapNodalVectorRaw<1>        (vfield, o_field);
+  #else              
+
   #endif
   
 }
@@ -490,6 +498,7 @@ void ReMesher::WriteDomain(){
 
 /////WITH THE RAW ELEM AND CONNECT
 //args: NEW (m_node_count), OLD(m_dom->m_elem_count)
+template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
@@ -520,7 +529,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
           if (vert == 0)
             std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
           
-          for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
+          for (int d=0;d<3;d++) vfield[dim*vert+d] = o_field[dim*v+d];
         }                
       }//node
       
