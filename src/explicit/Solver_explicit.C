@@ -469,31 +469,31 @@ void host_ Domain_d::SolveChungHulbert(){
   //smoothDevStrainRates(0.5);
   
   calcElemDensity();
+
+  calcElemStrGradF();
+  calcElemElasticJ();
+  
   // if (m_dim == 3 && m_nodxelem ==4){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
-  if      (m_press_algorithm == 0)
-    calcElemPressure();
-  else if (m_press_algorithm == 1)
-    calcElemPressureANP();
+  //~ if      (m_press_algorithm == 0)
+  calcElemPressure();
+  //~ else if (m_press_algorithm == 1)
+    //~ calcElemPressureANP();
 
   
   //if (step_count%5 == 0)
     //smoothPressureLaplacian();
   
-  calcNodalPressureFromElemental();
-  //smoothPressureField(0.2);
-  //calcElemPressure_Hybrid_VolHG();
-  //calcElemPressureANP_Nodal_HG();
   
-  //calcElemPressureFromJ();
-  calcElemStrGradF();
+
+
   
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
-    
+  calcNodalPressureFromElemental();  
 
   
   calcElemForces();

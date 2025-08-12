@@ -467,121 +467,6 @@ dev_t void Domain_d::calcElemForces(){
   }//if e<elem_count
 }
 
-// ORIGINAL
-dev_t void Domain_d::calcElemPressure_Hex(){
-
-  //~ par_loop(e,m_elem_count){
-    //~ //printf("calc pressure \n");
-    //~ int offset_t = e * m_gp_count *6;
-
-     //~ double trace;
-     //~ double press_inc = 0.0;
-     //~ for (int gp=0;gp<m_gp_count;gp++){
-       //~ trace = 0.0;
-       //~ tensor3 str_inc     = FromFlatSym(m_str_rate,     offset_t +gp)*dt;
-       //~ //printf("str inc, dt %f\n", dt);print(str_inc);
-       //~ press_inc += Trace(str_inc);
-      //~ }//gauss point
-       //~ press_inc = -press_inc/m_gp_count;
-       //~ //  //printf("trace %f\n",trace);
-       //~ int offset = e * m_gp_count ;
-       //~ for (int gp=0;gp<m_gp_count;gp++){
-        //~ //  //printf("bulk mod:%f, press inc%f\n", mat[e]->Elastic().BulkMod(),press_inc);
-       //~ trace = 0.0;
-       //~ for (int d = 0; d<3;d++) trace += getSigma(e,gp,d,d);
-        
-       //~ p[offset + gp] = -1.0/3.0 * trace + mat[e]->Elastic().BulkMod() * press_inc;
-       //~ //printf("pressure %f\n",p[offset + gp]);
-     //~ }
-
-   //~ } // e< elem_count
-}
-
-////ALT PRESSURE CALC (Previous, Low Press, no mix Nodal/Loc FBar)
-//~ dev_t void Domain_d::calcElemPressure() {
-  //~ // Compute nodal volumes (reused for hourglass control)
-  //~ double *voln_0 = new double[m_node_count];
-  //~ double *voln = new double[m_node_count];
-  
-  //~ par_loop(n, m_node_count) {
-    //~ voln_0[n] = voln[n] = 0.0;
-    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
-      //~ int e = m_nodel[m_nodel_offset[n] + i];
-      //~ voln_0[n] += vol_0[e];  // Sum elemental ref volumes
-      //~ voln[n]   += vol[e];    // Sum elemental current volumes
-    //~ }
-  //~ }
-
-  //~ for (int e=0;e<m_elem_count;e++){
-  //~ //par_loop(e, m_elem_count) {
-    //~ double K = mat[e]->Elastic().BulkMod();
-    //~ double rho_e = rho[e];  // Densidad actual del elemento
-    //~ double vol0 = vol_0[e];
-    //~ double vol1 = vol[e];
-    //~ double J =vol1/vol0;
-
-
-    //~ // 1. Div Velocity 
-    //~ double div_v = 0.0;
-
-    //~ for (int a = 0; a < m_nodxelem; ++a) {
-      //~ int nid = m_elnod[e * m_nodxelem + a];
-      //~ double3 va = getVelVec(nid); // Velocidad nodal
-      //~ double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
-      //~ div_v += dot(gradNa, va);
-    //~ }
-
-    //~ // 2. PSPG: Estabilización de presión
-    //~ double h = pow(vol[e], 1.0/3.0); // Longitud característica
-    //~ double mu_eff = 0.1 * sigma_y[e]; // Ej: σ_y = 100e6 Pa → mu_eff = 10e6 Pa·s
-    //~ double tau = (h*h) / (4.0 * mu_eff);
-    //~ double p_pspg = tau * div_v; // Término clave!
-
-//~ // 3. F-bar: Corregir J (evitar locking)
-    //~ double J_physical = vol[e] / vol_0[e]; // J sin corregir
-    //~ double J_avg = 0.0;
-    //~ for (int a = 0; a < m_nodxelem; ++a) {
-      //~ int nid = m_elnod[e * m_nodxelem + a];
-      //~ J_avg += (voln[nid] / voln_0[nid]); // J nodal promediado
-    //~ }
-    //~ J_avg /= m_nodxelem;
-    //~ double J_bar = J_avg; // Usar J promedio para el elemento (F-bar volumétrico)
-    
-
-    //~ // 4. Presión física CORREGIDA (sin ANP!)
-    //~ double p_physical = -mat[e]->Elastic().BulkMod() * log(J_bar);
-    
-    //~ //Artif Visc
-    //~ double q = 0.0;
-    //~ if (div_v < 0.0) {
-      //~ double c = sqrt(K / rho_e); // Velocidad del sonido
-      //~ //double h = elem_char_length[e]; // Longitud característica del elemento
-      //~ //double h = getMinLength();
-      //~ double h = pow(vol[e], 1.0/3.0); 
-      //~ double alpha = 0.12;
-      //~ double beta = 0.01;
-      
-
-      //~ q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
-    //~ }
-    
-    //~ // Hourglass volumétrico (opcional, ajustable)
-
-
-    //~ double hg_coeff = 0.0;
-    //~ double p_hg = hg_coeff * K * (J - J_avg);
-    
-    //~ // Presión final
-    //~ //p[e] = p_vol + q;
-
-    //~ // 5. Combinar con PSPG
-    //~ p[e] = p_physical + p_pspg + q + p_hg; // PSPG suprime oscilaciones
-    
-  //~ }
-  //~ delete[] voln_0;
-  //~ delete[] voln;
-  
-//~ }
 
 //~ dev_t void Domain_d::calcElemPressure() {
   
@@ -1502,6 +1387,7 @@ dev_t void Domain_d::Calc_Elastic_Stress(const double dt){
 // !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
 dev_t void Domain_d::CalcStressStrain(double dt){
   
+      
   par_loop(e,m_elem_count){
       //printf("calculating sigma \n");
         // Jaumann rate terms
@@ -1544,9 +1430,28 @@ dev_t void Domain_d::CalcStressStrain(double dt){
                           );
 
       double Et;
-      
-      tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;
 
+
+    //SEPARATE ELASTIC/PLASTIC
+    Matrix F (m_dim,m_dim);
+    Matrix Fp(m_dim,m_dim);
+    Matrix Fe(m_dim,m_dim);
+    
+    int offset = m_dim*m_dim*e;
+    for (int i = 0; i < m_dim; i++) {
+      for (int j = 0; j < m_dim; j++) {
+          double val = (i == j) ? 1.0 : 0.0;
+          F.Set (i,j,m_F  [offset+i * m_dim + j]);
+          Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
+        }
+      }
+      
+    Fe = MatMul(F,Fp.Inv());
+    
+    ////// ORIGINAL!
+    tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;  
+
+    
     tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
 
 
@@ -1567,19 +1472,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         sigma_y[e] = CalcGMTYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
       }
 
-    //SEPARATE ELASTIC/PLASTIC
-    Matrix F (m_dim,m_dim);
-    Matrix Fp(m_dim,m_dim);
-    
-    int offset = m_dim*m_dim*e;
-    for (int i = 0; i < m_dim; i++) {
-      for (int j = 0; j < m_dim; j++) {
-          double val = (i == j) ? 1.0 : 0.0;
-          F.Set (i,j,m_F  [offset+i * m_dim + j]);
-          Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
-        }
-      }
-       
         
         //printf("sy %.3f\n",sigma_y[e]);
   // Inside your plasticity block where (sigma_y[e] < sig_trial)
@@ -1649,10 +1541,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 
   }//IF PLASTIC
 
-    Matrix Fe(m_dim,m_dim);
-    Fe = MatMul(F,Fp.Inv());
-    
-    m_Jel[e] = Fe.calcDet();
+
   
 
 
@@ -1742,10 +1631,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       
     }//gp
   }//el < elcount
-    // end do !gauss point
-  // end do
-  //printf("ELEMENT %d SIGMA\n");
- 
+
 }
 
 
@@ -1936,6 +1822,32 @@ dev_t void Domain_d::calcElemStrGradF(){
         }
     }  
     
+  }
+}
+
+dev_t void Domain_d::calcElemElasticJ(){
+
+  par_loop(e,m_elem_count){
+    //SEPARATE ELASTIC/PLASTIC
+    Matrix F (m_dim,m_dim);
+    Matrix Fp(m_dim,m_dim);
+    Matrix Fe(m_dim,m_dim);
+    
+    int offset = m_dim*m_dim*e;
+    for (int i = 0; i < m_dim; i++) {
+      for (int j = 0; j < m_dim; j++) {
+          double val = (i == j) ? 1.0 : 0.0;
+          F.Set (i,j,m_F  [offset+i * m_dim + j]);
+          Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
+        }
+      }
+      
+    Fe = MatMul(F,Fp.Inv());
+    
+    //m_Jel[e] = Fe.calcDet();       
+
+    m_Jel[e] = vol[e]/vol_0[e];         
+  
   }
 }
 
