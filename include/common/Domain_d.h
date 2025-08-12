@@ -282,6 +282,8 @@ public:
   dev_t void calcElemPressureANP_Nodal_HG();
   dev_t void calcElemPressureANP_Nodal_Stab();
   
+  dev_t void calcElemStrGradF();
+  
   dev_t void calcElemPressure_Hybrid();
   dev_t void calcElemPressure_Hybrid_VolHG();
 
@@ -560,8 +562,11 @@ protected:
   double          *m_sigma, *m_tau, *m_eps;
 	double          *m_radius;
   
+  ///// FOR PLASTIC/ELASTIC DECOMPOSITION
   double          *m_Jel; // Almacenar J elástico por elemento
   double          *m_Jpl;  // J plástico por elemento (para cálculo nodal)
+  double          *m_F;
+  double          *m_Fpl;
   
   //Updated lagrangian formulation
   //real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy

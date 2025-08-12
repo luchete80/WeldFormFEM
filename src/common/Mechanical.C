@@ -1803,6 +1803,46 @@ dev_t void Domain_d:: calcElemHourglassForces()
   } //non tetra
 }
 
+dev_t void Domain_d::calcElemStrGradF(){
+  par_loop(e, m_elem_count) {
+      int offset = m_dim*m_dim*e;
+    double f = 1.0/m_detJ[e];
+
+    Matrix grad_u_x(m_dim, m_dim);
+    for (int i = 0; i < m_dim; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            double sum = 0.0;
+            for (int a = 0; a < m_nodxelem; a++) {
+                int nid = m_elnod[e * m_nodxelem + a];
+                sum += u[m_dim*nid+i] * getDerivative(e,0,j,nid); // u_i * ∂N_a/∂x_j getDerivative(e,gp,d,n) , dHxy.getVal(j, a)
+            }
+            grad_u_x.Set(i, j, sum*f);
+        }//j
+    }//i
+
+    // 2. Calcula I - ∇x u
+    Matrix I_minus_grad_u_x(m_dim, m_dim);
+    for (int i = 0; i < m_dim; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            double val = (i == j) ? 1.0 : 0.0;
+            val -= grad_u_x.getVal(i, j);
+            I_minus_grad_u_x.Set(i, j, val);
+        }
+    }
+
+    // 3. Invierte (I - ∇x u) para obtener F
+    Matrix F = I_minus_grad_u_x.Inv(); // Necesitas una función de inversión de matrices
+
+    // 4. Guarda F
+    for (int i = 0; i < m_dim; i++) {
+        for (int j = 0; j < m_dim; j++) {
+            m_F[e * m_dim * m_dim + i * m_dim + j] = F.getVal(i, j);
+        }
+    }  
+    
+  }
+}
+
 
   
 
