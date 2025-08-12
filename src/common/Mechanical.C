@@ -468,165 +468,165 @@ dev_t void Domain_d::calcElemForces(){
 }
 
 
-dev_t void Domain_d::calcElemPressure() {
-  
-  // 1. Calcular volúmenes nodales acumulados
-  double *voln_0 = new double[m_node_count];
-  double *voln   = new double[m_node_count];
-
- // 1. Compute nodal volumes - parallel optimized
-  par_loop(n, m_node_count) {
-    voln_0[n] = voln[n] = 0.0;
-    for (int i = 0; i < m_nodel_count[n]; ++i) {
-      int e = m_nodel[m_nodel_offset[n] + i];
-      voln_0[n] += vol_0[e];
-      voln[n]   += vol[e];
-    }
-  }
-    
-        
-    // 3. Element loop - main computation
-  par_loop(e, m_elem_count) {
-    double K  = mat[e]->Elastic().BulkMod();
-    double mu = mat[e]->Elastic().G();
-    double rho_e = rho[e];
-    double vol0 = vol_0[e];
-    double vol1 = vol[e];
-    double J_local = vol1 / vol0;
-    double h = pow(vol1, 1.0/3.0);
-    
-    // Contact detection
-    double contact_weight = 0.0;
-    bool is_contact = false;
-    for(int a = 0; a < m_nodxelem; ++a) {
-      int nid = m_elnod[e*m_nodxelem + a];
-      double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
-        if(dot(cf,cf) > 0) {
-            is_contact = true;
-            break;
-        }
-        //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
-    }
-
-    // F-bar adaptive blending
-    double J_avg = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        J_avg += voln[nid] / voln_0[nid];
-    }
-    J_avg /= m_nodxelem;
-
-    // Critical: Contact-adaptive blending
-    //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
-    double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
-    //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
-    double J_bar = alpha*J_local + (1-alpha)*J_avg;
-    if (J_bar < m_stab.J_min)
-      J_bar = 0.2;
-      
-     // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
-
-    //double p_physical = -K * log(J_bar);
-
-    //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
-
-    // Enhanced PSPG - dynamic tau calculation
-    double c = sqrt(K / rho_e);  // Sound speed
-    double tau = h / (2.0 * c);  // Dynamic stabilization
-    
-    // Velocity divergence
-    double div_v = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        double3 va = getVelVec(nid);
-        double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
-        div_v += dot(gradNa, va);
-    }
-    
-    //div_v /= vol1;  // Normalización
-    
-    double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
-    //double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
-            
-    // Non-negative hourglass (stabilization only)
-    double p_hg = (is_contact ? m_stab.hg_coeff_contact : m_stab.hg_coeff_free) * K * fabs(J_local - J_avg);
-    
-    // Artificial viscosity - compression only
-    double p_q = 0.0;
-    if(div_v < 0.0) {
-        p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
-        //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
-        double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
-        double delta_J = 1.0 - J_local;
-        double q2 = m_stab.av_coeff_bulk * K * delta_J;  // Volumetric term
-        if (is_contact) {
-            p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
-        } else {
-            p_q = std::max(q1, q2);
-        }
-    }
-
-    // Contact pressure boost (additional 10-15% in contact zones)
-    
-    // FINAL PRESSURE (contact boosted)
-    p[e] = p_physical + p_pspg + p_hg + p_q;
-    //p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
-    //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
-    
-  }
-
-  delete[] voln_0;
-  delete[] voln;
-}
-
-
 //~ dev_t void Domain_d::calcElemPressure() {
   
   //~ // 1. Calcular volúmenes nodales acumulados
-  //~ double *J_eln   = new double[m_node_count];
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln   = new double[m_node_count];
 
  //~ // 1. Compute nodal volumes - parallel optimized
   //~ par_loop(n, m_node_count) {
-    //~ J_eln[n] = 0.0;
+    //~ voln_0[n] = voln[n] = 0.0;
     //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
       //~ int e = m_nodel[m_nodel_offset[n] + i];
-      //~ J_eln[n] += m_Jel[e];
+      //~ voln_0[n] += vol_0[e];
+      //~ voln[n]   += vol[e];
     //~ }
-    //~ J_eln[n] /=m_nodel_count[n];
   //~ }
-
-  
+    
         
     //~ // 3. Element loop - main computation
   //~ par_loop(e, m_elem_count) {
     //~ double K  = mat[e]->Elastic().BulkMod();
+    //~ double mu = mat[e]->Elastic().G();
+    //~ double rho_e = rho[e];
+    //~ double vol0 = vol_0[e];
+    //~ double vol1 = vol[e];
+    //~ double J_local = vol1 / vol0;
+    //~ double h = pow(vol1, 1.0/3.0);
+    
+    //~ // Contact detection
+    //~ double contact_weight = 0.0;
+    //~ bool is_contact = false;
+    //~ for(int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e*m_nodxelem + a];
+      //~ double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
+        //~ if(dot(cf,cf) > 0) {
+            //~ is_contact = true;
+            //~ break;
+        //~ }
+        //~ //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
+    //~ }
 
-       //~ // F-bar adaptive blending
-
-
-    //~ double J_avg_elastic = 0.0;
+    //~ // F-bar adaptive blending
+    //~ double J_avg = 0.0;
     //~ for(int a = 0; a < m_nodxelem; ++a) {
         //~ int nid = m_elnod[e*m_nodxelem + a];
-        //~ J_avg_elastic += J_eln[nid]; // Necesitarías calcular J_plastic por nodo
+        //~ J_avg += voln[nid] / voln_0[nid];
     //~ }
-    //~ J_avg_elastic /= m_nodxelem;
-
+    //~ J_avg /= m_nodxelem;
 
     //~ // Critical: Contact-adaptive blending
+    //~ //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
+    //~ double alpha = is_contact ? m_stab.alpha_contact : m_stab.alpha_free;  // More local in contact
+    //~ //double alpha = alpha_free + (alpha_contact - alpha_free) * contact_weight;
+    //~ double J_bar = alpha*J_local + (1-alpha)*J_avg;
+    //~ if (J_bar < m_stab.J_min)
+      //~ J_bar = 0.2;
+      
+     //~ // IMPROVED PHYSICAL PRESSURE (Hybrid model)
+    //~ double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
-    //~ double alpha = m_stab.alpha_free;  // More local in contact
+    //~ //double p_physical = -K * log(J_bar);
 
-    //~ double J_bar_el = alpha*m_Jel[e] + (1-alpha)*J_avg_elastic;
+    //~ //double p_physical = -K * (log(J_bar) + (mu / K) * (J_bar * J_bar - 1.0));
 
-    //~ double p_physical = -K * (J_bar_el-1.0);    
+    //~ // Enhanced PSPG - dynamic tau calculation
+    //~ double c = sqrt(K / rho_e);  // Sound speed
+    //~ double tau = h / (2.0 * c);  // Dynamic stabilization
+    
+    //~ // Velocity divergence
+    //~ double div_v = 0.0;
+    //~ for(int a = 0; a < m_nodxelem; ++a) {
+        //~ int nid = m_elnod[e*m_nodxelem + a];
+        //~ double3 va = getVelVec(nid);
+        //~ double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+        //~ div_v += dot(gradNa, va);
+    //~ }
+    
+    //~ //div_v /= vol1;  // Normalización
+    
+    //~ double p_pspg = 0.0;  // LIMITED TO COMPRESSION 
+    //~ //double p_pspg = std::min(pspg_scale * tau * div_v, p_pspg_bulkfac * K);  // Límite del 5% de 
+            
+    //~ // Non-negative hourglass (stabilization only)
+    //~ double p_hg = (is_contact ? m_stab.hg_coeff_contact : m_stab.hg_coeff_free) * K * fabs(J_local - J_avg);
+    
+    //~ // Artificial viscosity - compression only
+    //~ double p_q = 0.0;
+    //~ if(div_v < 0.0) {
+        //~ p_pspg = std::min(m_stab.pspg_scale * tau * div_v *K, m_stab.p_pspg_bulkfac * K);  // Límite del 5% de 
+        //~ //cout << "pspg "<<pspg_scale * tau * div_v *K<<endl;
+        //~ double q1 = m_stab.av_coeff_div * rho_e * h * c * (-div_v);
+        //~ double delta_J = 1.0 - J_local;
+        //~ double q2 = m_stab.av_coeff_bulk * K * delta_J;  // Volumetric term
+        //~ if (is_contact) {
+            //~ p_q = 0.5 * (q1 + q2);  // Mezcla en contacto
+        //~ } else {
+            //~ p_q = std::max(q1, q2);
+        //~ }
+    //~ }
 
-    //~ p[e] = p_physical ;
-    //~ //cout << "Javg el "<<J_avg_elastic<<",pe"<<p[e]<<endl;    
+    //~ // Contact pressure boost (additional 10-15% in contact zones)
+    
+    //~ // FINAL PRESSURE (contact boosted)
+    //~ p[e] = p_physical + p_pspg + p_hg + p_q;
+    //~ //p[e] = std::max(-2.0 * sigma_y[e], min(0.5 * sigma_y[e], p[e]));
+    //~ //p[e] = std::max(-10.0 * K, std::min(5.0 * K, p[e]));  // Límites conservadores
+    
   //~ }
 
-  //~ delete[] J_eln;
+  //~ delete[] voln_0;
+  //~ delete[] voln;
 //~ }
+
+
+dev_t void Domain_d::calcElemPressure() {
+  
+  // 1. Calcular volúmenes nodales acumulados
+  double *J_eln   = new double[m_node_count];
+
+ // 1. Compute nodal volumes - parallel optimized
+  par_loop(n, m_node_count) {
+    J_eln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      J_eln[n] += m_Jel[e];
+    }
+    J_eln[n] /=m_nodel_count[n];
+  }
+
+  
+        
+    // 3. Element loop - main computation
+  par_loop(e, m_elem_count) {
+    double K  = mat[e]->Elastic().BulkMod();
+
+       // F-bar adaptive blending
+
+
+    double J_avg_elastic = 0.0;
+    for(int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        J_avg_elastic += J_eln[nid]; // Necesitarías calcular J_plastic por nodo
+    }
+    J_avg_elastic /= m_nodxelem;
+
+
+    // Critical: Contact-adaptive blending
+
+    double alpha = m_stab.alpha_free;  // More local in contact
+
+    double J_bar_el = alpha*m_Jel[e] + (1-alpha)*J_avg_elastic;
+
+    double p_physical = -K * (J_bar_el-1.0);    
+
+    p[e] = p_physical ;
+    //cout << "Javg el "<<J_avg_elastic<<",pe"<<p[e]<<endl;    
+  }
+
+  delete[] J_eln;
+}
 
 dev_t void Domain_d::calcElemPressureCaylak() {
   
@@ -1499,7 +1499,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     double detDelta = mfp.calcDet();
   
     if (!isfinite(detDelta) || detDelta <= 0.0) {
-        if (e==0) cout << "Warning: det(Delta_Fp) inválido: " << detDelta << " -> fallback a Identity\n";
+        //if (e==0) cout << "Warning: det(Delta_Fp) inválido: " << detDelta << " -> fallback a Identity\n";
         // fallback seguro: no introducir cambio plástico volumétrico.
         // Opción A: usar identidad (evita corrupto)
         for (int i=0;i<m_dim;i++)
@@ -1509,7 +1509,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         // normalizar isocóricamente (det -> 1)
         double c = pow(detDelta, 1.0/3.0);
         if (!isfinite(c) || fabs(c) < 1e-16) {
-            if (e==0) cout << "Warning: cube root inválido, usando c=1\n";
+            //if (e==0) cout << "Warning: cube root inválido, usando c=1\n";
             c = 1.0;
         }
         for (int i = 0; i < m_dim; ++i)
@@ -1535,11 +1535,11 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     if (fabs(detFp) < 1e-12) {
       // regulariza Fp (ej: añadir epsilon a la diagonal) o reiniciar a identidad
       for (int i=0;i<m_dim;i++) Fp_n.Set(i,i, Fp_n(i,i) + 1e-8);
-      if (e==0) std::cout<<"Warning: det(Fp) muy pequeño, regularizando.\n";
+      //if (e==0) std::cout<<"Warning: det(Fp) muy pequeño, regularizando.\n";
     }
 
       
-
+/*
     if (e==0){
       cout << "Delta FP"<<endl;
       cout <<Delta_Fp.xx<<", "<<Delta_Fp.xy<<", "<<Delta_Fp.xz<<endl;
@@ -1550,7 +1550,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       cout << "Fp "<<Fp_n.calcDet()<<endl;
       cout << "det CurrFp "<<Fp.calcDet()<<endl;
     }
-    
+  */  
     ///////@TODO: Put it in a function
     int offset_f = m_dim*m_dim*e;
     for (int i = 0; i < m_dim; i++) {
@@ -1816,7 +1816,8 @@ dev_t void Domain_d::calcElemStrGradF(){
             double sum = 0.0;
             for (int a = 0; a < m_nodxelem; a++) {
                 int nid = m_elnod[e * m_nodxelem + a];
-                sum += u[m_dim*nid+i] * getDerivative(e,0,j,nid); // u_i * ∂N_a/∂x_j getDerivative(e,gp,d,n) , dHxy.getVal(j, a)
+                //m_dH_detJ_dx[e*(m_nodxelem * m_gp_count) + gp * m_nodxelem + j];
+                sum += u[m_dim*nid+i] * getDerivative(e,0,j,a); // u_i * ∂N_a/∂x_j getDerivative(e,gp,d,n) , dHxy.getVal(j, a)
             }
             grad_u_x.Set(i, j, sum*f);
         }//j
@@ -1835,9 +1836,9 @@ dev_t void Domain_d::calcElemStrGradF(){
     // 3. Inv (I - ∇x u) to obtain F
     Matrix F = I_minus_grad_u_x.Inv(); // Necesitas una función de inversión de matrices
     
-    if (e ==0)
-    if (pl_strain[e]>0.0)
-    cout << "detJ TOTAL"<< F.calcDet()<<"Jel"<<m_Jel[e]<<"pl_strain"<<endl;
+    //~ if (e ==0)
+    //~ if (pl_strain[e]>0.0)
+    //~ cout << "detJ TOTAL"<< F.calcDet()<<"Jel"<<m_Jel[e]<<"pl_strain"<<endl;
     // 4. Guarda F
     for (int i = 0; i < m_dim; i++) {
         for (int j = 0; j < m_dim; j++) {
@@ -1849,7 +1850,8 @@ dev_t void Domain_d::calcElemStrGradF(){
 }
 
 dev_t void Domain_d::calcElemElasticJ(){
-
+  //double fpdet[m_elem_count]; //LOG
+  
   par_loop(e,m_elem_count){
     //SEPARATE ELASTIC/PLASTIC
     Matrix F (m_dim,m_dim);
@@ -1867,14 +1869,27 @@ dev_t void Domain_d::calcElemElasticJ(){
     Fe = MatMul(F,Fp.Inv());
     
     m_Jel[e] = Fe.calcDet();  
-    if (e==0 && pl_strain[e]>0)
-      cout << "detJel "<<m_Jel[e]<<", Jpl"<<Fp.calcDet()<<endl;     
+    //~ if (e==0 && pl_strain[e]>0)
+      //~ cout << "detJel "<<m_Jel[e]<<", Jpl"<<Fp.calcDet()<<endl;     
     //m_Jel[e] = F.calcDet();   ////// TO TEST
 
 
     //m_Jel[e] = vol[e]/vol_0[e];         
-  
+    //fpdet[e] = F.calcDet();
   }
+
+  //~ double max = 0.;double min = 1000;
+  //~ double max_pl = 0.0;
+  //~ double dvmin, dvmax;
+  //~ double Fpmin;double Fpmax;
+  //~ for (int e=0;e<m_elem_count;e++){
+    //~ if (m_Jel[e]>max) {max = m_Jel[e];dvmax = vol[e]/vol_0[e];Fpmax = fpdet[e];}
+    //~ else if (m_Jel[e]<min) {min = m_Jel[e];dvmin = vol[e]/vol_0[e];Fpmin = fpdet[e];}    
+    //~ if (pl_strain[e]>max_pl) max_pl = pl_strain[e];
+    //~ }
+  //~ cout << "Jel min "<<min<<", Jel max"<<max<<", plstrain"<< max_pl<<endl;
+  //~ cout << "dvmin"<<dvmin<<", "<<"dvmax "<< dvmax<<", fpmin "<<Fpmin <<", fpmax"<<Fpmax<<endl;
+
 }
 
 
