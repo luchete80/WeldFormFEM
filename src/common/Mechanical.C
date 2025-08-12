@@ -1432,22 +1432,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       double Et;
 
 
-    //SEPARATE ELASTIC/PLASTIC
-    Matrix F (m_dim,m_dim);
-    Matrix Fp(m_dim,m_dim);
-    Matrix Fe(m_dim,m_dim);
-    
-    int offset = m_dim*m_dim*e;
-    for (int i = 0; i < m_dim; i++) {
-      for (int j = 0; j < m_dim; j++) {
-          double val = (i == j) ? 1.0 : 0.0;
-          F.Set (i,j,m_F  [offset+i * m_dim + j]);
-          Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
-        }
-      }
       
-    Fe = MatMul(F,Fp.Inv());
-    
+
     ////// ORIGINAL!
     tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;  
 
@@ -1527,15 +1513,27 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     
     Matrix mfp(3,3);
     mfp = Tensor2Matrix(Delta_Fp);
+
+    //SEPARATE ELASTIC/PLASTIC
+    Matrix Fp(m_dim,m_dim);
+    Matrix Fp_n(m_dim,m_dim);
+
+    
+    int offset = m_dim*m_dim*e;
+    for (int i = 0; i < m_dim; i++) {
+      for (int j = 0; j < m_dim; j++) {
+          double val = (i == j) ? 1.0 : 0.0;
+          Fp.Set(i,j,m_Fp[offset+i * m_dim + j]);
+        }
+      }
      
-    Fp = MatMul(mfp,Fp);
+    Fp_n = MatMul(mfp,Fp);
 
     ///////@TODO: Put it in a function
     int offset_f = m_dim*m_dim*e;
     for (int i = 0; i < m_dim; i++) {
       for (int j = 0; j < m_dim; j++) {
-        double val = (i == j) ? 1.0 : 0.0;
-        m_Fp[offset_f+i * m_dim + j] = val;
+        m_Fp[offset_f+i * m_dim + j] = Fp_n(i,j);
       }
     }   
 
@@ -1844,9 +1842,10 @@ dev_t void Domain_d::calcElemElasticJ(){
       
     Fe = MatMul(F,Fp.Inv());
     
-    //m_Jel[e] = Fe.calcDet();       
+    m_Jel[e] = Fe.calcDet();  
+    //cout << "detJel "<<m_Jel[e]<<endl;     
 
-    m_Jel[e] = vol[e]/vol_0[e];         
+    //m_Jel[e] = vol[e]/vol_0[e];         
   
   }
 }
