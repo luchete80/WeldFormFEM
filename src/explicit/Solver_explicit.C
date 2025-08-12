@@ -224,12 +224,7 @@ void host_ Domain_d::SolveChungHulbert(){
   for (int n=0;n<m_nodxelem;n++)
     printf ("elem  %d %f\n",e,getVElem(e,n,0));  
   */
-  
-  for (int e=0;e<m_elem_count;e++){
-    m_Jel[e] = 1.0;
-    m_Jpl[e] = 1.0;
-  }
-  
+
   Time = 0.0;
   int step_count = 0;
   double tout = 0;

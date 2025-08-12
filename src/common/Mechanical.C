@@ -490,12 +490,107 @@ dev_t void Domain_d::calcElemPressure_Hex(){
    //~ } // e< elem_count
 }
 
+////ALT PRESSURE CALC (Previous, Low Press, no mix Nodal/Loc FBar)
+//~ dev_t void Domain_d::calcElemPressure() {
+  //~ // Compute nodal volumes (reused for hourglass control)
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln = new double[m_node_count];
+  
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = voln[n] = 0.0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ voln_0[n] += vol_0[e];  // Sum elemental ref volumes
+      //~ voln[n]   += vol[e];    // Sum elemental current volumes
+    //~ }
+  //~ }
+
+  //~ for (int e=0;e<m_elem_count;e++){
+  //~ //par_loop(e, m_elem_count) {
+    //~ double K = mat[e]->Elastic().BulkMod();
+    //~ double rho_e = rho[e];  // Densidad actual del elemento
+    //~ double vol0 = vol_0[e];
+    //~ double vol1 = vol[e];
+    //~ double J =vol1/vol0;
+
+
+    //~ // 1. Div Velocity 
+    //~ double div_v = 0.0;
+
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ double3 va = getVelVec(nid); // Velocidad nodal
+      //~ double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+      //~ div_v += dot(gradNa, va);
+    //~ }
+
+    //~ // 2. PSPG: Estabilización de presión
+    //~ double h = pow(vol[e], 1.0/3.0); // Longitud característica
+    //~ double mu_eff = 0.1 * sigma_y[e]; // Ej: σ_y = 100e6 Pa → mu_eff = 10e6 Pa·s
+    //~ double tau = (h*h) / (4.0 * mu_eff);
+    //~ double p_pspg = tau * div_v; // Término clave!
+
+//~ // 3. F-bar: Corregir J (evitar locking)
+    //~ double J_physical = vol[e] / vol_0[e]; // J sin corregir
+    //~ double J_avg = 0.0;
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e * m_nodxelem + a];
+      //~ J_avg += (voln[nid] / voln_0[nid]); // J nodal promediado
+    //~ }
+    //~ J_avg /= m_nodxelem;
+    //~ double J_bar = J_avg; // Usar J promedio para el elemento (F-bar volumétrico)
+    
+
+    //~ // 4. Presión física CORREGIDA (sin ANP!)
+    //~ double p_physical = -mat[e]->Elastic().BulkMod() * log(J_bar);
+    
+    //~ //Artif Visc
+    //~ double q = 0.0;
+    //~ if (div_v < 0.0) {
+      //~ double c = sqrt(K / rho_e); // Velocidad del sonido
+      //~ //double h = elem_char_length[e]; // Longitud característica del elemento
+      //~ //double h = getMinLength();
+      //~ double h = pow(vol[e], 1.0/3.0); 
+      //~ double alpha = 0.12;
+      //~ double beta = 0.01;
+      
+
+      //~ q = rho_e * (-alpha * c * h * div_v + beta * h * h * div_v * div_v);
+    //~ }
+    
+    //~ // Hourglass volumétrico (opcional, ajustable)
+
+
+    //~ double hg_coeff = 0.0;
+    //~ double p_hg = hg_coeff * K * (J - J_avg);
+    
+    //~ // Presión final
+    //~ //p[e] = p_vol + q;
+
+    //~ // 5. Combinar con PSPG
+    //~ p[e] = p_physical + p_pspg + q + p_hg; // PSPG suprime oscilaciones
+    
+  //~ }
+  //~ delete[] voln_0;
+  //~ delete[] voln;
+  
+//~ }
 
 dev_t void Domain_d::calcElemPressure() {
   
   // 1. Calcular volúmenes nodales acumulados
   double *voln_0 = new double[m_node_count];
   double *voln   = new double[m_node_count];
+
+ // 1. Compute nodal volumes - parallel optimized
+  par_loop(n, m_node_count) {
+    voln_0[n] = voln[n] = 0.0;
+    for (int i = 0; i < m_nodel_count[n]; ++i) {
+      int e = m_nodel[m_nodel_offset[n] + i];
+      voln_0[n] += vol_0[e];
+      voln[n]   += vol[e];
+    }
+  }
 
     // 2. Material/Stabilization parameters
     //~ const double alpha_contact = 0.5;  
@@ -537,10 +632,7 @@ dev_t void Domain_d::calcElemPressure() {
         int nid = m_elnod[e*m_nodxelem + a];
         J_avg += voln[nid] / voln_0[nid];
     }
-    ///// ORIGINAL
     J_avg /= m_nodxelem;
-
-
 
     // Critical: Contact-adaptive blending
     //double alpha = is_contact ? 0.85 : 0.4;  // More local in contact
@@ -549,11 +641,8 @@ dev_t void Domain_d::calcElemPressure() {
     double J_bar = alpha*J_local + (1-alpha)*J_avg;
     if (J_bar < m_stab.J_min)
       J_bar = 0.2;
-
-    //cout << "J_bar_el "<<J_bar_el<<"jbar "<<J_bar<<"pl_strain"<<pl_strain[e]<<"Javg el "<<J_avg_elastic<<endl;
+      
      // IMPROVED PHYSICAL PRESSURE (Hybrid model)
-    
-    
     double p_physical = -K * (m_stab.log_factor*log(J_bar) + (1.0-m_stab.log_factor)*(J_bar - 1.0));
 
     //double p_physical = -K * log(J_bar);
@@ -608,6 +697,7 @@ dev_t void Domain_d::calcElemPressure() {
   delete[] voln_0;
   delete[] voln;
 }
+
 
 dev_t void Domain_d::calcElemPressureCaylak() {
   
@@ -1464,19 +1554,10 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
       // Update plastic strain
     pl_strain[e] += dep;
-    double nu = mat[e]->Elastic().Poisson();
+  
     
-    double plastic_vol_strain = dep * (1 - 2*nu) / (3*(1 + nu)); //Volumetric pl vol increment
-    double J_plastic = 1.0 + plastic_vol_strain;  // J_plastic ≈ 1 + tr(εp)
-    m_Jel[e] = vol[e]/(vol_0[e]*m_Jpl[e]);
-    
-    m_Jpl[e] = J_plastic;
 
   }//IF PLASTIC
-  else {
-    
-    m_Jel[e] = vol[e]/(vol_0[e]);
-    }
 
 
 

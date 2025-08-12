@@ -560,10 +560,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //~ for (int e=0;e<m_elem_count;e++)
     //~ m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
 
-  malloc_t (m_Jel,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
-  malloc_t (m_Jpl,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
 
-  
 
 }
 
@@ -712,9 +709,7 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (m_elem_length,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_mesh_in_contact,      int, 	m_node_count); /////USED FOIR CONTACT
 
-  malloc_t (m_Jel,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
-  malloc_t (m_Jpl,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
-
+  
   
   
 }
