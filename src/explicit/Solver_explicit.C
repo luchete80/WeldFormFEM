@@ -217,6 +217,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   #endif
 	//cout << "Done. "<<endl;
+	//cout << "Done. "<<endl;
 
 /*
   printf("INITIAL VEL\n");
@@ -250,7 +251,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int remesh_count = 0;
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
   of << "t,f,fc,area"<<endl;
-  int last_step_remesh=-1e10;
+  int last_step_remesh=-1;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,18 +266,14 @@ void host_ Domain_d::SolveChungHulbert(){
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
   
-  if (step_count % 10 == 0){
-    //cout << "Calc ExtFace Areas"<<endl;
-    CalcExtFaceAreas();
-    //cout << "Done"<<endl;
-    }
+
   
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
 
 
   /////AFTER J AND DERIVATIVES
-  if ( step_count % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
+  if ( (step_count - last_step_remesh) % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
   //if (0) //debug
   {
     //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
@@ -323,12 +320,24 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
 
   }
+  
+  if (step_count % 10 == 0 || remesh_){
+  //cout << "Calc ExtFace Areas"<<endl;
+  CalcExtFaceAreas();
+  //cout << "Done"<<endl;
+  }
 
+  double max_vel=0.0;
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
     double minl = getMinLength();
-    dt = m_cfl_factor*minl/(mat_cs);
+    for (int i=0;i<m_node_count;i++){
+      vector_t v = getVelVec(i);
+      if(norm(v)>max_vel)
+        max_vel = norm(v);
+    }
+    dt = m_cfl_factor*minl/(mat_cs+max_vel);
   
   
     // if (dt_new > 1.0e-20)
@@ -340,10 +349,11 @@ void host_ Domain_d::SolveChungHulbert(){
     // }
   }
   
-  const int STEP_RECOV = 5;
+  const int STEP_RECOV = 20;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
+    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.75;
       cout << "New dt: "<< dt<<endl;
+      cout << "Max vel "<<max_vel<<endl;
   }
   
   //printf("Prediction ----------------\n");
@@ -543,13 +553,15 @@ void host_ Domain_d::SolveChungHulbert(){
     //ApplyGlobalDamping(0.02);
   }
   
-  if (step_count < last_step_remesh +5 ){
+  if (step_count < last_step_remesh +STEP_RECOV ){
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping(m_remesh_damp_vel);
     for (int i=0;i<m_node_count;i++)
-      for (int d=0;d<m_dim;d++)
+      for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
-          a[m_dim*i+d] = 1.0e-4*a[m_dim*i+d];
+          a[m_dim*i+d] = (1.0e-4)*double(step_count-last_step_remesh)/STEP_RECOV*a[m_dim*i+d];
+          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/STEP_RECOV;
+      }
 
   }
 

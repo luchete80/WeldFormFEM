@@ -199,9 +199,17 @@ for (int v=0;v<size;v++)
 
 void ReMesher::MapNodal(double *vfield, double *o_field){
   #ifndef REMESH_OMEGA_H
-  MapNodalVectorRaw        (vfield, o_field);
+  MapNodalVectorRaw<3>        (vfield, o_field);
   #else              
   MapNodalVector<3> (m_mesh, vfield, o_field); 
+  #endif
+  
+}
+void ReMesher::MapNodalScalar(double *vfield, double *o_field){
+  #ifndef REMESH_OMEGA_H
+  MapNodalVectorRaw<1>        (vfield, o_field);
+  #else              
+
   #endif
   
 }
@@ -277,7 +285,10 @@ void ReMesher::WriteDomain(){
   double *vol_0 = new double [m_elem_count];    
   double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
   
+  double *Tfield  = new double [m_dom->m_node_count];
+  
   double rho_0 = m_dom->rho_0[0];
+  
   
   for (int i=0;i<3*m_node_count;i++){
     afield[i]=0.0;
@@ -427,6 +438,12 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->p,          pfield,  sizeof(double) * m_dom->m_elem_count ); 
     
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
+  
+  if (m_dom->m_thermal){
+    memcpy_t(m_dom->T,        Tfield, sizeof(double) * m_dom->m_node_count);     
+    
+  }
+
    
   m_dom->AssignMatAddress();
   const Material_ *matt  = &m_dom->materials[0];
@@ -468,6 +485,7 @@ void ReMesher::WriteDomain(){
   delete [] esfield,pfield,sigfield, syfield, psfield;
   delete [] str_rate,rot_rate, tau,rho,vol_0,idetF;
   delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
+  delete [] Tfield;
   cout << "MESH CHANGED"<<endl;
 
   //AFTER MAP
@@ -480,6 +498,7 @@ void ReMesher::WriteDomain(){
 
 /////WITH THE RAW ELEM AND CONNECT
 //args: NEW (m_node_count), OLD(m_dom->m_elem_count)
+template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
@@ -510,7 +529,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
           if (vert == 0)
             std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
           
-          for (int d=0;d<3;d++) vfield[3*vert+d] = o_field[3*v+d];
+          for (int d=0;d<dim;d++) vfield[dim*vert+d] = o_field[dim*v+d];
         }                
       }//node
       
@@ -548,12 +567,12 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
                 // Interpolate vector values for displacement (if needed)
                 std::array<double, 3> disp[4];
                 for (int n=0;n<4;n++)
-                  for (int d=0;d<3;d++)
-                    disp[n][d] = o_field[3*m_dom->m_elnod[4*i+n]+d];
+                  for (int d=0;d<dim;d++)
+                    disp[n][d] = o_field[dim*m_dom->m_elnod[4*i+n]+d];
                 
                 //cout << "Interp disp"<<endl;
                 std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
-                for (int d=0;d<3;d++) vfield[3*vert+d] = interpolated_disp[d];
+                for (int d=0;d<dim;d++) vfield[dim*vert+d] = interpolated_disp[d];
                 // Optionally, interpolate other scalar/vector fields for the new mesh node here
                 if (vert == 0)  {
                 std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
