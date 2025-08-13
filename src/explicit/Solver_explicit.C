@@ -295,6 +295,11 @@ void host_ Domain_d::SolveChungHulbert(){
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
       remesh_ = true;  
+      
+      smoothFieldLaplacian(v,3);
+      s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
       #endif
       remesh_count++;
       last_step_remesh = step_count;
@@ -332,7 +337,7 @@ void host_ Domain_d::SolveChungHulbert(){
     // }
   }
   
-  const int STEP_RECOV = 20;
+  const int STEP_RECOV = 30;
   if (step_count < last_step_remesh +STEP_RECOV ){
     dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.75;
       cout << "New dt: "<< dt<<endl;

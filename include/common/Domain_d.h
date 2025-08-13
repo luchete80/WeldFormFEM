@@ -271,9 +271,14 @@ public:
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure_Hex(); //FROM STRAIN
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void calcElemElasticJ();
   dev_t void calcElemPressureLocal(); //SF Style
   dev_t void calcElemPressureCaylak();
   dev_t void smoothPressureLaplacian();
+  
+  dev_t void smoothFieldLaplacian(double *, int dim = 3);
+
+    
   dev_t void smoothPressureField(double gamma); //Laplace Smooth
   dev_t void calcElemPressureFromJ();
   dev_t void calcElemPressureANP(); //AVERAGE NODAL POINT
@@ -281,6 +286,8 @@ public:
   dev_t void calcElemPressureANP_Nodal();
   dev_t void calcElemPressureANP_Nodal_HG();
   dev_t void calcElemPressureANP_Nodal_Stab();
+  
+  dev_t void calcElemStrGradF();
   
   dev_t void calcElemPressure_Hybrid();
   dev_t void calcElemPressure_Hybrid_VolHG();
@@ -559,6 +566,13 @@ protected:
   double          *m_fi, *m_fe; //NODAL
   double          *m_sigma, *m_tau, *m_eps;
 	double          *m_radius;
+  
+  ///// FOR PLASTIC/ELASTIC DECOMPOSITION
+  double          *m_Jel; // Almacenar J elástico por elemento
+  double          *m_Jpl;  // J plástico por elemento (para cálculo nodal)
+  double          *m_F;
+  double          *m_Fp;
+  
   //Updated lagrangian formulation
   //real(fp_kind), dimension(:,:,:,:), allocatable :: BL,BNL, jacob, dHxy,dHxy_detJ, dHxy0,math, dHrs !!!DIM: e,gp,,:,:, is it necesary to store dHrs??? is only because is used twice, at J and dHxy
   double         *dHxy_detJ ; ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX

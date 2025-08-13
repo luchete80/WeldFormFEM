@@ -1918,6 +1918,58 @@ __device__ void Domain_d::ApplyGlobalSprings() {
     }//Node Loop
 }
 
+void Domain_d::smoothFieldLaplacian(double *v_nodal, int dim) {
+    // 1. Parámetros del filtro
+    const double alpha = 0.3;  // Factor de suavizado (0.2-0.4)
+    const int iterations = 2;   // 1-3 iteraciones son suficientes
+
+    // 2. Crear campo temporal para velocidad suavizada (nodal)
+    double* v_temp = new double[dim * m_node_count];
+    memcpy(v_temp, v_nodal, dim * m_node_count * sizeof(double));
+
+    for (int iter = 0; iter < iterations; ++iter) {
+        // Procesar todos los nodos
+        for (int n = 0; n < m_node_count; ++n) {
+            // Vector para acumular sumas por componente
+            std::vector<double> v_sum(dim, 0.0);
+            int neighbor_count = 0;
+
+            // Recorrer todos los elementos conectados a este nodo (usando m_nodel)
+            for (int i = 0; i < m_nodel_count[n]; ++i) {
+                int e = m_nodel[m_nodel_offset[n] + i];
+                
+                // Recorrer todos los nodos de este elemento (usando m_elnod)
+                for (int a = 0; a < m_nodxelem; ++a) {
+                    int neighbor_node = m_elnod[e * m_nodxelem + a];
+                    
+                    // No incluir el nodo actual en el promedio
+                    if (neighbor_node != n) {
+                        // Sumar cada componente del vector
+                        for (int d = 0; d < dim; ++d) {
+                            v_sum[d] += v_temp[neighbor_node * dim + d];
+                        }
+                        neighbor_count++;
+                    }
+                }
+            }
+
+            // Aplicar suavizado solo si hay vecinos
+            if (neighbor_count > 0) {
+                for (int d = 0; d < dim; ++d) {
+                    double v_avg = v_sum[d] / neighbor_count;
+                    v_nodal[n * dim + d] = (1.0 - alpha) * v_temp[n * dim + d] + alpha * v_avg;
+                }
+            }
+        }
+
+        // Actualizar para la próxima iteración
+        if (iter < iterations - 1) {
+            memcpy(v_temp, v_nodal, dim * m_node_count * sizeof(double));
+        }
+    }
+
+    delete[] v_temp;
+}
 
 void Domain_d::ApplyGlobalDamping(double damping_factor) {
   par_loop(nid,m_node_count){
