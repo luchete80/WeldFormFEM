@@ -298,8 +298,8 @@ void host_ Domain_d::SolveChungHulbert(){
       
       smoothFieldLaplacian(v,3);
       s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
+      VTKWriter writer4(this, s.c_str());
+      writer4.writeFile();
       #endif
       remesh_count++;
       last_step_remesh = step_count;
