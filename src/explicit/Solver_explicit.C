@@ -337,9 +337,9 @@ void host_ Domain_d::SolveChungHulbert(){
     // }
   }
   
-  const int STEP_RECOV = 30;
+  const int STEP_RECOV = 20;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.75;
+    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
   }
@@ -545,8 +545,8 @@ void host_ Domain_d::SolveChungHulbert(){
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
-          a[m_dim*i+d] = (1.0e-4)*double(step_count-last_step_remesh)/STEP_RECOV*a[m_dim*i+d];
-          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/STEP_RECOV;
+          a[m_dim*i+d] *= (1.0e-4);
+          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
   }
