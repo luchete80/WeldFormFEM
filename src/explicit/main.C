@@ -238,7 +238,8 @@ int main(int argc, char **argv) {
     readValue(mesh["dampFactor"],   dom_d->m_remesh_damp_vel);
     
     double3 artifvisc;
-    dom_d->m_artifvisc[0] = dom_d->m_artifvisc[1] = 0.0;
+    dom_d->m_artifvisc[0] = 0.4; //Alpha. linear 0.3-0.6
+    dom_d->m_artifvisc[1] = 0.01;//Beta, quadratic 0.02-0.05
     
     readVector(config["artifViscCoeffs"], artifvisc);      //Or value linear
     dom_d->m_artifvisc[0] = artifvisc.x;dom_d->m_artifvisc[1] = artifvisc.y;
