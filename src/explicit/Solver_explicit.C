@@ -324,9 +324,13 @@ void host_ Domain_d::SolveChungHulbert(){
       vector_t v = getVelVec(i);
       if(norm(v)>max_vel)
         max_vel = norm(v);
-    }
+    
+    double prev_dt = dt;
     dt = m_cfl_factor*minl/(mat_cs+max_vel);
-  
+    if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
+    
+    }
+    
   
     // if (dt_new > 1.0e-20)
       // dt = dt_new;
@@ -337,9 +341,9 @@ void host_ Domain_d::SolveChungHulbert(){
     // }
   }
   
-  const int STEP_RECOV = 20;
+  const int STEP_RECOV = 30;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt;
+    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.7;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
   }
@@ -517,6 +521,10 @@ void host_ Domain_d::SolveChungHulbert(){
   //ApplyGlobalSprings();
 
   calcAccel();
+  for (int i=0;i<m_node_count;i++){
+      vector_t acc = getAccVec(i);
+      if (norm(acc)>1.0e10) cout << "ERROR "<<endl;
+  }
   
   #endif
   
@@ -542,11 +550,13 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count < last_step_remesh +STEP_RECOV ){
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping(m_remesh_damp_vel);
+    smoothFieldLaplacian(v,3);
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
+      
           a[m_dim*i+d] *= (1.0e-4);
-          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
+          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
   }
