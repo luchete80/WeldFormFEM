@@ -563,6 +563,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   //REMESHING
   malloc_t(m_sigma_prev,     double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_tau_prev,     double, 6 * m_elem_count * m_gp_count );   
   malloc_t(pl_strain_prev,   double, 1 * m_elem_count * m_gp_count );     
   malloc_t (m_vprev,          double,node_count*m_dim);
 
@@ -717,6 +718,7 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
 
   //REMESHING
   malloc_t(m_sigma_prev,     double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(m_tau_prev,     double, 6 * m_elem_count * m_gp_count );   
   malloc_t(pl_strain_prev,   double, 1 * m_elem_count * m_gp_count );     
   malloc_t (m_vprev,      double,node_count*m_dim);
 }
@@ -2277,19 +2279,25 @@ dev_t void Domain_d::BlendStresses(const double &s, const double &pl_strain_max)
       
       // 1. Stress Blending con conservación de energía
       for (int e=0; e<m_elem_count; ++e) {
-          double weight = s * std::min(1.0, pl_strain[e]/pl_strain_max); // Peso adaptativo
+          //double weight = s * std::min(1.0, pl_strain[e]/pl_strain_max); // Peso adaptativo
+          double weight = s;
           for (int c=0; c<6; ++c) {
               m_sigma[e*6 + c] = 
                   weight * m_sigma[e*6 + c] + 
                   (1.0 - weight) * m_sigma_prev[e*6 + c];
+
+              //~ m_tau[e*6 + c] = 
+                  //~ weight * m_sigma[e*6 + c] + 
+                  //~ (1.0 - weight) * m_tau_prev[e*6 + c];
+                  
           }
       }
       
       // 2. Plastic Strain Blending no-lineal (evita discontinuidades)
       for (int e=0; e<m_elem_count; ++e) {
           //double alpha = s * (1.0 - exp(-5.0*pl_strain[e]/pl_strain_ref));
-          //double alpha = s;
-          double alpha = s * (1.0 - exp(-5.0 * pl_strain[e] / pl_strain_max));
+          double alpha = s;
+          //double alpha = s * (1.0 - exp(-5.0 * pl_strain[e] / pl_strain_max));
           pl_strain[e] = alpha * pl_strain[e] + (1.0 - alpha) * pl_strain_prev[e];
           
           // Asegurar monotonía para modelos plásticos

@@ -574,7 +574,7 @@ protected:
   double          *m_sigma, *m_tau, *m_eps;
 	double          *m_radius;
   
-  double          *m_sigma_prev, *pl_strain_prev;
+  double          *m_sigma_prev, *pl_strain_prev,*m_tau_prev;
   
   ///// FOR PLASTIC/ELASTIC DECOMPOSITION
   double          *m_Jel; // Almacenar J elástico por elemento

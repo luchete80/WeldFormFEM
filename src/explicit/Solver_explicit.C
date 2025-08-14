@@ -349,6 +349,10 @@ void host_ Domain_d::SolveChungHulbert(){
       dt = pow(double(step_count-last_step_remesh+1)/double(STEP_RECOV),2.0)*0.8*dt;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
+
+      std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
+      VTKWriter writer3(this, s.c_str());
+      writer3.writeFile();
   }
   
   //printf("Prediction ----------------\n");
@@ -502,7 +506,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   if (step_count < last_step_remesh +STEP_RECOV){
     BlendStresses(s_wup, 1.5);
-    SmoothDeviatoricStress(0.2);
+    SmoothDeviatoricStress(0.8);
   }
   
   calcElemForces();
@@ -585,8 +589,8 @@ void host_ Domain_d::SolveChungHulbert(){
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
-          //postRemeshGlobFilter();
-          a[m_dim*i+d] *= 1.0e-4;
+          postRemeshGlobFilter();
+          a[m_dim*i+d] *= 1.0e-2*double(step_count-last_step_remesh)/double(STEP_RECOV);
           //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
