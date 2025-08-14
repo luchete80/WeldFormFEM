@@ -480,7 +480,9 @@ void host_ Domain_d::SolveChungHulbert(){
     //STRESSES CALC
   calcElemStrainRates();
   //smoothDevStrainRates(0.5);
-  BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
+  if (step_count < last_step_remesh +STEP_RECOV){  
+    BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
+  }
   
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
