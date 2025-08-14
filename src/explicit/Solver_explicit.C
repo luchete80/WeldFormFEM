@@ -350,9 +350,9 @@ void host_ Domain_d::SolveChungHulbert(){
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
 
-      std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
+      // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
+      // VTKWriter writer3(this, s.c_str());
+      // writer3.writeFile();
   }
   
   //printf("Prediction ----------------\n");
