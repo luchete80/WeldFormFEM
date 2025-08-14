@@ -590,7 +590,7 @@ void host_ Domain_d::SolveChungHulbert(){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
           postRemeshGlobFilter();
-          a[m_dim*i+d] *= 1.0e-2*double(step_count-last_step_remesh)/double(STEP_RECOV);
+          a[m_dim*i+d] *= 1.0e-1*double(step_count-last_step_remesh)/double(STEP_RECOV);
           //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
