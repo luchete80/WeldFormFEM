@@ -20,6 +20,7 @@ set(CMAKE_PREFIX_PATH "/path/to/omega_h")
 include_directories(${CMAKE_BINARY_DIR}/lib/omega_h-9.34.13/src) #FOR: Omega_h_config.h
 
 include_directories ("${CMAKE_SOURCE_DIR}/include/common")
+include_directories ("${CMAKE_SOURCE_DIR}/src/common")
 include_directories ("${CMAKE_SOURCE_DIR}/include/implicit")
 include_directories (${CMAKE_SOURCE_DIR}/lib/LSDynaReader/src/)
 
