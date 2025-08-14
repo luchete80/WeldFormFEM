@@ -296,7 +296,7 @@ void host_ Domain_d::SolveChungHulbert(){
       writer3.writeFile();
       remesh_ = true;  
       
-      smoothFieldLaplacian(v,3);
+      //smoothFieldLaplacian(v,3);
       s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
       VTKWriter writer4(this, s.c_str());
       writer4.writeFile();
@@ -344,9 +344,9 @@ void host_ Domain_d::SolveChungHulbert(){
   const int STEP_RECOV = 20;
   double s_wup;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    s_wup = double(step_count-last_step_remesh+1)/double(STEP_RECOV);
+    s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
-    dt = s_wup*dt*0.7;
+      dt = double(step_count-last_step_remesh+1)/double(STEP_RECOV)*0.8*dt;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
   }
@@ -573,9 +573,9 @@ void host_ Domain_d::SolveChungHulbert(){
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
-          postRemeshGlobFilter();
+          //postRemeshGlobFilter();
           a[m_dim*i+d] *= double(step_count-last_step_remesh+1)/double(STEP_RECOV);
-          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
+          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
   }
