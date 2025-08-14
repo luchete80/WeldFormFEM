@@ -487,6 +487,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(m_tau,       double, 6 * m_elem_count * m_gp_count );  
   malloc_t(m_eps,       double, 6 * m_elem_count * m_gp_count ); 
 
+  malloc_t(m_str_rate_prev,  double, 6 * m_elem_count * m_gp_count );   
   
   //FOR PLASTIC STRAIN HEAT GENERATION
   malloc_t(m_strain_pl_incr,  double, 6 * m_elem_count * m_gp_count );     
@@ -701,6 +702,8 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   //MODIFY THIS!!! IS A LOT OF SPACE
   malloc_t(faceList, Face, m_elem_count*ELFAC);
   
+  malloc_t(m_str_rate_prev,  double, 6 * m_elem_count * m_gp_count );   
+   
   
   m_pl_energy = 0.0;
   
@@ -2306,6 +2309,25 @@ dev_t void Domain_d::BlendStresses(const double &s, const double &pl_strain_max)
           }
       }
 
+
+}
+
+dev_t void Domain_d::BlendField(const double &s, const int size, const int &d, double *prev, double *curr) {
+    
+
+      //double s = pow((step_count - last_step_remesh)/(double)STEP_RECOV, 2.0); // Curva cuadrática
+      
+      // 1. Stress Blending con conservación de energía
+      for (int e=0; e<size; ++e) {
+          //double weight = s * std::min(1.0, pl_strain[e]/pl_strain_max); // Peso adaptativo
+          double weight = s;
+          for (int c=0; c<d; ++c) {
+              curr[e*6 + c] = 
+                  weight * prev[e*d + c] + 
+                  (1.0 - weight) * prev[e*d + c];
+                  
+          }
+      }
 
 }
 

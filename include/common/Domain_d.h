@@ -480,6 +480,7 @@ public:
   
   ///// REMESH
   dev_t void BlendStresses(const double &s, const double &pl_strain_max);
+  dev_t void BlendField(const double &s, const int size, const int &d, double *prev, double *curr);
   dev_t void postRemeshGlobFilter();
   dev_t void SmoothDeviatoricStress(double alpha);
   
@@ -575,6 +576,7 @@ protected:
 	double          *m_radius;
   
   double          *m_sigma_prev, *pl_strain_prev,*m_tau_prev;
+  double          *m_str_rate_prev;
   
   ///// FOR PLASTIC/ELASTIC DECOMPOSITION
   double          *m_Jel; // Almacenar J elástico por elemento

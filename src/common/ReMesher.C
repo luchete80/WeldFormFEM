@@ -434,6 +434,8 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->m_sigma  ,      sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
   memcpy_t(m_dom->m_sigma_prev,   sigfield,   sizeof(double) * m_dom->m_elem_count *6); //TO BLEND
   memcpy_t(m_dom->m_str_rate,     str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_str_rate_prev,str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  
   memcpy_t(m_dom->m_rot_rate,     rot_rate,   sizeof(double) * m_dom->m_elem_count *6); 
   memcpy_t(m_dom->m_tau,          tau,        sizeof(double) * m_dom->m_elem_count *6); 
   memcpy_t(m_dom->m_tau_prev,     tau,   sizeof(double) * m_dom->m_elem_count *6); //TO BLEND

@@ -209,11 +209,17 @@ void ReMesher::Generate_mmg(){
   if (MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar) != 1)
       exit(EXIT_FAILURE);
     
-  for (int k = 1; k <= np; k++) {
-      if (MMG3D_Set_scalarSol(mmgSol, 0.8 - m_dom->pl_strain[k-1], k) != 1) 
-          exit(EXIT_FAILURE);
-  }
+  // for (int k = 1; k <= np; k++) {
+      // if (MMG3D_Set_scalarSol(mmgSol, 0.8 - m_dom->pl_strain[k-1], k) != 1) 
+          // exit(EXIT_FAILURE);
+  // }
 
+  // for (int k = 1; k <= np; k++) {
+      // double refinement_factor = 1.0 - m_dom->pl_strain[k-1];  // more strain → smaller element
+      // double h_target = m_dom->m_remesh_length * refinement_factor;
+      // if (h_target < 0.6*m_dom->m_remesh_length) h_target = 0.6*m_dom->m_remesh_length; // optional min size
+      // MMG3D_Set_scalarSol(mmgSol, h_target, k);
+  // }
     
   for (int k = 1; k <= np; k++) {
       if (MMG3D_Set_scalarSol(mmgSol, 0.5, k) != 1) 
