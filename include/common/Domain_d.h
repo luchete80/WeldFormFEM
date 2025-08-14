@@ -481,6 +481,7 @@ public:
   ///// REMESH
   dev_t void BlendStresses(const double &s, const double &pl_strain_max);
   dev_t void postRemeshGlobFilter();
+  dev_t void SmoothDeviatoricStress(double alpha);
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

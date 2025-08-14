@@ -2288,7 +2288,8 @@ dev_t void Domain_d::BlendStresses(const double &s, const double &pl_strain_max)
       // 2. Plastic Strain Blending no-lineal (evita discontinuidades)
       for (int e=0; e<m_elem_count; ++e) {
           //double alpha = s * (1.0 - exp(-5.0*pl_strain[e]/pl_strain_ref));
-          double alpha = s;
+          //double alpha = s;
+          double alpha = s * (1.0 - exp(-5.0 * pl_strain[e] / pl_strain_max));
           pl_strain[e] = alpha * pl_strain[e] + (1.0 - alpha) * pl_strain_prev[e];
           
           // Asegurar monotonía para modelos plásticos
@@ -2357,6 +2358,34 @@ dev_t void Domain_d::postRemeshGlobFilter()
             //a[m_dim*i+d] *= ka;
         }
     }
+}
+
+dev_t void Domain_d::SmoothDeviatoricStress(double alpha) {
+    // Suavizado Laplaciano de τ (conservativo)
+    double* tau_smoothed = new double[m_elem_count * 6];
+    #pragma omp parallel for
+    for (int e = 0; e < m_elem_count; ++e) {
+        tensor3 tau_avg;
+        clear(tau_avg);
+        int n_neighbors = 0;
+        for (int a = 0; a < m_nodxelem; ++a) {
+            int nid = m_elnod[e*m_nodxelem + a];
+            for (int i = 0; i < m_nodel_count[nid]; ++i) {
+                int e_neigh = m_nodel[m_nodel_offset[nid] + i];
+                if (e_neigh != e) {
+                    tau_avg = tau_avg + FromFlatSym(m_tau, e_neigh * 6);
+                    n_neighbors++;
+                }
+            }
+        }
+        tau_avg = (n_neighbors > 0) ? tau_avg * (1.0 / n_neighbors) : FromFlatSym(m_tau, e * 6);
+        // Blending suave
+        tensor3 tau_e = FromFlatSym(m_tau, e * 6);
+        tau_e = alpha * tau_avg + (1.0 - alpha) * tau_e;
+        ToFlatSymPtr(tau_e, tau_smoothed, e * 6);
+    }
+    memcpy(m_tau, tau_smoothed, sizeof(double) * m_elem_count * 6);
+    delete[] tau_smoothed;
 }
 
 

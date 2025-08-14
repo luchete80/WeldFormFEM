@@ -346,7 +346,7 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count < last_step_remesh +STEP_RECOV ){
     s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
-      dt = double(step_count-last_step_remesh+1)/double(STEP_RECOV)*0.8*dt;
+      dt = pow(double(step_count-last_step_remesh+1)/double(STEP_RECOV),2.0)*0.8*dt;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
   }
@@ -365,7 +365,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if (remesh_){
   //Maintain mapped v if were mapped with momentum conservation!
-    //memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+    memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
 
   // !!! PREDICTION PHASE
@@ -500,8 +500,10 @@ void host_ Domain_d::SolveChungHulbert(){
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
-  BlendStresses(s_wup, 1.5);
-
+  if (step_count < last_step_remesh +STEP_RECOV){
+    BlendStresses(s_wup, 1.5);
+    SmoothDeviatoricStress(0.2);
+  }
   
   calcElemForces();
   calcElemHourglassForces();
@@ -529,11 +531,21 @@ void host_ Domain_d::SolveChungHulbert(){
   //ApplyGlobalSprings();
 
   calcAccel();
+  int nc=0;
+  bool large_acc = false;
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
-      if (norm(acc)>1.0e10) cout << "ERROR "<<endl;
+      if(norm(acc)>1.0e10){
+        nc++;
+        large_acc = true;
+        for (int d=0;d<m_dim;d++){
+        
+            //postRemeshGlobFilter();
+            //a[m_dim*i+d] *= 0.1;
+        }
+      }
   }
-  
+  if (large_acc) cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
   #endif
   
   if (remesh_){
@@ -556,7 +568,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if (remesh_){
     //Maintain mapped v if were mapped with momentum conservation!
-    //memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+    memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
   
   if (contact){
@@ -566,7 +578,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if (step_count < last_step_remesh +STEP_RECOV ){
     //if (Time > RAMP_FRACTION*end_t)
-    ApplyGlobalDamping(m_remesh_damp_vel);
+    //ApplyGlobalDamping(m_remesh_damp_vel);
     //smoothFieldLaplacian(v,3);
     const double ka = 0.2;
     for (int i=0;i<m_node_count;i++)
@@ -574,8 +586,8 @@ void host_ Domain_d::SolveChungHulbert(){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
           //postRemeshGlobFilter();
-          a[m_dim*i+d] *= double(step_count-last_step_remesh+1)/double(STEP_RECOV);
-          v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
+          a[m_dim*i+d] *= 1.0e-4;
+          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 
   }
