@@ -13,7 +13,7 @@
   "reMeshStepInterval": 5
 }
 ,"Stabilization":{
-  "alpha_free":1.0,
+  "alpha_free":1.0
 },
 "Materials":[ 
 {

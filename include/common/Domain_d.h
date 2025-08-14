@@ -478,6 +478,10 @@ public:
   
   double m_plheatfraction;
   
+  ///// REMESH
+  dev_t void BlendStresses(const double &s, const double &pl_strain_max);
+  dev_t void postRemeshGlobFilter();
+  
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
@@ -499,6 +503,8 @@ protected:
 	double 					*p, *rho, *rho_0;
   
   double          *ut_prev;   //FOR HISTORICAL CONTACT
+  
+  double          *m_vprev;
   
   //////Thermal
   bool m_thermal;
@@ -566,6 +572,8 @@ protected:
   double          *m_fi, *m_fe; //NODAL
   double          *m_sigma, *m_tau, *m_eps;
 	double          *m_radius;
+  
+  double          *m_sigma_prev, *pl_strain_prev;
   
   ///// FOR PLASTIC/ELASTIC DECOMPOSITION
   double          *m_Jel; // Almacenar J elástico por elemento

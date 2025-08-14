@@ -341,9 +341,12 @@ void host_ Domain_d::SolveChungHulbert(){
     // }
   }
   
-  const int STEP_RECOV = 30;
+  const int STEP_RECOV = 20;
+  double s_wup;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    dt = (step_count-last_step_remesh)/double(STEP_RECOV)*dt*0.7;
+    s_wup = double(step_count-last_step_remesh+1)/double(STEP_RECOV);
+      cout << "s warmup: "<<s_wup<<endl;
+    dt = s_wup*dt*0.7;
       cout << "New dt: "<< dt<<endl;
       cout << "Max vel "<<max_vel<<endl;
   }
@@ -360,6 +363,11 @@ void host_ Domain_d::SolveChungHulbert(){
   UpdatePrediction();  
   #endif
   
+  if (remesh_){
+  //Maintain mapped v if were mapped with momentum conservation!
+    //memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+  }
+
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
   // !!! CAN BE UNIFIED AT THE END OF STEP by v= (a(t+dt)+a(t))/2. but is not convenient for variable time step
@@ -492,7 +500,7 @@ void host_ Domain_d::SolveChungHulbert(){
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
-    
+  BlendStresses(s_wup, 1.5);
 
   
   calcElemForces();
@@ -528,6 +536,10 @@ void host_ Domain_d::SolveChungHulbert(){
   
   #endif
   
+  if (remesh_){
+    
+  }
+  
   ImposeBCAAllDim(); //FOR BOTH GPU AND CPU
   
   N = getNodeCount();
@@ -542,6 +554,11 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   UpdateCorrectionAccVel();
   
+  if (remesh_){
+    //Maintain mapped v if were mapped with momentum conservation!
+    //memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+  }
+  
   if (contact){
     //if (Time > RAMP_FRACTION*end_t)
     //ApplyGlobalDamping(0.02);
@@ -550,12 +567,14 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count < last_step_remesh +STEP_RECOV ){
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping(m_remesh_damp_vel);
-    smoothFieldLaplacian(v,3);
+    //smoothFieldLaplacian(v,3);
+    const double ka = 0.2;
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
-          a[m_dim*i+d] *= (1.0e-4);
+          postRemeshGlobFilter();
+          a[m_dim*i+d] *= double(step_count-last_step_remesh+1)/double(STEP_RECOV);
           //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
       }
 

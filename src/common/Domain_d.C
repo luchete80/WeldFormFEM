@@ -561,7 +561,12 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
     //~ m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
 
 
+  //REMESHING
+  malloc_t(m_sigma_prev,     double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(pl_strain_prev,   double, 1 * m_elem_count * m_gp_count );     
+  malloc_t (m_vprev,          double,node_count*m_dim);
 
+    
 }
 
 void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count){
@@ -709,9 +714,11 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (m_elem_length,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_mesh_in_contact,      int, 	m_node_count); /////USED FOIR CONTACT
 
-  
-  
-  
+
+  //REMESHING
+  malloc_t(m_sigma_prev,     double, 6 * m_elem_count * m_gp_count );   
+  malloc_t(pl_strain_prev,   double, 1 * m_elem_count * m_gp_count );     
+  malloc_t (m_vprev,      double,node_count*m_dim);
 }
 
 void Domain_d::SetDimensionExplicit(const int &node_count, const int &elem_count){
@@ -2251,18 +2258,131 @@ dev_t void Domain_d::calcMinEdgeLength() {
     m_min_height = min_height;
 }
 
-  ///// ALREADY ALLOCATED
-  void Domain_d::setNode(const int &i, const double &_x, const double &_y, const double &_z){
-    if (i<m_node_count){
-    x[i*m_dim  ]=_x;
-    x[i*m_dim+1]=_y;
-    x[i*m_dim+2]=_z;
-    //return 1;
-    }
-  else{cout << "Node allocation error, node pos larger than node count."<<endl;}
-        //return 0;
+///// ALREADY ALLOCATED
+void Domain_d::setNode(const int &i, const double &_x, const double &_y, const double &_z){
+  if (i<m_node_count){
+  x[i*m_dim  ]=_x;
+  x[i*m_dim+1]=_y;
+  x[i*m_dim+2]=_z;
+  //return 1;
   }
+else{cout << "Node allocation error, node pos larger than node count."<<endl;}
+      //return 0;
+}
+  
+dev_t void Domain_d::BlendStresses(const double &s, const double &pl_strain_max){
+    
 
+      //double s = pow((step_count - last_step_remesh)/(double)STEP_RECOV, 2.0); // Curva cuadrática
+      
+      // 1. Stress Blending con conservación de energía
+      for (int e=0; e<m_elem_count; ++e) {
+          double weight = s * std::min(1.0, pl_strain[e]/pl_strain_max); // Peso adaptativo
+          for (int c=0; c<6; ++c) {
+              m_sigma[e*6 + c] = 
+                  weight * m_sigma[e*6 + c] + 
+                  (1.0 - weight) * m_sigma_prev[e*6 + c];
+          }
+      }
+      
+      // 2. Plastic Strain Blending no-lineal (evita discontinuidades)
+      for (int e=0; e<m_elem_count; ++e) {
+          //double alpha = s * (1.0 - exp(-5.0*pl_strain[e]/pl_strain_ref));
+          double alpha = s;
+          pl_strain[e] = alpha * pl_strain[e] + (1.0 - alpha) * pl_strain_prev[e];
+          
+          // Asegurar monotonía para modelos plásticos
+          if (pl_strain[e] < pl_strain_prev[e]) {
+              pl_strain[e] = pl_strain_prev[e] + 1e-6*(pl_strain[e] - pl_strain_prev[e]);
+          }
+      }
+
+
+}
+
+dev_t void Domain_d::postRemeshGlobFilter()
+
+    //const double* m_vprev,       // Velocidades PRE-remallado [nnode*m_dim]
+    //const double* pl_strain,     // Deformación plástica nodal [nnode]
+    //const double* nodal_mass,    // Masa nodal (opcional, para ponderar)
+{
+    double kv=0.6;
+    double ka=0.2;
+    double strain_threshold=0.1;
+
+    // ---- 1. Calcular promedio ponderado de velocidad ----
+    double v_avg[3] = {0,0,0}, mass_total=0;
+    for(int i=0; i<m_node_count; i++) {
+        if(pl_strain[i] < strain_threshold) continue;
+        //double w = nodal_mass ? nodal_mass[i] : 1.0;
+        double w = m_mdiag[i];
+        for(int d=0; d<m_dim; d++) 
+            v_avg[d] += w * m_vprev[m_dim*i+d]; // Usamos m_vprev como referencia!
+        mass_total += w;
+    }
+    for(int d=0; d<m_dim; d++) 
+        v_avg[d] /= (mass_total > 0 ? mass_total : 1.0);
+
+    // ---- 2. Filtrado conservativo ----
+    for(int i=0; i<m_node_count; i++) {
+        if(pl_strain[i] < strain_threshold) continue;
+
+        // Magnitudes pre/post
+        double v_mag_prev = 0.0, v_mag_current = 0.0;
+        for(int d=0; d<m_dim; d++) {
+            v_mag_prev += m_vprev[m_dim*i+d] * m_vprev[m_dim*i+d];
+            v_mag_current += v[m_dim*i+d] * v[m_dim*i+d];
+        }
+        v_mag_prev = sqrt(v_mag_prev);
+        v_mag_current = sqrt(v_mag_current);
+
+        // Factor de blending basado en plasticidad
+        double alpha = std::min(1.0, pl_strain[i]/(2.0*strain_threshold));
+        double v_target = (1.0-alpha)*v_mag_prev + alpha*v_mag_current;
+
+        // Aplicar filtro (kv=1: no filtro, kv=0: full damping)
+        for(int d=0; d<m_dim; d++) {
+            // Componente fluctuación respecto al promedio
+            double v_fluc = v[m_dim*i+d] - v_avg[d];
+            v[m_dim*i+d] = v_avg[d] + kv * v_fluc;
+
+            // Limitador físico basado en m_vprev
+            double dv_max = 0.1 * v_mag_prev + 1e-8;
+            if(fabs(v[m_dim*i+d] - m_vprev[m_dim*i+d]) > dv_max) {
+                v[m_dim*i+d] = m_vprev[m_dim*i+d] + 
+                    (v[m_dim*i+d] > m_vprev[m_dim*i+d] ? dv_max : -dv_max);
+            }
+
+            // Filtrado de aceleración (más agresivo)
+            //a[m_dim*i+d] *= ka;
+        }
+    }
+}
+
+
+//~ void post_remesh_accel_filter(
+    //~ double* a, 
+    //~ int nnode, 
+    //~ int dim, 
+    //~ double ka=0.2,  // Factor de filtrado (ajustable)
+    //~ bool is_first_step=false
+//~ ) {
+    //~ if (is_first_step) ka = 0.2;  // Filtrado más agresivo al inicio
+
+    //~ // Filtro pasa-bajas simple (promedio con vecinos)
+    //~ #pragma omp parallel for
+    //~ for (int i=0; i<nnode; ++i) {
+        //~ double a_avg[3] = {0};
+        //~ int count = 0;
+        //~ for (int j : neighbors[i]) {  // Asume vecindario definido
+            //~ for (int d=0; d<dim; ++d) a_avg[d] += a[j*dim + d];
+            //~ count++;
+        //~ }
+        //~ for (int d=0; d<dim; ++d) {
+            //~ a[i*dim + d] = ka * a[i*dim + d] + (1.0 - ka) * (a_avg[d] / (count + 1e-16));
+        //~ }
+    //~ }
+//~ }
 
 void Domain_d::addMeshData(const TriMesh_d &m){
   trimesh->AddMesh(m);

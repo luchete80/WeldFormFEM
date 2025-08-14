@@ -256,7 +256,7 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
 
 void ReMesher::WriteDomain(){
   
-  bool m_map_momentum = false;
+  bool m_map_momentum = true;
   
   cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
   #ifdef REMESH_OMEGA_H
@@ -420,17 +420,22 @@ void ReMesher::WriteDomain(){
     
 
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);   
-  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
+  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
+  memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
+  
   memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->contforce,cforce, sizeof(double) * m_dom->m_node_count * 3);
 
-  memcpy_t(m_dom->pl_strain, esfield,  sizeof(double) * m_dom->m_elem_count ); 
-  memcpy_t(m_dom->m_sigma  ,    sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
-  memcpy_t(m_dom->m_str_rate,   str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
-  memcpy_t(m_dom->m_rot_rate,   rot_rate,   sizeof(double) * m_dom->m_elem_count *6); 
-  memcpy_t(m_dom->m_tau,        tau,        sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->pl_strain,      esfield,  sizeof(double) * m_dom->m_elem_count ); 
+  memcpy_t(m_dom->pl_strain_prev, esfield,  sizeof(double) * m_dom->m_elem_count ); 
+  
+  memcpy_t(m_dom->m_sigma  ,      sigfield,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_sigma_prev,   sigfield,   sizeof(double) * m_dom->m_elem_count *6); //TO BLEND
+  memcpy_t(m_dom->m_str_rate,     str_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_rot_rate,     rot_rate,   sizeof(double) * m_dom->m_elem_count *6); 
+  memcpy_t(m_dom->m_tau,          tau,        sizeof(double) * m_dom->m_elem_count *6); 
   
   memcpy_t(m_dom->sigma_y,   syfield,  sizeof(double) * m_dom->m_elem_count ); 
   memcpy_t(m_dom->pl_strain, psfield,  sizeof(double) * m_dom->m_elem_count ); 
@@ -467,6 +472,8 @@ void ReMesher::WriteDomain(){
       for (int d=0;d<m_dom->m_dim;d++)
         vfield[m_dom->m_dim*i+d] /=m_dom->m_mdiag[i];
     }
+    memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
+    memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
   }
   
   //// RECALCULATED FROM MOMENTUM
