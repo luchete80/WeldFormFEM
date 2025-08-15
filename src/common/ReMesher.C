@@ -515,7 +515,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
     for (int vert=0;vert<m_node_count;vert++){
       
-        for (int d=0;d<3;d++) vfield [m_dim*vert+d] = 0.0;
+        for (int d=0;d<3;d++) vfield [dim*vert+d] = 0.0;
 
    //auto coords = mesh.coords();
 
@@ -775,11 +775,11 @@ int ReMesher::find_closest_node(const double x[3]) {
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
   
   for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
-      if(m_closest_elem[e]lem>-1)  
+      if(m_closest_elem[elem]>-1)  
         for (int d=0;d<field_dim;d++) 
           vfield[elem*field_dim+d] = o_field[m_closest_elem[elem]*field_dim+d];  
       else 
-        vfield[elem*field_dim+d]=0.0;  
+        for (int d=0;d<field_dim;d++) vfield[elem*field_dim+d]=0.0;  
   }
 }
 

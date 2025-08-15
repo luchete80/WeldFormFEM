@@ -254,7 +254,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
 
-
+  double initial_dt;
   /////AFTER J AND DERIVATIVES
   if ( (step_count - last_step_remesh) % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
   //if (0) //debug
@@ -327,6 +327,8 @@ void host_ Domain_d::SolveChungHulbert(){
     
     double prev_dt = dt;
     dt = m_cfl_factor*minl/(mat_cs+max_vel);
+    if (remesh_)
+      initial_dt = dt;
     if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
     
     }
@@ -340,21 +342,32 @@ void host_ Domain_d::SolveChungHulbert(){
       
     // }
   }
-  
+
+  #ifdef BUILD_REMESH  
   const int STEP_RECOV = 20;
   double s_wup;
   if (step_count < last_step_remesh +STEP_RECOV ){
     s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
-      dt = pow(double(step_count-last_step_remesh+1)/double(STEP_RECOV),2.0)*0.8*dt;
-      cout << "New dt: "<< dt<<endl;
-      cout << "Max vel "<<max_vel<<endl;
-
+    // 1. Calcular dt_base independientemente del dt anterior
+    double dt_base = dt_CFL * 0.8 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
+    
+    // 2. Aplicar límites físicos
+    double dt_CFL = dt;
+    dt = std::min(dt_base, dt_CFL);
+    
+    // 3. Nunca permitir dt=0
+    dt = std::max(dt, 1e-12);
+    
+    cout << "s warmup: " << s_wup << endl;
+    cout << "New dt: " << dt << endl;
+    cout << "Max vel: " << max_vel << endl;
+    
       // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
       // VTKWriter writer3(this, s.c_str());
       // writer3.writeFile();
   }
-  
+  #endif
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
   N = getNodeCount();
@@ -367,10 +380,12 @@ void host_ Domain_d::SolveChungHulbert(){
   UpdatePrediction();  
   #endif
   
+  #ifdef BUILD_REMESH    
   if (remesh_){
   //Maintain mapped v if were mapped with momentum conservation!
     memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
+  #endif
 
   // !!! PREDICTION PHASE
   // u = dt * (nod%v + (0.5d0 - beta) * dt * prev_a)
@@ -480,9 +495,11 @@ void host_ Domain_d::SolveChungHulbert(){
     //STRESSES CALC
   calcElemStrainRates();
   //smoothDevStrainRates(0.5);
+  #ifdef BUILD_REMESH    
   if (step_count < last_step_remesh +STEP_RECOV){  
     BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
   }
+  #endif
   
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
@@ -508,10 +525,12 @@ void host_ Domain_d::SolveChungHulbert(){
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
+  #ifdef BUILD_REMESH    
   if (step_count < last_step_remesh +STEP_RECOV){
     BlendStresses(s_wup, 1.5);
     SmoothDeviatoricStress(0.8);
   }
+  #endif
   
   calcElemForces();
   calcElemHourglassForces();
@@ -556,10 +575,6 @@ void host_ Domain_d::SolveChungHulbert(){
   if (large_acc) cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
   #endif
   
-  if (remesh_){
-    
-  }
-  
   ImposeBCAAllDim(); //FOR BOTH GPU AND CPU
   
   N = getNodeCount();
@@ -574,16 +589,19 @@ void host_ Domain_d::SolveChungHulbert(){
   #else
   UpdateCorrectionAccVel();
   
+  #ifdef BUILD_REMESH    
   if (remesh_){
     //Maintain mapped v if were mapped with momentum conservation!
     memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
+
   
   if (contact){
     //if (Time > RAMP_FRACTION*end_t)
     //ApplyGlobalDamping(0.02);
   }
   
+
   if (step_count < last_step_remesh +STEP_RECOV ){
     //if (Time > RAMP_FRACTION*end_t)
     //ApplyGlobalDamping(m_remesh_damp_vel);
@@ -599,6 +617,7 @@ void host_ Domain_d::SolveChungHulbert(){
       }
 
   }
+  #endif //REMESH
 
   //ApplyGlobalDamping(0.1);
   #endif
