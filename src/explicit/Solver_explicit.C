@@ -350,7 +350,7 @@ void host_ Domain_d::SolveChungHulbert(){
     s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
-    double dt_base = dt_CFL * 0.8 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
+    double dt_base = dt_CFL * 0.5 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
     
     // 2. Aplicar límites físicos
     double dt_CFL = dt;
