@@ -483,6 +483,8 @@ public:
   dev_t void BlendField(const double &s, const int size, const int &d, double *prev, double *curr);
   dev_t void postRemeshGlobFilter();
   dev_t void SmoothDeviatoricStress(double alpha);
+
+  dev_t double getPtrMax(double *, const inst &size, const int &dim);
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
@@ -722,6 +724,8 @@ inline dev_t void Domain_d::setDerivative(const int &e, const int &gp, Matrix *m
       // else if (i==2)  m_dH_detJ_dx[e*(m_nodxelem * m_gp_count) + gp * m_gp_count + i] = v;
       //else printf ("ERROR: WRONG DERIVATIVE DIMENSION.");
 }
+
+
 
 
 

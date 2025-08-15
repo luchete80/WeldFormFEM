@@ -2418,6 +2418,20 @@ dev_t void Domain_d::SmoothDeviatoricStress(double alpha) {
     delete[] tau_smoothed;
 }
 
+dev_t double Domain_d::getPtrMax(double *v, const inst &size, const int &dim){
+  double max=0.0;
+  for (int i=0;i<size;i++){
+    double norm2;
+    if (dim==3){
+      vector_t val;
+      val.x=v[m_dim*i];      val.y=v[m_dim*i+1];      val.z=v[m_dim*i+2];
+      norm2=val.x*val.x+val.y*val.y+val.z*val.z;
+    }
+    if (norm2>max)max=norm2;
+  }
+  return max;
+}
+
 
 //~ void post_remesh_accel_filter(
     //~ double* a, 
