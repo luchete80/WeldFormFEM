@@ -511,9 +511,11 @@ void ReMesher::WriteDomain(){
 template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
+
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
     for (int vert=0;vert<m_node_count;vert++){
-
+      
+        for (int d=0;d<3;d++) vfield [m_dim*vert+d] = 0.0;
 
    //auto coords = mesh.coords();
 

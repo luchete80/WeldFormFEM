@@ -484,7 +484,7 @@ public:
   dev_t void postRemeshGlobFilter();
   dev_t void SmoothDeviatoricStress(double alpha);
 
-  dev_t double getPtrMax(double *, const inst &size, const int &dim);
+  dev_t double getPtrMax(double *v, const int &size, const int &dim);
   
 protected:
   double          m_tot_mass; //Only for testing, not needed

@@ -2418,7 +2418,7 @@ dev_t void Domain_d::SmoothDeviatoricStress(double alpha) {
     delete[] tau_smoothed;
 }
 
-dev_t double Domain_d::getPtrMax(double *v, const inst &size, const int &dim){
+dev_t double Domain_d::getPtrMax(double *v, const int &size, const int &dim){
   double max=0.0;
   for (int i=0;i<size;i++){
     double norm2;
