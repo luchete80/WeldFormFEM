@@ -775,8 +775,11 @@ int ReMesher::find_closest_node(const double x[3]) {
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
   
   for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+      if(m_closest_elem[e]lem>-1)  
         for (int d=0;d<field_dim;d++) 
           vfield[elem*field_dim+d] = o_field[m_closest_elem[elem]*field_dim+d];  
+      else 
+        vfield[elem*field_dim+d]=0.0;  
   }
 }
 
