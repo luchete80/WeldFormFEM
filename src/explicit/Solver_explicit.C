@@ -246,6 +246,7 @@ void host_ Domain_d::SolveChungHulbert(){
   ////// OR TIME
   if (step_count % 100 == 0){
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
+    cout << "Ekin: "<<Ekin <<", Eint "<<Eint<<endl; 
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
@@ -739,7 +740,6 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
-    oss_out << "Ekin: "<<Ekin <<", Eint "<<Eint<<endl; 
     //printf("Reaction Forces\n");
     of <<std::scientific<<std::setprecision(6)<< Time ;
     //for (int m=0;m<trimesh->mesh_count;m++){
