@@ -603,6 +603,14 @@ void host_ Domain_d::SolveChungHulbert(){
     memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
   
+  if(s_wup<1.0){
+    double r = sqrt( Ekin_old / (Ekin + 1e-30) );    
+      for (int n=0;n<m_node_count;n++) 
+        for (int d=0;d<m_dim;d++)
+          if (r<1.0)
+            v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+  }
+  
 
   
   if (contact){
