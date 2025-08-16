@@ -605,10 +605,18 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if(s_wup<1.0){
     double r = sqrt( Ekin_old / (Ekin + 1e-30) );    
-      for (int n=0;n<m_node_count;n++) 
+      for (int n=0;n<m_node_count;n++){ 
         for (int d=0;d<m_dim;d++)
           if (r<1.0)
             v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+        vector_t vec = getVelVec(n);
+        double v_allow = 1.2*5.0;
+        if (norm(vec)>(v_allow)){
+        for (int d=0;d<m_dim;d++)
+          if (r<1.0)
+            v[m_dim*n+d] *= v_allow/(vec);   // nunca subir v; solo bajar si se disparó            
+        }
+      }
   }
   
 
