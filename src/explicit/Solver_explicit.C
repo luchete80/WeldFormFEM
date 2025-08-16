@@ -614,7 +614,7 @@ void host_ Domain_d::SolveChungHulbert(){
         if (norm(vec)>(v_allow)){
         for (int d=0;d<m_dim;d++)
           if (r<1.0)
-            v[m_dim*n+d] *= v_allow/(vec);   // nunca subir v; solo bajar si se disparó            
+            v[m_dim*n+d] *= v_allow/norm(vec);   // nunca subir v; solo bajar si se disparó            
         }
       }
   }
