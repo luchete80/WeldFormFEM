@@ -483,7 +483,10 @@ public:
   dev_t void BlendField(const double &s, const int size, const int &d, double *prev, double *curr);
   dev_t void postRemeshGlobFilter();
   dev_t void SmoothDeviatoricStress(double alpha);
-
+  dev_t void computeEnergies(double dt,
+                       //const double* f_visc,  // optional nodal viscous forces [3*node_count] or nullptr
+                       double &Ekin, double &Eint, double &Evisc);
+                       
   dev_t double getPtrMax(double *v, const int &size, const int &dim);
   
 protected:

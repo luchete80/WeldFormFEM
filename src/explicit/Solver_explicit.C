@@ -235,6 +235,9 @@ void host_ Domain_d::SolveChungHulbert(){
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
   of << "t,f,fc,area"<<endl;
   int last_step_remesh=-1;
+  double Ekin, Eint;
+  Ekin = Eint = 0.0;
+  double dEkin,dEint;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,6 +365,8 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "s warmup: " << s_wup << endl;
     cout << "New dt: " << dt << endl;
     cout << "Max vel: " << max_vel << endl;
+
+    cout << "dEkin: "<<dEkin <<", dEint: "<<dEint<<endl;
     
       // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
       // VTKWriter writer3(this, s.c_str());
@@ -712,7 +717,9 @@ void host_ Domain_d::SolveChungHulbert(){
     ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
 
   }
-
+  double dEvisc;
+  computeEnergies(dt,dEkin,dEint,dEvisc);
+  Eint+=dEint; Ekin +=dEkin;
   // call impose_bcv !!!REINFORCE VELOCITY BC
 
   // !u = u + beta * nod%v * dt
@@ -732,6 +739,7 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
+    oss_out << "Ekin: "<<Ekin <<", Eint "<<Eint<<endl; 
     //printf("Reaction Forces\n");
     of <<std::scientific<<std::setprecision(6)<< Time ;
     //for (int m=0;m<trimesh->mesh_count;m++){

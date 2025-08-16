@@ -1985,6 +1985,46 @@ void Domain_d::ApplyGlobalDamping(double damping_factor) {
   }
 }
 
+dev_t void Domain_d::computeEnergies(double dt,
+                       //const double* f_visc,  // optional nodal viscous forces [3*node_count] or nullptr
+                       double &Ekin, double &Eint, double &Evisc)
+{
+    Ekin = 0.0;
+    for (int n=0; n<m_node_count; ++n){
+        double vx = v[3*n+0], vy = v[3*n+1], vz = v[3*n+2];
+        double k = 0.5 * m_mdiag[n] * (vx*vx + vy*vy + vz*vz);
+        Ekin += k;
+    }
+
+    // Internal energy rate via sigma:epsdot per element
+    double Edot_int = 0.0;
+    for (int e=0; e<m_elem_count; ++e){
+        // Voigt 6 comp: [xx,yy,zz,xy,yz,xz] ? (ajusta según convención)
+        int base = 6*e;
+        double s0 = m_sigma[base+0], s1 = m_sigma[base+1], s2 = m_sigma[base+2];
+        double s3 = m_sigma[base+3], s4 = m_sigma[base+4], s5 = m_sigma[base+5];
+
+        double e0 = m_str_rate[base+0], e1 = m_str_rate[base+1], e2 = m_str_rate[base+2];
+        double e3 = m_str_rate[base+3], e4 = m_str_rate[base+4], e5 = m_str_rate[base+5];
+
+        double sdot = s0*e0 + s1*e1 + s2*e2 + s3*e3 + s4*e4 + s5*e5;
+        Edot_int += sdot * vol[e];
+    }
+    Eint = Edot_int * dt; // energía interna producida en este paso
+    // si quieres la energía interna acumulada, haz Eint_total += Edot_int*dt externamente
+
+    // Viscous dissipation (nodal)
+    // // Evisc = 0.0;
+    // // if (f_visc){
+        // // for (int n=0;n<m_node_count;++n){
+            // // double fv0 = f_visc[3*n+0], fv1 = f_visc[3*n+1], fv2 = f_visc[3*n+2];
+            // // double vx = v[3*n+0], vy = v[3*n+1], vz = v[3*n+2];
+            // // Evisc += fv0*vx + fv1*vy + fv2*vz;
+        // // }
+        // // Evisc *= dt;
+    // // }
+}
+
   /////DUMMY IN CASE OF CPU
   __global__ void calcElemPressureKernel(Domain_d *dom_d){		
     dom_d->calcElemPressure();
