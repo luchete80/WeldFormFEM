@@ -236,6 +236,7 @@ void host_ Domain_d::SolveChungHulbert(){
   of << "t,f,fc,area"<<endl;
   int last_step_remesh=-1;
   double Ekin, Eint;
+  double Ekin_old;
   Ekin = Eint = 0.0;
   double dEkin,dEint;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,6 +305,7 @@ void host_ Domain_d::SolveChungHulbert(){
       s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
       VTKWriter writer4(this, s.c_str());
       writer4.writeFile();
+      Ekin_old = Ekin;
       #endif
       remesh_count++;
       last_step_remesh = step_count;
@@ -600,6 +602,7 @@ void host_ Domain_d::SolveChungHulbert(){
     //Maintain mapped v if were mapped with momentum conservation!
     memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
+  
 
   
   if (contact){
