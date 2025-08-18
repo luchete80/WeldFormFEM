@@ -382,8 +382,8 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (decrease_dt){
-    STEP_RECOV *=2;
-    s_wup = 1.0/(double(STEP_RECOV));
+    //STEP_RECOV *=2;
+    s_wup = 0.5*1.0/(double(STEP_RECOV));
   }
   
   
