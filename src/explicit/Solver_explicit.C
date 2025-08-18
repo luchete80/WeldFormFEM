@@ -243,6 +243,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  int STEP_RECOV = 20;
   double s_wup; //WARM UP STEP
   while (Time < end_t) {
       
@@ -282,6 +283,7 @@ void host_ Domain_d::SolveChungHulbert(){
       std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
       VTKWriter writer(this, ss.c_str());
       writer.writeFile();
+      STEP_RECOV = 20;
       
       #ifdef BUILD_REMESH
       ReMesher remesh(this);
@@ -354,7 +356,6 @@ void host_ Domain_d::SolveChungHulbert(){
   
 
   #ifdef BUILD_REMESH  
-  const int STEP_RECOV = 20;
   if (s_wup < 1.0){
     //s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
     s_wup += 1.0/double(STEP_RECOV);
@@ -381,7 +382,8 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (decrease_dt){
-    s_wup = 1.0/(2.0*double(STEP_RECOV));
+    STEP_RECOV *=2;
+    s_wup = 1.0/(double(STEP_RECOV));
   }
   
   
