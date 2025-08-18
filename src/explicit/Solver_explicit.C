@@ -598,11 +598,14 @@ void host_ Domain_d::SolveChungHulbert(){
 
       if(norm(vel)>20.0*1.2){
         nc++;
-        large_acc = true;
+
       }
 
   }
   
+  if (nc>20)
+        large_acc = true;
+      
   if (large_acc){ 
     cout << "ERROR, "<< nc <<" nodes with veloc too large "<<endl;  
     decrease_dt = true;
