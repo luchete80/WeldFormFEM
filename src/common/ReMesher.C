@@ -300,6 +300,7 @@ void ReMesher::WriteDomain(){
 
   //NEW CONSERVATIVE MOMENTUM MAP
   double* p_elem_old = new double[m_dom->m_elem_count * 3];
+  double3 pelemold_sum= make_double3(0, 0, 0);
   for (int e = 0; e < m_dom->m_elem_count; ++e) {
       double3 p_sum = make_double3(0, 0, 0);
       for (int a = 0; a < m_dom->m_nodxelem; ++a) {
@@ -307,11 +308,19 @@ void ReMesher::WriteDomain(){
           p_sum.x += m_dom->m_mdiag[n] * m_dom->v[3*n];
           p_sum.y += m_dom->m_mdiag[n] * m_dom->v[3*n + 1];
           p_sum.z += m_dom->m_mdiag[n] * m_dom->v[3*n + 2];
+          //cout << "p_sum.x"<<p_sum.x<<endl;
+          //cout << "vel "<<m_dom->v[3*n+2]<<endl;
+          //cout << "mass "<<m_dom->m_mdiag[n]<<endl;
       }
       p_elem_old[3*e] = p_sum.x / m_dom->m_nodxelem;
       p_elem_old[3*e + 1] = p_sum.y / m_dom->m_nodxelem;
       p_elem_old[3*e + 2] = p_sum.z / m_dom->m_nodxelem;
+      
+      pelemold_sum.x +=p_elem_old[3*e];
+      pelemold_sum.y+=p_elem_old[3*e+1];
+      pelemold_sum.z+=p_elem_old[3*e+2];
   }
+
   
   for (int i=0;i<3*m_node_count;i++){
     afield[i]=0.0;
@@ -514,29 +523,40 @@ void ReMesher::WriteDomain(){
 
 
     cout << "WRITING MOMENTUM "<<endl;
+    double3 pelemnew_sum= make_double3(0, 0, 0);
     // 3. Redistribuir a nodos nuevos (conservando volumen)
     p_node_new = new double[m_node_count * 3]();  // Inicializado a cero
-    for (int e = 0; e < m_elem_count; ++e) {
-        double vol_frac = volumes[e] / m_dom->m_nodxelem;
+    //double frac = 1.0/ (double)m_dom->m_nodxelem;
+    double vol_frac = 0.25;
+    for (int e = 0; e < m_dom->m_elem_count; ++e) {
+        //double vol_frac = m_dom->vol[e] * frac;
         for (int a = 0; a < m_dom->m_nodxelem; ++a) {
             int n = m_elnod[e * m_dom->m_nodxelem + a];
             for (int d = 0; d < 3; ++d) {
                 p_node_new[3*n + d] += p_elem_new[3*e + d] * vol_frac;
             }
+        //cout << "pelem new "<<p_elem_new[3*e + 2]<<endl;
         }
-    }
+        pelemnew_sum.x += p_elem_new[3*e  ];
+        pelemnew_sum.y += p_elem_new[3*e+1];
+        pelemnew_sum.z += p_elem_new[3*e+2];
+        //cout <<"Vol "<<m_dom->vol[e]<<endl;
 
+    }//e
+
+  cout << "Old Momentum per Element "<<pelemold_sum.x<<","<<pelemold_sum.y<<","<<pelemold_sum.z<<endl;
+  cout << "New Momentum per Element "<<pelemnew_sum.x<<","<<pelemnew_sum.y<<","<<pelemnew_sum.z<<endl;
+  
     //~ // 4. Calcular velocidades nuevas
-    for (int n = 0; n < m_node_count; ++n) {
+    for (int n = 0; n < m_dom->m_node_count; ++n) {
         double m_new = m_dom->m_mdiag[n];
-        if (m_new > 1e-10) {  // Tol. física
+        if (m_new > 1e-20) {  // Tol. física
             for (int d = 0; d < 3; ++d) {
-                m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
-                m_dom->m_vprev[3*n + d] = p_node_new[3*n + d] / m_new;
+                //m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
+                //m_dom->m_vprev[3*n + d] = p_node_new[3*n + d] / m_new;
             }
         } else {
           for (int d = 0; d < 3; ++d) m_dom->v[3*n + d] = 0.0;
-            //memset(&m_dom->v[3*n], 0, 3*sizeof(double));
         }
     }
     
@@ -571,8 +591,8 @@ void ReMesher::WriteDomain(){
         final_momentum.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
     }
 
-    //memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
-    //memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+    memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
+    memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
         
     cout << "Momentum:\n";
     //cout << " - Before:  (" << total_momentum_old.x << ", " << total_momentum_old.y << ", " << total_momentum_old.z << ")\n";
@@ -611,57 +631,6 @@ void ReMesher::WriteDomain(){
   
 
 }
-
-
-//~ void ReMesher::conservativeMomentumRemap() {
-    //~ // 1. Calcular momentum promedio por elemento en malla vieja
-    //~ double* p_elem_old = new double[m_dom_old->m_elem_count * 3];
-    //~ for (int e = 0; e < m_dom_old->m_elem_count; ++e) {
-        //~ double3 p_sum = {0, 0, 0};
-        //~ for (int a = 0; a < m_dom_old->m_nodxelem; ++a) {
-            //~ int n = m_dom_old->m_elnod[e * m_dom_old->m_nodxelem + a];
-            //~ p_sum.x += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n];
-            //~ p_sum.y += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n + 1];
-            //~ p_sum.z += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n + 2];
-        //~ }
-        //~ p_elem_old[3*e] = p_sum.x / m_dom_old->m_nodxelem;
-        //~ p_elem_old[3*e + 1] = p_sum.y / m_dom_old->m_nodxelem;
-        //~ p_elem_old[3*e + 2] = p_sum.z / m_dom_old->m_nodxelem;
-    //~ }
-
-    //~ // 2. Mapear a elementos nuevos (usando tu función MapElem existente)
-    //~ double* p_elem_new = new double[m_elem_count * 3];
-    //~ MapElem(p_elem_new, p_elem_old, 3);  // 3 componentes
-
-    //~ // 3. Redistribuir a nodos nuevos (conservando volumen)
-    //~ double* p_node_new = new double[m_node_count * 3]();  // Inicializado a cero
-    //~ for (int e = 0; e < m_elem_count; ++e) {
-        //~ double vol_frac = volumes[e] / m_dom->m_nodxelem;
-        //~ for (int a = 0; a < m_dom->m_nodxelem; ++a) {
-            //~ int n = m_elnod[e * m_dom->m_nodxelem + a];
-            //~ for (int d = 0; d < 3; ++d) {
-                //~ p_node_new[3*n + d] += p_elem_new[3*e + d] * vol_frac;
-            //~ }
-        //~ }
-    //~ }
-
-    //~ // 4. Calcular velocidades nuevas
-    //~ for (int n = 0; n < m_node_count; ++n) {
-        //~ double m_new = m_dom->m_mdiag[n];
-        //~ if (m_new > 1e-16) {  // Tol. física
-            //~ for (int d = 0; d < 3; ++d) {
-                //~ m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
-            //~ }
-        //~ } else {
-            //~ memset(&m_dom->v[3*n], 0, 3*sizeof(double));
-        //~ }
-    //~ }
-
-    //~ delete[] p_elem_old;
-    //~ delete[] p_elem_new;
-    //~ delete[] p_node_new;
-//~ }
-
 
 
 /////WITH THE RAW ELEM AND CONNECT
