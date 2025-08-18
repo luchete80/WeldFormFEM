@@ -239,6 +239,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double Ekin_old;
   Ekin = Eint = 0.0;
   double dEkin,dEint;
+  bool decrease_dt = false;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,10 +339,7 @@ void host_ Domain_d::SolveChungHulbert(){
     if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
       
     }
-    
-    if (dt<1.0e-10)
-      dt = 1.0e-10;
-    
+
     // if (dt_new > 1.0e-20)
       // dt = dt_new;
     // else{
@@ -350,6 +348,8 @@ void host_ Domain_d::SolveChungHulbert(){
       
     // }
   }
+  
+  
 
   #ifdef BUILD_REMESH  
   const int STEP_RECOV = 20;
@@ -377,6 +377,12 @@ void host_ Domain_d::SolveChungHulbert(){
       // VTKWriter writer3(this, s.c_str());
       // writer3.writeFile();
   }
+  
+  if (decrease_dt){
+    s_wup = 0.1;
+  }
+  
+  
   #endif
   //printf("Prediction ----------------\n");
   #if CUDA_BUILD
@@ -582,7 +588,12 @@ void host_ Domain_d::SolveChungHulbert(){
         }
       }
   }
-  if (large_acc) cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
+  if (large_acc){ 
+    cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
+    decrease_dt = true;
+  } else {
+    decrease_dt = false;
+    }
   #endif
   
   ImposeBCAAllDim(); //FOR BOTH GPU AND CPU

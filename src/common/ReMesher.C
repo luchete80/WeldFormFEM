@@ -288,7 +288,30 @@ void ReMesher::WriteDomain(){
   double *Tfield  = new double [m_dom->m_node_count];
   
   double rho_0 = m_dom->rho_0[0];
-  
+
+  //IF MAP MOPMENTUM
+  double3 total_momentum_old = make_double3(0.0, 0.0, 0.0);
+  for (int i = 0; i < m_dom->m_node_count; i++) {
+      total_momentum_old.x += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i];
+      total_momentum_old.y += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i + 1];
+      total_momentum_old.z += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i + 2];
+  }
+
+
+  //NEW CONSERVATIVE MOMENTUM MAP
+  double* p_elem_old = new double[m_dom->m_elem_count * 3];
+  for (int e = 0; e < m_dom->m_elem_count; ++e) {
+      double3 p_sum = make_double3(0, 0, 0);
+      for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+          int n = m_dom->m_elnod[e * m_dom->m_nodxelem + a];
+          p_sum.x += m_dom->m_mdiag[n] * m_dom->v[3*n];
+          p_sum.y += m_dom->m_mdiag[n] * m_dom->v[3*n + 1];
+          p_sum.z += m_dom->m_mdiag[n] * m_dom->v[3*n + 2];
+      }
+      p_elem_old[3*e] = p_sum.x / m_dom->m_nodxelem;
+      p_elem_old[3*e + 1] = p_sum.y / m_dom->m_nodxelem;
+      p_elem_old[3*e + 2] = p_sum.z / m_dom->m_nodxelem;
+  }
   
   for (int i=0;i<3*m_node_count;i++){
     afield[i]=0.0;
@@ -337,6 +360,14 @@ void ReMesher::WriteDomain(){
   MapElem(esfield,   m_dom->pl_strain);
   cout << "map pressure"<<endl;
   MapElem(pfield,    m_dom->p);
+  
+  ///// IF MAP MOMENTUM FOM ELEMENT
+  cout << "Map eleme "<<endl;
+    double* p_elem_new = new double[m_elem_count * 3];
+    MapElem(p_elem_new, p_elem_old, 3);  // 3 componentes
+    double* p_node_new ;
+
+
 
   // //cout << "mapping press"<<endl;
   // //HybridProjectionElemToElem<3>(m_mesh, pfield,    m_dom->p);
@@ -420,7 +451,8 @@ void ReMesher::WriteDomain(){
     
 
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
+  if (m_map_momentum)
+    memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
   memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
   memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
   
@@ -468,6 +500,10 @@ void ReMesher::WriteDomain(){
   cout << "Calculating masses"<<endl;
   m_dom->CalcNodalVol();
   m_dom->CalcNodalMassFromVol();
+  for (int i=0;i<m_node_count;i++){ //Or already dom_d->m_node_count since domain changed
+    if (m_dom->m_mdiag[i]<1.0e-10)
+      cout << "ERROR, SMALL MASS ON NODE "<<i<<endl;
+  }
   //if (m_dom->m_remesh_map_vel)
  cout << "recovering velocities"<<endl;
   if (m_map_momentum){
@@ -475,8 +511,74 @@ void ReMesher::WriteDomain(){
       for (int d=0;d<m_dom->m_dim;d++)
         vfield[m_dom->m_dim*i+d] /=m_dom->m_mdiag[i];
     }
-    memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
-    memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+
+
+    cout << "WRITING MOMENTUM "<<endl;
+    // 3. Redistribuir a nodos nuevos (conservando volumen)
+    p_node_new = new double[m_node_count * 3]();  // Inicializado a cero
+    for (int e = 0; e < m_elem_count; ++e) {
+        double vol_frac = volumes[e] / m_dom->m_nodxelem;
+        for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            int n = m_elnod[e * m_dom->m_nodxelem + a];
+            for (int d = 0; d < 3; ++d) {
+                p_node_new[3*n + d] += p_elem_new[3*e + d] * vol_frac;
+            }
+        }
+    }
+
+    //~ // 4. Calcular velocidades nuevas
+    for (int n = 0; n < m_node_count; ++n) {
+        double m_new = m_dom->m_mdiag[n];
+        if (m_new > 1e-10) {  // Tol. física
+            for (int d = 0; d < 3; ++d) {
+                m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
+                m_dom->m_vprev[3*n + d] = p_node_new[3*n + d] / m_new;
+            }
+        } else {
+          for (int d = 0; d < 3; ++d) m_dom->v[3*n + d] = 0.0;
+            //memset(&m_dom->v[3*n], 0, 3*sizeof(double));
+        }
+    }
+    
+
+
+    /// --- 3. Calcular momento DESPUÉS del mapeo ---
+    double3 total_momentum_new = make_double3(0.0, 0.0, 0.0);
+    for (int i = 0; i < m_node_count; i++) {
+        total_momentum_new.x += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i];
+        total_momentum_new.y += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 1];
+        total_momentum_new.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
+    }
+
+    // --- 4. Aplicar corrección si hay discrepancia (>1% error) ---
+    double3 correction_factor = make_double3(1.0, 1.0, 1.0);
+    if (fabs(total_momentum_old.x) > 1e-10) correction_factor.x = total_momentum_old.x / total_momentum_new.x;
+    if (fabs(total_momentum_old.y) > 1e-10) correction_factor.y = total_momentum_old.y / total_momentum_new.y;
+    if (fabs(total_momentum_old.z) > 1e-10) correction_factor.z = total_momentum_old.z / total_momentum_new.z;
+
+    //~ // Aplicar corrección componente por componente
+    //~ for (int i = 0; i < m_node_count; i++) {
+        //~ vfield[m_dom->m_dim * i]     *= correction_factor.x;
+        //~ vfield[m_dom->m_dim * i + 1] *= correction_factor.y;
+        //~ vfield[m_dom->m_dim * i + 2] *= correction_factor.z;
+    //~ }
+
+    // --- 5. Verificación final (opcional, para debug) ---
+    double3 final_momentum = make_double3(0.0, 0.0, 0.0);
+    for (int i = 0; i < m_node_count; i++) {
+        final_momentum.x += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i];
+        final_momentum.y += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 1];
+        final_momentum.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
+    }
+
+    //memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
+    //memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+        
+    cout << "Momentum:\n";
+    //cout << " - Before:  (" << total_momentum_old.x << ", " << total_momentum_old.y << ", " << total_momentum_old.z << ")\n";
+    //cout << " - After: (" << final_momentum.x << ", " << final_momentum.y << ", " << final_momentum.z << ")\n";
+      
+  
   }
   
   //// RECALCULATED FROM MOMENTUM
@@ -498,12 +600,68 @@ void ReMesher::WriteDomain(){
   delete [] Tfield;
   cout << "MESH CHANGED"<<endl;
 
+
+  delete[] p_elem_old;
+  delete[] p_elem_new;
+  delete[] p_node_new;
+  
   //AFTER MAP
   //THIS CRASHES
   //free_t(m_closest_elem);
   
 
 }
+
+
+//~ void ReMesher::conservativeMomentumRemap() {
+    //~ // 1. Calcular momentum promedio por elemento en malla vieja
+    //~ double* p_elem_old = new double[m_dom_old->m_elem_count * 3];
+    //~ for (int e = 0; e < m_dom_old->m_elem_count; ++e) {
+        //~ double3 p_sum = {0, 0, 0};
+        //~ for (int a = 0; a < m_dom_old->m_nodxelem; ++a) {
+            //~ int n = m_dom_old->m_elnod[e * m_dom_old->m_nodxelem + a];
+            //~ p_sum.x += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n];
+            //~ p_sum.y += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n + 1];
+            //~ p_sum.z += m_dom_old->m_mdiag[n] * m_dom_old->v[3*n + 2];
+        //~ }
+        //~ p_elem_old[3*e] = p_sum.x / m_dom_old->m_nodxelem;
+        //~ p_elem_old[3*e + 1] = p_sum.y / m_dom_old->m_nodxelem;
+        //~ p_elem_old[3*e + 2] = p_sum.z / m_dom_old->m_nodxelem;
+    //~ }
+
+    //~ // 2. Mapear a elementos nuevos (usando tu función MapElem existente)
+    //~ double* p_elem_new = new double[m_elem_count * 3];
+    //~ MapElem(p_elem_new, p_elem_old, 3);  // 3 componentes
+
+    //~ // 3. Redistribuir a nodos nuevos (conservando volumen)
+    //~ double* p_node_new = new double[m_node_count * 3]();  // Inicializado a cero
+    //~ for (int e = 0; e < m_elem_count; ++e) {
+        //~ double vol_frac = volumes[e] / m_dom->m_nodxelem;
+        //~ for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            //~ int n = m_elnod[e * m_dom->m_nodxelem + a];
+            //~ for (int d = 0; d < 3; ++d) {
+                //~ p_node_new[3*n + d] += p_elem_new[3*e + d] * vol_frac;
+            //~ }
+        //~ }
+    //~ }
+
+    //~ // 4. Calcular velocidades nuevas
+    //~ for (int n = 0; n < m_node_count; ++n) {
+        //~ double m_new = m_dom->m_mdiag[n];
+        //~ if (m_new > 1e-16) {  // Tol. física
+            //~ for (int d = 0; d < 3; ++d) {
+                //~ m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
+            //~ }
+        //~ } else {
+            //~ memset(&m_dom->v[3*n], 0, 3*sizeof(double));
+        //~ }
+    //~ }
+
+    //~ delete[] p_elem_old;
+    //~ delete[] p_elem_new;
+    //~ delete[] p_node_new;
+//~ }
+
 
 
 /////WITH THE RAW ELEM AND CONNECT
@@ -568,7 +726,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
 
             std::array<double, 4> lambdas = stable_barycentric(target_node, p0, p1, p2, p3);
 
-            if (lambdas[0] >= -1.0e-8 && lambdas[1] >= -1.0e-8 && lambdas[2] >= -1.0e-8 && lambdas[3] >= -1.0e-8) { 
+            if (lambdas[0] >= -1.0e-10 && lambdas[1] >= -1.0e-10 && lambdas[2] >= -1.0e-10 && lambdas[3] >= -1.0e-10) { 
 
                 //double scalar[4];
                 //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];

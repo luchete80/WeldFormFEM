@@ -384,3 +384,5 @@ F90 PREVIOUS VERSION
 20250812 - Rolling back to previous Pressure with J total calculation.
          - Working on remesh: set interval FROM LAST REMESH! not begining
          - Fix: Calc Faces Areas when remesh
+20250818 - FIXED LAMBA TOLS TO TOLERANCES TO 1.0e-10
+         - ADDED NODAL FROM ELEM VELOC
