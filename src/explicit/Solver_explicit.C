@@ -355,7 +355,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   #ifdef BUILD_REMESH  
   const int STEP_RECOV = 20;
-  if (step_count < last_step_remesh +STEP_RECOV ){
+  if (s_wup < 1.0){
     //s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
     s_wup += 1.0/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
@@ -381,7 +381,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (decrease_dt){
-    s_wup = 1.0/double(STEP_RECOV);
+    s_wup = 1.0/(2.0*double(STEP_RECOV));
   }
   
   
@@ -576,11 +576,15 @@ void host_ Domain_d::SolveChungHulbert(){
   //ApplyGlobalSprings();
 
   calcAccel();
+  
+  // DIVERGENCE DETECTION 
+  // COULD BE ALSO WITH KINETIC ENERGY  
   int nc=0;
   bool large_acc = false;
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
-      if(norm(acc)>1.0e10){
+      vector_t vel = getVelVec(i);
+      if(norm(acc)>1.0e10 || norm(vel)>5.0*1.2){
         nc++;
         large_acc = true;
         for (int d=0;d<m_dim;d++){
@@ -590,6 +594,7 @@ void host_ Domain_d::SolveChungHulbert(){
         }
       }
   }
+  
   if (large_acc){ 
     cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
     decrease_dt = true;
@@ -621,9 +626,10 @@ void host_ Domain_d::SolveChungHulbert(){
   if(s_wup<1.0){
      double r = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
-        //~ for (int d=0;d<m_dim;d++)
-          //~ if (r<1.0)
-            //~ v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+        for (int d=0;d<m_dim;d++)
+          if (r<1.0)
+            v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+        
         //~ vector_t vec = getVelVec(n);
         //~ double v_allow = 1.2*5.0;
         //~ if (norm(vec)>(v_allow)){
