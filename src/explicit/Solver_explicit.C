@@ -584,7 +584,7 @@ void host_ Domain_d::SolveChungHulbert(){
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
-      if(norm(acc)>1.0e10 || norm(vel)>5.0*1.2){
+      if(norm(acc)>1.0e10 || norm(vel)>10.0*1.2){
         nc++;
         large_acc = true;
         for (int d=0;d<m_dim;d++){
