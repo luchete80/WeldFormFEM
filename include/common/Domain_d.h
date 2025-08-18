@@ -489,6 +489,11 @@ public:
                        
   dev_t double getPtrMax(double *v, const int &size, const int &dim);
   
+  
+  
+  
+  
+  
 protected:
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
@@ -580,8 +585,6 @@ protected:
   double          *m_sigma, *m_tau, *m_eps;
 	double          *m_radius;
   
-  double          *m_sigma_prev, *pl_strain_prev,*m_tau_prev;
-  double          *m_str_rate_prev;
   
   ///// FOR PLASTIC/ELASTIC DECOMPOSITION
   double          *m_Jel; // Almacenar J elástico por elemento
@@ -651,6 +654,25 @@ protected:
   Solver* m_solver;
   double *x_old;
   double m_contPF = 0.2;
+
+
+  /////////////////////////////// ROLLBACK
+      // Variables para guardar el estado anterior
+  double          *m_sigma_prev, *pl_strain_prev,*m_tau_prev;
+  double          *m_str_rate_prev;
+  
+  double* m_u_prev;         // Desplazamientos
+  double* m_v_prev;         // Velocidades
+  double* m_a_prev;         // Aceleraciones
+  double* m_prev_a_prev;    // Aceleraciones del paso previo
+
+  double* m_pl_strain_prev; // Deformación plástica
+  double* m_vol_prev;       // Volúmenes elementales
+  double* m_rho_prev;       // Densidades
+  double* m_p_prev;         // Presiones
+
+  //////////////////////////////////////////////////////////
+
 
 };
 

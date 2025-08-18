@@ -2432,6 +2432,45 @@ dev_t double Domain_d::getPtrMax(double *v, const int &size, const int &dim){
   return max;
 }
 
+    // dev_t void Domain::Save_Step() {
+        // // Copiar tensores elementales
+        // memcpy(m_sigma_prev, m_sigma, sizeof(double) * m_elem_count * 6);
+        // memcpy(m_str_rate_prev, m_str_rate, sizeof(double) * m_elem_count * 6);
+        // memcpy(m_tau_prev, m_tau, sizeof(double) * m_elem_count * 6);
+        
+        // // Copiar variables nodales
+        // memcpy(m_u_prev, u, sizeof(double) * m_node_count * m_dim);
+        // memcpy(m_v_prev, v, sizeof(double) * m_node_count * m_dim);
+        // memcpy(m_a_prev, a, sizeof(double) * m_node_count * m_dim);
+        // memcpy(m_prev_a_prev, prev_a, sizeof(double) * m_node_count * m_dim);
+        
+        // // Copiar variables escalares elementales
+        // memcpy(m_pl_strain_prev, pl_strain, sizeof(double) * m_elem_count);
+        // memcpy(m_vol_prev, vol, sizeof(double) * m_elem_count);
+        // memcpy(m_rho_prev, rho, sizeof(double) * m_elem_count);
+        // memcpy(m_p_prev, p, sizeof(double) * m_elem_count);
+    // }
+    
+    // // Función para restaurar el estado anterior
+    // dev_t void Domain_d::Restore_Step() {
+        // // Restaurar tensores elementales
+        // memcpy(m_sigma, m_sigma_prev, sizeof(double) * m_elem_count * 6);
+        // memcpy(m_str_rate, m_str_rate_prev, sizeof(double) * m_elem_count * 6);
+        // memcpy(m_tau, m_tau_prev, sizeof(double) * m_elem_count * 6);
+        
+        // // Restaurar variables nodales
+        // memcpy(u, m_u_prev, sizeof(double) * m_node_count * m_dim);
+        // memcpy(v, m_v_prev, sizeof(double) * m_node_count * m_dim);
+        // memcpy(a, m_a_prev, sizeof(double) * m_node_count * m_dim);
+        // memcpy(prev_a, m_prev_a_prev, sizeof(double) * m_node_count * m_dim);
+        
+        // // Restaurar variables escalares elementales
+        // memcpy(pl_strain, m_pl_strain_prev, sizeof(double) * m_elem_count);
+        // memcpy(vol, m_vol_prev, sizeof(double) * m_elem_count);
+        // memcpy(rho, m_rho_prev, sizeof(double) * m_elem_count);
+        // memcpy(p, m_p_prev, sizeof(double) * m_elem_count * m_gp_count);
+    // }
+
 
 //~ void post_remesh_accel_filter(
     //~ double* a, 

@@ -586,19 +586,25 @@ void host_ Domain_d::SolveChungHulbert(){
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
-      if(norm(acc)>1.0e10 || norm(vel)>10.0*1.2){
+      if(norm(acc)>1.0e10 ){
         nc++;
-        large_acc = true;
+        //large_acc = true;
         for (int d=0;d<m_dim;d++){
         
             //postRemeshGlobFilter();
             a[m_dim*i+d] *= 0.01;
         }
       }
+
+      if(norm(vel)>20.0*1.2){
+        nc++;
+        large_acc = true;
+      }
+
   }
   
   if (large_acc){ 
-    cout << "ERROR, "<< nc <<" nodes with acceleration too large "<<endl;  
+    cout << "ERROR, "<< nc <<" nodes with veloc too large "<<endl;  
     decrease_dt = true;
   } else {
     decrease_dt = false;
