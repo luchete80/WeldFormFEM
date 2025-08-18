@@ -591,8 +591,8 @@ void ReMesher::WriteDomain(){
     memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
         
     cout << "Momentum:\n";
-    //cout << " - Before:  (" << total_momentum_old.x << ", " << total_momentum_old.y << ", " << total_momentum_old.z << ")\n";
-    //cout << " - After: (" << final_momentum.x << ", " << final_momentum.y << ", " << final_momentum.z << ")\n";
+    cout << " - Before:  (" << total_momentum_old.x << ", " << total_momentum_old.y << ", " << total_momentum_old.z << ")\n";
+    cout << " - After: (" << final_momentum.x << ", " << final_momentum.y << ", " << final_momentum.z << ")\n";
       
   
   }

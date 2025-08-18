@@ -584,7 +584,7 @@ void host_ Domain_d::SolveChungHulbert(){
         for (int d=0;d<m_dim;d++){
         
             //postRemeshGlobFilter();
-            //a[m_dim*i+d] *= 0.1;
+            a[m_dim*i+d] *= 0.01;
         }
       }
   }
