@@ -243,6 +243,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  double s_wup; //WARM UP STEP
   while (Time < end_t) {
       
   ////// OR TIME
@@ -310,6 +311,7 @@ void host_ Domain_d::SolveChungHulbert(){
       #endif
       remesh_count++;
       last_step_remesh = step_count;
+      s_wup= 0.0;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -353,9 +355,9 @@ void host_ Domain_d::SolveChungHulbert(){
 
   #ifdef BUILD_REMESH  
   const int STEP_RECOV = 20;
-  double s_wup;
   if (step_count < last_step_remesh +STEP_RECOV ){
-    s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
+    //s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
+    s_wup += 1.0/double(STEP_RECOV);
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
     double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
@@ -379,7 +381,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (decrease_dt){
-    s_wup = 0.1;
+    s_wup = 1.0/double(STEP_RECOV);
   }
   
   
