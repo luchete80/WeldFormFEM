@@ -617,7 +617,7 @@ void ReMesher::WriteDomain(){
   cout << "MESH CHANGED"<<endl;
 
 
-  delete[] p_elem_old;
+  //delete[] p_elem_old;
   delete[] p_elem_new;
   delete[] p_node_new;
   
