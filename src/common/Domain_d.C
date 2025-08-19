@@ -2432,6 +2432,30 @@ dev_t double Domain_d::getPtrMax(double *v, const int &size, const int &dim){
   return max;
 }
 
+void Domain_d::CorrectLocalVelocityPeaks() {
+    const double v_ref = 1.2;  // Tu velocidad característica [m/s]
+    const double v_limit = 10.0 * v_ref; // Umbral para corrección (ej. 12 m/s)
+    int corrected_nodes = 0;
+
+    // --- Paso 1: Identificar nodos problemáticos ---
+    #pragma omp parallel for reduction(+:corrected_nodes)
+    for (int n = 0; n < m_node_count; n++) {
+        vector_t vel = getVelVec(n);
+        double v_mag = norm(vel);
+        
+        if (v_mag > v_limit) {
+            // --- Paso 2: Corrección física conservando dirección ---
+            double correction_factor = v_limit / v_mag;
+            
+            for (int d = 0; d < m_dim; d++) {
+                v[m_dim * n + d] *= correction_factor;
+                a[m_dim * n + d] *= 0.5 * correction_factor; // Amortiguar aceleración también
+            }
+            corrected_nodes++;
+        }
+    }
+  }
+
     // dev_t void Domain::Save_Step() {
         // // Copiar tensores elementales
         // memcpy(m_sigma_prev, m_sigma, sizeof(double) * m_elem_count * 6);

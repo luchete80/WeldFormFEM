@@ -516,7 +516,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   //smoothDevStrainRates(0.5);
   #ifdef BUILD_REMESH    
-  if (step_count < last_step_remesh +STEP_RECOV){  
+  if (s_wup < 1.0){  
     BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
   }
   #endif
@@ -546,7 +546,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcArtificialViscosity(); //Added to Sigma
 
   #ifdef BUILD_REMESH    
-  if (step_count < last_step_remesh +STEP_RECOV){
+  if (s_wup < 1.0){
     BlendStresses(s_wup, 1.5);
     SmoothDeviatoricStress(0.8);
   }
@@ -587,7 +587,7 @@ void host_ Domain_d::SolveChungHulbert(){
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
       if(norm(acc)>1.0e10 ){
-        nc++;
+        //nc++;
         //large_acc = true;
         for (int d=0;d<m_dim;d++){
         
@@ -603,7 +603,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
   
-  if (nc>20)
+  if (nc>0.05*m_node_count)
         large_acc = true;
       
   if (large_acc){ 
@@ -640,6 +640,9 @@ void host_ Domain_d::SolveChungHulbert(){
         for (int d=0;d<m_dim;d++)
           if (r<1.0)
             v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+
+    CorrectLocalVelocityPeaks();
+
         
         //~ vector_t vec = getVelVec(n);
         //~ double v_allow = 1.2*5.0;
@@ -659,9 +662,9 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
 
-  if (step_count < last_step_remesh +STEP_RECOV ){
+  if (s_wup < 1.0 ){
     //if (Time > RAMP_FRACTION*end_t)
-    //ApplyGlobalDamping(m_remesh_damp_vel);
+    ApplyGlobalDamping((1.0-s_wup));
     //smoothFieldLaplacian(v,3);
     const double ka = 0.2;
     for (int i=0;i<m_node_count;i++)

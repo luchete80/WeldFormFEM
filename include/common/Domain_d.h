@@ -492,7 +492,7 @@ public:
   
   
   
-  
+  void CorrectLocalVelocityPeaks();
   
 protected:
   double          m_tot_mass; //Only for testing, not needed
