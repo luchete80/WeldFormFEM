@@ -6,7 +6,7 @@ $#   nid               x               y               z      tc      rc
        1            0.00             0.0             0.0       0       0
        2            0.10             0.0            0.00       0       0
        3            0.00             0.1            0.00       0       0
-       4            0.03             0.03           0.1        0       0
+       4            0.03            0.03             0.1       0       0
 *PART
 $#                                                                         title
 New part from tetrahedron mesher
