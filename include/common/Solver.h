@@ -69,6 +69,8 @@ public:
   //virtual double getCondNumber(){}
   
   virtual inline void addToU(int node, int dim, double delta) {};
+  virtual void assembleContactStiffness(double kn, double dt){}
+  
 protected:
   //Vec3D vtol;     //
   double ptol;    //

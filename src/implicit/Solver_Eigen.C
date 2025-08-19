@@ -311,6 +311,34 @@ int Solver_Eigen::Solve(){
         addElementToTriplets(Ke, global_dofs, m_triplets);
     }
 
+
+// SIMPLEST CASE, NODE TO RIGID
+// 
+
+void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
+    for (int i = 0; i < m_dom->m_node_count; ++i) {
+        if (m_dom->m_mesh_in_contact[i]>-1) continue;  // marcás qué nodos están en contacto
+
+        // normal en el nodo (ya la calculaste en contforce)
+        //Eigen::Vector3d n = m_dom->contactNormal[i]; 
+        Eigen::Vector3d n (m_dom->contforce[3*i], m_dom->contforce[3*i+1],m_dom->contforce[3*i+2]);
+        n /= n.norm();
+        Eigen::Matrix3d nnT = n * n.transpose();   // (n ⊗ n)
+
+        // bloque de rigidez de contacto
+        Eigen::Matrix3d Kc = (kn * dt) * nnT;
+
+        // ensamblar en la matriz global
+        int base = i * m_dom->m_dim;  // desplazamiento DOF del nodo i
+        for (int r = 0; r < 3; ++r) {
+            for (int c = 0; c < 3; ++c) {
+                m_triplets.emplace_back(base + r, base + c, Kc(r,c));
+            }
+        }
+    }
+}
+
+
     // Finalize the assembly
     void Solver_Eigen::finalizeAssembly() {
         K.setFromTriplets(m_triplets.begin(), m_triplets.end());

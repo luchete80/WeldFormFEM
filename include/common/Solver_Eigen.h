@@ -138,6 +138,7 @@ public:
       #pragma omp atomic update  // For thread safety if using OpenMP
       R(global_dof) += value;
   }
+  virtual void assembleContactStiffness(double kn, double dt);
 
 protected:
   typedef Eigen::SparseMatrix<double> SpMat;
