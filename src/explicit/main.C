@@ -789,23 +789,23 @@ int main(int argc, char **argv) {
         #endif
       }
     }
-    ///////AXISYMM EXAMPLE-----------------------
-    // // #ifdef CUDA_BUILD
-    // // #else    
-    // // if (dom_d->getPosVec2(i).y < 0.0001 ) {
-       // // for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
-       // // cout << "Node "<<i <<" vel "<<endl;
-      // // fixcount++;
-    // // }      
-    // // else if (dom_d->getPosVec2(i).y < (0.03+0.0001) && dom_d->getPosVec2(i).y > 0.03-0.0001) {
-      // // dom_d->AddBCVelNode(i,0,-0.0);
-      // // dom_d->AddBCVelNode(i,1,-0.5); //AXISYMM
-      // // //dom_d->AddBCVelNode(i,2,-1.2);
-      // // cout << "Node "<<i <<" vel "<<endl;
-      // // velcount++;
-    // // }     
-    // // #endif
-    // //-------------------------------------
+    ///AXISYMM EXAMPLE-----------------------
+    #ifdef CUDA_BUILD
+    #else    
+    if (dom_d->getPosVec2(i).y < 0.0001 ) {
+       for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
+       cout << "Node "<<i <<" vel "<<endl;
+      fixcount++;
+    }      
+    else if (dom_d->getPosVec2(i).y < (0.03+0.0001) && dom_d->getPosVec2(i).y > 0.03-0.0001) {
+      dom_d->AddBCVelNode(i,0,-0.0);
+      dom_d->AddBCVelNode(i,1,-0.5); //AXISYMM
+      //dom_d->AddBCVelNode(i,2,-1.2);
+      cout << "Node "<<i <<" vel "<<endl;
+      velcount++;
+    }     
+    #endif
+    ////-------------------------------------
 
     
   }

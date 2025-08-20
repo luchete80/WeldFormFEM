@@ -162,7 +162,7 @@ public:
   Domain_d (std::string);
   Domain_d (){
     Nproc = 1;    //USED ON IMPLICIT
-    m_axisymm_vol_weight = true; // DO NOT CHANGE, SPECIALLY FOR IMPLICIT SOLVER.
+    m_axisymm_vol_weight = false; // DO NOT CHANGE, SPECIALLY FOR IMPLICIT SOLVER.
     m_domtype = _3D_;
     bc_count[0]=bc_count[1]=bc_count[2]=0;
     contact = false;

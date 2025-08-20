@@ -342,7 +342,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     if (std::abs(x.x) < eps) x.x = 0.0;
     if (std::abs(x.y) < eps) x.y = 0.0;
     if (std::abs(x.z) < eps) x.z = 0.0;
-      
+    
     if (norm(x)>1.e-10)
       m_oss << std::scientific<<std::setprecision(4)<<x.x <<" "<<x.y <<" " <<x.z<<endl;    
     else
@@ -373,6 +373,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
       if (std::abs(a.x) < eps) a.x = 0.0;
       if (std::abs(a.y) < eps) a.y = 0.0;
       if (std::abs(a.z) < eps) a.z = 0.0;
+      if (dom->m_dim == 2 ) a.z = 0.0;
 
       // También podés aplicar length si querés ignorar todo el vector si es chico
       if (length(a) < eps)
@@ -387,6 +388,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   m_oss<<"VECTORS Velocity float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     vector_t v = dom->getVelVec(n);
+    if (dom->m_dim==2) v.z = 0.0;
     m_oss << fixed<<v.x <<" "<<v.y <<" " <<v.z<<endl;    
   }
   if (dom->isContactOn())

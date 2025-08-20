@@ -411,7 +411,7 @@ dev_t void Domain_d::calcElemForces(){
                         getDerivative(e, gp, 0, n) * sigma_rz * r_gp + 
                         1.0/m_nodxelem * sigma_rz * detJ_gp;    //NOT FROM Bt x sig, not x radius
                 }else {
-                    double fa = 1.0/m_nodxelem / r_gp * detJ_gp;
+                    double fa = (1.0/m_nodxelem) *1.0/ r_gp * detJ_gp;
 
                     // Fuerza en r
                     m_f_elem[offset + n*m_dim    ] += 
@@ -1368,9 +1368,9 @@ dev_t void Domain_d::CalcNodalMassFromVol(){
 
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
-      if (m_domtype == _Axi_Symm_ && !m_axisymm_vol_weight){
-        f = 1.0/m_radius[e]; // VOLUME WEIGHT,for a
-      }
+      // if (m_domtype == _Axi_Symm_ && !m_axisymm_vol_weight){
+        // f = 1.0/m_radius[e]; // VOLUME WEIGHT,for a
+      // }
       mass += f*rho[eglob] * m_voln[n] / m_nodel_count[n];  //BENSON 1992.
     }    
     m_mdiag[n] = mass;
