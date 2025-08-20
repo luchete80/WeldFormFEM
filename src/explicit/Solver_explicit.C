@@ -849,7 +849,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
     
     //}
-    of <<Eint<<","<<Ekin;
+    of <<","<<Eint<<","<<Ekin;
     of <<endl;
     #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
