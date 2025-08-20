@@ -233,7 +233,7 @@ void host_ Domain_d::SolveChungHulbert(){
   bool remesh_ = false;
   int remesh_count = 0;
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
-  of << "t,f,fc,area"<<endl;
+  of << "t,f,fc,area,Eint,Ekin"<<endl;
   int last_step_remesh=-1;
   double Ekin, Eint;
   double Ekin_old;
@@ -849,6 +849,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
     
     //}
+    of <<Eint<<","<<Ekin;
     of <<endl;
     #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
