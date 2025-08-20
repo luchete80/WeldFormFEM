@@ -244,7 +244,7 @@ void host_ Domain_d::SolveChungHulbert(){
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   int STEP_RECOV = 20;
-  double s_wup; //WARM UP STEP
+  double s_wup = 1.0; //WARM UP STEP
   while (Time < end_t) {
       
   ////// OR TIME
@@ -675,28 +675,7 @@ void host_ Domain_d::SolveChungHulbert(){
   #endif //REMESH
 
   //ApplyGlobalDamping(0.1);
-  #endif
-
-	// !$omp parallel do num_threads(Nproc) private (n)  
-	// do n=1,node_count
-		// ! do d=1,dim
-			// ! nod%a(n,d) =  (fext_glob(n,d)-rint_glob(n,d))/mdiag(n) 
-		// ! end do 
-		// nod%a(n,:) =  (fext_glob(n,:)-rint_glob(n,:))/mdiag(n) 
-	// end do
-	// !$omp end parallel do
-	
-  // call impose_bca
-
-  
-	// !$omp parallel do num_threads(Nproc) private (n)
-  // do n=1,node_count
-		// nod%a(n,:) = nod%a(n,:) - alpha * prev_a(n,:)
-		// nod%a(n,:) = nod%a(n,:) / (1.0d0 - alpha)
-		// nod%v(n,:) = nod%v(n,:) + gamma * dt * nod%a (n,:)  
-	// end do
-	// !$omp end parallel do
-  
+  #endif 
 
   ImposeBCVAllDim();
   //DAMPING
@@ -770,16 +749,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double dEvisc;
   computeEnergies(dt,dEkin,dEint,dEvisc);
   Eint+=dEint; Ekin +=dEkin;
-  // call impose_bcv !!!REINFORCE VELOCITY BC
 
-  // !u = u + beta * nod%v * dt
-  // u = u + beta * dt * dt * nod%a   
-  // nod%u = nod%u + u
-  // nod%x = nod%x + u
-  
-  // !call AverageData(elem%rho(:,1),nod%rho(:))  
-  // prev_a = nod%a
-  // time = time + dt
  
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
