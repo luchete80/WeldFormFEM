@@ -55,7 +55,7 @@ dev_t void Domain_d::calcElemStrainRates(){
         if (m_domtype == _Axi_Symm_){
           double f = 0.25;
           if (m_nodxelem == 3) f  = 0.333;
-          str_rate.Set(2,2,str_rate.getVal(0,1) + f*getVElem(e,n,0)/getRadius(e,0));//0.25 is shapemat - Vr/r
+          str_rate.Set(2,2,str_rate.getVal(2,2) + f*getVElem(e,n,0)/getRadius(e,0));//0.25 is shapemat - Vr/r
           rot_rate.Set(2,2,0.0);
             // elem%str_rate(e,gp, 3,3) = elem%str_rate(e,gp, 3,3) + 0.25d0*elem%vele (e,dim*(n-1)+1,1) / elem%radius(e,gp) !! 0.25 is shapemat
           // ! print *, "hoop er", elem%str_rate(e,gp, 3,3) 
