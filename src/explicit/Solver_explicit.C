@@ -579,6 +579,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   calcAccel();
   
+  #ifdef BUILD_REMESH    
   // DIVERGENCE DETECTION 
   // COULD BE ALSO WITH KINETIC ENERGY  
   int nc=0;
@@ -612,7 +613,10 @@ void host_ Domain_d::SolveChungHulbert(){
   } else {
     decrease_dt = false;
     }
-  #endif
+    
+  #endif 
+  
+  #endif //CUDA_BUILD
   
   ImposeBCAAllDim(); //FOR BOTH GPU AND CPU
   
@@ -642,15 +646,6 @@ void host_ Domain_d::SolveChungHulbert(){
             v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
 
     CorrectLocalVelocityPeaks();
-
-        
-        //~ vector_t vec = getVelVec(n);
-        //~ double v_allow = 1.2*5.0;
-        //~ if (norm(vec)>(v_allow)){
-        //~ for (int d=0;d<m_dim;d++)
-          //~ if (r<1.0)
-            //~ v[m_dim*n+d] *= v_allow/norm(vec);   // nunca subir v; solo bajar si se disparó            
-        //~ }
       }
   }
   
