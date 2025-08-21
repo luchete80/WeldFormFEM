@@ -527,13 +527,13 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP();
   // }else
   //if (!remesh_){
-  cout << "pressure "<<endl;  
+
   if      (m_press_algorithm == 0)
     calcElemPressure();
   else if (m_press_algorithm == 1)
     calcElemPressureANP();
   //}
-  cout << "test"<<endl;
+
   //if (step_count%5 == 0)
     //smoothPressureLaplacian();
   
