@@ -386,3 +386,5 @@ F90 PREVIOUS VERSION
          - Fix: Calc Faces Areas when remesh
 20250818 - FIXED LAMBA TOLS TO TOLERANCES TO 1.0e-10
          - ADDED NODAL FROM ELEM VELOC
+20250820 - Fixed AXISYMM Mass weighted eqns.
+20250821 - Added Boundary Conditions Zone reading!!

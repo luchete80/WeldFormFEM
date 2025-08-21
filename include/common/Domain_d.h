@@ -277,7 +277,8 @@ public:
   dev_t void smoothPressureLaplacian();
   
   dev_t void smoothFieldLaplacian(double *, int dim = 3);
-
+  
+  int AddBCVelZone(const vector_t &start, const vector_t &end, const vector_t &vel);
     
   dev_t void smoothPressureField(double gamma); //Laplace Smooth
   dev_t void calcElemPressureFromJ();

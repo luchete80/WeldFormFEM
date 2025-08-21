@@ -417,6 +417,31 @@ dev_t void Domain_d::InitStressesFromMat(){
 }
 
 
+///// THIS SHOULD BE FOLLOWED BY ALLOCATEBCS()
+///// TODO: ASSIGN ZONE FIRST //////
+int Domain_d::AddBCVelZone(const vector_t &start, const vector_t &end, const vector_t &vel){
+  int partcount = 0;
+  for (size_t a=0; a<m_node_count; a++){
+    bool included=true;
+      if (x[m_dim*a] < start.x || x[m_dim*a] > end.x)
+        included = false;
+      if (x[m_dim*a+1] < start.y || x[m_dim*a+1] > end.y)
+        included = false;
+      if (m_dim > 2)
+        if (x[m_dim*a+2] < start.z || x[m_dim*a+2] > end.z)
+          included = false;
+     
+    if (included){     
+      AddBCVelNode(a,0,vel.x);      AddBCVelNode(a,1,vel.y);      
+      if (m_dim>2) AddBCVelNode(a,2,vel.z);
+      partcount++;
+    }
+  }
+
+  return partcount;
+}
+
+
 ///// IMPORTANT: m_gp_count 
 
 void Domain_d::SetDimension(const int &node_count, const int &elem_count){

@@ -518,7 +518,7 @@ int main(int argc, char **argv) {
   //////////////////// BOUNDARY CONDITIONS
   std::vector<boundaryCondition> bConds;
   
-  
+  cout << "Reading Boundary Conditions ..."<<endl;
     int bc_count = 0;
     //std::vector<boundaryCondition> bcondvec;
 		for (auto& bc : bcs) { //TODO: CHECK IF DIFFERENTS ZONES OVERLAP
@@ -526,20 +526,29 @@ int main(int argc, char **argv) {
 			int zoneid,valuetype,var,ampid;
  
 
-	////// BOUNDARY CONDITIONS
-	double ampfactor = 1.0;
-	
-	bool free=true;
-	boundaryCondition bcon;
-	//bcon.type = 0;        //DEFAULT: VELOCITY
-	//bcon.valueType = 0;   //DEFAULT: CONSTANT
-	//bcon.value_ang = 0.0;
-	readValue(bc["zoneId"], 	bcon.zoneId);
-	readValue(bc["type"], 		bcon.type);
-	//type 0 means velocity vc
-	readValue(bc["valueType"], 	bcon.valueType);
-	readVector(bc["value"], 	      bcon.value);      //Or value linear
-	readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+      ////// BOUNDARY CONDITIONS
+      double ampfactor = 1.0;
+      
+      bool free=true;
+      boundaryCondition bcon;
+      //bcon.type = 0;        //DEFAULT: VELOCITY
+      //bcon.valueType = 0;   //DEFAULT: CONSTANT
+      //bcon.value_ang = 0.0;
+      readValue(bc["zoneId"], 	bcon.zoneId);
+      readValue(bc["type"], 		bcon.type);
+      //type 0 means velocity vc
+      readValue(bc["valueType"], 	bcon.valueType);
+      readVector(bc["value"], 	      bcon.value);      //Or value linear
+      readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+
+      double3 start,end;
+      readValue(bc["id"], 		zoneid);
+      readVector(bc["start"], 	start);
+      readVector(bc["end"], 	end);
+      
+      int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
+      cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
+  
 	if (bcon.valueType == 0){//Constant
 
 	} else {
@@ -789,23 +798,6 @@ int main(int argc, char **argv) {
         #endif
       }
     }
-    ///AXISYMM EXAMPLE-----------------------
-    // #ifdef CUDA_BUILD
-    // #else    
-    // if (dom_d->getPosVec2(i).y < 0.0001 ) {
-       // for (int d=0;d<2;d++)dom_d->AddBCVelNode(i,d,0);
-       // cout << "Node "<<i <<" vel "<<endl;
-      // fixcount++;
-    // }      
-    // else if (dom_d->getPosVec2(i).y < (0.03+0.0001) && dom_d->getPosVec2(i).y > 0.03-0.0001) {
-      // dom_d->AddBCVelNode(i,0,-0.0);
-      // dom_d->AddBCVelNode(i,1,-0.5); //AXISYMM
-      // //dom_d->AddBCVelNode(i,2,-1.2);
-      // cout << "Node "<<i <<" vel "<<endl;
-      // velcount++;
-    // }     
-    // #endif
-    ///////-------------------------------------
 
     
   }

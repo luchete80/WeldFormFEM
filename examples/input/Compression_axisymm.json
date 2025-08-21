@@ -2,26 +2,29 @@
 "Configuration":
 {
   "Nproc":4,
-  "cflFactor": 0.03,
+  "cflFactor": 0.3,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
-  "simTime": 5.0e-5,
+  "simTime": 1.0e-3,
   "artifViscAlpha": 1.0,
   "artifViscBeta": 0.0,
   "outTime": 1.0e-5,
-  "domType": "AxiSym",
+  "fixedTS":true,
+  "domType": "AxiSymm",
   "solver": "Mech-LeapFrog"
 }
 ,
 "Materials":[ 
 {
 	"id": "Solid",
-	"type": "Bilinear",
-  "const": [0.0],
-	"density0": 2700.0,   
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 27000.0, 
+  "thermalHeatCap": 87.50,
+  "thermalCond": 190.0,
 	"youngsModulus": 68.9E9, 
 	"poissonsRatio": 0.3,
-	"yieldStress0": 300.0E6
+	"yieldStress0": 190.4E6
 }],
 
 "DomainBlocks": 
@@ -31,7 +34,7 @@
   "elemType":"TriTet",
   "elemLength": 0.0005,
 	"denseMode": 0,
-	"start": [ 0.0001, 0.0, 0.0],
+	"start": [ 0.0005, 0.0, 0.0],
 	"dim": [0.0127, 0.03, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
@@ -55,16 +58,21 @@
 ],
 "BoundaryConditions": [
 {
+  "id": 2,
+	"start":[ 0.0,-1.0, 0.0000],
+	"end": 	[ 1.0, 1.0e-4, 0.0000],
 	"zoneId": 	5,
 	"valueType": 0,
 	"value": 		[ 0.0, 0.0, 0.0],
 	"free": 		true
 },
 {
-	"zoneId": 	10,
-	"valueType": 	0,
-  "amplitudeId" : 1,
-	"value": 		[ 0.0, -10.0, 0.0],
+  "id": 2,
+	"start":[ 0.0,0.0299, 0.0000],
+	"end": 	[ 1.0,0.05, 0.0000],
+	"zoneId": 	5,
+	"valueType": 0,
+	"value": 		[ 0.0, -1.0, 0.0],
 	"free": 		true
 }
 ]
