@@ -422,9 +422,10 @@ public:
       }
       return dV;
   }
-  void setAxiSymm(){
+  void setAxiSymm(const bool &vol_weight = true){
     m_dim = 2;
     m_domtype = _Axi_Symm_;
+    m_axisymm_vol_weight = vol_weight;
   }
   StabilizationParams m_stab;
   int m_press_algorithm;

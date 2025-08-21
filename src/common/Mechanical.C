@@ -397,21 +397,22 @@ dev_t void Domain_d::calcElemForces(){
                 double sigma_rr  = getSigma(e, gp, 0, 0);
                 double sigma_tt  = getSigma(e, gp, 2, 2);  // sigma_theta_theta
                 double sigma_rz  = getSigma(e, gp, 0, 1);
-                    
+                
+                double f = detJ_gp/(m_nodxelem);
                 if (m_axisymm_vol_weight) {
                    
 
                     // Fuerza en r
                     m_f_elem[offset + n*m_dim    ] += 
                         getDerivative(e, gp, 1, n) * sigma_rz * r_gp + 
-                        1.0/m_nodxelem * (sigma_rr - sigma_tt) * detJ_gp; //NOT FROM Bt x sig, not x radius
+                         (sigma_rr - sigma_tt) * f; //NOT FROM Bt x sig, not x radius
 
                     // Fuerza en z
                     m_f_elem[offset + n*m_dim + 1] += 
                         getDerivative(e, gp, 0, n) * sigma_rz * r_gp + 
-                        1.0/m_nodxelem * sigma_rz * detJ_gp;    //NOT FROM Bt x sig, not x radius
+                         sigma_rz * f;    //NOT FROM Bt x sig, not x radius
                 }else {
-                    double fa = (1.0/m_nodxelem) *1.0/ r_gp * detJ_gp;
+                    double fa = f /r_gp;
 
                     // Fuerza en r
                     m_f_elem[offset + n*m_dim    ] += 
