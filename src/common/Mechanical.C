@@ -592,6 +592,7 @@ dev_t void Domain_d::calcElemPressure() {
     }
   }
 
+
     // 2. Material/Stabilization parameters
     //~ const double alpha_contact = 0.5;  
     //~ const double alpha_free = 0.2;      
@@ -616,16 +617,22 @@ dev_t void Domain_d::calcElemPressure() {
     // Contact detection
     double contact_weight = 0.0;
     bool is_contact = false;
-    for(int a = 0; a < m_nodxelem; ++a) {
-      int nid = m_elnod[e*m_nodxelem + a];
-      double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
-        if(dot(cf,cf) > 0) {
-            is_contact = true;
-            break;
-        }
-        //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
-    }
-
+    if (contact){
+      for(int a = 0; a < m_nodxelem; ++a) {
+        int nid = m_elnod[e*m_nodxelem + a];
+        vector_t cf;
+        if (m_dim ==3)
+          cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
+        else 
+          cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],0.0);
+        //double3 cf = make_double3(contforce[m_dim*nid],contforce[m_dim*nid+1],contforce[m_dim*nid+2]);
+          if(dot(cf,cf) > 0) {
+              is_contact = true;
+              break;
+          }
+          //contact_weight = std::max(contact_weight, std::min(1.0, length(cf) / (K * h * h)));
+      }
+    } 
     // F-bar adaptive blending
     double J_avg = 0.0;
     for(int a = 0; a < m_nodxelem; ++a) {
@@ -655,13 +662,14 @@ dev_t void Domain_d::calcElemPressure() {
     
     // Velocity divergence
     double div_v = 0.0;
-    for(int a = 0; a < m_nodxelem; ++a) {
-        int nid = m_elnod[e*m_nodxelem + a];
-        double3 va = getVelVec(nid);
-        double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
-        div_v += dot(gradNa, va);
+    if (m_domtype != _Axi_Symm_){
+      for(int a = 0; a < m_nodxelem; ++a) {
+          int nid = m_elnod[e*m_nodxelem + a];
+          double3 va = getVelVec(nid);
+          double3 gradNa =make_double3(getDerivative(e,0,0,a),getDerivative(e,0,1,a),getDerivative(e,0,2,a));
+          div_v += dot(gradNa, va);
+      }
     }
-    
     //div_v /= vol1;  // Normalización
     
     double p_pspg = 0.0;  // LIMITED TO COMPRESSION 

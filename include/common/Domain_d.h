@@ -569,7 +569,7 @@ protected:
   //PLASTIC HEAT 
   double          *m_strain_pl_incr; //Increment of plastic strain, useful for plastic heat generation.
   double          *m_q_plheat;
-  double_t        m_pl_energy;
+  double        m_pl_energy;
   
   /////// ELEMENT VARIABLES
   /////////////////////// //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION ///////////////////////////////////

@@ -319,7 +319,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
 
   }
-  
+
   if (step_count % 10 == 0 || remesh_){
   //cout << "Calc ExtFace Areas"<<endl;
   CalcExtFaceAreas();
@@ -521,18 +521,19 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   #endif
   
-  calcElemDensity();
+
   // if (m_dim == 3 && m_nodxelem ==4){
   //calcElemPressureANP_Nodal();
   //calcElemPressureANP();
   // }else
   //if (!remesh_){
+  cout << "pressure "<<endl;  
   if      (m_press_algorithm == 0)
     calcElemPressure();
   else if (m_press_algorithm == 1)
     calcElemPressureANP();
   //}
-  
+  cout << "test"<<endl;
   //if (step_count%5 == 0)
     //smoothPressureLaplacian();
   
@@ -542,6 +543,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP_Nodal_HG();
   
   //calcElemPressureFromJ();
+  
   CalcStressStrain(dt);
   calcArtificialViscosity(); //Added to Sigma
 
@@ -554,7 +556,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   calcElemForces();
   calcElemHourglassForces();
-  
+
   if (contact)
 //    CalcContactForcesWang();
     CalcContactForces();
@@ -757,6 +759,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
     ostringstream oss_out;
     oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    cout << "step time "<<endl;
     oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
     //printf("Reaction Forces\n");
@@ -843,6 +846,7 @@ void host_ Domain_d::SolveChungHulbert(){
     if (!out_file.is_open()) {
         std::cerr << " out_file is not open! Cannot write." << std::endl;
     } else {
+        out_file << oss_out.str();
         out_file << oss_out.str();
         out_file.flush();
     }
