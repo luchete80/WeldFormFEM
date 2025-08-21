@@ -217,6 +217,8 @@ void ReMesher::MapNodalScalar(double *vfield, double *o_field){
 void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
   #ifndef REMESH_OMEGA_H ////MMG
   MapElemVectorRaw        (vfield, o_field,field_dim);
+  //MapElemVectorL2(vfield, o_field,field_dim);
+  
   #else              
   MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
  #endif
@@ -720,7 +722,33 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
             }//lambdas
           }//elem
           if (!found) {
-              std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+              //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+
+              //~ // 1. Encuentra el nodo más cercano en la malla old
+              //~ int closest_old_node = find_closest_node(target_node); 
+              
+              //~ // 2. Encuentra los K nodos más cercanos en la malla old (ej: K=4)
+              //~ std::vector<int> closest_nodes = find_k_closest_nodes(target_node, 4); 
+              
+              //~ // 3. Interpola suavemente usando pesos por distancia inversa
+              //~ double total_weight = 0.0;
+              //~ std::array<double, dim> interpolated_value = {0.0, 0.0, 0.0};
+              
+              //~ for (int node_id : closest_nodes) {
+                  //~ double dist = distance(target_node, old_mesh_coords[node_id]);
+                  //~ double weight = 1.0 / (dist * dist + 1e-15); // Peso = 1/dist^2
+                  
+                  //~ for (int d=0; d<dim; d++) {
+                      //~ interpolated_value[d] += weight * o_field[dim * node_id + d];
+                  //~ }
+                  //~ total_weight += weight;
+              //~ }
+              
+              //~ // Normalizar
+              //~ for (int d=0; d<dim; d++) {
+                  //~ vfield[dim * vert + d] = interpolated_value[d] / total_weight;
+              //~ }
+              
           }
         }//found same node
 
@@ -905,6 +933,7 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
         for (int d=0;d<field_dim;d++) vfield[elem*field_dim+d]=0.0;  
   }
 }
+
 
 /////////////////////////////
 ////// OLD FUNCTION /////////
@@ -1263,6 +1292,283 @@ void ReMesher::ReMapBCsByFace(int* old_bc_nod,
   // }
   
   
+}
+
+
+//~ //////////////////////////// NEW MIN SQUARES ELEMENT MAP
+//~ #include <Eigen/Dense>
+//~ #include <Eigen/QR> // Para ColPivHouseholderQR
+//~ #include <vector>
+//~ #include <array>
+//~ #include <cmath>
+
+//~ void ReMesher::MapElemVectorL2(double* new_field, double* old_field, int field_dim) {
+    //~ // 1. Precomputar centroides de la malla OLD (si no se tiene ya)
+    //~ std::vector<std::array<double, 3>> old_centroids(m_dom->m_elem_count);
+    //~ for (int old_elem = 0; old_elem < m_dom->m_elem_count; old_elem++) {
+        //~ old_centroids[old_elem] = get_old_elem_centroid(old_elem);
+    //~ }
+
+    //~ // 2. Para cada elemento en la NUEVA malla
+    //~ for (int new_elem = 0; new_elem < m_elem_count; new_elem++) {
+        
+        //~ // 3. Obtener centroide del elemento nuevo
+        //~ std::array<double, 3> new_centroid = get_new_elem_centroid(new_elem);
+        
+        //~ // 4. Encontrar vecinos más cercanos (implementación temporal - optimizar con KD-tree después)
+        //~ int num_neighbors = std::min(20, m_dom->m_elem_count);
+        //~ std::vector<int> neighbor_old_elems = find_nearest_old_elems(new_centroid, num_neighbors, old_centroids);
+        
+        //~ int n = neighbor_old_elems.size();
+        
+        //~ // 5. Para cada componente del campo vectorial
+        //~ for (int comp = 0; comp < field_dim; comp++) {
+            //~ double new_value = 0.0;
+
+            //~ if (n < 4) { // Fallback: promedio simple
+                //~ double sum = 0.0;
+                //~ for (int old_elem_id : neighbor_old_elems) {
+                    //~ sum += old_field[old_elem_id * field_dim + comp];
+                //~ }
+                //~ new_value = (n > 0) ? sum / n : 0.0;
+            //~ } else {
+                //~ // 6. Configurar problema de mínimos cuadrados A * x = b
+                //~ Eigen::MatrixXd A(n, 4);
+                //~ Eigen::VectorXd b(n);
+
+                //~ for (int i = 0; i < n; i++) {
+                    //~ int old_elem_id = neighbor_old_elems[i];
+                    //~ std::array<double, 3>& c = old_centroids[old_elem_id];
+                    
+                    //~ A(i, 0) = 1.0;
+                    //~ A(i, 1) = c[0];
+                    //~ A(i, 2) = c[1];
+                    //~ A(i, 3) = c[2];
+                    
+                    //~ b(i) = old_field[old_elem_id * field_dim + comp];
+                //~ }
+
+                //~ // 7. Resolver con QR pivoteado (robusto)
+                //~ Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(A);
+                //~ if (qr.info() != Eigen::Success) {
+                    //~ // Fallback si la descomposición falla
+                    //~ double sum = 0.0;
+                    //~ for (int old_elem_id : neighbor_old_elems) {
+                        //~ sum += old_field[old_elem_id * field_dim + comp];
+                    //~ }
+                    //~ new_value = sum / n;
+                    //~ continue;
+                //~ }
+                
+                //~ Eigen::Vector4d x = qr.solve(b);
+                //~ new_value = x[0] + x[1]*new_centroid[0] + x[2]*new_centroid[1] + x[3]*new_centroid[2];
+            //~ }
+            
+            //~ // 8. Asignar valor proyectado
+            //~ new_field[new_elem * field_dim + comp] = new_value;
+        //~ }
+    //~ }
+//~ }
+
+// Función auxiliar para encontrar elementos cercanos (versión temporal)
+std::vector<int> ReMesher::find_nearest_old_elems(const std::array<double, 3>& point, 
+                                                 int num_neighbors,
+                                                 const std::vector<std::array<double, 3>>& old_centroids) {
+    std::vector<std::pair<double, int>> distances;
+    
+    for (int i = 0; i < old_centroids.size(); i++) {
+        double dist_sq = 0.0;
+        for (int d = 0; d < 3; d++) {
+            dist_sq += std::pow(point[d] - old_centroids[i][d], 2);
+        }
+        distances.emplace_back(dist_sq, i);
+    }
+    
+    // Ordenar por distancia
+    std::sort(distances.begin(), distances.end(), 
+             [](const auto& a, const auto& b) { return a.first < b.first; });
+    
+    // Tomar los n más cercanos
+    std::vector<int> neighbors;
+    int n = std::min(num_neighbors, (int)distances.size());
+    for (int i = 0; i < n; i++) {
+        neighbors.push_back(distances[i].second);
+    }
+    
+    return neighbors;
+}
+
+// Función para obtener centroide de elemento OLD
+std::array<double, 3> ReMesher::get_old_elem_centroid(int old_elem) {
+    std::array<double, 3> centroid = {0.0, 0.0, 0.0};
+    for (int en = 0; en < 4; en++) {
+        int node_id = m_dom->m_elnod[old_elem * 4 + en];
+        centroid[0] += m_dom->x[3 * node_id];
+        centroid[1] += m_dom->x[3 * node_id + 1];
+        centroid[2] += m_dom->x[3 * node_id + 2];
+    }
+    centroid[0] /= 4.0;
+    centroid[1] /= 4.0;
+    centroid[2] /= 4.0;
+    return centroid;
+}
+
+// Función para obtener centroide de elemento NEW
+std::array<double, 3> ReMesher::get_new_elem_centroid(int new_elem) {
+    std::array<double, 3> centroid = {0.0, 0.0, 0.0};
+    for (int en = 0; en < 4; en++) {
+        int node_id = m_elnod[new_elem * 4 + en];
+        centroid[0] += m_x[3 * node_id];
+        centroid[1] += m_x[3 * node_id + 1];
+        centroid[2] += m_x[3 * node_id + 2];
+    }
+    centroid[0] /= 4.0;
+    centroid[1] /= 4.0;
+    centroid[2] /= 4.0;
+    return centroid;
+}
+
+#include <vector>
+#include <array>
+#include <cmath>
+#include <algorithm>
+#include <iostream>
+
+void ReMesher::MapElemVectorL2(double* new_field, double* old_field, int field_dim) {
+    // Precomputar centroides OLD
+    std::vector<std::array<double, 3>> old_centroids(m_dom->m_elem_count);
+    for (int old_elem = 0; old_elem < m_dom->m_elem_count; old_elem++) {
+        old_centroids[old_elem] = get_old_elem_centroid(old_elem);
+    }
+
+    for (int new_elem = 0; new_elem < m_elem_count; new_elem++) {
+        std::array<double, 3> new_centroid = get_new_elem_centroid(new_elem);
+        int num_neighbors = std::min(20, m_dom->m_elem_count);
+        std::vector<int> neighbor_old_elems = find_nearest_old_elems(new_centroid, num_neighbors, old_centroids);
+        
+        int n = neighbor_old_elems.size();
+        
+        for (int comp = 0; comp < field_dim; comp++) {
+            if (n < 4) {
+                // Fallback: promedio ponderado por distancia inversa
+                double sum_val = 0.0;
+                double sum_weight = 0.0;
+                
+                for (int old_elem_id : neighbor_old_elems) {
+                    double dist = distance(new_centroid, old_centroids[old_elem_id]);
+                    double weight = 1.0 / (dist * dist + 1e-15);
+                    sum_val += weight * old_field[old_elem_id * field_dim + comp];
+                    sum_weight += weight;
+                }
+                new_field[new_elem * field_dim + comp] = (sum_weight > 0) ? sum_val / sum_weight : 0.0;
+            } else {
+                // Implementación manual de mínimos cuadrados
+                double ATA[4][4] = {0};
+                double ATb[4] = {0};
+                
+                // Construir A^T A y A^T b
+                for (int i = 0; i < n; i++) {
+                    int old_elem_id = neighbor_old_elems[i];
+                    auto& c = old_centroids[old_elem_id];
+                    double val = old_field[old_elem_id * field_dim + comp];
+                    
+                    double row[4] = {1.0, c[0], c[1], c[2]};
+                    
+                    for (int j = 0; j < 4; j++) {
+                        for (int k = 0; k < 4; k++) {
+                            ATA[j][k] += row[j] * row[k];
+                        }
+                        ATb[j] += row[j] * val;
+                    }
+                }
+                
+                // Resolver sistema normal A^T A x = A^T b
+                double x[4];
+                if (solve_4x4_system(ATA, ATb, x)) {
+                    new_field[new_elem * field_dim + comp] = x[0] + x[1]*new_centroid[0] + 
+                                                           x[2]*new_centroid[1] + x[3]*new_centroid[2];
+                } else {
+                    // Fallback a interpolación ponderada
+                    double sum_val = 0.0;
+                    double sum_weight = 0.0;
+                    for (int old_elem_id : neighbor_old_elems) {
+                        double dist = distance(new_centroid, old_centroids[old_elem_id]);
+                        double weight = 1.0 / (dist * dist + 1e-15);
+                        sum_val += weight * old_field[old_elem_id * field_dim + comp];
+                        sum_weight += weight;
+                    }
+                    new_field[new_elem * field_dim + comp] = (sum_weight > 0) ? sum_val / sum_weight : 0.0;
+                }
+            }
+        }
+    }
+}
+
+bool ReMesher::solve_4x4_system(double A[4][4], double b[4], double x[4]) {
+    // Implementación robusta de eliminación gaussiana con pivoteo
+    int pivot[4] = {0, 1, 2, 3};
+    
+    // Eliminación hacia adelante
+    for (int col = 0; col < 4; col++) {
+        // Búsqueda de pivote
+        int max_row = col;
+        double max_val = std::abs(A[col][col]);
+        for (int row = col + 1; row < 4; row++) {
+            if (std::abs(A[row][col]) > max_val) {
+                max_val = std::abs(A[row][col]);
+                max_row = row;
+            }
+        }
+        
+        if (max_val < 1e-12) {
+            return false; // Matriz singular
+        }
+        
+        if (max_row != col) {
+            // Intercambiar filas
+            for (int i = 0; i < 4; i++) {
+                std::swap(A[col][i], A[max_row][i]);
+            }
+            std::swap(b[col], b[max_row]);
+            std::swap(pivot[col], pivot[max_row]);
+        }
+        
+        // Eliminación
+        for (int row = col + 1; row < 4; row++) {
+            double factor = A[row][col] / A[col][col];
+            for (int i = col + 1; i < 4; i++) {
+                A[row][i] -= factor * A[col][i];
+            }
+            b[row] -= factor * b[col];
+            A[row][col] = 0.0;
+        }
+    }
+    
+    // Sustitución hacia atrás
+    for (int row = 3; row >= 0; row--) {
+        x[row] = b[row];
+        for (int col = row + 1; col < 4; col++) {
+            x[row] -= A[row][col] * x[col];
+        }
+        x[row] /= A[row][row];
+    }
+    
+    // Reordenar solución según pivoteo
+    double temp[4];
+    for (int i = 0; i < 4; i++) temp[i] = x[i];
+    for (int i = 0; i < 4; i++) x[pivot[i]] = temp[i];
+    
+    return true;
+}
+
+// Función de distancia euclidiana
+double ReMesher::distance(const std::array<double, 3>& a, const std::array<double, 3>& b) {
+    double dist_sq = 0.0;
+    for (int i = 0; i < 3; i++) {
+        double diff = a[i] - b[i];
+        dist_sq += diff * diff;
+    }
+    return std::sqrt(dist_sq);
 }
   
 };

@@ -5,6 +5,11 @@
 #include <Omega_h_mesh.hpp>
 #endif
 
+#include <vector>
+#include <array>
+#include <cmath>
+
+
 struct Mesh{
   
   
@@ -59,6 +64,30 @@ class ReMesher{
   template <int dim>
   void MapNodalVectorRaw(double *vfield, double *o_field); //
   void MapElemVectorRaw  (double *vfield, double *o_field, int field_dim); ///
+
+  void MapElemVectorL2(double *vfield, double *o_field, int field_dim);
+  
+  ///// THIS IS FOR MIN SQUARES EIGEN BASED ////////////
+
+  //~ std::vector<int> ReMesher::find_nearest_old_elems(const std::array<double, 3>& point, 
+                                                   //~ int num_neighbors,
+                                                   //~ const std::vector<std::array<double, 3>>& old_centroids);
+  //~ std::array<double, 3> ReMesher::get_old_elem_centroid(int old_elem);                                                   
+  //~ std::array<double, 3> ReMesher::get_new_elem_centroid(int new_elem) ;
+  
+  //////////////////////////////////// NO EIGEN BASED VERSION
+    std::array<double, 3> get_old_elem_centroid(int old_elem);
+    std::array<double, 3> get_new_elem_centroid(int new_elem);
+    std::vector<int> find_nearest_old_elems(const std::array<double, 3>& point, 
+                                          int num_neighbors,
+                                          const std::vector<std::array<double, 3>>& old_centroids);
+    bool solve_4x4_system(double A[4][4], double b[4], double x[4]);
+    double distance(const std::array<double, 3>& a, const std::array<double, 3>& b);
+    
+    // Función de búsqueda de K vecinos más cercanos
+    std::vector<int> find_k_closest_nodes(const std::array<double, 3>& point, int k);
+    int find_closest_node(const std::array<double, 3>& point); // Sobrecarga para array
+  //////////////////////////////////////////
   
   void FindMapElemClosest();
   
@@ -126,6 +155,11 @@ class ReMesher{
   int     m_elem_count;
   
   int *m_closest_elem;
+  
+  ////// FOR MIN SQ 
+  std::vector<std::array<double, 3>> old_node_coords; // Coordenadas de nodos OLD
+  
+  
 };
 
 }; //MetFEM

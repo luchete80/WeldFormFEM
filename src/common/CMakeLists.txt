@@ -63,6 +63,7 @@ ELSE ()
   message ("OPENMP NOT FOUND")
   endif()
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
+
                             ReMesher.C ReMesher_mmg.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
@@ -86,7 +87,10 @@ set (SOURCES
                          VTKWriter.C
                    )
 
-if (BUILD_REMESH)
+if (BUILD_REMESH) 
+#include_directories(${EIGEN_INC_DIR})##FOR REMESHING
+#message ("EIGEN DIR" ${EIGEN_INC_DIR})
+
  set (SOURCES "${SOURCES}" ReMesher.C
                            ReMesher_mmg.C)
 endif()
