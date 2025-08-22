@@ -663,7 +663,7 @@ dev_t void Domain_d::calcElemPressure() {
     
     // Velocity divergence
     double div_v = 0.0;
-    if (m_domtype != _Axi_Symm_){
+    if (m_dim > 2){
       for(int a = 0; a < m_nodxelem; ++a) {
           int nid = m_elnod[e*m_nodxelem + a];
           double3 va = getVelVec(nid);
