@@ -320,10 +320,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
 
-  if (step_count % 10 == 0 || remesh_){
-  //cout << "Calc ExtFace Areas"<<endl;
-  CalcExtFaceAreas();
-  //cout << "Done"<<endl;
+  if (m_dim > 2){
+    if (step_count % 10 == 0 || remesh_){
+    //cout << "Calc ExtFace Areas"<<endl;
+    CalcExtFaceAreas();
+    //cout << "Done"<<endl;
+    }
   }
 
   double max_vel=0.0;
