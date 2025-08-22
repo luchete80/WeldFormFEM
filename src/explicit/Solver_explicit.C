@@ -527,7 +527,6 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP();
   // }else
   //if (!remesh_){
-
   if      (m_press_algorithm == 0)
     calcElemPressure();
   else if (m_press_algorithm == 1)
