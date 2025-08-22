@@ -345,7 +345,7 @@ dev_t void Domain_d::calcTotMass(){
   // // real(fp_kind), dimension(dim,dim) :: F !def gradient
   // // real(fp_kind), dimension(nodxelem,dim) :: x !def gradient
   // int offset = e * m_gp_count ;
-  // // integer :: e, n, gp
+  // // integer :: e, n,º gp
     // for (int gp=0;gp<m_gp_count;gp++){
       // rho[offset + gp] = rho[offset + gp] * vol_0[e] / vol[e];
     // }    
@@ -1795,7 +1795,7 @@ dev_t void Domain_d:: calcElemHourglassForces()
           // end do
       // end do
       // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = 0.15 * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      double c_h = m_stab.hg_forces * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
       //printf("c_h %.6e\n", c_h);
 
 
