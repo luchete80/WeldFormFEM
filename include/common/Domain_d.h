@@ -84,6 +84,8 @@ class BC_Node {
 
 namespace MetFEM{
   
+
+  
 enum DomainType { IMPL, EXPL };
 
 enum class TimeInt {
@@ -116,6 +118,32 @@ struct StabilizationParams {
 
 // //OLD FOT HEXA, CHANGE IT
 #define MAX_FACE_NODES 4
+
+
+// Triángulo 2D: 3 aristas de 2 nodos
+/*__constant__*/
+static const int tri_edges[3][MAX_FACE_NODES] = {
+    {0,1,-1,-1}, {1,2,-1,-1}, {2,0,-1,-1}
+};
+
+// Quad 2D: 4 aristas de 2 nodos
+/*__constant__*/
+static int quad_edges[4][MAX_FACE_NODES] = {
+    {0,1,-1,-1}, {1,2,-1,-1}, {2,3,-1,-1}, {3,0,-1,-1}
+};
+
+// Tetra 3D: 4 caras de 3 nodos
+/*__constant__*/
+static int tetra_faces[4][MAX_FACE_NODES] = {
+    {0,1,2,-1}, {0,1,3,-1}, {1,2,3,-1}, {0,2,3,-1}
+};
+
+// Hexa 3D: 6 caras de 4 nodos
+/*__constant__*/
+static int hexa_faces[6][MAX_FACE_NODES] = {
+    {0,1,2,3}, {4,5,6,7}, {0,1,5,4},
+    {2,3,7,6}, {0,3,7,4}, {1,2,6,5}
+};
 
 struct Face {
     int nodes[MAX_FACE_NODES];  // Fast to avoid dynamic assignment
@@ -169,6 +197,7 @@ public:
     ELNOD=4;   //ORIGINALLY 8
     FACENOD=3;  //ORIGINALLY 4
     ELFAC=4;   //ORIGINALLY 6
+    local_faces = tetra_faces; 
 
 
     bc_count[0]=bc_count[1]=bc_count[2]=0;

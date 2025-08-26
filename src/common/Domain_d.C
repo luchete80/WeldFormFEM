@@ -43,202 +43,39 @@
 using namespace std;
 using namespace LS_Dyna;
 
-#define ELNOD  4   //ORIGINALLY 8
-#define FACENOD 3  //ORIGINALLY 4
-#define ELFAC  4   //ORIGINALLY 6
+// #define ELNOD  4   //ORIGINALLY 8
+// #define FACENOD 3  //ORIGINALLY 4
+// #define ELFAC  4   //ORIGINALLY 6
 
 namespace MetFEM {
 
-// Triángulo 2D: 3 aristas de 2 nodos
-/*__constant__*/
-static const int tri_edges[3][MAX_FACE_NODES] = {
-    {0,1,-1,-1}, {1,2,-1,-1}, {2,0,-1,-1}
-};
-
-// Quad 2D: 4 aristas de 2 nodos
-/*__constant__*/
-int quad_edges[4][MAX_FACE_NODES] = {
-    {0,1,-1,-1}, {1,2,-1,-1}, {2,3,-1,-1}, {3,0,-1,-1}
-};
-
-// Tetra 3D: 4 caras de 3 nodos
-/*__constant__*/
-int tetra_faces[4][MAX_FACE_NODES] = {
-    {0,1,2,-1}, {0,1,3,-1}, {1,2,3,-1}, {0,2,3,-1}
-};
-
-// Hexa 3D: 6 caras de 4 nodos
-/*__constant__*/
-int hexa_faces[6][MAX_FACE_NODES] = {
-    {0,1,2,3}, {4,5,6,7}, {0,1,5,4},
-    {2,3,7,6}, {0,3,7,4}, {1,2,6,5}
-};
-
+/////////////////////////////////////////////////////////////////
 //// OLD ONLY FOR TETRAS
-bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
-    // Verificar si los 3 nodos son iguales (en cualquier orden)
-    bool nodes_match[3] = {false, false, false};
+// bool dev_t areFacesEqual(const Face& f1, const Face& f2) {
+    // // Verificar si los 3 nodos son iguales (en cualquier orden)
+    // bool nodes_match[3] = {false, false, false};
     
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if (f1.nodes[i] == f2.nodes[j] && !nodes_match[j]) {
-                nodes_match[j] = true;
-                break;
-            }
-        }
-    }
-    
-    // Not coincident, not the same face
-    if (!nodes_match[0] || !nodes_match[1] || !nodes_match[2]) {
-        return false;
-    }
-    
-    // Si llegamos aquí, es la misma cara (ignorando orientación)
-    return true;
-}
-/////Add a face to the face list or increment its count if already present
-void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
-    for (int i = 0; i < faceCount; i++) {
-        if (areFacesEqual(faceList[i], newFace)) {  // Solo un chequeo
-            faceList[i].count++;
-            if (faceList[i].count == 2) {
-                faceList[i].other_elem = newFace.elem_id;
-            }
-            return;
-        }
-    }
-    // Añadir nueva cara si no existe
-    faceList[faceCount] = newFace;
-    faceList[faceCount].count = 1;
-    faceList[faceCount].other_elem = -1;
-    faceCount++;
-}
-
-// Function to add all 6 faces of a hexahedron
-void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4], int elem_id) {
-    // Define the 6 faces of the hexahedron
-    //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
-    Face faces[ELFAC] = {
-        {{element[0], element[1], element[2]}, 0,elem_id,-1}, // Front face
-        {{element[0], element[1], element[3]}, 0,elem_id,-1}, // Right face
-        {{element[1], element[2], element[3]}, 0,elem_id,-1}, // Back face
-        {{element[2], element[0], element[3]}, 0,elem_id,-1}, // Left face
-    };
-
-    // Add each face to the face list
-    for (int i = 0; i < ELFAC; i++) {
-        addFace(faceList, faceCount, faces[i]);
-    }
-}
-
-dev_t void Domain_d::SearchExtNodes() {
-
-    int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
-    m_faceCount = 0;
-    
-    //printf("Adding faces\n");
-    // Process each hexahedron to extract its faces
-    for (int i = 0; i < m_elem_count; i++) {
-        for (int ne=0;ne<m_nodxelem;ne++)
-          elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
-        //cout << "Adding faces, face count  "<<m_faceCount<<endl;
-        addTriangleFaces(faceList, m_faceCount, elements,i);
-    }
-    cout << "done. Face count: "<<m_faceCount<<endl;
-    // Array to track external nodes
-    for (int n=0;n<m_node_count;n++)
-      ext_nodes[n] = false;
-    ext_nodes_count = 0;
-    //bool externalNodes[m_node_count] = {false};
-
-    // Initialize neighbor list for each element
-    for (int i = 0; i < m_elem_count; i++) {
-       for (int j = 0; j < 4; j++)
-        m_elem_neigh[4*i+j]=0;
-        m_elem_neigh_count[i]=0;
-     }
-
-
-    // Identify external nodes by checking faces that appear only once
-    int ext_faces = 0;
-    for (int i = 0; i < m_faceCount; i++) {
-        if (faceList[i].count == 1) { // External face
-            for (int j = 0; j < FACENOD; j++) {
-                ext_nodes[faceList[i].nodes[j]] = true;
-                //printf("NODE: %d, Z %f\n",faceList[i].nodes[j],getPosVec3(faceList[i].nodes[j]).z);
-            }
-            ext_faces++;
-        }
-        else if (faceList[i].count == 2) { // Internal face (shared by two elements)
-            int e1 = faceList[i].elem_id;
-            int e2 = faceList[i].other_elem;
-            // Add e2 to e1's neighbor list
-            m_elem_neigh[4*e1 + m_elem_neigh_count[e1]] = e2;
-            m_elem_neigh_count[e1]++;
-            
-            // Add e1 to e2's neighbor list
-            m_elem_neigh[4*e2 + m_elem_neigh_count[e2]] = e1;
-            m_elem_neigh_count[e2]++;
-        }
-
-    }
-
-    // Output the external nodes
-    //printf("External Nodes: ");
-    for (int i = 0; i < m_node_count; i++) {
-        if (ext_nodes[i]) {
-            //printf("%d ", i);
-            ext_nodes_count++;
-            //printf("EXT NODE %d Z %f\n", i, getNodePos3(i).z);
-        }
-    }
-    //printf("\n");
-    //printf("Ext node count %d\n\n",ext_nodes_count);
-    //printf("Ext face count %d\n\n",ext_faces);
-    
-    // for (int ne = 0;ne<ext_nodes_count;ne++){
-      // printf("EXT NODE Z %f\n", getNodePos3(ext_nodes[ne]).z);
-      
-      // }
-  
-  CalcExtFaceAreas();
-  
-
-	double area = 0.0;
-    for (int i = 0; i < m_node_count; i++)
-      if (ext_nodes[i]){
-        //printf("NODE %d Area%f\n",i,node_area[i]);
-        area+=node_area[i];
-	  }
-	printf("Total External Nodal Area: %.4e\n", area);
-  
-
-}
-
-//////////////////////// OLD ONLY FOR TETRAS
-
-// __device__ bool areFacesEqual(const Face& f1, const Face& f2) {
-    // if (f1.n_nodes != f2.n_nodes) return false;
-
-    // bool matched[MAX_FACE_NODES] = {false};
-
-    // for (int i = 0; i < f1.n_nodes; i++) {
-        // bool found = false;
-        // for (int j = 0; j < f2.n_nodes; j++) {
-            // if (!matched[j] && f1.nodes[i] == f2.nodes[j]) {
-                // matched[j] = true;
-                // found = true;
+    // for (int i = 0; i < 3; i++) {
+        // for (int j = 0; j < 3; j++) {
+            // if (f1.nodes[i] == f2.nodes[j] && !nodes_match[j]) {
+                // nodes_match[j] = true;
                 // break;
             // }
         // }
-        // if (!found) return false;
     // }
-    // return true; // todos los nodos coinciden (orden ignorado)
+    
+    // // Not coincident, not the same face
+    // if (!nodes_match[0] || !nodes_match[1] || !nodes_match[2]) {
+        // return false;
+    // }
+    
+    // // Si llegamos aquí, es la misma cara (ignorando orientación)
+    // return true;
 // }
-
-// __device__ void addFace(Face faceList[], int& faceCount, const Face& newFace) {
+// /////Add a face to the face list or increment its count if already present
+// void dev_t addFace(Face faceList[], int& faceCount, const Face& newFace) {
     // for (int i = 0; i < faceCount; i++) {
-        // if (areFacesEqual(faceList[i], newFace)) {
+        // if (areFacesEqual(faceList[i], newFace)) {  // Solo un chequeo
             // faceList[i].count++;
             // if (faceList[i].count == 2) {
                 // faceList[i].other_elem = newFace.elem_id;
@@ -246,102 +83,241 @@ dev_t void Domain_d::SearchExtNodes() {
             // return;
         // }
     // }
+    // // Añadir nueva cara si no existe
     // faceList[faceCount] = newFace;
     // faceList[faceCount].count = 1;
     // faceList[faceCount].other_elem = -1;
     // faceCount++;
 // }
 
-// __device__ void addElementFaces(Face faceList[], int& faceCount,
-                                // const int element[], int elem_id,
-                                // int ELFAC, int FACENOD,
-                                // const int local_faces[][MAX_FACE_NODES]) 
-// {
-    // for (int f = 0; f < ELFAC; f++) {
-        // Face newFace;
-        // newFace.n_nodes = FACENOD;
-        // newFace.elem_id = elem_id;
-        // newFace.count = 0;
-        // newFace.other_elem = -1;
+// // Function to add all 6 faces of a hexahedron
+// void dev_t addTriangleFaces(Face faceList[], int& faceCount, int element[4], int elem_id) {
+    // // Define the 6 faces of the hexahedron
+    // //cout << "Element nodes "<<element[0]<<", "<<element[1]<<", "<<element[2]<<", "<<element[3]<<endl;
+    // Face faces[ELFAC] = {
+        // {{element[0], element[1], element[2]}, 0,elem_id,-1}, // Front face
+        // {{element[0], element[1], element[3]}, 0,elem_id,-1}, // Right face
+        // {{element[1], element[2], element[3]}, 0,elem_id,-1}, // Back face
+        // {{element[2], element[0], element[3]}, 0,elem_id,-1}, // Left face
+    // };
 
-        // for (int n = 0; n < FACENOD; n++) {
-            // newFace.nodes[n] = element[ local_faces[f][n] ];
-        // }
-
-        // addFace(faceList, faceCount, newFace);
+    // // Add each face to the face list
+    // for (int i = 0; i < ELFAC; i++) {
+        // addFace(faceList, faceCount, faces[i]);
     // }
 // }
 
 // dev_t void Domain_d::SearchExtNodes() {
 
-    // int elements[ELNOD]; 
+    // int elements[ELNOD]; //ORIGINALLY FOR HEXA IT WAS 8
     // m_faceCount = 0;
     
-    // // Extraer caras/aristas de cada elemento
+    // //printf("Adding faces\n");
+    // // Process each hexahedron to extract its faces
     // for (int i = 0; i < m_elem_count; i++) {
-        // for (int ne = 0; ne < m_nodxelem; ne++)
-            // elements[ne] = m_elnod[m_nodxelem * i + ne];
-
-        // addElementFaces(faceList, m_faceCount,
-                        // elements, i,
-                        // ELFAC, FACENOD,
-                        // local_faces);
+        // for (int ne=0;ne<m_nodxelem;ne++)
+          // elements[ne] = m_elnod[m_nodxelem*i+ne]; //CHANGE IF MIXED 
+        // //cout << "Adding faces, face count  "<<m_faceCount<<endl;
+        // addTriangleFaces(faceList, m_faceCount, elements,i);
     // }
-    // printf("done. Face count: %d\n", m_faceCount);
-
-    // // Array de nodos externos
-    // for (int n = 0; n < m_node_count; n++)
-        // ext_nodes[n] = false;
+    // cout << "done. Face count: "<<m_faceCount<<endl;
+    // // Array to track external nodes
+    // for (int n=0;n<m_node_count;n++)
+      // ext_nodes[n] = false;
     // ext_nodes_count = 0;
+    // //bool externalNodes[m_node_count] = {false};
 
-    // // Inicializar listas de vecinos
+    // // Initialize neighbor list for each element
     // for (int i = 0; i < m_elem_count; i++) {
-        // for (int j = 0; j < ELFAC; j++)
-            // m_elem_neigh[ELFAC * i + j] = -1;  // -1 = sin vecino
-        // m_elem_neigh_count[i] = 0;
-    // }
+       // for (int j = 0; j < 4; j++)
+        // m_elem_neigh[4*i+j]=0;
+        // m_elem_neigh_count[i]=0;
+     // }
 
-    // // Identificar nodos externos y vecinos internos
+
+    // // Identify external nodes by checking faces that appear only once
     // int ext_faces = 0;
     // for (int i = 0; i < m_faceCount; i++) {
-        // if (faceList[i].count == 1) { // Cara externa
+        // if (faceList[i].count == 1) { // External face
             // for (int j = 0; j < FACENOD; j++) {
                 // ext_nodes[faceList[i].nodes[j]] = true;
+                // //printf("NODE: %d, Z %f\n",faceList[i].nodes[j],getPosVec3(faceList[i].nodes[j]).z);
             // }
             // ext_faces++;
         // }
-        // else if (faceList[i].count == 2) { // Cara interna
+        // else if (faceList[i].count == 2) { // Internal face (shared by two elements)
             // int e1 = faceList[i].elem_id;
             // int e2 = faceList[i].other_elem;
-
-            // // Agregar e2 a lista de vecinos de e1
-            // m_elem_neigh[ELFAC * e1 + m_elem_neigh_count[e1]] = e2;
+            // // Add e2 to e1's neighbor list
+            // m_elem_neigh[4*e1 + m_elem_neigh_count[e1]] = e2;
             // m_elem_neigh_count[e1]++;
-
-            // // Agregar e1 a lista de vecinos de e2
-            // m_elem_neigh[ELFAC * e2 + m_elem_neigh_count[e2]] = e1;
+            
+            // // Add e1 to e2's neighbor list
+            // m_elem_neigh[4*e2 + m_elem_neigh_count[e2]] = e1;
             // m_elem_neigh_count[e2]++;
         // }
+
     // }
 
-    // // Contar nodos externos
+    // // Output the external nodes
+    // //printf("External Nodes: ");
     // for (int i = 0; i < m_node_count; i++) {
         // if (ext_nodes[i]) {
+            // //printf("%d ", i);
             // ext_nodes_count++;
+            // //printf("EXT NODE %d Z %f\n", i, getNodePos3(i).z);
         // }
     // }
+    // //printf("\n");
+    // //printf("Ext node count %d\n\n",ext_nodes_count);
+    // //printf("Ext face count %d\n\n",ext_faces);
+    
+    // // for (int ne = 0;ne<ext_nodes_count;ne++){
+      // // printf("EXT NODE Z %f\n", getNodePos3(ext_nodes[ne]).z);
+      
+      // // }
+  
+  // CalcExtFaceAreas();
+  
 
-    // // Calcular áreas en nodos externos
-    // CalcExtFaceAreas();
+	// double area = 0.0;
+    // for (int i = 0; i < m_node_count; i++)
+      // if (ext_nodes[i]){
+        // //printf("NODE %d Area%f\n",i,node_area[i]);
+        // area+=node_area[i];
+	  // }
+	// printf("Total External Nodal Area: %.4e\n", area);
+  
 
-    // double area = 0.0;
-    // for (int i = 0; i < m_node_count; i++) {
-        // if (ext_nodes[i]) {
-            // area += node_area[i];
-        // }
-    // }
-    // printf("Total External Nodal Area: %.4e\n", area);
 // }
+
+//////////////////////// OLD ONLY FOR TETRAS
+
+dev_t bool areFacesEqual(const Face& f1, const Face& f2) {
+    if (f1.n_nodes != f2.n_nodes) return false;
+
+    bool matched[MAX_FACE_NODES] = {false};
+
+    for (int i = 0; i < f1.n_nodes; i++) {
+        bool found = false;
+        for (int j = 0; j < f2.n_nodes; j++) {
+            if (!matched[j] && f1.nodes[i] == f2.nodes[j]) {
+                matched[j] = true;
+                found = true;
+                break;
+            }
+        }
+        if (!found) return false;
+    }
+    return true; // todos los nodos coinciden (orden ignorado)
+}
+
+dev_t void addFace(Face faceList[], int& faceCount, const Face& newFace) {
+    for (int i = 0; i < faceCount; i++) {
+        if (areFacesEqual(faceList[i], newFace)) {
+            faceList[i].count++;
+            if (faceList[i].count == 2) {
+                faceList[i].other_elem = newFace.elem_id;
+            }
+            return;
+        }
+    }
+    faceList[faceCount] = newFace;
+    faceList[faceCount].count = 1;
+    faceList[faceCount].other_elem = -1;
+    faceCount++;
+}
+
+dev_t void addElementFaces(Face faceList[], int& faceCount,
+                                const int element[], int elem_id,
+                                int ELFAC, int FACENOD,
+                                const int local_faces[][MAX_FACE_NODES]) 
+{
+    for (int f = 0; f < ELFAC; f++) {
+        Face newFace;
+        newFace.n_nodes = FACENOD;
+        newFace.elem_id = elem_id;
+        newFace.count = 0;
+        newFace.other_elem = -1;
+
+        for (int n = 0; n < FACENOD; n++) {
+            newFace.nodes[n] = element[ local_faces[f][n] ];
+        }
+
+        addFace(faceList, faceCount, newFace);
+    }
+}
+
+dev_t void Domain_d::SearchExtNodes() {
+
+    int elements[ELNOD]; 
+    m_faceCount = 0;
+    
+    // Extraer caras/aristas de cada elemento
+    for (int i = 0; i < m_elem_count; i++) {
+        for (int ne = 0; ne < m_nodxelem; ne++)
+            elements[ne] = m_elnod[m_nodxelem * i + ne];
+
+        addElementFaces(faceList, m_faceCount,
+                        elements, i,
+                        ELFAC, FACENOD,
+                        local_faces);
+    }
+    printf("done. Face count: %d\n", m_faceCount);
+
+    // Array de nodos externos
+    for (int n = 0; n < m_node_count; n++)
+        ext_nodes[n] = false;
+    ext_nodes_count = 0;
+
+    // Inicializar listas de vecinos
+    for (int i = 0; i < m_elem_count; i++) {
+        for (int j = 0; j < ELFAC; j++)
+            m_elem_neigh[ELFAC * i + j] = -1;  // -1 = sin vecino
+        m_elem_neigh_count[i] = 0;
+    }
+
+    // Identificar nodos externos y vecinos internos
+    int ext_faces = 0;
+    for (int i = 0; i < m_faceCount; i++) {
+        if (faceList[i].count == 1) { // Cara externa
+            for (int j = 0; j < FACENOD; j++) {
+                ext_nodes[faceList[i].nodes[j]] = true;
+            }
+            ext_faces++;
+        }
+        else if (faceList[i].count == 2) { // Cara interna
+            int e1 = faceList[i].elem_id;
+            int e2 = faceList[i].other_elem;
+
+            // Agregar e2 a lista de vecinos de e1
+            m_elem_neigh[ELFAC * e1 + m_elem_neigh_count[e1]] = e2;
+            m_elem_neigh_count[e1]++;
+
+            // Agregar e1 a lista de vecinos de e2
+            m_elem_neigh[ELFAC * e2 + m_elem_neigh_count[e2]] = e1;
+            m_elem_neigh_count[e2]++;
+        }
+    }
+
+    // Contar nodos externos
+    for (int i = 0; i < m_node_count; i++) {
+        if (ext_nodes[i]) {
+            ext_nodes_count++;
+        }
+    }
+
+    // Calcular áreas en nodos externos
+    CalcExtFaceAreas();
+
+    double area = 0.0;
+    for (int i = 0; i < m_node_count; i++) {
+        if (ext_nodes[i]) {
+            area += node_area[i];
+        }
+    }
+    printf("Total External Nodal Area: %.4e\n", area);
+}
 
 
 
