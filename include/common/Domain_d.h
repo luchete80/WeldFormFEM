@@ -113,13 +113,13 @@ struct StabilizationParams {
 //FOR HEXA IS 4
 //PARALLELIZE WITH GPU : TODO
 //// ORIGINALLY MEANS HEXA
-#define ELNOD  4   //ORIGINALLY 8
-#define FACENOD 3  //ORIGINALLY 4
-#define ELFAC  4   //ORIGINALLY 6
-//OLD FOT HEXA, CHANGE IT
+
+// //OLD FOT HEXA, CHANGE IT
+#define MAX_FACE_NODES 4
 
 struct Face {
-    int nodes[FACENOD];
+    int nodes[MAX_FACE_NODES];  // Fast to avoid dynamic assignment
+    int n_nodes;                // How manynodes are used
     int count; // Number of occurrences of this face
     int elem_id;  // <- store the originating element
     int other_elem;   // second elem
@@ -164,6 +164,13 @@ public:
     Nproc = 1;    //USED ON IMPLICIT
     m_axisymm_vol_weight = false; // DO NOT CHANGE, SPECIALLY FOR IMPLICIT SOLVER.
     m_domtype = _3D_;
+    m_dim = 3;
+    //IF CONTACT 
+    ELNOD=4;   //ORIGINALLY 8
+    FACENOD=3;  //ORIGINALLY 4
+    ELFAC=4;   //ORIGINALLY 6
+
+
     bc_count[0]=bc_count[1]=bc_count[2]=0;
     contact = false;
     m_thermal = false;
@@ -644,6 +651,11 @@ protected:
   
   bool m_fixed_dt;
   
+  int ELNOD;   // nodos por elemento
+  int FACENOD; // nodos por cara
+  int ELFAC;   // caras por elemento
+  const int (*local_faces)[MAX_FACE_NODES];
+    
   /////// IMPLICIT
   //////////////////////////////// IMPLICIT THINGS
   Matrix **m_Kmat;   //MATERIAL PART OF 
