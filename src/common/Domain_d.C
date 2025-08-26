@@ -241,7 +241,7 @@ dev_t void addElementFaces(Face faceList[], int& faceCount,
         newFace.other_elem = -1;
 
         for (int n = 0; n < FACENOD; n++) {
-            newFace.nodes[n] = element[ local_faces[f][n] ];
+            newFace.nodes[n] = element[ local_faces[f][n] ]; /////CHANGE TO CURRENT IF MIXED ELEMENT
         }
 
         addFace(faceList, faceCount, newFace);
@@ -672,7 +672,8 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t(pl_strain_prev,   double, 1 * m_elem_count * m_gp_count );     
   malloc_t (m_vprev,          double,node_count*m_dim);
 
-    
+  
+  if (m_dim == 2) local_faces = quad_edges; /////TODO: CHANGE TO DYNAMIC 
 }
 
 void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count){
