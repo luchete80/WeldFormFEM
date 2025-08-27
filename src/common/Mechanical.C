@@ -1802,6 +1802,15 @@ dev_t void Domain_d:: calcElemHourglassForces()
       for (int n=0;n<m_nodxelem;n++){      
         for (int d=0;d<m_dim;d++){
           m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+        
+        //~ if (m_dim == 2 && m_domtype == _Axi_Symm_) {
+          //~ if (m_axisymm_vol_weight) {
+              //~ m_f_elem_hg[offset + n*m_dim + d] *= m_radius[e]; 
+          //~ } else {
+              //~ m_f_elem_hg[offset + n*m_dim + d] /= m_radius[e];
+          //~ }
+        //~ }
+
         }
         //printf("hg forces el %d node %d: %f %f %f\n",e, n,m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
       }

@@ -239,6 +239,8 @@ public:
     m_stab.p_pspg_bulkfac   = 0.0;
     m_stab.J_min            = 0.0;
     m_stab.hg_forces        = 0.0;
+    
+    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.1;
         
   }
   TimeInt m_timeint_type;

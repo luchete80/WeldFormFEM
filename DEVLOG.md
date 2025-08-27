@@ -390,3 +390,4 @@ F90 PREVIOUS VERSION
 20250820 - Fixed AXISYMM Mass weighted eqns.
 20250821 - Added Boundary Conditions Zone reading!!
 20250826 - Begining to work with Contact to work also on 2D  
+20250827 - Fixed Hourglass to woirk with AxiSymm
