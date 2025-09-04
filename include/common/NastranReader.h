@@ -21,12 +21,12 @@ namespace MetFEM {
 
 using namespace std;
 
-class Domain;  
+class Domain_d;  
 class TriMesh;
 class NastranReader {
 protected:
-  friend class SPH::TriMesh;
-  friend class SPH::Domain;
+  friend class TriMesh;
+  friend class Domain_d;
 	std::vector <std::string> rawData;
 	int line_count;
 	int elem_count;
@@ -128,8 +128,8 @@ void NastranReader::read( char* fName){
 	// NODAL FIELD DATA IS: GRID|ID|CP|X1|	
   int curr_line = line_start_node;
 	l = curr_line;
-	Vec3_t min( 1000., 1000., 1000.);
-  Vec3_t max(-1000.,-1000.,-1000.);
+	//~ Vec3_t min( 1000., 1000., 1000.);
+  //~ Vec3_t max(-1000.,-1000.,-1000.);
 	
 	for (int n=0;n<node_count;n++){
     //cout << n+1; //DEBUG
@@ -209,7 +209,7 @@ void NastranReader::WriteCSV(char const * FileKey)
 	//type definition to shorten coding
 	std::ostringstream oss;
 	//Writing in a Log file
-	String fn(FileKey);
+	//String fn(FileKey);
 	
 	oss << "X, Y, Z"<<endl;;
 	
@@ -228,11 +228,11 @@ void NastranReader::WriteCSV(char const * FileKey)
 		
 	}
 
-	fn = FileKey;
-	fn.append(".csv");	
-	std::ofstream of(fn.CStr(), std::ios::out);
-	of << oss.str();
-	of.close();
+	//fn = FileKey;
+	//fn.append(".csv");	
+	//std::ofstream of(fn.CStr(), std::ios::out);
+	//of << oss.str();
+	//of.close();
 }
 
 void NastranReader::WriteVTK(char const * FileKey)
