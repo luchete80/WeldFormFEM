@@ -34,6 +34,7 @@ ENDIF()
             
 add_executable(weldform_exp main.C
                             Solver_explicit.C
+                            ../common/NastranReader.cpp
                          "${SOURCES}"
                )
 target_include_directories(weldform_exp PRIVATE "${CMAKE_BINARY_DIR}/generated")

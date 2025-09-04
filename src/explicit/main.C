@@ -30,7 +30,6 @@
 #include <fstream>
 #include <iomanip>	//ONY FOR GCC!!
 #include "Input.h"
-#include "NastranReader.h"
 
 #include "git_commit.h"
 
@@ -597,9 +596,24 @@ int main(int argc, char **argv) {
    cout <<"Mesh start: "<<start.x<<","<<start.y<<", "<<start.z<<endl;
    cout <<"Mesh dim: "<<dim_.x<<","<<dim_.y<<", "<<dim_.z<<endl;
    //(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens)
-    msh->AxisPlaneMesh(0,  2, flipnormals, start , dim_,  partSide);
-    dom_d->setTriMesh(msh);
-	printf("Searching bcs for ZoneID %d..\n", id);
+    string rigbody_type;
+    bool contact = false;
+    readValue(rigbodies[0]["type"],rigbody_type);
+
+      
+    if (rigbody_type == "Plane"){
+      msh->AxisPlaneMesh(0,  2, flipnormals, start , dim_,  partSide);
+      dom_d->setTriMesh(msh);
+    }
+    else if (rigbody_type == "File"){
+      string filename = "";
+      readValue(rigbodies[0]["fileName"], 	filename); 
+      NastranReader reader(filename.c_str());
+      //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
+      
+    }
+    
+  printf("Searching bcs for ZoneID %d..\n", id);
 	for (int bc=0;bc<bConds.size();bc++){
 		if (bConds[bc].zoneId==id){
 		printf("BC Found for Zone ID: %d\n", id);
@@ -627,7 +641,8 @@ int main(int argc, char **argv) {
 	// for (int nc=0;nc<msh->nodecount;nc++)
 		// msh->node_v[nc]=make_double3(0.,0.,0.);
 	
-    //THIS MESH AHOULD NOT BE DELETED 
+  //// TODO: CHANGE THIS TO GENERAL CONTACT
+    //THIS MESH SHOULD NOT BE DELETED 
 	printf("-------------------\n");
   }
   
@@ -647,7 +662,23 @@ int main(int argc, char **argv) {
     readValue(rigbodies[1]["flipnormals"],flipnormals);    
     
     TriMesh_d *m = new TriMesh_d();    
-    m->AxisPlaneMesh(1,  2, flipnormals, start , dim_,  partSide);
+    
+    string rigbody_type;
+    bool contact = false;
+    readValue(rigbodies[1]["type"],rigbody_type);
+    
+    if (rigbody_type == "Plane") { 
+      
+      m->AxisPlaneMesh(1,  2, flipnormals, start , dim_,  partSide);
+
+    }
+    else if (rigbody_type == "File"){
+      string filename = "";
+      readValue(rigbodies[0]["fileName"], 	filename); 
+      NastranReader reader(filename.c_str());
+      //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
+    }
+
     /// CONVERT TO ABSTRACT MESH
 	printf("Searching bcs for ZoneID %d..\n", id);
 	for (int bc=0;bc<bConds.size();bc++){

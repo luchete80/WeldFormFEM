@@ -13,7 +13,7 @@
 #endif
 
 #include "utils.h"
-
+#include "NastranReader.h"
 
 namespace MetFEM{
 
@@ -100,6 +100,7 @@ class TriMesh_d{
 	
 	//double							v;						//Constant Uniform v
 	TriMesh_d();
+  TriMesh_d(NastranReader &nr, bool flipnormals);
 	void AxisPlaneMesh(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
 	void AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
   
