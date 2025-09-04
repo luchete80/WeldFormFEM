@@ -530,50 +530,150 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
   
 //TODO: CHANGE TRIMESH NAME
 TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
-  dimension = nr.dim;
+  int dimension = nr.dim;
   //Insert nodes
+
+  int nodecount = nr.node_count;
+  
+  //Is it necessary to paralellize mesh nodes??
+  //cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
+  //cudaMalloc((void **)&node_v , 	nodecount * sizeof (double3));
+  
+  malloc_t (node,      double3,nodecount);
+  malloc_t (node_v,    double3,nodecount);
+  
+  double3 *node_h, *node_vh;
+  node_h  =  new double3 [nodecount];
+  node_vh =  new double3 [nodecount];
+
+
   for (int n=0;n<nr.node_count;n++){
-    //~ //if (!flipnormals)
+    if (!flipnormals){
       //~ node.Push(new Vec3_t(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]));
-    //~ // else 
+      node_h[n] = make_double3(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]);
+    } else{ 
       //~ // node.Push(new Vec3_t(nr.node[3*n+1],nr.node[3*n],nr.node[3*n+2]));
-    
+      node_h[n] = make_double3(nr.node[3*n+1],nr.node[3*n],nr.node[3*n+2]);
+    }
+    node_vh[n] = make_double3(0.0,0.0,0.0);
 		//~ node_v.Push(new Vec3_t(0.,0.,0.));
   }
+
+  memcpy_t(node,       node_h,  nodecount * sizeof(double3));
+  memcpy_t(node_v,    node_vh,  nodecount * sizeof(double3));
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
   //~ cout << "Generated "<<node.Size()<< " trimesh nodes. "<<endl;
   //~ //cout << "Normals"<<endl;
-  //~ cout << "Writing elements..."<<endl;
-  //~ for (int e=0;e<nr.elem_count;e++){
-    //~ double cz = nr.elcon[3*e+2];
-    //~ if (dimension == 2) cz = 0;
+  int elemcount = nr.elem_count;
+  
+  printf( "Element count: %d",elemcount );  
+  printf( "done. Creating elements... ");
+  
+  malloc_t (centroid,      double3,elemcount);
+  malloc_t (normal,        double3,elemcount);
+  malloc_t (elnode,        int, 3 * elemcount);
+  
+  malloc_t (react_force,   	double3, 1);
+  malloc_t (react_p_force,  double, 1);
+
+  
+  int *elnode_h = new int[3*elemcount];
+  double3 *centroid_h = new double3[elemcount];
+  double3 *normal_h   = new double3[elemcount];
+	
+  
+  cout << "Writing elements..."<<endl;
+  for (int e=0;e<nr.elem_count;e++){
+    double cz = nr.elcon[3*e+2];
+    if (dimension == 2) cz = 0;
     //~ if (!flipnormals)   element.Push(new Element(nr.elcon[3*e],nr.elcon[3*e+1],cz));		  
     //~ else                element.Push(new Element(nr.elcon[3*e+1],nr.elcon[3*e],cz));		        
+    if (!flipnormals) {
+      elnode_h[3*3  ] = nr.elcon[3*e];
+      elnode_h[3*e+1] = nr.elcon[3*e+1];
+      elnode_h[3*e+2] = cz;		  
+    }else{   
+      elnode_h[3*3  ] = nr.elcon[3*e+1];
+      elnode_h[3*e+1] = nr.elcon[3*e  ];
+      elnode_h[3*e+2] = cz;		                    
+      //element.Push(new Element(nr.elcon[3*e+1],nr.elcon[3*e],cz));		  
+    }
     //~ Vec3_t v;
 		//~ if (dimension ==3) v = ( *node[nr.elcon[3*e]] + *node[nr.elcon[3*e+1]] + *node[nr.elcon[3*e+2]] ) / 3. ;
     //~ else               v = ( *node[nr.elcon[3*e]] + *node[nr.elcon[3*e+1]])  / 2. ;
-    //~ element[e] -> centroid = v;
+    
+    double3 v;
+		//~ if (dimension ==3) v = ( *node[nr.elcon[3*e]] + *node[nr.elcon[3*e+1]] + *node[nr.elcon[3*e+2]] ) / 3. ;
+    //~ else               v = ( *node[nr.elcon[3*e]] + *node[nr.elcon[3*e+1]])  / 2. ;
+
+		if (dimension ==3) v = ( node_h[nr.elcon[3*e]] + node_h[nr.elcon[3*e+1]] + node_h[nr.elcon[3*e+2]] ) / 3. ;
+    else               v = ( node_h[nr.elcon[3*e]] + node_h[nr.elcon[3*e+1]])  / 2. ;
+    centroid_h[e] = v;
+    
     //~ //TODO: CHANGE FOR CALCNORMALS
-    //~ if (dimension==3){
+    if (dimension==3){
       //~ Vec3_t v1, v2;
+      double3 v1,v2;      
       //~ //In COUNTERCLOCKWISE
       //~ v1 = *node[nr.elcon[3*e+1]] - *node[nr.elcon[3*e]];
       //~ v2 = *node[nr.elcon[3*e+2]] - *node[nr.elcon[3*e]];
       //~ element[e] ->normal = cross (v1,v2);
-
       //~ element[e] ->normal /= Norm(element[e] ->normal);
+      v1 = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
+      v2 = node_h[nr.elcon[3*e+2]] - node_h[nr.elcon[3*e]];
+      normal_h[e] = cross (v1,v2);
+      
       //~ //cout << "v1 "<< v1<< ", v2 " <<v2<< ", normal "<<element[e]->normal <<endl;
-    //~ } else { //See calc normals
+    } else { //See calc normals
         //~ Vec3_t u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
+        double3 u = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
         //~ v[0] = -u[1];
         //~ v[1] =  u[0];
         //~ v[2] =  0.0;
+        v.x = -u.y;
+        v.y =  u.x;
+        v.z =  0.0;
         //~ element[e] -> normal = v/norm(v);
-    //~ }
-  //~ }
+        normal_h[e] = v/norm(v);
+    }
+  }/////ELEMENT
   //~ cout << "Generated "<<element.Size()<< " trimesh elements. "<<endl;  
   
-  //~ m_v = 0.;
-  //~ m_w = 0.;
+  m_v = m_w = make_double3(0.,0.,0.);
+  
+  
+  malloc_t (pplane,      double,elemcount);  
+  malloc_t (nfar,        int   ,elemcount);  
+  malloc_t (ele_mesh_id,      int,elemcount);  
+  malloc_t (mu_sta,      double,1);  
+  malloc_t (mu_dyn,      double,1);
+
+  if (!pplane || !nfar ) {
+    printf("Memory allocation failed!\n");
+    exit(1);
+  } else {
+    printf("Allocation success.\n");
+  }
+  
+  int *ele_mesh_id_h   = new int[elemcount];
+  for (int n=0;n<elemcount;n++){ele_mesh_id_h[n]=id;}
+
+  
+  memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
+  memcpy_t(centroid,  centroid_h,    elemcount * sizeof(double3));
+  memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
+  memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
+  
+  
+
+  delete[] node_h; //WHY THIS CRASHES
+  delete[] node_vh; //WHY THIS CRASHES
+  delete[] elnode_h;
+  delete[] centroid_h;
+  delete[] normal_h;  
+  delete[] ele_mesh_id_h;  
 }
   
 
