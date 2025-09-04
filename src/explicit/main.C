@@ -30,7 +30,7 @@
 #include <fstream>
 #include <iomanip>	//ONY FOR GCC!!
 #include "Input.h"
-
+#include "NastranReader.h"
 
 #include "git_commit.h"
 

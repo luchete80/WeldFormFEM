@@ -11,12 +11,12 @@
 #include <fstream>
 #include <sstream>
 #include <ostream>
-#include "matvec.h"
+//#include "matvec.h"
 
 #define FIELD_LENGTH	8
 
 
-namespace SPH {
+namespace MetFEM {
 
 
 using namespace std;
@@ -162,21 +162,21 @@ void NastranReader::read( char* fName){
 				}
 			}	
 			
-			double d = strtod(temp.c_str(),NULL);
-			//cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
-			//cout <<d<< " ";
-			node[3*n+i] = d;
-			if (d<min[i])
-				min[i] = d;
-			else if (d > max[i])
-				max[i] = d;
+			//~ double d = strtod(temp.c_str(),NULL);
+			//~ //cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
+			//~ //cout <<d<< " ";
+			//~ node[3*n+i] = d;
+			//~ if (d<min[i])
+				//~ min[i] = d;
+			//~ else if (d > max[i])
+				//~ max[i] = d;
 		}
     //cout <<endl;
 		l++;
   }
 	
-	cout << "Min values: "<< min <<endl;
-	cout << "Max values: "<< max <<endl;	
+	//cout << "Min values: "<< min <<endl;
+	//cout << "Max values: "<< max <<endl;	
   
   //IF FIXED FIELD
   cout << "Allocating Elements..."<<endl;
