@@ -609,7 +609,7 @@ int main(int argc, char **argv) {
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      //msh = Trimesh(reader,flipnormals);
+      *msh = TriMesh_d(reader,flipnormals);
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
       
     }
@@ -677,6 +677,7 @@ int main(int argc, char **argv) {
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
+      *m = TriMesh_d(reader,flipnormals);
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
     }
 
