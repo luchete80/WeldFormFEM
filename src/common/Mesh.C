@@ -532,9 +532,9 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
 TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
   int dimension = nr.dim;
   //Insert nodes
-
-  int nodecount = nr.node_count;
   
+  nodecount = nr.node_count;
+
   //Is it necessary to paralellize mesh nodes??
   //cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
   //cudaMalloc((void **)&node_v , 	nodecount * sizeof (double3));
@@ -546,7 +546,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
   node_h  =  new double3 [nodecount];
   node_vh =  new double3 [nodecount];
 
-
+  cout << "Copying "<< nodecount<<" nodes "<<endl;
   for (int n=0;n<nr.node_count;n++){
     if (!flipnormals){
       //~ node.Push(new Vec3_t(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]));
@@ -561,12 +561,12 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
 
   memcpy_t(node,       node_h,  nodecount * sizeof(double3));
   memcpy_t(node_v,    node_vh,  nodecount * sizeof(double3));
-
+  cout << "endl"<<endl;
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //~ cout << "Generated "<<node.Size()<< " trimesh nodes. "<<endl;
   //~ //cout << "Normals"<<endl;
-  int elemcount = nr.elem_count;
+  elemcount = nr.elem_count;
   
   printf( "Element count: %d",elemcount );  
   printf( "done. Creating elements... ");

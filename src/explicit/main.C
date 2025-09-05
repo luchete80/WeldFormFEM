@@ -623,7 +623,8 @@ int main(int argc, char **argv) {
 			msh->node_v[nc]=bConds[bc].value;
 		}
 	}
-
+  cout << "NODE COUNT "<<msh->nodecount<<endl;
+  
   double penaltyfac = -1.0;
   msh->T_const = 20.;
   

@@ -70,7 +70,7 @@ inline void NastranReader::read(const char* fName){
 	line_count = l;
   
   //Allocating nodes 
-  cout << "Allocating nodes"<<endl;
+  cout << "Allocating " << node_count<<" nodes"<<endl;
   node  	= new double 	[3 * node_count];
   nodeid  = new int 		[node_count];
 
@@ -128,7 +128,7 @@ inline void NastranReader::read(const char* fName){
 	//cout << "Max values: "<< max <<endl;	
   
   //IF FIXED FIELD
-  cout << "Allocating Elements..."<<endl;
+  cout << "Allocating " <<elem_count<<" Elements..."<<endl;
 	// ASSUMING NODE IS FROM 1
   elcon = new int    [3 * elem_count];
 

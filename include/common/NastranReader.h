@@ -35,9 +35,9 @@ protected:
 	int node_count;
   
   //Flattened arrays such as GPU type in order of mantain this
-  double  *node;
-  int     *elcon;
-	int 		*nodeid;	//If node number does not begin in one
+  double  *node = nullptr;
+  int     *elcon= nullptr;
+	int 		*nodeid= nullptr;	//If node number does not begin in one
 	std::map <int,int> nodepos;	//id to position
   
   //TriMesh trimesh;
