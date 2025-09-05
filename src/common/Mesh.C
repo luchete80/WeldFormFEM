@@ -417,8 +417,11 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
 void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
     // 1. Validate input
     printf("Resizing storage\n");
+    cout << "Allocated meshes: "<<allocated_meshes<<endl;
     if(mesh_count >= allocated_meshes) {
+      cout << "assigning "<<endl;
         int new_capacity = allocated_meshes ? allocated_meshes * 2 : 4;
+        cout << "done "<<endl;
         ResizeStorage(new_capacity);
     }
     printf("Resizing Node Data\n");
@@ -591,11 +594,11 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
     //~ if (!flipnormals)   element.Push(new Element(nr.elcon[3*e],nr.elcon[3*e+1],cz));		  
     //~ else                element.Push(new Element(nr.elcon[3*e+1],nr.elcon[3*e],cz));		        
     if (!flipnormals) {
-      elnode_h[3*3  ] = nr.elcon[3*e];
+      elnode_h[3*e  ] = nr.elcon[3*e];
       elnode_h[3*e+1] = nr.elcon[3*e+1];
       elnode_h[3*e+2] = cz;		  
     }else{   
-      elnode_h[3*3  ] = nr.elcon[3*e+1];
+      elnode_h[3*e  ] = nr.elcon[3*e+1];
       elnode_h[3*e+1] = nr.elcon[3*e  ];
       elnode_h[3*e+2] = cz;		                    
       //element.Push(new Element(nr.elcon[3*e+1],nr.elcon[3*e],cz));		  
@@ -666,7 +669,8 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
   memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
   memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
   
-  
+  mesh_count = 1;
+   
 
   delete[] node_h; //WHY THIS CRASHES
   delete[] node_vh; //WHY THIS CRASHES

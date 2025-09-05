@@ -661,7 +661,7 @@ int main(int argc, char **argv) {
     cout << "Start: "<<start.x<<", "<<start.y<<", "<<start.z<<endl;
     readVector(rigbodies[1]["dim"], 	dim_); 
     bool flipnormals = false;
-    readValue(rigbodies[1]["flipnormals"],flipnormals);    
+    readValue(rigbodies[1]["flipNormals"],flipnormals);    
     
     TriMesh_d *m = new TriMesh_d();    
     
@@ -682,28 +682,34 @@ int main(int argc, char **argv) {
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
     }
 
+    // Verifica que la construcción fue exitosa
+    if (m == nullptr || m->nodecount == 0) {
+        cout << "ERROR: Mesh construction failed!" << endl;
+        return 0;
+    }
+
     /// CONVERT TO ABSTRACT MESH
-	printf("Searching bcs for ZoneID %d..\n", id);
-	for (int bc=0;bc<bConds.size();bc++){
-		if (bConds[bc].zoneId==id){
-		printf("BC Found for Zone ID: %d\n", id);
-		printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
-		    m->SetMeshVel(bConds[bc].value); ////m_v
-		// for (int nc=0;nc<msh->nodecount;nc++)
-			// msh->node_v[nc]=bConds[bc].value;
-		
-		}
-	}
+    printf("Searching bcs for ZoneID %d..\n", id);
+    for (int bc=0;bc<bConds.size();bc++){
+      if (bConds[bc].zoneId==id){
+      printf("BC Found for Zone ID: %d\n", id);
+      printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
+          m->SetMeshVel(bConds[bc].value); ////m_v
+      // for (int nc=0;nc<msh->nodecount;nc++)
+        // msh->node_v[nc]=bConds[bc].value;
+      
+      }
+    }
 	//m->SetMeshVel(make_double3(-10.,0.0,0.0));
     //THIS MESH AHOULD NOT BE DELETED 
-	printf("-------------------\n");
-
+    printf("-------------------\n");
+    cout << "new mesh nodecount "<<m->allocated_meshes<<endl;
     dom_d->addMeshData(*m);
     delete m;
     cout << "Done."<<endl;
     
     cout << "MESH NODE COUNT "<<msh->nodecount<<endl;
-  }
+  }//added another rigid body mesh
   cout <<"Setting contact..."<<endl;
   //ONCE ALL MESH ARE INITIALIZED
   if (contact){
