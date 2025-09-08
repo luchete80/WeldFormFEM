@@ -587,7 +587,7 @@ int main(int argc, char **argv) {
     #endif
 
     bool flipnormals = false;
-    readValue(rigbodies[0]["flipNormals"],flipnormals);    
+    readValue(rigbodies[0]["flipnormals"],flipnormals);    
     int id = 0;
 	readValue(rigbodies[0]["zoneId"],id);
     //AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens){
@@ -661,7 +661,7 @@ int main(int argc, char **argv) {
     cout << "Start: "<<start.x<<", "<<start.y<<", "<<start.z<<endl;
     readVector(rigbodies[1]["dim"], 	dim_); 
     bool flipnormals = false;
-    readValue(rigbodies[1]["flipNormals"],flipnormals);    
+    readValue(rigbodies[1]["flipnormals"],flipnormals);    
     
     TriMesh_d *m = new TriMesh_d();    
     
