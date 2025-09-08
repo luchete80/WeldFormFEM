@@ -573,7 +573,7 @@ int main(int argc, char **argv) {
   readVector(rigbodies[0]["start"], 	start); 
   readVector(rigbodies[0]["dim"], 	dim_); 
   bool flipnormals = false;
-  readValue(rigbodies[0]["flipNormals"],flipnormals);
+  readValue(rigbodies[0]["flipnormals"],flipnormals);
   int partSide = 1;
   readValue(rigbodies[0]["partSide"],partSide);
 	
