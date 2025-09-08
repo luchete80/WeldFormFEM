@@ -2,6 +2,16 @@
 
 using namespace MetFEM;
 
+//NOT NECESSARY
+inline std::string trimSpaces(const std::string& s) {
+    std::string out;
+    out.reserve(s.size());
+    for (char c : s) {
+        if (c != ' ') out.push_back(c);
+    }
+    return out;
+}
+
 inline void NastranReader::read(const char* fName){
 	string fileName = fName;
   string line;

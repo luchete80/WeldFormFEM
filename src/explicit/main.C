@@ -678,7 +678,7 @@ int main(int argc, char **argv) {
     }
     else if (rigbody_type == "File"){
       string filename = "";
-      readValue(rigbodies[0]["fileName"], 	filename); 
+      readValue(rigbodies[1]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
       m = new TriMesh_d(reader,flipnormals); //DO NOT USE COPY CONSTUCTOR LIKE THIS *msh = TriMesh(...) 
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  

@@ -103,42 +103,6 @@ GRID          99       0 0.01556 0.01111 0.00000
 GRID         100       0 0.01556 0.01556 0.00000
 $ End of nodes
 $ Elements
-CBAR           5       1       1       5
-CBAR           6       1       5       6
-CBAR           7       1       6       7
-CBAR           8       1       7       8
-CBAR           9       1       8       9
-CBAR          10       1       9      10
-CBAR          11       1      10      11
-CBAR          12       1      11      12
-CBAR          13       1      12       2
-CBAR          14       1       2      13
-CBAR          15       1      13      14
-CBAR          16       1      14      15
-CBAR          17       1      15      16
-CBAR          18       1      16      17
-CBAR          19       1      17      18
-CBAR          20       1      18      19
-CBAR          21       1      19      20
-CBAR          22       1      20       3
-CBAR          23       1       3      21
-CBAR          24       1      21      22
-CBAR          25       1      22      23
-CBAR          26       1      23      24
-CBAR          27       1      24      25
-CBAR          28       1      25      26
-CBAR          29       1      26      27
-CBAR          30       1      27      28
-CBAR          31       1      28       4
-CBAR          32       1       4      29
-CBAR          33       1      29      30
-CBAR          34       1      30      31
-CBAR          35       1      31      32
-CBAR          36       1      32      33
-CBAR          37       1      33      34
-CBAR          38       1      34      35
-CBAR          39       1      35      36
-CBAR          40       1      36       1
 CTRIA3        81       3       1       5      37
 CTRIA3        82       3       1      37      36
 CTRIA3        83       3      36      37      38
