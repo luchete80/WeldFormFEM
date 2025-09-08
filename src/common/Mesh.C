@@ -555,9 +555,11 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
     if (!flipnormals){
       //~ node.Push(new Vec3_t(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]));
       node_h[n] = make_double3(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]);
+      cout << "Pos "<<nr.node[3*n]<<", "<<nr.node[3*n+1]<<", "<<nr.node[3*n+2]<<endl;
     } else{ 
       //~ // node.Push(new Vec3_t(nr.node[3*n+1],nr.node[3*n],nr.node[3*n+2]));
       node_h[n] = make_double3(nr.node[3*n+1],nr.node[3*n],nr.node[3*n+2]);
+      cout << "Pos "<<nr.node[3*n]<<", "<<nr.node[3*n+1]<<", "<<nr.node[3*n+2]<<endl;
     }
     node_vh[n] = make_double3(0.0,0.0,0.0);
 		//~ node_v.Push(new Vec3_t(0.,0.,0.));

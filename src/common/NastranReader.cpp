@@ -111,10 +111,10 @@ inline void NastranReader::read(const char* fName){
 				}
 			}	
 			
-			//~ double d = strtod(temp.c_str(),NULL);
+			double d = strtod(temp.c_str(),NULL);
 			//~ //cout << temp<<", conv: "<<d<<"sign pos" << sign_pos<<endl;
 			//~ //cout <<d<< " ";
-			//~ node[3*n+i] = d;
+			node[3*n+i] = d;
 			//~ if (d<min[i])
 				//~ min[i] = d;
 			//~ else if (d > max[i])
