@@ -334,7 +334,7 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
 
         return false;
     }
-
+    cout << "copying " <<nodecount<<" nodes "<<endl;
     if (node) {
         // Copy existing data
         memcpy_t(new_nodes, node, nodecount * sizeof(double3));
@@ -344,7 +344,7 @@ int TriMesh_d::ResizeNodeData(int new_capacity) {
         free_t(node);
         free_t(node_v);
     }
-
+    cout << "assigning "<<endl;
     // Update pointers
     node = new_nodes;
     node_v = new_node_v;
@@ -537,6 +537,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
   //Insert nodes
   
   nodecount = nr.node_count;
+  cout << "Nastran Mesh NodeCount: "<<nodecount<<endl;
 
   //Is it necessary to paralellize mesh nodes??
   //cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
@@ -670,7 +671,6 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
   memcpy_t(ele_mesh_id,    ele_mesh_id_h,     elemcount * sizeof(int));  
   
   mesh_count = 1;
-   
 
   delete[] node_h; //WHY THIS CRASHES
   delete[] node_vh; //WHY THIS CRASHES

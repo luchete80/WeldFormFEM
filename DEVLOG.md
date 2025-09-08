@@ -391,3 +391,7 @@ F90 PREVIOUS VERSION
 20250821 - Added Boundary Conditions Zone reading!!
 20250826 - Begining to work with Contact to work also on 2D  
 20250827 - Fixed Hourglass to woirk with AxiSymm
+------------------------------------------------------------------------------------------------------
+20250908 - Working on loading meshes from files
+         - Fixed mesh, generated with msh = new TriMesh() instead of copy constructor
+         - Fixed Assign mesh domain mesh

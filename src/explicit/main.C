@@ -126,7 +126,8 @@ using namespace LS_Dyna;
 
 int main(int argc, char **argv) {
 
-  TriMesh_d *msh = new TriMesh_d();
+  //TriMesh_d *msh = new TriMesh_d();
+  TriMesh_d *msh;
   
   int dim = 3;
 	if (argc > 1){
@@ -602,17 +603,18 @@ int main(int argc, char **argv) {
 
       
     if (rigbody_type == "Plane"){
+      msh = new TriMesh_d();
       msh->AxisPlaneMesh(0,  2, flipnormals, start , dim_,  partSide);
-      dom_d->setTriMesh(msh);
     }
     else if (rigbody_type == "File"){
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      *msh = TriMesh_d(reader,flipnormals);
+      msh = new TriMesh_d(reader,flipnormals); //ALWAYS WITH NEW HERE
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
       
     }
+    dom_d->setTriMesh(msh);
     
   printf("Searching bcs for ZoneID %d..\n", id);
 	for (int bc=0;bc<bConds.size();bc++){
