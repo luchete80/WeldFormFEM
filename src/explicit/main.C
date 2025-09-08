@@ -664,15 +664,15 @@ int main(int argc, char **argv) {
     readVector(rigbodies[1]["dim"], 	dim_); 
     bool flipnormals = false;
     readValue(rigbodies[1]["flipnormals"],flipnormals);    
-    
-    TriMesh_d *m = new TriMesh_d();    
+        
     
     string rigbody_type;
     bool contact = false;
     readValue(rigbodies[1]["type"],rigbody_type);
+    TriMesh_d *m;
     
     if (rigbody_type == "Plane") { 
-      
+      m = new TriMesh_d();
       m->AxisPlaneMesh(1,  2, flipnormals, start , dim_,  partSide);
 
     }
@@ -680,7 +680,7 @@ int main(int argc, char **argv) {
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      *m = TriMesh_d(reader,flipnormals);
+      m = new TriMesh_d(reader,flipnormals); //DO NOT USE COPY CONSTUCTOR LIKE THIS *msh = TriMesh(...) 
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
     }
 
