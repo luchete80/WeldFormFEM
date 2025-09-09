@@ -630,8 +630,9 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals){
       v1 = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
       v2 = node_h[nr.elcon[3*e+2]] - node_h[nr.elcon[3*e]];
       normal_h[e] = cross (v1,v2);
+      normal_h[e] = normal_h[e]/norm(normal_h[e]);
       
-      //~ //cout << "v1 "<< v1<< ", v2 " <<v2<< ", normal "<<element[e]->normal <<endl;
+      cout << "normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
     } else { //See calc normals
         //~ Vec3_t u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
         double3 u = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
