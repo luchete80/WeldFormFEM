@@ -62,7 +62,8 @@ void dev_t Domain_d::CalcContactForces(){
         
         double dalt =  dot (trimesh->normal[j], x_pred ) - trimesh-> pplane[j];
 
-
+        //printf("PPLANE %.4e \n", trimesh-> pplane[j]);
+        
         //double d = norm2(dist);
         //Original (wrong
         //delta = dot(dist,trimesh->normal[j]);
@@ -78,7 +79,7 @@ void dev_t Domain_d::CalcContactForces(){
 			//delta = - dot(trimesh->normal[j], vr);	//Penetration rate, Fraser 3-138        
         //printf("Node %d d %f\n",i, d);
         if (d < 0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
-          //printf ("ELEMENT %d DELTA <0------\n", e);
+          //printf ("NODE %d DELTA <0------, d %.4e Z POS %.4e , PPLANE %.4e \n", i, d, getNodePos3(i).z,trimesh->pplane[j]);
          
           //ORIGINAL
           double3 Qj = getPosVec3(i) - d * trimesh->normal[j];

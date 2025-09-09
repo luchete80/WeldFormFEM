@@ -239,7 +239,7 @@ inline dev_t void  TriMesh_d::UpdatePlaneCoeff(){
   for (int e=0; e<elemcount;e++){
     //printf("elnode %f %f %f \n",elnode[3*i+nfar[i]].x,elnode[3*i+nfar[i]].y,elnode[3*i+nfar[i]].z);
     pplane[e] = dot(node[elnode[3*e]+nfar[e]],normal[e]);
-    //printf("pplane %.8e \n",pplane[e]);
+    //printf("Element %d pplane %.8e, normalz %.4e \n",e, pplane[e],normal[e].z);
   }
 }
 

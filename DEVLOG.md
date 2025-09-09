@@ -395,3 +395,4 @@ F90 PREVIOUS VERSION
 20250908 - Working on loading meshes from files
          - Fixed mesh, generated with msh = new TriMesh() instead of copy constructor
          - Fixed Assign mesh domain mesh
+20250909 - Fixed Normals (orientation and nodes were both inverted with flipnormals)
