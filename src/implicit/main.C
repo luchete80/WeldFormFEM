@@ -232,6 +232,7 @@ int main(int argc, char **argv) {
 
   //////////////////////////////////////////////////////
   //////////////////// BOUNDARY CONDITIONS
+  cout << "Setting Boundary Conditions "<<endl;
   std::vector<boundaryCondition> bConds;
   
   
@@ -256,6 +257,16 @@ int main(int argc, char **argv) {
 	readValue(bc["valueType"], 	bcon.valueType);
 	readVector(bc["value"], 	      bcon.value);      //Or value linear
 	readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+
+  double3 start,end;
+  readValue(bc["id"], 		zoneid);
+  readVector(bc["start"], 	start);
+  readVector(bc["end"], 	end);
+
+  int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
+  cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
+
+
 	if (bcon.valueType == 0){//Constant
 
 	} else {
@@ -267,7 +278,8 @@ int main(int argc, char **argv) {
 	bConds.push_back(bcon);
 
   } //BCs
-
+  dom_d->AllocateBCs();
+  cout << "Done "<<endl;
       
   // //////////////////////////////////////////////////////////
   // ////////////////// RIGID BODIES //////////////////////////
@@ -463,9 +475,6 @@ int main(int argc, char **argv) {
 
   }
   
-  ////// ELASTIC TEST
-  //dom_d->Solve();
-  //dom_d->ElasticIncSolve();
   dom_d->SolveImplicitGlobalMatrix();
   
   

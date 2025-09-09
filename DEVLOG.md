@@ -396,3 +396,5 @@ F90 PREVIOUS VERSION
          - Fixed mesh, generated with msh = new TriMesh() instead of copy constructor
          - Fixed Assign mesh domain mesh
 20250909 - Fixed Normals (orientation and nodes were both inverted with flipnormals)
+         - Working Contact with external mesh.
+         - Wirking with implicit solver. Now reads bcs (Problems w/o contact).

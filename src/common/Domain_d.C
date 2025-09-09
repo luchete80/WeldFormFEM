@@ -1153,6 +1153,8 @@ host_   void Domain_d::AllocateBCs() {
 }
 
 dev_t void Domain_d::ImposeBCV(const int dim){
+  //printf("Dim %d, BC Count %d\n", dim, bc_count[dim]);
+  
   par_loop (n,bc_count[dim]){
     double val;
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);

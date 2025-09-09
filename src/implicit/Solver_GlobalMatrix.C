@@ -82,9 +82,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
   
-  
+  cout << "Initializing Values ..."<<endl;
   InitValues();
-  
+  cout << "Done. "<<endl;  
   double3 *m_v_orig;
   if (contact){
     ////TEMP; SMOOTH LOAD(ASSUMING CONTSTANT)
@@ -94,6 +94,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     }
   }
   
+  //cout << "Imposing BCVs.. "<<endl;
   for (int d=0;d<m_dim;d++){
     
     #ifdef CUDA_BUILD
@@ -120,6 +121,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     cout <<endl;
     }
 
+  cout << "Done."<<endl;
   
   ostringstream oss_out;
   
@@ -242,19 +244,19 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   }
 
   
-  cout << "Storing previous values"<<endl;
+  //cout << "Storing previous values"<<endl;
   memcpy(prev_v,    v, sizeof(double) * m_node_count * m_dim);
   memcpy(prev_a,    a, sizeof(double) * m_node_count * m_dim);
   memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
-  cout << "Done."<<endl;
+  //cout << "Done."<<endl;
   
-  cout << "Calc External Faces"<<endl;
+  //cout << "Calc External Faces"<<endl;
   if (step_count % 10 == 0){
     //cout << "Calc ExtFace Areas"<<endl;
     CalcExtFaceAreas();
     //cout << "Done"<<endl;
     }
-  cout << "Done"<<endl;
+  //cout << "Done"<<endl;
   
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
@@ -358,6 +360,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   for (int iter = 0; iter < max_iter && !converged; iter++) {
     nr_iterations++;
     cout <<"ITER "<<iter<<endl;
+    printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
     // cout <<"DELTA V----"<<endl;
     // for (int i = 0; i < m_node_count;i++){
       // for (int d=0;d<3;d++)
@@ -715,15 +718,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     cout << "MAX Residuals, DV: "<< max_residual<<
     ", DF ABS: "<<max_f_residual<<endl;
     
-    cout << "Urel "<<max_residual/m_solver->getUNorm()<<"U Norm "<<m_solver->getUNorm()<<endl;
-    cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
+    // cout << "Urel "<<max_residual/m_solver->getUNorm()<<"U Norm "<<m_solver->getUNorm()<<endl;
+    // cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
     
     // Check convergence
     if (max_residual < tolerance && max_f_residual < ftol) {
         converged = true;
-        if (step_count % 10 == 0) {
+        //if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
-        }
+        //}
     }
     
     if (iter == max_iter-1 && !converged) {
