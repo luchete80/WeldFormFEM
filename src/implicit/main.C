@@ -263,8 +263,8 @@ int main(int argc, char **argv) {
   readVector(bc["start"], 	start);
   readVector(bc["end"], 	end);
 
-  int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
-  cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
+  //int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
+  //cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
 
 
 	if (bcon.valueType == 0){//Constant
@@ -278,7 +278,7 @@ int main(int argc, char **argv) {
 	bConds.push_back(bcon);
 
   } //BCs
-  dom_d->AllocateBCs();
+  //dom_d->AllocateBCs();
   cout << "Done "<<endl;
       
   // //////////////////////////////////////////////////////////

@@ -1160,9 +1160,9 @@ dev_t void Domain_d::ImposeBCV(const int dim){
     //printf("thread %d, Imposing Vel in dim %d, %d Conditions, val %f\n", n, dim, bc_count[dim], bcx_val[n]);
     //printf("BCV dim %d\n", dim);
     // printf("VEL BC \n");
-    if (dim == 0)       {/*printf ("dim %d node %f, val %d\n",dim,bcx_nod[n],bcx_val[n]); */ v[m_dim*bcx_nod[n]+dim] = bcx_val[n]; }
-    else if (dim == 1)  {/*printf ("dim %d node %d val %f \n",dim,bcy_nod[n], bcy_val[n]);*/ v[m_dim*bcy_nod[n]+dim] = bcy_val[n];}
-    else if (dim == 2)  {/*printf ("dim %d node %f, val %d\n",dim,bcz_nod[n],bcz_val[n]);*/  v[m_dim*bcz_nod[n]+dim] = bcz_val[n]; }
+    if (dim == 0)       {/*printf ("dim %d node %d, val %f\n",dim,bcx_nod[n],bcx_val[n]);*/  v[m_dim*bcx_nod[n]+dim] = bcx_val[n]; }
+    else if (dim == 1)  {/*printf ("dim %d node %d val %f \n",dim,bcy_nod[n],bcy_val[n]);*/  v[m_dim*bcy_nod[n]+dim] = bcy_val[n];}
+    else if (dim == 2)  {/*printf ("dim %d node %d, val %f\n",dim,bcz_nod[n],bcz_val[n]);*/  v[m_dim*bcz_nod[n]+dim] = bcz_val[n]; }
   }
   
 }

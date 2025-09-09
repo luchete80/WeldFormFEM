@@ -1,0 +1,62 @@
+{
+"Configuration":
+{
+  "Nproc":1,
+	"particleRadius": 0.0075, 
+	"hFactor": 1.2,
+  "cflMethod": 1,
+  "cflFactor": 0.03,
+  "autoTS": [false,false,false],
+  "simTime": 0.01,
+  "outTime": 0.001,
+  "solver": "Mech-LeapFrog",
+  "thermal":false
+}
+,
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 2700.0, 
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 190.0E6
+}],
+
+"DomainBlocks": 
+[{
+	"type": "File",
+	"fileName": "1_el.k",
+  "scaleFactor": 1.0,
+	"zoneId": 0
+}],
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 1.0, 1.0]
+}
+],
+"BoundaryConditions": [
+{
+  "id": 1,
+	"start":[ -1.0,-1.0, -1.0000],
+	"end": 	[ 1.0,1.0, 0.01],
+	"zoneId": 	5,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+  "id": 2,
+	"start":[ -1.0,-1.0, 0.09],
+	"end": 	[ 1.0,1.0, 0.11],
+	"zoneId": 	5,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, -1.0],
+	"free": 		true
+}
+]
+}
