@@ -61,13 +61,15 @@
 }],
 "RigidBodies": 
 [{
+	"zoneId": 1,
 	"type": "File",
   "fileName": "part_0.nas" 
 },
 {
+	"zoneId": 10,
 	"type": "File",
   "fileName": "part_1.nas",
-  "flipNormals":true 
+  "flipnormals":true 
 }
 ],
 
