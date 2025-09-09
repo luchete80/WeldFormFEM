@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
   //dom_d->AddBCVelNode(3,2,-1.0);
   //dom_d->AllocateBCs();
   
-  dom_d->SetDT(0.001); 
+  dom_d->SetDT(0.01); 
 
   
   //dom_d->setContForceVec(3,2,-1000.0);

@@ -207,10 +207,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->setDomain(this);
   m_solver->Allocate();
 
-  double dt_initial = end_t / 100.0; // Initial guess
+  double dt_initial = end_t / 10.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
-  double dt_max = end_t / 10.0;      // Maximum allowable
-  double dt = dt_initial/10.;
+  double dt_max = end_t / 2.0;      // Maximum allowable
+  double dt = dt_initial;
   
   
   double *delta_v, *x_initial;
