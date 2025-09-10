@@ -126,8 +126,8 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
     *(m_Kmat[e]) = *(m_Kmat[e]) * vol[e];  // Multiply by element volume (Ve)
     
-    cout << "KMAT"<<endl;
-    (m_Kmat[e])->Print();
+    //cout << "KMAT"<<endl;
+    //(m_Kmat[e])->Print();
     
   }//element
   cout << "Done."<<endl;
