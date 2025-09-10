@@ -62,27 +62,6 @@ int main(int argc, char **argv) {
       
   cout << "Done "<<endl;
   
-  ////#ifdef CUDA
-  // double *x_H =  new double [m_dim*m_node_count];
-  // for (int n=0;n<m_node_count;n++){
-    // //cout << "Node "<<n<<endl;
-    // for (int d=0;d<3;d++){
-      // //cout <<reader.m_node[n].m_x[d]<< " ";
-      // x_H[3*n+d] = reader.m_node[n].m_x[d]; 
-    // }
-    // //cout <<endl;
-  // }
-  
-  int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
-  elnod_h[0]=0;elnod_h[1]=1;elnod_h[2]=2;elnod_h[3]=3;
-  cout << "Setting Nod Elements"<<endl;
-  dom_d->setNodElem(elnod_h);
-  cout << "NODEL "<<endl;
-  cout << dom_d->getElemNode(0,0)<<endl;
-  
-  cout << "Node Size: "<<m_node_count<<endl;  
-  cout << "Element Size: "<<m_elem_count<<endl;  
-  //cout << "Domain Dimension: "<< m_dim<<endl;
      
   ////// MATERIAL  
   double E, nu, rho;
