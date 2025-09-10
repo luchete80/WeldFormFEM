@@ -70,6 +70,7 @@ public:
   
   virtual inline void addToU(int node, int dim, double delta) {};
   virtual void assembleContactStiffness(double kn, double dt){}
+  virtual void setDirichletBC(int dof, double delta_value){}
   
 protected:
   //Vec3D vtol;     //

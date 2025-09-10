@@ -166,10 +166,10 @@ void Solver_Eigen::assemblyGlobalMatrix() {
 // }
 
 void Solver_Eigen::applyDirichletBCs() {
-    // Phase 1: Mark all BC DOFs (parallel)
+    // Phase 1: Mark all BC DOFs
     std::vector<std::pair<int, double>> bc_dofs;
     
-    // Pre-count total BCs to avoid reallocations
+    // Pre-count total BCs
     int total_bcs = 0;
     for (int dim = 0; dim < m_dom->m_dim; ++dim) {
         total_bcs += m_dom->bc_count[dim];
@@ -196,58 +196,56 @@ void Solver_Eigen::applyDirichletBCs() {
         for (int i = 0; i < count; ++i) {
             const int dof = nodes[i] * m_dom->m_dim + dim;
             bc_dofs.emplace_back(dof, values[i]);
+            cout <<"BC value "<<i << ": "<<values[i]<<endl;
         }
     }
 
-    // Phase 2: Apply BCs (optimized for Eigen sparse matrices)
-    K.makeCompressed(); // Must be compressed for direct access
-    
-    // Create a mapping of constrained DOFs for quick lookup
+    // Create a mapping for quick lookup
     std::unordered_map<int, double> bc_map(bc_dofs.begin(), bc_dofs.end());
 
-    // Modify matrix and RHS
+    // Phase 2: Adjust RHS first (before modifying K)
+    // This is more efficient and avoids issues with modified matrix
     for (const auto& [dof, value] : bc_dofs) {
-        // Clear row (except diagonal)
+        // For each BC DOF, subtract K_{i,dof} * value from RHS[i] for all i != dof
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
+            if (it.row() != dof) {
+                R[it.row()] -= it.value() * value;
+            }
+        }
+    }
+
+    // Phase 3: Modify matrix K
+    K.makeCompressed();
+    
+    for (const auto& [dof, value] : bc_dofs) {
+        // Clear row (set off-diagonals to zero)
         for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
             if (it.col() != dof) {
                 it.valueRef() = 0.0;
+            } else {
+                it.valueRef() = 1.0; // Set diagonal to 1
             }
         }
 
-        // // Clear column (except diagonal) - requires visiting all nonzeros
-        // for (int col = 0; col < K.outerSize(); ++col) {
-            // for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
-                // if (it.row() == dof && it.col() != dof) {
-                    // it.valueRef() = 0.0;
-                // }
-            // }
-        // }
- 
-        for (int k = 0; k < K.rows(); ++k) {
-            K.coeffRef(dof, k) = 0.0;
-            K.coeffRef(k, dof) = 0.0;
+        // Clear column (set off-diagonals to zero)
+        // This is tricky with Eigen's column-major storage
+        // Better approach: use a different strategy
+        for (int col = 0; col < K.outerSize(); ++col) {
+            if (col == dof) continue; // Skip the diagonal column
+            
+            for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+                if (it.row() == dof) {
+                    it.valueRef() = 0.0;
+                }
+            }
         }
- 
 
-        // Set diagonal and RHS
-        K.coeffRef(dof, dof) = 1.0;
+        // Set RHS for this DOF
         R[dof] = value;
     }
-
-    // Phase 3: Adjust RHS for non-zero BCs
-    // This accounts for terms like K_ij * u_j where u_j is prescribed
-    for (int col = 0; col < K.outerSize(); ++col) {
-        // Skip if this column corresponds to a BC DOF
-        if (bc_map.find(col) != bc_map.end()) continue;
-
-        for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
-            const int row = it.row();
-            if (bc_map.find(row) != bc_map.end()) {
-                R[col] -= it.value() * bc_map.at(row);
-            }
-        }
-    }
     
+    //std::cout << "R after  BCs:\n" << R << std::endl;
+
     K.makeCompressed(); // Recompress after modifications
 }
 
@@ -345,5 +343,52 @@ void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
         K.makeCompressed();
         m_triplets.clear(); // Free memory
     }
+    
+    void Solver_Eigen::setDirichletBC(int dof, double delta_value) {
+    incremental_bcs.emplace_back(dof, delta_value);
+}
+
+
+void Solver_Eigen::applyIncrementalBCs() {
+    // Aplicar solo BCs incrementales (sin las fijas tradicionales)
+    if (incremental_bcs.empty()) return;
+    
+    // 1. Ajustar RHS
+    for (const auto& [dof, delta_value] : incremental_bcs) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
+            if (it.row() != dof) {
+                R[it.row()] -= it.value() * delta_value;
+            }
+        }
+    }
+
+    // 2. Modificar matriz K
+    K.makeCompressed();
+    
+    for (const auto& [dof, delta_value] : incremental_bcs) {
+        // Limpiar fila y columna
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
+            if (it.col() != dof) {
+                it.valueRef() = 0.0;
+            } else {
+                it.valueRef() = 1.0;
+            }
+        }
+
+        for (int col = 0; col < K.outerSize(); ++col) {
+            if (col == dof) continue;
+            for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+                if (it.row() == dof) {
+                    it.valueRef() = 0.0;
+                }
+            }
+        }
+
+        R[dof] = delta_value;
+    }
+    
+    incremental_bcs.clear();
+    K.makeCompressed();
+}
 
 };

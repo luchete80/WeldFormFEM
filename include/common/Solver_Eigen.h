@@ -139,6 +139,9 @@ public:
       R(global_dof) += value;
   }
   virtual void assembleContactStiffness(double kn, double dt);
+  
+  virtual void setDirichletBC(int dof, double delta_value);
+  void applyIncrementalBCs();
 
 protected:
   typedef Eigen::SparseMatrix<double> SpMat;
@@ -152,7 +155,8 @@ protected:
   
   Eigen::SparseLU<SpMat> solver;
   std::vector<T> m_triplets;  // Almacenamiento temporal para los triplets durante el ensamblaje
-
+  
+  std::vector<std::pair<int, double>> incremental_bcs;
 
 
 private:
