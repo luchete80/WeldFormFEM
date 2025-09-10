@@ -154,21 +154,24 @@ int main(int argc, char **argv) {
   // cout << "Solving system"<<endl;
   //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
-  solver->Solve();
+  //solver->Solve();
 
   ////// BACK TO ZERO EXTERNAL FORCE
   dom_d->SetEndTime (0.001);
   //solver->SetRDOF(11,0.0);
-  //dom_d->AddBCVelNode(3,2,-1.0);
+  //dom_d->AddBCVelNode(3,2,-0.001);
   //dom_d->AllocateBCs();
   
   //dom_d->SetDT(0.1); 
 
   
-  dom_d->setContForceVec(3,2,-1.e5.0);
+  dom_d->setContForceVec(3,2,-1.0e5);
   
   //GLOBAL MATRIX NONLINEAR METHOD
+  
+  
   dom_d->SolveImplicitGlobalMatrix();
+  //dom_d->SolveStaticDisplacement();
 
 	// cout << "Program ended."<<endl;
       

@@ -243,11 +243,14 @@ void Domain_d::SolveStaticDisplacement() {
             R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
           }
+          solver->assembleElement(e, K);
+          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
+          
       }//elem
       
       // Aplicar condiciones de contorno
       m_solver->applyDirichletBCs();
-      
+      cout << "Solving "<<endl;
       // 11. RESOLVER SISTEMA
       m_solver->Solve();
       
