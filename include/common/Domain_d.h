@@ -241,6 +241,8 @@ public:
     m_stab.hg_forces        = 0.0;
     
     if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.1;
+    
+    abs_bc_initialized = false;
         
   }
   TimeInt m_timeint_type;
@@ -502,7 +504,18 @@ public:
   /// DISPLACEMENT (STATIC) FUNCTIONS
   void SolveStaticDisplacement();
   void ImposeBCU(int dim);
+
   //--------------------------------------------------------------------------------------------------------------------------------
+  //IF USING INCREMENTAL BCs
+  void serOriginalBCs() {
+      if (!abs_bc_initialized) {
+          // Guardar copia de los valores originales
+          original_bcx_val.assign(bcx_val, bcx_val + bc_count[0]);
+          original_bcy_val.assign(bcy_val, bcy_val + bc_count[1]);
+          original_bcz_val.assign(bcz_val, bcz_val + bc_count[2]);
+          abs_bc_initialized = true;
+      }
+  }
 
   
   void setFixedDt(const bool &f){m_fixed_dt = f;}
@@ -719,6 +732,12 @@ protected:
   double* m_p_prev;         // Presiones
 
   //////////////////////////////////////////////////////////
+
+  // Only used for incremental
+  std::vector<double> original_bcx_val;
+  std::vector<double> original_bcy_val; 
+  std::vector<double> original_bcz_val;
+  bool abs_bc_initialized;
 
 
 };

@@ -30,36 +30,78 @@ std::string m_fname;
 
 namespace MetFEM{
   
-void Domain_d::ImposeBCU(int dim) {
-    int* bc_nodes = nullptr;
-    double* bc_values = nullptr;
+//~ void Domain_d::ImposeBCU(int dim) {
+    //~ int* bc_nodes = nullptr;
+    //~ double* bc_values = nullptr;
     
-    // Seleccionar el array correcto según la dimensión
-    switch (dim) {
-        case 0: bc_nodes = bcx_nod; bc_values = bcx_val; break;
-        case 1: bc_nodes = bcy_nod; bc_values = bcy_val; break;
-        case 2: bc_nodes = bcz_nod; bc_values = bcz_val; break;
-        default: return;
-    }
+    //~ // Seleccionar el array correcto según la dimensión
+    //~ switch (dim) {
+        //~ case 0: bc_nodes = bcx_nod; bc_values = bcx_val; break;
+        //~ case 1: bc_nodes = bcy_nod; bc_values = bcy_val; break;
+        //~ case 2: bc_nodes = bcz_nod; bc_values = bcz_val; break;
+        //~ default: return;
+    //~ }
     
-    // Aplicar BCs de desplazamiento de forma INCREMENTAL
-    par_loop (i, bc_count[dim]) {
-        int node = bc_nodes[i];
-        double target_disp = bc_values[i];
-        double current_disp = u[node * m_dim + dim];
+    //~ // Aplicar BCs de desplazamiento de forma INCREMENTAL
+    //~ //par_loop (i, bc_count[dim]) {
+      //~ for (int i=0;i<bc_count[dim];i++){
+        //~ int node = bc_nodes[i];
+        //~ double target_disp = bc_values[i];
+        //~ double current_disp = u[node * m_dim + dim];
         
-        // Calcular el incremento necesario
-        double delta_disp = target_disp - current_disp;
+        //~ // Calcular el incremento necesario
+        //~ double delta_disp = target_disp - current_disp;
         
-        // Aplicar como condición de contorno
-        int gdof = node * m_dim + dim;
-        m_solver->setDirichletBC(gdof, delta_disp);
+        //~ // Aplicar como condición de contorno
+        //~ int gdof = node * m_dim + dim;
+        //~ cout << "gdof "<<gdof <<", dim "<<dim <<endl;
+        //~ m_solver->setDirichletBC(gdof, delta_disp);
+    //~ }
+//~ }
+
+    void Domain_d::ImposeBCU(int dim/*, double load_factor*/) {
+        int* bc_nodes = nullptr;
+        double* current_bc_values = nullptr;
+        std::vector<double>* original_values = nullptr;
+        
+        // Seleccionar arrays según dimensión
+        switch (dim) {
+            case 0: 
+                bc_nodes = bcx_nod; 
+                current_bc_values = bcx_val;
+                original_values = &original_bcx_val;
+                break;
+            case 1: 
+                bc_nodes = bcy_nod; 
+                current_bc_values = bcy_val;
+                original_values = &original_bcy_val;
+                break;
+            case 2: 
+                bc_nodes = bcz_nod; 
+                current_bc_values = bcz_val;
+                original_values = &original_bcz_val;
+                break;
+            default: return;
+        }
+        
+        // Aplicar BCs de forma incremental según load_factor
+        par_loop (i, bc_count[dim]) {
+            double target_disp = (*original_values)[i] /** load_factor*/;
+            double current_disp = u[bc_nodes[i] * m_dim + dim];
+            double delta_disp = target_disp - current_disp;
+            
+            // Sobrescribir el valor en el array de BCs
+            current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
+            
+            // Aplicar como condición de contorno
+            int gdof = bc_nodes[i] * m_dim + dim;
+            m_solver->SetRDOF(gdof, delta_disp); // ← Usar función existente
+        }
     }
-}
 
 
 
-void Domain_d::SolveStaticDisplacement() {
+void Domain_d::SolveStaticDisplacement() {  
   WallTimer timer;
   std::ofstream of("Contact_Forces.csv", std::ios::out);
   
@@ -77,11 +119,13 @@ void Domain_d::SolveStaticDisplacement() {
   //~ //InitValuesStatic(); // Nueva función inicialización estática
 
   //~ cout << "Done." << endl;
-
+  
+  cout << "Imposing bcs"<<endl;
   // 2. ELIMINAR INICIALIZACIÓN DE VELOCIDADES/ACELERACIONES
   for (int d = 0; d < m_dim; d++) {
     ImposeBCU(d); // Nueva función para BCs de desplazamiento
   }
+  cout << "Done"<<endl;
 
   // 3. CONFIGURACIÓN SOLVER ESTÁTICO
   Solver_Eigen* solver = new Solver_Eigen();

@@ -152,9 +152,9 @@ int main(int argc, char **argv) {
   
   solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  //solver->SetRDOF(11,-1.0e3); // NOT WORKING
+  solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
-  //solver->Solve();
+  solver->Solve();
 
   ////// BACK TO ZERO EXTERNAL FORCE
   dom_d->SetEndTime (0.001);
@@ -170,6 +170,7 @@ int main(int argc, char **argv) {
   //GLOBAL MATRIX NONLINEAR METHOD
   
   
+  cout << "Solving "<<endl;
   dom_d->SolveImplicitGlobalMatrix();
   //dom_d->SolveStaticDisplacement();
 

@@ -346,6 +346,8 @@ void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
     
     void Solver_Eigen::setDirichletBC(int dof, double delta_value) {
     incremental_bcs.emplace_back(dof, delta_value);
+    cout << "adding vector "<<endl;
+    //incremental_bcs.push_back(std::make_pair(dof, delta_value));
 }
 
 

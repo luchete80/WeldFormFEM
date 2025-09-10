@@ -20,7 +20,13 @@ public Solver{
 
 public: 
   virtual int Solve();
-  virtual ~Solver_Eigen(){}
+  Solver_Eigen(){
+    incremental_bcs = std::vector<std::pair<int, double>>(); // Construcción explícita
+    incremental_bcs.reserve(100); // Reservar memoria inicial
+    }
+  virtual ~Solver_Eigen(){
+
+    }
 
   inline const double & getU(int node, int dim) const {
       return U[node * m_dom->m_dim + dim]; 
