@@ -106,10 +106,8 @@ int main(int argc, char **argv) {
     
   //AddBCVelNode(Node,axis,val)
   for (int i=0;i<dom_d->getNodeCount();i++){
-    dom_d->AddBCVelNode(0,i,0);
-  dom_d->
-  AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
-  dom_d->AddBCVelNode(2,0,0);dom_d->AddBCVelNode(2,2,0);
+    if (dom_d->getPosVec3_h(i).z>0.029)
+    for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
   }
   //dom_d->AddBCVelNode(3,2,-0.001);
   
