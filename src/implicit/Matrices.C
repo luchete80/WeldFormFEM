@@ -98,14 +98,14 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
   }
     B = B *(1.0/m_detJ[e]);
     
-    printf ("BMAT\n");
-    B.Print();
+    //printf ("BMAT\n");
+    //B.Print();
     Matrix BT(m_nodxelem* m_dim,2*m_dim);
     BT=B.getTranspose();
     Matrix D(6,6);
     
     double G  = mat[e]->Elastic().G();
-    cout << "Material G "<<G<<endl;
+    //cout << "Material G "<<G<<endl;
     double E  = mat[e]->Elastic().E();
     double nu = mat[e]->Elastic().Poisson();
     double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
