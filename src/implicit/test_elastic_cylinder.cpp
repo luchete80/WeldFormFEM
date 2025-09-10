@@ -23,7 +23,7 @@
 #include "Solver_Eigen.h"
 #include <iostream>
 #include "defs.h"
-
+#include "VTKWriter.h"
 
 #include <fstream>
 #include <iomanip>	//ONY FOR GCC!!
@@ -36,6 +36,7 @@ using namespace std;
 
 
 using namespace LS_Dyna;
+using namespace MetFEM;
 
 int main(int argc, char **argv) {
  
@@ -159,5 +160,7 @@ int main(int argc, char **argv) {
 	// cout << "Program ended."<<endl;
       
 
+  VTKWriter writer(dom_d, "out.vtk");
+  writer.writeFile();
 	
 }

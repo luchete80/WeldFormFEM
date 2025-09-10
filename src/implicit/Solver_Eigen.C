@@ -50,7 +50,7 @@ void Solver_Eigen::assemblyGlobalMatrix() {
                 int J = global_dofs[j];
                 //cout <<"get val"<<endl;
                 double val = Ke->getVal(i, j);
-                cout << val<<endl;
+                //cout << val<<endl;
                 if (val != 0.0) {
                     //cout << "I J "<< I <<", "<<J <<", val"<<val<<endl;
                     triplets.emplace_back(I, J, val);
