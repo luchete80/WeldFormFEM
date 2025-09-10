@@ -507,8 +507,10 @@ public:
 
   //--------------------------------------------------------------------------------------------------------------------------------
   //IF USING INCREMENTAL BCs
-  void serOriginalBCs() {
+  void setOriginalBCs() {
+                printf("Ckecking\n");
       if (!abs_bc_initialized) {
+          printf("Inititalizing original bcs\n");
           // Guardar copia de los valores originales
           original_bcx_val.assign(bcx_val, bcx_val + bc_count[0]);
           original_bcy_val.assign(bcy_val, bcy_val + bc_count[1]);

@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
   AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
   dom_d->AddBCVelNode(2,0,0);dom_d->AddBCVelNode(2,2,0);
   
-  //dom_d->AddBCVelNode(3,2,-1.0);
+  //dom_d->AddBCVelNode(3,2,-0.001);
   
       //cout << "node "<< i<<" fixed "<<endl;
     
@@ -152,7 +152,7 @@ int main(int argc, char **argv) {
   
   solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
-  solver->SetRDOF(11,-1.0e3); // NOT WORKING
+  //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
   solver->Solve();
 
@@ -172,6 +172,10 @@ int main(int argc, char **argv) {
   
   cout << "Solving "<<endl;
   dom_d->SolveImplicitGlobalMatrix();
+  
+  
+  
+  
   //dom_d->SolveStaticDisplacement();
 
 	// cout << "Program ended."<<endl;

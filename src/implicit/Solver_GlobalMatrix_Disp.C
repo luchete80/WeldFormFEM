@@ -90,12 +90,10 @@ namespace MetFEM{
             double current_disp = u[bc_nodes[i] * m_dim + dim];
             double delta_disp = target_disp - current_disp;
             
+            cout << "Writing "<<endl;
             // Sobrescribir el valor en el array de BCs
             current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
-            
-            // Aplicar como condición de contorno
-            int gdof = bc_nodes[i] * m_dim + dim;
-            m_solver->SetRDOF(gdof, delta_disp); // ← Usar función existente
+
         }
     }
 
@@ -119,7 +117,8 @@ void Domain_d::SolveStaticDisplacement() {
   //~ //InitValuesStatic(); // Nueva función inicialización estática
 
   //~ cout << "Done." << endl;
-  
+  setOriginalBCs(); //For incremental
+    
   cout << "Imposing bcs"<<endl;
   // 2. ELIMINAR INICIALIZACIÓN DE VELOCIDADES/ACELERACIONES
   for (int d = 0; d < m_dim; d++) {
@@ -135,7 +134,8 @@ void Domain_d::SolveStaticDisplacement() {
 
   double* delta_u = new double[m_dim * m_node_count]; // Corrección desplazamientos
   double* u_previous = new double[m_dim * m_node_count]; // Desplazamiento anterior
-
+  
+  
   // 4. ELIMINAR TODO LO RELACIONADO CON TIEMPO
   // Remover: Time, dt, step_count, etc.
   int load_step = 0;
@@ -293,6 +293,8 @@ void Domain_d::SolveStaticDisplacement() {
       }//elem
       
       // Aplicar condiciones de contorno
+      for (int d = 0; d < m_dim; d++)
+        ImposeBCU(d);
       m_solver->applyDirichletBCs();
       cout << "Solving "<<endl;
       // 11. RESOLVER SISTEMA
