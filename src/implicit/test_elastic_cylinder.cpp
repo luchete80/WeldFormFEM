@@ -136,14 +136,14 @@ int main(int argc, char **argv) {
   solver->setDomain(dom_d);
   solver->Allocate();
   cout << "Assemblying matrix "<<endl;
-  //solver->assemblyGlobalMatrix();
+  solver->assemblyGlobalMatrix();
   cout << "Done."<<endl;
   
   //ssolver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
   //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
-  //solver->Solve();
+  solver->Solve();
 
 
   
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
   
   //GLOBAL MATRIX NONLINEAR METHOD
   
-  dom_d->SolveStaticDisplacement();
+  //dom_d->SolveStaticDisplacement();
   //cout << "Solving "<<endl;
   //dom_d->SolveImplicitGlobalMatrix();
   

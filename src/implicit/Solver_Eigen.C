@@ -61,7 +61,7 @@ void Solver_Eigen::assemblyGlobalMatrix() {
     }
 
     K.setFromTriplets(triplets.begin(), triplets.end());
-    std::cout << "Matrix mat:\n" << K << std::endl;
+    //std::cout << "Matrix mat:\n" << K << std::endl;
     
     //~ cout << "VALUES 9 10 "<<K.coeff(9, 10);
     //~ cout << "VALUES 10 9"<<K.coeff(10,9);

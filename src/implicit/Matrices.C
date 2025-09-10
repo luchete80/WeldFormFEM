@@ -83,7 +83,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
       double dN_dy = getDerivative(e, 0, 1, i);
       double dN_dz = getDerivative(e, 0, 2, i);
       
-      cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
+      //cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
       B.Set(0, base + 0, dN_dx);  // ε_xx
       B.Set(1, base + 1, dN_dy);  // ε_yy
       B.Set(2, base + 2, dN_dz);  // ε_zz
@@ -130,7 +130,7 @@ void Domain_d::CalcMaterialStiffElementMatrix(){
     //(m_Kmat[e])->Print();
     
   }//element
-  cout << "Done."<<endl;
+  //cout << "Done."<<endl;
   
 }
 
