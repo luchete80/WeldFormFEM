@@ -107,7 +107,7 @@ int main(int argc, char **argv) {
   //AddBCVelNode(Node,axis,val)
   for (int i=0;i<dom_d->getNodeCount();i++){
     if (dom_d->getPosVec3_h(i).z>0.029)
-    for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
+    for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,1.0e-4);
   }
   //dom_d->AddBCVelNode(3,2,-0.001);
   
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
   solver->assemblyGlobalMatrix();
   cout << "Done."<<endl;
   
-  //ssolver->applyDirichletBCs();
+  solver->applyDirichletBCs();
   // cout << "Solving system"<<endl;
   //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   

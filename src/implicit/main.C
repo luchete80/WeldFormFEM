@@ -469,16 +469,26 @@ int main(int argc, char **argv) {
 	cout << "Element Count "<<dom_d->getElemCount()<<endl;
 
     
+  
+  string soltype = "Dynamic";
+	cout << "Reading Solver type" << endl; readValue(config["type"], 	soltype); //0: Box
+ 
+  if (soltype == "Dynamic"){
+    cout << "Solver type is dynamic"<<endl;
+    dom_d->SolveImplicitGlobalMatrix();
+  }
+  else if (soltype == "Dynamic"){
+    cout << "Solver Type is static "<<endl;
+    dom_d->SolveStaticDisplacement();
+  }
+  
+	cout << "Program ended."<<endl;
     
     
     
 
-  }
+  } // if json
   
-  dom_d->SolveImplicitGlobalMatrix();
-  
-  
-	cout << "Program ended."<<endl;
       
 	} else {
     cout << "Please provide an input file."<<endl;

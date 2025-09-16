@@ -24,8 +24,6 @@
 using namespace std;
 
 
-std::ostringstream m_oss;
-std::string m_fname;
 
 
 namespace MetFEM{
