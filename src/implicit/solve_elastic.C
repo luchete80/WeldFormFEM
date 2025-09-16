@@ -38,7 +38,7 @@ using namespace std;
 using namespace LS_Dyna;
 using namespace MetFEM;
 
-int main(int argc, char **argv) {
+int Domain::SolveElastic() {
  
   int m_node_count = 4;
   int m_elem_count = 1;
@@ -138,6 +138,108 @@ int main(int argc, char **argv) {
   //IMPLICIT 
   dom_d->CalcMaterialStiffElementMatrix();
   
+  ////////// ALTERNATIVE, TO ASSEMBLE ALSO LARGE MATRICES
+    // /////////////////////// THIS IS BEB
+    // par_loop(e,m_elem_count){
+          // //cout << "Element "<<e<<endl;
+          
+          // // 6) Build B matrix (strain-displacement) for the element
+          // int tid = omp_get_thread_num();
+
+          // Matrix &B = Bmat_per_thread[tid];
+          // //// HERE B is in fact BxdetJ
+          // B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
+          // B = B *(1.0/m_detJ[e]);
+
+          // //cout << "B mat "<<endl;
+          // //B.Print();
+
+          // // 7) Compute internal force: fint = V_e * B^T * σ
+
+          // Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
+          // //CHANGE TO FORCES TO MATRIX! already calculated
+          // Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+ 
+          // fint = fint * vol[e];
+
+          // ///TANGENT!
+          // // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
+          // Matrix D(6,6);
+          // D =  mat[e]->getElasticMatrix();
+          
+          // Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
+          // Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
+
+          // double Ve = vol[e]; // Current volume (updated Lagrangian)
+
+          // ///////////////////////////////////////////////////
+          // /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
+          // // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
+          // //Matrix& Kgeo = *(m_Kgeo[e]);
+          // Matrix Kgeo(m_dim*m_nodxelem,m_dim*m_nodxelem);
+          // Kgeo.SetZero();
+          
+          // // // 3. Loop over node pairs (a, b)
+          // // // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
+          // for (int a = 0; a < 4; ++a) {
+            // // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
+            // Matrix grad_a(3, 1);
+            // grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
+            // grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
+            // grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+
+            // for (int b = 0; b < 4; ++b) {
+              // // ∇Nᵇ in current config
+              // Matrix grad_b(3, 1);
+              // grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
+              // grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
+              // grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+
+              // // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
+              // Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
+              // Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
+              // double k_ab = kab.getVal(0, 0) * Ve;
+
+              // // Fill 3x3 block (assumes 3 DOF per node)
+              // for (int i = 0; i < 3; ++i) {
+                // Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
+              // }
+            // }
+          // }
+
+          // Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
+          // Matrix K = Kgeo + Kmat;
+
+          // K = K*dt;
+          
+          // double beta = 0.25;
+          // // // Add mass scaling for stability (FORGE does this)
+          // for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
+              // int node = getElemNode(e, i);        // Get global node number
+              // for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
+                  // int idx = i*m_dim + d;           // Local DOF index
+                  // double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
+                  // K.Set(idx, idx, (K.getVal(idx, idx) + mass_term) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
+              // }
+          // }
+          // //cout <<"CHECKING INTERNAL FORCES"<<endl;
+
+          // Matrix R(m_dim*m_nodxelem,1);
+          // for (int i = 0; i < m_nodxelem; i++) {
+            // //int node = getElemNode(e, i % m_nodxelem);
+            // for (int d=0;d<m_dim;d++){
+            // //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
+            // //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
+            // R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
+            // }
+          // }
+          // solver->assembleElement(e, K);
+          // solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
+          
+      // }//elem
+
+
+  
   Solver_Eigen *solver = new Solver_Eigen();
   
   solver->setDomain(dom_d);
@@ -164,17 +266,7 @@ int main(int argc, char **argv) {
       cout <<solver->getU(i,d)<<", ";
     cout <<endl;
   }
-  
-  //dom_d->setContForceVec(3,2,-1.0e5);
-  
-  //GLOBAL MATRIX NONLINEAR METHOD
-  
-  //dom_d->SolveStaticDisplacement();
-  //cout << "Solving "<<endl;
-  //dom_d->SolveImplicitGlobalMatrix();
-  
 
-	// cout << "Program ended."<<endl;
       
 
   VTKWriter writer(dom_d, "out.vtk");

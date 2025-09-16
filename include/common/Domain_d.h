@@ -503,6 +503,8 @@ public:
   void SolveImplicitGlobalMatrix();
   /// DISPLACEMENT (STATIC) FUNCTIONS
   void SolveStaticDisplacement();
+  
+  void SolveElastic(); //SIMPLE 
   void ImposeBCU(int dim);
 
   //--------------------------------------------------------------------------------------------------------------------------------
