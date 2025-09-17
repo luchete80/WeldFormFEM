@@ -244,7 +244,7 @@ void Solver_Eigen::applyDirichletBCs() {
         R[dof] = value;
     }
     
-    std::cout << "R after  BCs:\n" << R << std::endl;
+    //std::cout << "R after  BCs:\n" << R << std::endl;
 
     K.makeCompressed(); // Recompress after modifications
 }
