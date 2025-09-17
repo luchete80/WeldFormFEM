@@ -110,7 +110,10 @@ void Domain_d::SolveStaticDisplacement() {
     x_initial = new double [m_dim * m_node_count];
   #endif
   memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
-        
+
+  double* delta_u = new double[m_dim * m_node_count];
+  memset(delta_u, 0, sizeof(double) * m_dim * m_node_count);
+          
   //~ cout << "Initializing Values ..." << endl;
   //~ //InitValuesStatic(); // Nueva función inicialización estática
 
@@ -132,7 +135,7 @@ void Domain_d::SolveStaticDisplacement() {
   m_solver->Allocate();
   cout << "Done."<<endl;
   
-  double* delta_u = new double[m_dim * m_node_count]; // Corrección desplazamientos
+
   double* u_previous = new double[m_dim * m_node_count]; // Desplazamiento anterior
   
   
@@ -151,7 +154,7 @@ void Domain_d::SolveStaticDisplacement() {
     
   #endif
   
-
+  
   // 5. LOOP PRINCIPAL DE CARGA (no de tiempo)
   while (load_factor < max_load_factor && load_step < max_load_steps) {
     
@@ -188,10 +191,18 @@ void Domain_d::SolveStaticDisplacement() {
       if (contact)
         CalcContactForces();
 
+
+      ///// CLASSSIC (OLD) ELASTIC APPROACH
+      CalcMaterialStiffElementMatrix();
+      //~ solver->assemblyGlobalMatrix();
+
+    
       // 10. ENSAMBLAR SISTEMA
       solver->setZero();
       solver->beginAssembly();
-      
+
+    
+    
     cout << "Building matrices "<<endl;
     /////////////////////// THIS IS BEB
     //par_loop(e,m_elem_count){
@@ -267,35 +278,29 @@ void Domain_d::SolveStaticDisplacement() {
           //~ Matrix K = Kgeo + Kmat;
           
           Matrix K = Kmat;
+          //cout << "K MATRIX"<<endl;
+          //K.Print();
+          //cout << "Ke "<<endl;
+          //m_Kmat[e]->Print();
           
-
-          //K = K*dt;
-          
-          //~ double beta = 0.25;
-          //~ // // Add mass scaling for stability (FORGE does this)
-          //~ for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
-              //~ int node = getElemNode(e, i);        // Get global node number
-              //~ for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
-                  //~ int idx = i*m_dim + d;           // Local DOF index
-                  //~ double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
-                  //~ K.Set(idx, idx, (K.getVal(idx, idx) + mass_term) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
-              //~ }
-          //~ }
-          //cout <<"CHECKING INTERNAL FORCES"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
           for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
             for (int d=0;d<m_dim;d++){
             //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
-            //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
-            R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
+            R.Set(i,0,0.0); //ADD EXTERNAL ELEMENT FORCES
+            //R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]); //ADD EXTERNAL ELEMENT FORCES
             }
           }
           solver->assembleElement(e, K);
-          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
+          //solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
           
       }//elem
+      solver->finalizeAssembly();
+      
+      
+  
       cout << "Done "<<endl;
       
       // Aplicar condiciones de contorno
@@ -304,9 +309,6 @@ void Domain_d::SolveStaticDisplacement() {
         
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
-
-
-      solver->finalizeAssembly();
         
       m_solver->applyDirichletBCs();
       cout << "Solving "<<endl;
@@ -319,7 +321,8 @@ void Domain_d::SolveStaticDisplacement() {
         for (int d = 0; d < m_dim; d++) {
           int idx = n * m_dim + d;
           double du = m_solver->getU(n, d);
-          u[idx] += du;
+          delta_u[n * m_dim + d] += du;
+          //u[idx] += du;
           max_residual = std::max(max_residual, std::abs(du));
         }
       }
@@ -328,8 +331,26 @@ void Domain_d::SolveStaticDisplacement() {
       if (max_residual < tolerance) {
         converged = true;
         cout << "Converged in " << iter + 1 << " iterations" << endl;
-      }
-    }
+
+            for (int i = 0; i < m_node_count * m_dim; i++) {
+                u[i] += delta_u[i];
+            }
+            cout << "Converged in " << iter + 1 << " iterations" << endl;
+            
+            // 14. CALCULAR TENSIONES FINALES
+            for (int i = 0; i < m_node_count * m_dim; i++) {
+                x[i] = x_initial[i] + u[i];
+            }
+            
+            calcElemJAndDerivatives();
+            CalcElemVol();
+            CalcStressStrain(0.0);
+                  
+      
+      }/////NR ITER 
+    
+    
+    }////// NR ITER
     
     // 14. OUTPUT Y REMALLADO
     if (load_step % 10 == 0) {

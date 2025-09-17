@@ -550,13 +550,16 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     solver->beginAssembly();
     
     /////////////////////// THIS IS BEB
-    par_loop(e,m_elem_count){
+    //par_loop(e,m_elem_count){
+    for (int e=0;e<m_elem_count;e++){
           //cout << "Element "<<e<<endl;
           
           // 6) Build B matrix (strain-displacement) for the element
           int tid = omp_get_thread_num();
 
-          Matrix &B = Bmat_per_thread[tid];
+          //Matrix &B = Bmat_per_thread[tid];
+          Matrix B;
+          
           //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           B = B *(1.0/m_detJ[e]);
@@ -585,7 +588,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           ///////////////////////////////////////////////////
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
-          //Matrix& Kgeo = *(m_Kgeo[e]);
+          //~ //Matrix& Kgeo = *(m_Kgeo[e]);
           Matrix Kgeo(m_dim*m_nodxelem,m_dim*m_nodxelem);
           Kgeo.SetZero();
           
@@ -619,6 +622,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           Matrix K = Kgeo + Kmat;
+          
+          
+          //Matrix K =  Kmat;
 
           K = K*dt;
           

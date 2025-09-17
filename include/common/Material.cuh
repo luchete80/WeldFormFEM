@@ -132,7 +132,10 @@ class Material_{
       for (int d=3;d<6;d++) D.Set(d,d,G);    
       return D;
   }
-
+  
+  virtual Matrix getTangentMatrix(){}
+  virtual Matrix getTangentMatrix(const double &epseq){}
+  
 }; //MATERIAL 
 
 class _Plastic{
@@ -223,6 +226,29 @@ public Material_{
   inline double  dev_t CalcTangentModulus(const double &strain);
 	inline double  dev_t CalcYieldStress(){}	
 	inline double  dev_t CalcYieldStress(const double &strain);	
+  
+  virtual Matrix getTangentMatrix(double eps_eq) {
+    Matrix D(6,6);
+    double nu = Elastic().Poisson();
+    
+    // Tangente elasto-plástica (Hollomon)
+    double E_tan = K * n * pow(eps_eq, n-1);  // eps_eq = deformación equivalente plástica
+    
+    double G = E_tan / (2.0*(1.0+nu));
+    double lambda = (E_tan * nu) / ((1.0+nu)*(1.0-2.0*nu));
+
+    // Componentes normales
+    for (int i=0;i<3;i++) D.Set(i,i, lambda+2.0*G);
+    D.Set(0,1, lambda); D.Set(0,2, lambda);
+    D.Set(1,0, lambda); D.Set(1,2, lambda);
+    D.Set(2,0, lambda); D.Set(2,1, lambda);
+
+    // Componentes de cizalla
+    for (int i=3;i<6;i++) D.Set(i,i,G);
+
+    return D;
+  }
+
 };
 
 
