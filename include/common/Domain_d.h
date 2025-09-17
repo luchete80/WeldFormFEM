@@ -520,6 +520,8 @@ public:
           abs_bc_initialized = true;
       }
   }
+  
+  void setU(const int &n, const int &d, const double &val){u[m_dim*n+d] = val;}
 
   
   void setFixedDt(const bool &f){m_fixed_dt = f;}

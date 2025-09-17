@@ -106,11 +106,11 @@ int main(int argc, char **argv) {
     
   //AddBCVelNode(Node,axis,val)
   for (int i=0;i<dom_d->getNodeCount();i++){
-    // if (dom_d->getPosVec3_h(i).z<0.029){
-      // for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
-      // for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,-1.0e-4);
-      // velcount++;
-    // }
+    //~ if (dom_d->getPosVec3_h(i).z>0.029){
+      //~ for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
+      //~ dom_d->AddBCVelNode(i,2,-1.0e-4);
+      //~ velcount++;
+    //~ }
     
     if (dom_d->getPosVec3_h(i).z<0.0005){
       for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
@@ -147,22 +147,28 @@ int main(int argc, char **argv) {
   cout << "Done."<<endl;
   
   solver->applyDirichletBCs();
+
+  //~ ////// IF FORCE (NEWMAN; NATURAL CONDITIONS)
   for (int i=0;i<dom_d->getNodeCount();i++){
       if (dom_d->getPosVec3_h(i).z>0.029){
         solver->SetRDOF(3*i+2,-10.0);
       velcount++;
     }
   }
+  
   cout << "Applied "<<velcount <<" forces "<<endl;
   // cout << "Solving system"<<endl;
   //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
   solver->Solve();
-
+  cout << "solved. "<<endl;
   for (int i=0;i<dom_d->getNodeCount();i++){
+    //~ for (int d=0;d<3;d++){
+      //~ cout <<solver->getU(i,d)<<", ";
+    //~ cout <<endl;
+    //~ }
     for (int d=0;d<3;d++)
-      cout <<solver->getU(i,d)<<", ";
-    cout <<endl;
+      dom_d->setU(i,d,solver->getU(i,d));
   }
   
   //dom_d->setContForceVec(3,2,-1.0e5);

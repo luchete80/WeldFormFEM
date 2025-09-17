@@ -44,21 +44,21 @@ int Domain::SolveElastic() {
   int m_elem_count = 1;
   int m_nodxelem   = 4;
   
-  Domain_d *dom_d = new Domain_d;
-  dom_d->m_timeint_type = TimeInt::IMPLICIT;
+
+  m_timeint_type = TimeInt::IMPLICIT;
   
   //~ cout << "Set dimension"<<endl;
-  //~ dom_d->SetDimensionImplicit(m_node_count,m_elem_count);	 //AFTER CREATING DOMAIN
+  //~ SetDimensionImplicit(m_node_count,m_elem_count);	 //AFTER CREATING DOMAIN
   //~ cout << "Done. Setting nodes..."<<endl; 
-  //~ dom_d->setNode(0,0,0,0);
-  //~ dom_d->setNode(1,0.1,0,0);
-  //~ dom_d->setNode(2,0,0.1,0);
-  //~ dom_d->setNode(3,0,0,0.1);
+  //~ setNode(0,0,0,0);
+  //~ setNode(1,0.1,0,0);
+  //~ setNode(2,0,0.1,0);
+  //~ setNode(3,0,0,0.1);
   
   std::string filename = "tetra_cyl.k";
   
   lsdynaReader reader(filename.c_str());
-  dom_d->CreateFromLSDyna(reader);
+  CreateFromLSDyna(reader);
       
       
   cout << "Done "<<endl;
@@ -71,10 +71,10 @@ int Domain::SolveElastic() {
   rho = 7850.0;
 
   cout << "Setting density"<<endl;
-  dom_d->setDensity(rho); //rho_0
+  setDensity(rho); //rho_0
   cout <<"Done."<<endl;
   cout << "Creating Material..:"<<endl;
-  Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
+  Material_ *mat_h = (Material_ *)malloc(getElemCount() * sizeof(Material_ *)); 
   Elastic_ el(E,nu);
   // cout << "Mat type  "<<mattype<<endl;
 
@@ -97,7 +97,7 @@ int Domain::SolveElastic() {
   material_h->Material_model = BILINEAR;
   
 
-  dom_d->AssignMaterial(material_h);
+  AssignMaterial(material_h);
 
   cout << "Done."<<endl;
   
@@ -105,38 +105,38 @@ int Domain::SolveElastic() {
   int velcount =0;
     
   //AddBCVelNode(Node,axis,val)
-  for (int i=0;i<dom_d->getNodeCount();i++){
-    // if (dom_d->getPosVec3_h(i).z<0.029){
-      // for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
-      // for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,-1.0e-4);
+  for (int i=0;i<getNodeCount();i++){
+    // if (getPosVec3_h(i).z<0.029){
+      // for (int d=0;d<2;d++) AddBCVelNode(i,d,0.0);
+      // for (int d=0;d<2;d++) AddBCVelNode(i,d,-1.0e-4);
       // velcount++;
     // }
     
-    if (dom_d->getPosVec3_h(i).z<0.0005){
-      for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
+    if (getPosVec3_h(i).z<0.0005){
+      for (int d=0;d<3;d++) AddBCVelNode(i,d,0.0);
       fixcount++;
     }
   }
-  //dom_d->AddBCVelNode(3,2,-0.001);
+  //AddBCVelNode(3,2,-0.001);
   
       //cout << "node "<< i<<" fixed "<<endl;
     
-  //if (dom_d->getPosVec3_h(i).z > 0.616-0.002 ) 
+  //if (getPosVec3_h(i).z > 0.616-0.002 ) 
 
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
   cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
   //AFTER THIS CALL
-  dom_d->AllocateBCs();
+  AllocateBCs();
 
   //THIS IS LIKE SOLVE
-  dom_d->AssignMatAddress();
+  AssignMatAddress();
 
-  dom_d->calcElemJAndDerivatives();
-  dom_d->CalcElemVol();
+  calcElemJAndDerivatives();
+  CalcElemVol();
 
   //IMPLICIT 
-  dom_d->CalcMaterialStiffElementMatrix();
+  CalcMaterialStiffElementMatrix();
   
   ////////// ALTERNATIVE, TO ASSEMBLE ALSO LARGE MATRICES
     // /////////////////////// THIS IS BEB
@@ -249,8 +249,8 @@ int Domain::SolveElastic() {
   cout << "Done."<<endl;
   
   solver->applyDirichletBCs();
-  for (int i=0;i<dom_d->getNodeCount();i++){
-      if (dom_d->getPosVec3_h(i).z>0.029){
+  for (int i=0;i<getNodeCount();i++){
+      if (getPosVec3_h(i).z>0.029){
         solver->SetRDOF(3*i+2,-10.0);
       velcount++;
     }
@@ -261,7 +261,7 @@ int Domain::SolveElastic() {
   
   solver->Solve();
 
-  for (int i=0;i<dom_d->getNodeCount();i++){
+  for (int i=0;i<getNodeCount();i++){
     for (int d=0;d<3;d++)
       cout <<solver->getU(i,d)<<", ";
     cout <<endl;
