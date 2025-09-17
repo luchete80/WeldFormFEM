@@ -137,3 +137,7 @@ add_executable(test_elastic_cylinder #ForgeFormFEM.C
                )
 TARGET_LINK_LIBRARIES (test_elastic_cylinder  PRIVATE implicit ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)
 
+add_executable(test_increm_cylinder #ForgeFormFEM.C
+                          test_increm_cylinder.cpp
+               )
+TARGET_LINK_LIBRARIES (test_increm_cylinder  PRIVATE implicit ${MMG3D_LIB} OpenMP::OpenMP_CXX WeldFormFEM)

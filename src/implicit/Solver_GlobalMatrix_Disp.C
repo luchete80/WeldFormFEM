@@ -88,7 +88,7 @@ namespace MetFEM{
             double current_disp = u[bc_nodes[i] * m_dim + dim];
             double delta_disp = target_disp - current_disp;
             
-            cout << "Writing "<<endl;
+            //cout << "Writing "<<endl;
             // Sobrescribir el valor en el array de BCs
             current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
 
