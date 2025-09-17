@@ -138,8 +138,11 @@ int main(int argc, char **argv) {
   //THIS IS LIKE SOLVE
   dom_d->AssignMatAddress();
   
-  dom_d->SolveStaticDisplacement();
-
+  //dom_d->SolveStaticDisplacement();
+  
+  dom_d->SetEndTime (1.0);
+  dom_d->SolveImplicitGlobalMatrix();
+  
   VTKWriter writer(dom_d, "out.vtk");
   writer.writeFile();
 	

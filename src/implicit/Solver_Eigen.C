@@ -196,7 +196,7 @@ void Solver_Eigen::applyDirichletBCs() {
         for (int i = 0; i < count; ++i) {
             const int dof = nodes[i] * m_dom->m_dim + dim;
             bc_dofs.emplace_back(dof, values[i]);
-            cout <<"BC value "<<i << ": "<<values[i]<<endl;
+            //cout <<"BC value "<<i << ": "<<values[i]<<endl;
         }
     }
 

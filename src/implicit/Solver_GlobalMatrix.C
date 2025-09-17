@@ -207,7 +207,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->setDomain(this);
   m_solver->Allocate();
 
-  double dt_initial = end_t / 10.0; // Initial guess
+  double dt_initial = end_t / 1.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
@@ -369,10 +369,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // }
     const double gamma = 0.5;   // Newmark parameter
     // (1) Update velocities (v = prev_v + delta_v)
+
+  double maxv[]={0.0,0.0,0.0};
+ 
     for (int i = 0; i < m_node_count * m_dim; i++) {
         v[i] = prev_v[i] + delta_v[i]; ///v: Current total velocity 
     }
-    
+ 
+   for (int e=0;e<m_node_count;e++)
+      for (int d=0;d<3;d++)
+            if (v[e*m_dim+d]*v[e*m_dim+d]>maxv[d]){
+        maxv[d] = this->v[e*m_dim+d];
+    }
+    cout << "MAX V: "<<maxv[0]<<","<<maxv[1]<<", "<<maxv[2]<<endl;
+ 
     //Rewrite BCs
     for (int d=0;d<m_dim;d++){
       
@@ -542,11 +552,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       CalcContactForces();
 
     bool end_it = false;
-    
-    Matrix r_global(m_nodxelem*m_dim,1);
       
     solver->setZero(); //RESET K and R matrices.
-      
     solver->beginAssembly();
     
     /////////////////////// THIS IS BEB
@@ -621,10 +628,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
 
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
-          Matrix K = Kgeo + Kmat;
+          //Matrix K = Kgeo + Kmat;
           
           
-          //Matrix K =  Kmat;
+          Matrix K =  Kmat;
 
           K = K*dt;
           
@@ -670,7 +677,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         //R.Print();
       } // end par element loop
       
-      
+       solver->finalizeAssembly();     
 
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
@@ -685,7 +692,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
       // solver->printR();
       
-      solver->finalizeAssembly();
+
       //AFTER ASSEMBLY!
       // cout <<"K BEFORE  Dirichlet"<<endl;
       // solver->printK();
@@ -719,17 +726,41 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             max_f_residual = std::max(max_residual, std::abs(df));
         }
     }
+      
+      double F_ref = 0.0;
+      // 1. Fuerzas externas aplicadas (contacto, cargas, etc.)
+      for (int n = 0; n < m_node_count * m_dim; n++) {
+          F_ref = std::max(F_ref, std::abs(contforce[n])); // Fuerzas de contacto
+          // Agregar otras fuerzas externas si las tienes
+      }
+      
+      // 2. Fuerzas internas representativas (opcional pero recomendado)
+      for (int e = 0; e < m_elem_count; e++) {
+          for (int i = 0; i < m_nodxelem * m_dim; i++) {
+              F_ref = std::max(F_ref, std::abs(m_f_elem[e * m_nodxelem * m_dim + i]));
+          }
+      }
+      
+      // 3. Fuerzas inerciales como referencia
+      for (int n = 0; n < m_node_count; n++) {
+          for (int d = 0; d < m_dim; d++) {
+              int idx = n * m_dim + d;
+              double inertia_force = m_mdiag[n] * std::abs(a[idx]);
+              F_ref = std::max(F_ref, inertia_force);
+          }
+      }
     
       
     cout << "MAX Residuals, DV: "<< max_residual<<
-    ", DF ABS: "<<max_f_residual<<endl;
+    ", DF ABS: "<<max_f_residual<<", DF rel "<< max_f_residual/F_ref<<endl;
     
     // cout << "Urel "<<max_residual/m_solver->getUNorm()<<"U Norm "<<m_solver->getUNorm()<<endl;
     // cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
     
     // Check convergence
     if (max_residual < tolerance && max_f_residual < ftol) {
-        converged = true;
+        if (iter>0)
+          converged = true;
         //if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
         //}
