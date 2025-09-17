@@ -154,6 +154,7 @@ void Domain_d::SolveStaticDisplacement() {
     
   #endif
   
+  dt = 1.0;
   
   // 5. LOOP PRINCIPAL DE CARGA (no de tiempo)
   while (load_factor < max_load_factor && load_step < max_load_steps) {
@@ -344,7 +345,16 @@ void Domain_d::SolveStaticDisplacement() {
             
             calcElemJAndDerivatives();
             CalcElemVol();
-            CalcStressStrain(0.0);
+
+            for (int i = 0; i < m_node_count * m_dim; i++) {
+                v[i] = delta_u[i]/dt;
+            }
+            calcElemStrainRates();
+            calcElemDensity();
+
+
+            //CalcStressStrain(0.0);
+            CalcStressStrain(dt);
                   
       
       }/////NR ITER 

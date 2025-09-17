@@ -1662,7 +1662,61 @@ dev_t void Domain_d::CalcStressStrain(double dt){
  
 }
 
+/*
+void Domain_d::CalcStressStrainQuasiStatic() {
+    par_loop(e, m_elem_count) {
+        for (int gp = 0; gp < m_gp_count; gp++) {
+            int offset_t = (e * m_gp_count + gp) * 6;
+           
+            // 1. OBTENER DEFORMACIÓN INCREMENTAL (Δε) desde los desplazamientos
+            tensor3 StrainIncrement = calculateStrainIncrementFromDisplacements(e, gp);
+           
+            // 2. OBTENER TENSIONES Y DEFORMACIÓN ACUMULADAS
+            tensor3 StrainTotal = FromFlatSym(m_eps, offset_t);
+            tensor3 StressTotal = FromFlatSym(m_sigma, offset_t);
+           
+            // 3. ACTUALIZAR DEFORMACIÓN TOTAL
+            StrainTotal = StrainTotal + StrainIncrement;
+           
+            // 4. CALCULAR TENSIONES ELÁSTICAS (ensayo)
+            tensor3 StressTrial = StressTotal;
+            for (int i = 0; i < 6; i++) {
+                StressTrial += mat[e]->Elastic().C()[i] * StrainIncrement.getComponent(i);
+            }
+           
+            // 5. VERIFICACIÓN PLASTICIDAD (return mapping)
+            tensor3 s_trial = StressTrial - (1.0/3.0)*Trace(StressTrial)*Identity();
+            double J2_trial = 0.5 * (s_trial.xx*s_trial.xx + s_trial.yy*s_trial.yy + s_trial.zz*s_trial.zz +
+                                   2.0*(s_trial.xy*s_trial.xy + s_trial.xz*s_trial.xz + s_trial.yz*s_trial.yz));
+            double sigma_trial = sqrt(3.0 * J2_trial);
+           
+            // Calcular tensión de fluencia actual
+            double sigma_y = calculateCurrentYieldStress(pl_strain[e], mat[e]);
+           
+            // 6. RETURN MAPPING ALGORITHM
+            if (sigma_trial > sigma_y) {
+                // Factor de escala para regresar a la superficie de fluencia
+                double scale = sigma_y / sigma_trial;
+                s_trial = s_trial * scale;
+               
+                // Reconstruir tensor de tensiones
+                StressTotal = s_trial + (1.0/3.0)*Trace(StressTrial)*Identity();
+               
+                // Actualizar deformación plástica
+                double delta_plastic_strain = (sigma_trial - sigma_y) / (3.0 * mat[e]->Elastic().G());
+                pl_strain[e] += delta_plastic_strain;
+            } else {
+                StressTotal = StressTrial;
+            }
+           
+            // 7. GUARDAR RESULTADOS
+            ToFlatSymPtr(StressTotal, m_sigma, offset_t);
+            ToFlatSymPtr(StrainTotal, m_eps, offset_t);
+        }
+    }
+}
 
+*/
 
 dev_t void Domain_d:: calcElemHourglassForces()
 {
