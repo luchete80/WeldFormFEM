@@ -196,7 +196,6 @@ void Solver_Eigen::applyDirichletBCs() {
         for (int i = 0; i < count; ++i) {
             const int dof = nodes[i] * m_dom->m_dim + dim;
             bc_dofs.emplace_back(dof, values[i]);
-            //cout <<"BC value "<<i << ": "<<values[i]<<endl;
         }
     }
 
@@ -204,7 +203,6 @@ void Solver_Eigen::applyDirichletBCs() {
     std::unordered_map<int, double> bc_map(bc_dofs.begin(), bc_dofs.end());
 
     // Phase 2: Adjust RHS first (before modifying K)
-    // This is more efficient and avoids issues with modified matrix
     for (const auto& [dof, value] : bc_dofs) {
         // For each BC DOF, subtract K_{i,dof} * value from RHS[i] for all i != dof
         for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
@@ -214,39 +212,45 @@ void Solver_Eigen::applyDirichletBCs() {
         }
     }
 
-    // Phase 3: Modify matrix K
-    K.makeCompressed();
+    // Phase 3: Modify matrix K - APPROACH CORRECTED
+    // Mejor usar una estrategia más robusta para modificar columnas
+    std::vector<Eigen::Triplet<double>> triplets;
+    triplets.reserve(K.nonZeros());
     
-    for (const auto& [dof, value] : bc_dofs) {
-        // Clear row (set off-diagonals to zero)
-        for (Eigen::SparseMatrix<double>::InnerIterator it(K, dof); it; ++it) {
-            if (it.col() != dof) {
-                it.valueRef() = 0.0;
-            } else {
-                it.valueRef() = 1.0; // Set diagonal to 1
-            }
-        }
-
-        // Clear column (set off-diagonals to zero)
-        // This is tricky with Eigen's column-major storage
-        // Better approach: use a different strategy
-        for (int col = 0; col < K.outerSize(); ++col) {
-            if (col == dof) continue; // Skip the diagonal column
+    // Primero recolectamos todos los tripletes existentes
+    for (int col = 0; col < K.outerSize(); ++col) {
+        for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
+            int row = it.row();
+            int col = it.col();
+            double value = it.value();
             
-            for (Eigen::SparseMatrix<double>::InnerIterator it(K, col); it; ++it) {
-                if (it.row() == dof) {
-                    it.valueRef() = 0.0;
+            // Si es un DOF con condición de Dirichlet
+            if (bc_map.find(row) != bc_map.end() || bc_map.find(col) != bc_map.end()) {
+                if (row == col && bc_map.find(row) != bc_map.end()) {
+                    // Diagonal: poner 1.0
+                    triplets.emplace_back(row, col, 1.0);
+                } else if (row != col && (bc_map.find(row) != bc_map.end() || bc_map.find(col) != bc_map.end())) {
+                    // Off-diagonal en fila o columna BC: poner 0.0
+                    // No agregamos este tripleta (lo omitimos)
+                } else {
+                    // Elemento que no está afectado por BCs
+                    triplets.emplace_back(row, col, value);
                 }
+            } else {
+                // Elemento que no está afectado por BCs
+                triplets.emplace_back(row, col, value);
             }
         }
-
-        // Set RHS for this DOF
-        R[dof] = value;
     }
     
-    //std::cout << "R after  BCs:\n" << R << std::endl;
+    // Reconstruir la matriz desde los tripletes
+    K.setFromTriplets(triplets.begin(), triplets.end());
+    K.makeCompressed();
 
-    K.makeCompressed(); // Recompress after modifications
+    // Phase 4: Set RHS for BC DOFs
+    for (const auto& [dof, value] : bc_dofs) {
+        R[dof] = value;
+    }
 }
 
 void Solver_Eigen::SetRDOF(const int &dof, const double &val){

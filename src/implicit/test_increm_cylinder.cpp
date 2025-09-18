@@ -115,6 +115,7 @@ int main(int argc, char **argv) {
     if (dom_d->getPosVec3_h(i).z<0.0005){
       for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
       fixcount++;
+
     }
   }
   
@@ -123,7 +124,7 @@ int main(int argc, char **argv) {
   //~ ////// IF FORCE (NEWMAN; NATURAL CONDITIONS)
   for (int i=0;i<dom_d->getNodeCount();i++){
       if (dom_d->getPosVec3_h(i).z>0.029){
-        dom_d->setContForceVec(i,2,-10.0);
+        dom_d->setContForceVec(i,2,-1.0);
         
       velcount++;
     }

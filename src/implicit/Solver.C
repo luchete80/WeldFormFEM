@@ -9,6 +9,33 @@
 
 #include "Solver_Eigen.h"
 
+
+//~ for each element e:
+  //~ // 1. Calcute deformation gradient F
+  //~ F = Σ [x_a ⊗ ∇N_a]  // Current config
+  //~ F_old = Σ [x_old_a ⊗ ∇N_a]  // Prefvious config
+  
+  //~ // 2. Calcular tensor de velocidad de deformación ε
+  //~ L = (1/Δt) * (F·F_old⁻¹ - I)  // Gradiente de velocidad
+  //~ ε = 0.5*(L + Lᵀ)  // Parte simétrica (tasa de deformación)
+  
+  //~ // 3. Calcular tensiones
+  //~ σ = D:ε  // Ley elástica
+  
+  //~ // 4. Ensamblar fuerzas internas
+  //~ f_int = V_e * Bᵀ · σ  // B: matriz deformación-desplazamiento
+  
+  //~ // 5. Ensamblar matriz de rigidez
+  //~ K_mat = V_e * Bᵀ · D · B  // Parte material
+  //~ K_geo = Parte geométrica (σ-dependiente)
+  
+  //~ // 6. Aplicar condiciones de contorno
+  //~ // 7. Resolver sistema local: K · Δu = f_int
+  //~ // 8. Actualizar desplazamientos
+  
+  
+  
+  
 // #ifdef BUILD_REMESH
 // #include "ReMesher.h"
 // #endif
@@ -391,6 +418,9 @@ void host_ Domain_d::ElasticIncSolve(){
         }
     
     } // end element loop
+  //////////
+  
+  
   
   ////// BC application.
   for (int dim=0;dim<m_dim;dim++){

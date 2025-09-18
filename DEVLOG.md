@@ -398,3 +398,8 @@ F90 PREVIOUS VERSION
 20250909 - Fixed Normals (orientation and nodes were both inverted with flipnormals)
          - Working Contact with external mesh.
          - Wirking with implicit solver. Now reads bcs (Problems w/o contact).
+20250916 - Added tangent Matrix for Hollomon.
+         - Solved first elastic large problem with implicit.   
+20250917 - Fixed crashing when parallel on implicit version.
+20250918 - Fixed Nonzero Dirichlet BC on Eigen Solver. 
+         - Corrected Dirichlet BC, being the difference between applied and 

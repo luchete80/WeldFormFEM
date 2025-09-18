@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<dom_d->getNodeCount();i++){
     if (dom_d->getPosVec3_h(i).z>0.029){
       for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
-      //dom_d->AddBCVelNode(i,2,-1.0e-4);
+      dom_d->AddBCVelNode(i,2,-1.0e-4);
       velcount++;
     }
     
@@ -149,13 +149,13 @@ int main(int argc, char **argv) {
   solver->applyDirichletBCs();
 
   //~ ////// IF FORCE (NEWMAN; NATURAL CONDITIONS)
-  for (int i=0;i<dom_d->getNodeCount();i++){
-      if (dom_d->getPosVec3_h(i).z>0.029){
-        //dom_d->setContForceVec(i,2,-10.0);
-        solver->SetRDOF(3*i+2,-1000.0);
-      velcount++;
-    }
-  }
+  //~ for (int i=0;i<dom_d->getNodeCount();i++){
+      //~ if (dom_d->getPosVec3_h(i).z>0.029){
+        //~ //dom_d->setContForceVec(i,2,-10.0);
+        //~ solver->SetRDOF(3*i+2,-1000.0);
+      //~ velcount++;
+    //~ }
+  //~ }
   
   cout << "Applied "<<velcount <<" forces "<<endl;
   // cout << "Solving system"<<endl;
