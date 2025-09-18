@@ -397,8 +397,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
  
    for (int e=0;e<m_node_count;e++)
       for (int d=0;d<3;d++)
-            if (v[e*m_dim+d]*v[e*m_dim+d]>maxv[d]){
-        maxv[d] = this->v[e*m_dim+d];
+            if (abs(v[e*m_dim+d])>maxv[d]){
+        maxv[d] = abs(v[e*m_dim+d]);
     }
     cout << "MAX V: "<<maxv[0]<<","<<maxv[1]<<", "<<maxv[2]<<endl;
  
@@ -639,12 +639,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
 
           Matrix R(m_dim*m_nodxelem,1);
+          int offset = e*m_nodxelem*m_dim;
           for (int i = 0; i < m_nodxelem; i++) {
             //int node = getElemNode(e, i % m_nodxelem);
             for (int d=0;d<m_dim;d++){
             //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
             //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
-            R.Set(m_dim*i+d,0,-m_f_elem[i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
+            R.Set(m_dim*i+d,0,-m_f_elem[offset + i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
             }
           }
 
