@@ -403,3 +403,4 @@ F90 PREVIOUS VERSION
 20250917 - Fixed crashing when parallel on implicit version.
 20250918 - Fixed Nonzero Dirichlet BC on Eigen Solver. 
          - Corrected Dirichlet BC, being the difference between applied and 
+         - FIRST IMPLICIT ELASTIC WORKING.
