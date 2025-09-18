@@ -230,11 +230,18 @@ public Material_{
   virtual Matrix getTangentMatrix(double eps_eq) {
     Matrix D(6,6);
     double nu = Elastic().Poisson();
+    double E;
+
+    if (eps_eq <= 0.0) {
+        // Estado elástico puro
+        E = Elastic().Young();
+    } else {
+        // Estado plástico (Hollomon)
+        double E_tan = K * n * pow(eps_eq, n-1);
+        E = E_tan;
+    }
     
-    // Tangente elasto-plástica (Hollomon)
-    double E_tan = K * n * pow(eps_eq, n-1);  // eps_eq = deformación equivalente plástica
-    
-    double G = E_tan / (2.0*(1.0+nu));
+    double G = E / (2.0*(1.0+nu));
     double lambda = (E_tan * nu) / ((1.0+nu)*(1.0-2.0*nu));
 
     // Componentes normales

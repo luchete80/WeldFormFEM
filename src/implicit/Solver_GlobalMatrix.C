@@ -619,10 +619,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           }
 
           Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
-          //Matrix K = Kgeo + Kmat;
-          
-          
-          Matrix K =  Kmat;
+          Matrix K = Kgeo + Kmat;
+      
 
           K = K*dt;
           
