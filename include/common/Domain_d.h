@@ -505,7 +505,10 @@ public:
   void SolveStaticDisplacement();
   
   void SolveElastic(); //SIMPLE 
-  void ImposeBCU(int dim);
+  
+  ///// SIMILAR, INCREMENTAL BCs which Correct prescribed BCs for incremental solver.
+  void CalcIncBCU(int dim);
+  void CalcIncBCV(int dim/*, double load_factor*/);
 
   //--------------------------------------------------------------------------------------------------------------------------------
   //IF USING INCREMENTAL BCs

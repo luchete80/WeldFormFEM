@@ -57,43 +57,43 @@ namespace MetFEM{
     //~ }
 //~ }
 
-    void Domain_d::ImposeBCU(int dim/*, double load_factor*/) {
-        int* bc_nodes = nullptr;
-        double* current_bc_values = nullptr;
-        std::vector<double>* original_values = nullptr;
-        
-        // Seleccionar arrays según dimensión
-        switch (dim) {
-            case 0: 
-                bc_nodes = bcx_nod; 
-                current_bc_values = bcx_val;
-                original_values = &original_bcx_val;
-                break;
-            case 1: 
-                bc_nodes = bcy_nod; 
-                current_bc_values = bcy_val;
-                original_values = &original_bcy_val;
-                break;
-            case 2: 
-                bc_nodes = bcz_nod; 
-                current_bc_values = bcz_val;
-                original_values = &original_bcz_val;
-                break;
-            default: return;
-        }
-        
-        // Aplicar BCs de forma incremental según load_factor
-        par_loop (i, bc_count[dim]) {
-            double target_disp = (*original_values)[i] /** load_factor*/;
-            double current_disp = u[bc_nodes[i] * m_dim + dim];
-            double delta_disp = target_disp - current_disp;
-            
-            //cout << "Writing bc "<< i <<", node "<<bc_nodes[i]<<endl;
-            // Sobrescribir el valor en el array de BCs
-            current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
-
-        }
+void Domain_d::CalcIncBCU(int dim/*, double load_factor*/) {
+    int* bc_nodes = nullptr;
+    double* current_bc_values = nullptr;
+    std::vector<double>* original_values = nullptr;
+    
+    // Seleccionar arrays según dimensión
+    switch (dim) {
+        case 0: 
+            bc_nodes = bcx_nod; 
+            current_bc_values = bcx_val;
+            original_values = &original_bcx_val;
+            break;
+        case 1: 
+            bc_nodes = bcy_nod; 
+            current_bc_values = bcy_val;
+            original_values = &original_bcy_val;
+            break;
+        case 2: 
+            bc_nodes = bcz_nod; 
+            current_bc_values = bcz_val;
+            original_values = &original_bcz_val;
+            break;
+        default: return;
     }
+    
+    // Aplicar BCs de forma incremental según load_factor
+    par_loop (i, bc_count[dim]) {
+        double target_disp = (*original_values)[i] /** load_factor*/;
+        double current_disp = u[bc_nodes[i] * m_dim + dim];
+        double delta_disp = target_disp - current_disp;
+        
+        //cout << "Writing bc "<< i <<", node "<<bc_nodes[i]<<endl;
+        // Sobrescribir el valor en el array de BCs
+        current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
+
+    }
+}
 
 
 
@@ -123,7 +123,7 @@ void Domain_d::SolveStaticDisplacement() {
   cout << "Imposing bcs"<<endl;
   // 2. ELIMINAR INICIALIZACIÓN DE VELOCIDADES/ACELERACIONES
   for (int d = 0; d < m_dim; d++) {
-    ImposeBCU(d); // Nueva función para BCs de desplazamiento
+    CalcIncBCU(d); // Nueva función para BCs de desplazamiento
   }
   cout << "Done"<<endl;
 
@@ -306,7 +306,7 @@ void Domain_d::SolveStaticDisplacement() {
       
       // Aplicar condiciones de contorno
       for (int d = 0; d < m_dim; d++)
-        ImposeBCU(d);
+        CalcIncBCU(d);
         
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES

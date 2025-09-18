@@ -389,11 +389,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   for (int n=0;n<dom->m_node_count;n++){
     vector_t v = dom->getVelVec(n);
     if (dom->m_dim==2) v.z = 0.0;
-    m_oss << fixed<<v.x <<" "<<v.y <<" " <<v.z<<endl;    
+    m_oss << std::scientific<<std::setprecision(4)<<v.x <<" "<<v.y <<" " <<v.z<<endl;    
   }
   if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->nodecount;n++)
-      m_oss << fixed<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
+      m_oss << std::scientific<<std::setprecision(4)<<0.0 <<" "<<0.0 <<" " <<0.0<<endl;   
 
   if (dom->m_thermal){
     m_oss<<"SCALARS Temp float 1"<<endl;

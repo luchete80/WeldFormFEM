@@ -30,33 +30,44 @@ std::string m_fname;
 
 namespace MetFEM{
 
-// double Domain_d::calculatePhysicsBasedTimeStep() {
-    // // Base time step on physical phenomena
-    // double base_dt = end_t / 100.0; // Default: 100 steps total
-    
-    // // Option 1: Based on maximum velocity
-    // double max_vel = 0.0;
-    // for(int n=0; n<m_node_count; n++) {
-        // double v_mag = sqrt(v[n*m_dim+0]*v[n*m_dim+0] + 
-                       // v[n*m_dim+1]*v[n*m_dim+1] + 
-                       // v[n*m_dim+2]*v[n*m_dim+2]);
-        // max_vel = std::max(max_vel, v_mag);
-    // }
-    // if(max_vel > 1e-6) {
-        // double vel_based_dt = 0.1 * (domain_size / max_vel);
-        // base_dt = std::min(base_dt, vel_based_dt);
-    // }
-    
-    // // Option 2: Based on loading rate
-    // if(loading_rate > 0) {
-        // double loading_dt = 0.1 * (total_displacement / loading_rate);
-        // base_dt = std::min(base_dt, loading_dt);
-    // }
-    
-    // return base_dt;
-// }
 
+void Domain_d::CalcIncBCV(int dim/*, double load_factor*/) {
+    int* bc_nodes = nullptr;
+    double* current_bc_values = nullptr;
+    std::vector<double>* original_values = nullptr;
+    
+    // Seleccionar arrays según dimensión
+    switch (dim) {
+        case 0: 
+            bc_nodes = bcx_nod; 
+            current_bc_values = bcx_val;
+            original_values = &original_bcx_val;
+            break;
+        case 1: 
+            bc_nodes = bcy_nod; 
+            current_bc_values = bcy_val;
+            original_values = &original_bcy_val;
+            break;
+        case 2: 
+            bc_nodes = bcz_nod; 
+            current_bc_values = bcz_val;
+            original_values = &original_bcz_val;
+            break;
+        default: return;
+    }
+    
+    // Aplicar BCs de forma incremental según load_factor
+    par_loop (i, bc_count[dim]) {
+        double target_disp = (*original_values)[i] /** load_factor*/;
+        double current_disp = v[bc_nodes[i] * m_dim + dim];
+        double delta_disp = target_disp - current_disp;
+        
+        //cout << "Writing bc "<< i <<", node "<<bc_nodes[i]<<"curr vel "<<current_disp<< ", target: "<<target_disp<<"bc: "<<delta_disp<<endl;
+        // Sobrescribir el valor en el array de BCs
+        current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
 
+    }
+}
 
 void host_ Domain_d::SolveImplicitGlobalMatrix(){
   WallTimer timer;
@@ -200,6 +211,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   const double RAMP_FRACTION = 1.0e-2;  // 0.1% of total time instead of 1%
   of << "t,f,area"<<endl;
   
+
+  setOriginalBCs(); //For incremental
   
   ///// SOLVER THINGS.
   Solver_Eigen *solver = new Solver_Eigen();
@@ -322,14 +335,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   //// NECESARY FOR Strain Calc
   for (int d=0;d<m_dim;d++){
     
-    #ifdef CUDA_BUILD
-    N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-    cudaDeviceSynchronize();
-    #else
-      ImposeBCV(d);
-    #endif
+    //~ #ifdef CUDA_BUILD
+    //~ N = bc_count[d];
+    //~ blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    //~ ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+    //~ cudaDeviceSynchronize();
+    //~ #else
+      //~ ImposeBCV(d);
+    //~ #endif
+    //~ par_loop (n,bc_count[d]){
+      //~ double val;
+      //~ if (d == 0)       {v[m_dim*bcx_nod[n]+d] = original_bcx_val[n]; }
+      //~ else if (d == 1)  {v[m_dim*bcy_nod[n]+d] = original_bcy_val[n];}
+      //~ else if (d == 2)  {v[m_dim*bcz_nod[n]+d] = original_bcz_val[n]; }
+    //~ }
   }
 
   //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
@@ -383,28 +402,19 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     }
     cout << "MAX V: "<<maxv[0]<<","<<maxv[1]<<", "<<maxv[2]<<endl;
  
-    //Rewrite BCs
-    for (int d=0;d<m_dim;d++){
+    //~ //Rewrite BCs
+    //~ for (int d=0;d<m_dim;d++){
       
-      #ifdef CUDA_BUILD
-      ////REMAINS TO INIT VELOCITIES
-      N = bc_count[d];
-      blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-      ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-      cudaDeviceSynchronize();
-      #else
-      ImposeBCV(d);
-      #endif
-    }
-
-    // cout <<"VELOCITIES"<<endl;
-    // for (int i = 0; i < m_node_count; i++){ 
-      // for (int d=0;d<m_dim;d++){
-      
-        // cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
-    // }    
-    // cout <<endl;
-    // }
+      //~ #ifdef CUDA_BUILD
+      //~ ////REMAINS TO INIT VELOCITIES
+      //~ N = bc_count[d];
+      //~ blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+      //~ ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
+      //~ cudaDeviceSynchronize();
+      //~ #else
+      //~ ImposeBCV(d);
+      //~ #endif
+    //~ }
 
     // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
@@ -417,26 +427,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
-    // cout <<"POSITIONS----"<<endl;
-    // for (int i = 0; i < m_node_count;i++){
-      // for (int d=0;d<3;d++)
-        // cout <<x[m_dim*i+d]<<", ";
-      // cout <<endl;
-    // }
-
-    // cout <<"DISPLACEMENTS----"<<endl;
-    // for (int i = 0; i < m_node_count;i++){
-      // for (int d=0;d<3;d++)
-        // cout <<u[m_dim*i+d]<<", ";
-      // cout <<endl;
-    // }
-
-    // cout <<"ACCELS----"<<endl;
-    // for (int i = 0; i < m_node_count;i++){
-      // for (int d=0;d<3;d++)
-        // cout <<a[m_dim*i+d]<<", ";
-      // cout <<endl;
-    // }
 
   
   #ifdef CUDA_BUILD
@@ -517,6 +507,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   #else
   //SECOND TIME
     //STRESSES CALC
+    
   calcElemStrainRates();
   calcElemDensity();
   // if (m_dim == 3 && m_nodxelem ==4){
@@ -683,12 +674,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
 
       //INERTIAL TERMS
-      //~ for (int n = 0; n < m_node_count; n++){   
-        //~ for (int d=0;d<m_dim;d++){        
-          //~ int gdof = m_dim*n+d;
-          //~ solver->addToR(gdof,-m_mdiag[n] * a[gdof] ); //EXTERNAL FORCES
-        //~ }
-      //~ }    
+      for (int n = 0; n < m_node_count; n++){   
+        for (int d=0;d<m_dim;d++){        
+          int gdof = m_dim*n+d;
+          solver->addToR(gdof,-m_mdiag[n] * a[gdof] ); //EXTERNAL FORCES
+        }
+      }    
       // cout <<"R AFTER INERTIA AND CONTACT"<<endl;
       // solver->printR();
       
@@ -696,7 +687,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       //AFTER ASSEMBLY!
       // cout <<"K BEFORE  Dirichlet"<<endl;
       // solver->printK();
-
+      
+      //Change prescribed 
+      for (int d = 0; d < m_dim; d++)
+        CalcIncBCV(d);
       
       m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
       //cout << "Solving system"<<endl;      
@@ -766,6 +760,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         //}
     }
     
+    //if (iter >0) converged = true;
+    
     if (iter == max_iter-1 && !converged) {
         std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
     }
@@ -792,7 +788,33 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       prev_v[i] = v[i];  // Save converged velocity
       prev_a[i] = a[i];  // Save acceleration
   }
-  
+    
+    
+  if (converged){
+      calcElemJAndDerivatives();
+  if (!remesh_) { //Already calculated previously to account for conservation.
+    CalcElemVol();  
+    CalcNodalVol();
+    CalcNodalMassFromVol();
+  }
+    calcElemStrainRates();
+    calcElemDensity();
+    // if (m_dim == 3 && m_nodxelem ==4){
+    //calcElemPressureANP_Nodal();
+    //calcElemPressureANP();
+    // }else
+
+    if      (m_press_algorithm == 0)
+      calcElemPressure();
+    else if (m_press_algorithm == 1)
+      calcElemPressureANP();
+
+    calcNodalPressureFromElemental();
+
+    
+    CalcStressStrain(dt);
+    
+  }
   ///assemblyForces(); 
   //ApplyGlobalSprings();
 
@@ -835,7 +857,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // }
       // //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
   // }
-    
+
   
   if (contact){
     //MeshUpdate(this->trimesh,dt);
@@ -928,6 +950,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       } 
   
   cout << "MAX DISP "<<sqrt(max[0])<< " "<<sqrt(max[1])<< " "<<sqrt(max[2])<<endl;                                                     
+
     
     cout << oss_out.str();
     if (!out_file.is_open()) {
@@ -987,37 +1010,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       } 
   
   cout << "MAX DISP "<<max[0]<< " "<<max[1]<< " "<<max[2]<<endl;
-    /*
-  calcElemStrainRates();
-  
-   printf("DISPLACEMENTS\n");
-   printVec(this->u);   
 
-  printf("VELOCITIES\n");
-  printVec( this->v);
-
-  printf("ACCEL\n");
-	printVec(this->a); 
-  
-  printf("FORCES\n");
-  printVec(this->m_fi);
-*/
-  // printf("STRESSES\n");
-  // printSymmTens(this->m_sigma);
-
-  // printf("SHEAR STRESS\n");
-  // printSymmTens(this->m_tau);
-
-  // printf("STRAIN RATES\n");
-  // printSymmTens(this->m_str_rate);
-  
-  // printf("ROT RATES\n");
-  // printSymmTens(this->m_rot_rate);
-  
   #endif
   cout << "Writing output "<<endl;
   //VTUWriter writer(this, "out.vtu");
   //writer.writeFile();
+
   
   #ifndef CUDA_BUILD
   //cout << "Writing output"<<endl;
