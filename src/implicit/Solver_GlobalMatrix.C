@@ -576,8 +576,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           ///TANGENT!
           // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
           Matrix D(6,6);
-          D =  mat[e]->getElasticMatrix();
-          
+
+          //Virtual functions not working for CUDA
+          if(mat[e]->Material_model == HOLLOMON ){
+            //cout << "pl strain: "<<pl_strain[e]<<endl;
+            D = getHollomonTangentMatrix(pl_strain[e],mat[e]);
+          } else{
+            D =  mat[e]->getElasticMatrix();            
+            //cout << "ERROR, not known material."<<endl;
+          }
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
           Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
 

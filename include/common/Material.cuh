@@ -133,8 +133,8 @@ class Material_{
       return D;
   }
   
-  virtual Matrix getTangentMatrix(){}
-  virtual Matrix getTangentMatrix(const double &epseq){}
+  //NOT WORKING IN CUDA  
+  
   
 }; //MATERIAL 
 
@@ -227,34 +227,6 @@ public Material_{
 	inline double  dev_t CalcYieldStress(){}	
 	inline double  dev_t CalcYieldStress(const double &strain);	
   
-  virtual Matrix getTangentMatrix(double eps_eq) {
-    Matrix D(6,6);
-    double nu = Elastic().Poisson();
-    double E;
-
-    if (eps_eq <= 0.0) {
-        // Estado elástico puro
-        E = Elastic().Young();
-    } else {
-        // Estado plástico (Hollomon)
-        double E_tan = K * n * pow(eps_eq, n-1);
-        E = E_tan;
-    }
-    
-    double G = E / (2.0*(1.0+nu));
-    double lambda = (E_tan * nu) / ((1.0+nu)*(1.0-2.0*nu));
-
-    // Componentes normales
-    for (int i=0;i<3;i++) D.Set(i,i, lambda+2.0*G);
-    D.Set(0,1, lambda); D.Set(0,2, lambda);
-    D.Set(1,0, lambda); D.Set(1,2, lambda);
-    D.Set(2,0, lambda); D.Set(2,1, lambda);
-
-    // Componentes de cizalla
-    for (int i=3;i<6;i++) D.Set(i,i,G);
-
-    return D;
-  }
 
 };
 
@@ -442,6 +414,35 @@ inline double dev_t CalcGMTTangentModulus(const double &plstrain, const double &
 	 
   return Et;
 }	
+
+inline Matrix getHollomonTangentMatrix(double eps_eq, Material_ *mat) {
+    Matrix D(6,6);
+    double nu = mat->Elastic().Poisson();
+    double E;
+
+    if (eps_eq <= 0.0) {
+        // elastic 
+        E = mat->Elastic().E();
+    } else {
+        // Estado plástico (Hollomon)
+        double E_tan = mat->K * mat->n * pow(eps_eq, mat->n-1);
+        E = E_tan;
+    }
+    
+    double G = E / (2.0*(1.0+nu));
+    double lambda = (E * nu) / ((1.0+nu)*(1.0-2.0*nu));
+
+    // Componentes normales
+    for (int i=0;i<3;i++) D.Set(i,i, lambda+2.0*G);
+    D.Set(0,1, lambda); D.Set(0,2, lambda);
+    D.Set(1,0, lambda); D.Set(1,2, lambda);
+    D.Set(2,0, lambda); D.Set(2,1, lambda);
+
+    // Componentes de cizalla
+    for (int i=3;i<6;i++) D.Set(i,i,G);
+
+    return D;  
+}
 
 
 

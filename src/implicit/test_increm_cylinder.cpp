@@ -39,6 +39,9 @@ using namespace LS_Dyna;
 using namespace MetFEM;
 
 int main(int argc, char **argv) {
+  
+  bool elastic = true;
+  
  
   int m_node_count = 4;
   int m_elem_count = 1;
@@ -74,7 +77,8 @@ int main(int argc, char **argv) {
   dom_d->setDensity(rho); //rho_0
   cout <<"Done."<<endl;
   cout << "Creating Material..:"<<endl;
-  Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
+  //Material_ *mat_h = (Material_ *)malloc(dom_d->getElemCount() * sizeof(Material_ *)); 
+  
   Elastic_ el(E,nu);
   // cout << "Mat type  "<<mattype<<endl;
 
@@ -90,11 +94,30 @@ int main(int argc, char **argv) {
   double mat_cs = sqrt(mat_modK/rho);
 
   Ep = E*c[0]/(E-c[0]);		                              //only constant is tangent modulus
-  material_h  = new Material_(el);
+  if (elastic){
+    material_h  = new Material_(el);
+    // BILINEAR NOT WORKING YET(SEE MECHANICAL )
+    // material_h->Ep = Ep;
+    // material_h->Material_model = BILINEAR;
+  
+  } else {
+    double Fy = 294.0e6;
+    c[0] = 387.e6;
+    c[1] = 0.154;
+    material_h  = new Hollomon(el,Fy,c[0],c[1]);
+    cout << "Hollomon Material Constants, K: "<<c[0]<<", n: "<<c[1]<<endl;
+    // // cudaMalloc((void**)&dom_d->materials, 1 * sizeof(Hollomon));
+    
+    // material_h  = new Material_(el);
+    material_h->InitHollomon(el,Fy,c[0],c[1]);
+    material_h->Material_model = HOLLOMON;    
+    
+    
+  }
+  
   material_h->cs0 = sqrt(material_h->Elastic().BulkMod()/rho); //TODO: INSIDE MATERIAL 
   cout << "CS_0: "<<material_h->cs0<<endl;
-  material_h->Ep = Ep;
-  material_h->Material_model = BILINEAR;
+
   
 
   dom_d->AssignMaterial(material_h);
@@ -106,11 +129,11 @@ int main(int argc, char **argv) {
     
   //AddBCVelNode(Node,axis,val)
   for (int i=0;i<dom_d->getNodeCount();i++){
-    //~ if (dom_d->getPosVec3_h(i).z>0.029){
-      //~ for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
-      //~ dom_d->AddBCVelNode(i,2,-1.0e-4);
-      //~ velcount++;
-    //~ }
+    if (dom_d->getPosVec3_h(i).z>0.029){
+      for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
+      dom_d->AddBCVelNode(i,2,-1.0e-4);
+      velcount++;
+    }
     
     if (dom_d->getPosVec3_h(i).z<0.0005){
       for (int d=0;d<3;d++) dom_d->AddBCVelNode(i,d,0.0);
@@ -123,11 +146,11 @@ int main(int argc, char **argv) {
   
   //~ ////// IF FORCE (NEWMAN; NATURAL CONDITIONS)
   for (int i=0;i<dom_d->getNodeCount();i++){
-      if (dom_d->getPosVec3_h(i).z>0.029){
-        dom_d->setContForceVec(i,2,-1.0);
+      // if (dom_d->getPosVec3_h(i).z>0.029){
+        // dom_d->setContForceVec(i,2,-1.0);
         
-      velcount++;
-    }
+      //velcount++;
+    //}
   }
 
   cout << "FIXED "<<fixcount<< " NODES"<<endl;  
