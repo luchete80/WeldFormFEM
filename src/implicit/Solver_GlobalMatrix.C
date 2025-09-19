@@ -121,16 +121,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
        ImposeBCV(d);
     #endif
   }
-  cout << "done"<<endl;
-
-    cout <<"VELOCITIES"<<endl;
-    for (int i = 0; i < m_node_count; i++){ 
-      for (int d=0;d<m_dim;d++){
-      
-        cout <<v[m_dim*i+d] <<", "; ///v: Current total velocity 
-    }    
-    cout <<endl;
-    }
 
   cout << "Done."<<endl;
   
@@ -220,7 +210,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->setDomain(this);
   m_solver->Allocate();
 
-  double dt_initial = end_t / 10.0; // Initial guess
+  double dt_initial = end_t / 50.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
@@ -582,9 +572,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             //cout << "pl strain: "<<pl_strain[e]<<endl;
             D = getHollomonTangentMatrix(pl_strain[e],mat[e]);
           } else{
-            D =  mat[e]->getElasticMatrix();            
+            D =  mat[e]->getElasticMatrix();   
+            
             //cout << "ERROR, not known material."<<endl;
           }
+
           Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
           Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
 
@@ -706,7 +698,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // Update displacements and check convergence
     double max_residual = 0.0;
     double max_f_residual = 0.0;
-
+    
+    double max = 0.0;
+    for (int e=0;e<m_elem_count;e++)
+      if (pl_strain[e]>max){
+        max = pl_strain[e];
+      }
+     
+    cout << "Max plastic strain: "<<max<<endl;
 
     // if (iter >0){
       // double residual_ratio = m_solver->getRNorm() / prev_Rnorm; //Ratio is larger than 1 if is performing bad
