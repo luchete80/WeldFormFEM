@@ -226,6 +226,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   #endif
   
   double tau_old[m_elem_count*6];
+  double sig_old[m_elem_count*6];
+  double pls_old[m_elem_count  ];
+
+
+  double prev_x[m_node_count * m_dim];
+  
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,8 +240,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   bool end_all = false;
   while (Time < end_t && !end_all) {
 
-  for (int i=0;i<m_elem_count*6;i++)
+  for (int i=0;i<m_elem_count*6;i++){
     tau_old[i] = m_tau[i];
+    sig_old[i] = m_sigma[i];
+  }
+  for (int i=0;i<m_elem_count;i++) pls_old[i] = pl_strain[i];
   
   ////// OR TIME
   if (step_count % 100 == 0){
@@ -251,6 +260,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   memcpy(prev_v,    v, sizeof(double) * m_node_count * m_dim);
   memcpy(prev_a,    a, sizeof(double) * m_node_count * m_dim);
   memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
+
+  memcpy(prev_x, x, sizeof(double) * m_node_count * m_dim);
   //cout << "Done."<<endl;
   
   //cout << "Calc External Faces"<<endl;
@@ -795,8 +806,12 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
     //SWITCH BACK TO PREVIOUS STRESS STATE, WHICH IS TAKEN BY calcStressStrain
     if (!converged){
-      for (int i=0;i<m_elem_count*6;i++)
-        m_tau[i] = tau_old[i];
+      //~ for (int i=0;i<m_elem_count*6;i++)
+        //~ m_tau[i] = tau_old[i];
+      memcpy(pl_strain, pl_strain_old, sizeof(double) * m_elem_count);
+      memcpy(m_sigma, sigma_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+      memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+      
     }
 
     
@@ -812,6 +827,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
   // After NR converges:
   for (int i = 0; i < m_node_count * m_dim; i++) {
+      prev_x[i] = x[i];  // Save converged velocity
       prev_v[i] = v[i];  // Save converged velocity
       prev_a[i] = a[i];  // Save acceleration
   }

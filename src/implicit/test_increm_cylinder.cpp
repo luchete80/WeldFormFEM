@@ -40,7 +40,7 @@ using namespace MetFEM;
 
 int main(int argc, char **argv) {
   
-  bool elastic = true;
+  bool elastic = false;
   
  
   int m_node_count = 4;
