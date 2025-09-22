@@ -513,7 +513,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   calcNodalPressureFromElemental();
 
   
-  CalcStressStrain(dt);
+  //CalcStressStrain(dt);
   
 
 
@@ -524,10 +524,16 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   //calcArtificialViscosity(); //Added to Sigma
   
+
+  par_loop(e,m_elem_count){
+    int offset = e*m_nodxelem*m_dim;  
+    for (int n=0; n<m_nodxelem;n++) 
+      for (int d=0;d<m_dim;d++)
+        m_f_elem[offset + n*m_dim + d] = 0.0;
+  }
   
-    
-    calcElemForces();  ///// INTERNAL FORCES
-    calcElemHourglassForces();
+
+    //~ calcElemHourglassForces();
     
     if (contact)
       CalcContactForces();
@@ -577,8 +583,18 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
             //cout << "ERROR, not known material."<<endl;
           }
 
-          Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
+          //Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
+          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
+          
+          //cout << "Calculating stress tangent "<<endl;
+          //Matrix Kmat(12,12);
+          Matrix Kmat = CalcElementStressAndTangent(e,dt);
+          
+          // Kmat = MatMul(B.getTranspose(), MatMul(D, B));
+          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
+          
+          
+          //if (e==0) Kmat.Print();
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
@@ -634,6 +650,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
               }
           }
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
+          
+          calcElemForces(e);
+          ///// TODO: HOURGLASS FORCES
 
           Matrix R(m_dim*m_nodxelem,1);
           int offset = e*m_nodxelem*m_dim;
@@ -665,6 +684,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         //cout << "Element R "<<endl;
         //R.Print();
       } // end par element loop
+      
+      
+      //calcElemForces();
       
        solver->finalizeAssembly();     
 
