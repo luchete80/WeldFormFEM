@@ -1797,21 +1797,23 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*,
       } else if (mat[e]->Material_model == JOHNSON_COOK) {
           //double eff_strain_rate = sqrt(0.5*(  ));
           //sigma_y = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]);
-      }
+      } else {
+        
+        sigma_y = mat[e]->sy0;
+        }
       // ... other models
       //cout << "done "<<endl;
       // 4. DETERMINE TANGENT MATRIX AND APPLY PLASTICITY
       Matrix D_gp(6,6);
       tensor3 Sigma_final, ShearStress_final;
       double dep = 0.0;
-      
-       
-      //if (sig_trial <= sigma_y) {
+
+      if (sig_trial <= sigma_y) {
           // ELASTIC STEP
           Sigma_final = Sigma_trial;
           ShearStress_final = ShearStress;
           D_gp = mat[e]->getElasticMatrix();
-      /*} else {
+      } else {
 
 
     // Update tangent modulus if needed
@@ -1850,7 +1852,7 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*,
           
           D_gp = getHollomonTangentMatrix(pl_strain[e],mat[e]);
       }// plastic 
-      */
+      
       
       
       // 5. STORE RESULTS

@@ -99,6 +99,8 @@ int main(int argc, char **argv) {
     // BILINEAR NOT WORKING YET(SEE MECHANICAL )
     // material_h->Ep = Ep;
     // material_h->Material_model = BILINEAR;
+    
+    material_h->sy0=1.0e10;
   
   } else {
     double Fy = 294.0e6;
