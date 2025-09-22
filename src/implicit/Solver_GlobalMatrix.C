@@ -210,7 +210,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   m_solver->setDomain(this);
   m_solver->Allocate();
 
-  double dt_initial = end_t / 50.0; // Initial guess
+  double dt_initial = end_t / 10.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
@@ -361,7 +361,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   double tolerance = 1e-6; //dv tol
   double ftol = 1e-6;
   int max_iter = 200;
-  bool converged = false;
+
   double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
   
   
@@ -377,7 +377,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   int nr_iterations = 0;
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
-  for (int iter = 0; iter < max_iter && !converged; iter++) {
+  bool converged = false;
+  int iter = 0;
+  bool end = false;
+  while (!converged && !end){
+
     nr_iterations++;
     cout <<"ITER "<<iter<<endl;
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
@@ -793,9 +797,16 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if (max_residual < tolerance && max_f_residual < ftol) {
         if (iter>0)
           converged = true;
+        end = true;
         //if (step_count % 10 == 0) {
             std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
         //}
+    }
+    
+    if(max_residual>1.0e3){
+      
+      end= true;
+      converged = false;
     }
     
     //if (iter >0) converged = true;
@@ -815,9 +826,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * m_gp_count * 6);
     
     }
-
-    
-  }//NR ITER 
+  
+    iter++;
+  }//NR ITER //////////////////////////////// INNER LOOP
+  
 
   
   
@@ -859,8 +871,74 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     
     CalcStressStrain(dt);
+
+    N = getNodeCount();
+    //printf("Correction\n");	
+    #ifdef CUDA_BUILD
     
-  } else{
+    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+    
+    #else
+    
+    if (contact){
+      //if (Time > RAMP_FRACTION*end_t)
+      //ApplyGlobalDamping(0.02);
+    }
+    
+    if (remesh_){
+      //if (Time > RAMP_FRACTION*end_t)
+      ApplyGlobalDamping(m_remesh_damp_vel);
+    }
+
+    //ApplyGlobalDamping(0.1);
+    #endif
+
+
+
+    // if (contact){
+      // double f =1.0;
+
+      // if(Time < RAMP_FRACTION*end_t) {
+          // f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
+      // } else {
+          // f = 1.0;
+      // }
+      // for (int n=0;n<trimesh->nodecount;n++){
+        // trimesh->node_v[n] = f*m_v_orig[n];
+      // }
+        // //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
+    // }
+
+    
+    if (contact){
+      //MeshUpdate(this->trimesh,dt);
+    #ifdef CUDA_BUILD  
+    #else
+      trimesh->Move( dt);
+      trimesh->CalcCentroids();
+      trimesh->CalcNormals();
+
+      trimesh->UpdatePlaneCoeff();
+    #endif
+    }
+    if (remesh_){
+     //printf("DISPLACEMENTS\n");
+     //printVec(this->u);       
+         std::string s = "out_remesh_after1_"+std::to_string(step_count)+".vtk";
+        VTKWriter writer3(this, s.c_str());
+        writer3.writeFile();   
+      }
+
+    ///// AFTER CONTACT (FOR THE cont_cond)
+    if(m_thermal){
+      //calcInelasticHeatFraction(); //Before thermal calc
+      ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
+
+  }
+
+
+    
+  } else{ ///// NOT CONVERGED
     for (int i = 0; i < m_node_count * m_dim; i++) {
         x[i] = prev_x[i];  // Save converged velocity
         v[i] = prev_v[i];  // Save converged velocity
@@ -876,70 +954,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
   #endif
   
-  N = getNodeCount();
-  //printf("Correction\n");	
-  #ifdef CUDA_BUILD
-  
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  
-  #else
-  
-  if (contact){
-    //if (Time > RAMP_FRACTION*end_t)
-    //ApplyGlobalDamping(0.02);
-  }
-  
-  if (remesh_){
-    //if (Time > RAMP_FRACTION*end_t)
-    ApplyGlobalDamping(m_remesh_damp_vel);
-  }
-
-  //ApplyGlobalDamping(0.1);
-  #endif
-
-
-
-  // if (contact){
-    // double f =1.0;
-
-    // if(Time < RAMP_FRACTION*end_t) {
-        // f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
-    // } else {
-        // f = 1.0;
-    // }
-    // for (int n=0;n<trimesh->nodecount;n++){
-      // trimesh->node_v[n] = f*m_v_orig[n];
-    // }
-      // //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
-  // }
-
-  
-  if (contact){
-    //MeshUpdate(this->trimesh,dt);
-  #ifdef CUDA_BUILD  
-  #else
-    trimesh->Move( dt);
-    trimesh->CalcCentroids();
-    trimesh->CalcNormals();
-
-    trimesh->UpdatePlaneCoeff();
-  #endif
-  }
-  if (remesh_){
-   //printf("DISPLACEMENTS\n");
-   //printVec(this->u);       
-       std::string s = "out_remesh_after1_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();   
-    }
-
-  ///// AFTER CONTACT (FOR THE cont_cond)
-  if(m_thermal){
-    //calcInelasticHeatFraction(); //Before thermal calc
-    ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
-
-}
-
  
   if (Time>=tout){
     string outfname = "out_" + std::to_string(Time) + ".vtk";
