@@ -23,6 +23,9 @@
 
 #include <fstream>
 
+#include "Tensor.h"
+
+ 
 #define _QUA2D_ 0
 #define _TRI2D_ 1
 #define _TET2D_ 2
@@ -390,6 +393,7 @@ public:
   
   dev_t void smoothDevStrainRates(double beta);
   dev_t void CalcStressStrain(double dt);
+  dev_t Matrix CalcElementStressAndTangent(int e, double dt); ///// PER ELEMENT (FOR IMPLICIT)
   dev_t void Calc_Elastic_Stress (const double dt);
   
   ///// AXISYMM VARS
@@ -509,6 +513,10 @@ public:
   ///// SIMILAR, INCREMENTAL BCs which Correct prescribed BCs for incremental solver.
   void CalcIncBCU(int dim);
   void CalcIncBCV(int dim/*, double load_factor*/);
+  Matrix getConsistentPlasticTangentMatrix(const tensor3& s_trial, double sig_trial, 
+                                                  double G, double H);
+
+  dev_t void calcElemForces(const int &e); //FOR IMPLICIT
 
   //--------------------------------------------------------------------------------------------------------------------------------
   //IF USING INCREMENTAL BCs

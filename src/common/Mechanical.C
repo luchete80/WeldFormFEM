@@ -461,6 +461,98 @@ dev_t void Domain_d::calcElemForces(){
   }//if e<elem_count
 }
 
+
+dev_t void Domain_d::calcElemForces(const int &e){
+
+    int offset = e*m_nodxelem*m_dim;
+    double w = 1.;
+    if (m_gp_count == 1) {
+      if (m_dim == 2){
+        if      (m_nodxelem == 4) w = 4;//w = pow(2.0, m_dim);
+        else if (m_nodxelem == 3) w = 1.0/2.0;
+      }
+      if (m_dim == 3){ 
+        if      (m_nodxelem == 4)  w = 1.0/6.0;
+        else if (m_nodxelem == 8)  w = 8.0;
+      }
+    }
+
+    int offset_det = m_gp_count * e;
+    
+    for (int gp=0;gp<m_gp_count;gp++){
+    
+      double fc = 1.0;
+      if (m_dim == 2 && m_domtype == _Axi_Symm_ && m_axisymm_vol_weight)
+        fc = m_radius[e];
+      for (int n=0; n<m_nodxelem;n++) {
+        for (int d=0;d<m_dim;d++){
+          m_f_elem[offset + n*m_dim + d] += getDerivative(e,gp,d,n) * getSigma(e,gp,d,d) * fc;
+        }
+      
+        if (m_dim == 2){
+          if (m_domtype != _Axi_Symm_){
+          m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1);
+          m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1);
+          } else {//2D AXISYMM, VOLUMETIRC WEIGHT (ALWAYS)
+                double r_gp = m_radius[e];
+                double detJ_gp = m_detJ[offset_det + gp];
+
+                double sigma_rr  = getSigma(e, gp, 0, 0);
+                double sigma_tt  = getSigma(e, gp, 2, 2);  // sigma_theta_theta
+                double sigma_rz  = getSigma(e, gp, 0, 1);
+                
+                double f = detJ_gp/(m_nodxelem);
+                if (m_axisymm_vol_weight) {
+                   
+
+                    // Fuerza en r
+                    m_f_elem[offset + n*m_dim    ] += 
+                        getDerivative(e, gp, 1, n) * sigma_rz * r_gp + 
+                         (sigma_rr - sigma_tt) * f; //NOT FROM Bt x sig, not x radius
+
+                    // Fuerza en z
+                    m_f_elem[offset + n*m_dim + 1] += 
+                        getDerivative(e, gp, 0, n) * sigma_rz * r_gp + 
+                         sigma_rz * f;    //NOT FROM Bt x sig, not x radius
+                }else {
+                    double fa = f /r_gp;
+
+                    // Fuerza en r
+                    m_f_elem[offset + n*m_dim    ] += 
+                        getDerivative(e, gp, 1, n) * sigma_rz - 
+                        (sigma_rr - sigma_tt) * fa;
+
+                    // Fuerza en z
+                    m_f_elem[offset + n*m_dim + 1] += 
+                        getDerivative(e, gp, 0, n) * sigma_rz - 
+                        sigma_rz * fa;
+                }
+            
+          }
+        } else { //3D
+          //printf("offset %d\n", offset + n*m_dim    );
+          //printf ("sigma 0 1 %f\n", getSigma(e,gp,0,1));
+          m_f_elem[offset + n*m_dim    ] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,0,1) +
+                                             getDerivative(e,gp,2,n) * getSigma(e,gp,0,2);
+          m_f_elem[offset + n*m_dim + 1] +=  getDerivative(e,gp,0,n) * getSigma(e,gp,0,1) + 
+                                             getDerivative(e,gp,2,n) * getSigma(e,gp,1,2);        
+          m_f_elem[offset + n*m_dim + 2] +=  getDerivative(e,gp,1,n) * getSigma(e,gp,1,2) + 
+                                             getDerivative(e,gp,0,n) * getSigma(e,gp,0,2);     
+        }
+
+      }// nod x elem
+
+
+    } // Gauss Point
+    
+    for (int n=0; n<m_nodxelem;n++) {
+      for (int d=0;d<m_dim;d++){
+        m_f_elem[offset + n*m_dim + d] *= w;
+      }
+    }  
+
+}
+
 // ORIGINAL
 dev_t void Domain_d::calcElemPressure_Hex(){
 
@@ -1660,6 +1752,126 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   // end do
   //printf("ELEMENT %d SIGMA\n");
  
+}
+
+
+dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*, 
+                                           std::vector<tensor3>& sigma_final_per_gp,
+                                           std::vector<tensor3>& tau_final_per_gp
+                                           */) {
+    Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
+    K_elem.SetZero();
+    //sigma_final_per_gp.clear();
+    //tau_final_per_gp.clear();
+    
+    for (int gp = 0; gp < m_gp_count; gp++) {
+        int offset_s = e * m_gp_count + gp;    // SCALAR offset
+        int offset_t = offset_s * 6;           // TENSOR offset
+        
+        // 1. ELASTIC PREDICTOR (using OLD stresses)
+        tensor3 ShearStress = FromFlatSym(m_tau, offset_t);
+        tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
+        tensor3 RotRate = FromFlatAntiSym(m_rot_rate, offset_t);
+        
+        // Jaumann rate terms
+        tensor3 SRT = ShearStress * Trans(RotRate);
+        tensor3 RS = RotRate * ShearStress;
+        tensor3 StrRateDev = StrRate - (1.0/3.0)*Trace(StrRate)*Identity();
+        
+        ShearStress = ShearStress + dt * (2.0 * mat[e]->Elastic().G() * StrRateDev + SRT + RS);
+        tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;
+        
+        // 2. CALCULATE TRIAL DEVIATORIC AND J2
+        tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
+        double J2_trial = 0.5 * (s_trial.xx*s_trial.xx + 2.0*s_trial.xy*s_trial.xy + 
+                                2.0*s_trial.xz*s_trial.xz + s_trial.yy*s_trial.yy + 
+                                2.0*s_trial.yz*s_trial.yz + s_trial.zz*s_trial.zz);
+        double sig_trial = sqrt(3.0 * J2_trial);
+        
+        // 3. GET YIELD STRESS (using OLD plastic strain)
+        double sigma_y;
+        if (mat[e]->Material_model == HOLLOMON) {
+            sigma_y = CalcHollomonYieldStress(pl_strain[e], mat[e]);
+        } else if (mat[e]->Material_model == JOHNSON_COOK) {
+            //double eff_strain_rate = sqrt(0.5*( /* your strain rate calculation */ ));
+            //sigma_y = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]);
+        }
+        // ... other models
+        
+        // 4. DETERMINE TANGENT MATRIX AND APPLY PLASTICITY
+        Matrix D_gp(6,6);
+        tensor3 Sigma_final, ShearStress_final;
+        double dep = 0.0;
+        
+        if (sig_trial <= sigma_y) {
+            // ELASTIC STEP
+            Sigma_final = Sigma_trial;
+            ShearStress_final = ShearStress;
+            D_gp = mat[e]->getElasticMatrix();
+        } else {
+            // PLASTIC STEP - RADIAL RETURN
+            double H = 0.0;
+            if (mat[e]->Material_model == HOLLOMON) {
+                H = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
+            }
+            // ... other models
+            
+            // Plastic multiplier
+            dep = (sig_trial - sigma_y) / (3.0 * mat[e]->Elastic().G() + H);
+            
+            // Radial return
+            double scale_factor = sigma_y / sig_trial;
+            tensor3 s_final = s_trial * scale_factor;
+            ShearStress_final = s_final;
+            Sigma_final = -p[offset_s] * Identity() + s_final;
+            
+            // Update plastic strain (will be committed only if converged)
+            pl_strain[e] += dep;
+            
+            // CONSISTENT PLASTIC TANGENT MATRIX
+            D_gp = getConsistentPlasticTangentMatrix(s_trial, sig_trial, mat[e]->Elastic().G(), H);
+        }
+        
+        // 5. STORE RESULTS
+        //sigma_final_per_gp.push_back(Sigma_final);
+        //tau_final_per_gp.push_back(ShearStress_final);
+        
+        // 6. CALCULATE ELEMENT STIFFNESS MATRIX
+        Matrix B = getElemBMatrix(e);
+        B = B *(1.0/m_detJ[e]);
+        Matrix K_gp = MatMul(MatMul(B.Transpose(), D_gp), B) * vol[e] * m_detJ[e];
+        K_elem = K_elem + K_gp;
+        
+        // 7. UPDATE STRESSES (temporary, will be committed if converged)
+        ToFlatSymPtr(Sigma_final, m_sigma, offset_t);
+        ToFlatSymPtr(ShearStress_final, m_tau, offset_t);
+    }
+    
+    return K_elem;
+}
+
+Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3& s_trial, double sig_trial, 
+                                                  double G, double H) {
+    Matrix Dep(6,6);
+    Matrix De = mat[0]->getElasticMatrix();  // Assuming same material for all elements
+    
+    // Normalized deviatoric tensor (flow direction)
+    tensor3 n = s_trial * (1.5 / sig_trial);
+    
+    // Convert to Voigt notation
+    Matrix n_voigt(6,1);
+    n_voigt.Set(0,0, n.xx); n_voigt.Set(1,0, n.yy); n_voigt.Set(2,0, n.zz);
+    n_voigt.Set(3,0, n.xy); n_voigt.Set(4,0, n.yz); n_voigt.Set(5,0, n.zx);
+    
+    // Consistent tangent: Dep = De - (De:n ⊗ n:De) / (H + n:De:n)
+    Matrix De_n = MatMul(De, n_voigt);           // 6x1
+    Matrix n_De = MatMul(n_voigt.Transpose(), De); // 1x6
+    
+    double denominator = H + MatMul(n_voigt.Transpose(), De_n).getVal(0,0);
+    Matrix correction = MatMul(De_n, n_De) * (1.0 / denominator);
+    
+    Dep = De - correction;
+    return Dep;
 }
 
 /*
