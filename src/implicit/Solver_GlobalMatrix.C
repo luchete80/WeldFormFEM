@@ -240,11 +240,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   bool end_all = false;
   while (Time < end_t && !end_all) {
 
-  for (int i=0;i<m_elem_count*6;i++){
-    tau_old[i] = m_tau[i];
-    sig_old[i] = m_sigma[i];
-  }
-  for (int i=0;i<m_elem_count;i++) pls_old[i] = pl_strain[i];
   
   ////// OR TIME
   if (step_count % 100 == 0){
@@ -808,9 +803,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if (!converged){
       //~ for (int i=0;i<m_elem_count*6;i++)
         //~ m_tau[i] = tau_old[i];
-      memcpy(pl_strain, pl_strain_old, sizeof(double) * m_elem_count);
-      memcpy(m_sigma, sigma_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+
+    /// SAVE OLD
+      memcpy(pl_strain, pls_old, sizeof(double) * m_elem_count);
+      memcpy(m_sigma, sig_old, sizeof(double) * m_elem_count * m_gp_count * 6);
       memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+      
+      dt = dt/2;
       
     }
 
@@ -835,11 +834,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     
   if (converged){
       calcElemJAndDerivatives();
-  if (!remesh_) { //Already calculated previously to account for conservation.
-    CalcElemVol();  
-    CalcNodalVol();
-    CalcNodalMassFromVol();
-  }
+      if (!remesh_) { //Already calculated previously to account for conservation.
+        CalcElemVol();  
+        CalcNodalVol();
+        CalcNodalMassFromVol();
+      }
     calcElemStrainRates();
     calcElemDensity();
     // if (m_dim == 3 && m_nodxelem ==4){
@@ -856,6 +855,11 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     
     CalcStressStrain(dt);
+
+      memcpy(pls_old, pl_strain, sizeof(double) * m_elem_count);
+      memcpy(sig_old, m_sigma, sizeof(double) * m_elem_count * m_gp_count * 6);
+      memcpy(tau_old, m_tau, sizeof(double) * m_elem_count * m_gp_count * 6);
+      
     
   }
   ///assemblyForces(); 
@@ -1020,9 +1024,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
           
 
     
-  
-  Time += dt;
-  step_count++;
+  if (converged){
+    Time += dt;
+    step_count++;
+  }
   remesh_ = false;    
   }// WHILE LOOP
 
