@@ -806,6 +806,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if(max_residual>1.0e3){
       
       end= true;
+      dt /=2.0;
       converged = false;
     }
     
