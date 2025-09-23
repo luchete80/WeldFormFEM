@@ -360,7 +360,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   // Newton-Raphson loop
   double tolerance = 1e-6; //dv tol
   double ftol = 1e-6;
-  int max_iter = 200;
+  int max_iter = 50;
 
   double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
   
