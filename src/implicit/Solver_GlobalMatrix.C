@@ -829,6 +829,10 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     }
   
     iter++;
+    if (iter >max_iter) {
+      end = true;
+      if (!converged)dt /=2.0;
+    }
   }//NR ITER //////////////////////////////// INNER LOOP
   
 
