@@ -795,7 +795,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
     
     // Check convergence
-    if (max_residual < tolerance && max_f_residual < ftol) {
+    if (max_residual < tolerance && max_f_residual/F_ref < ftol) {
         if (iter>0)
           converged = true;
         end = true;
