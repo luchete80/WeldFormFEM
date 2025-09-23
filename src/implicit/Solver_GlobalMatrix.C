@@ -375,6 +375,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   double flat_fold[6*m_elem_count];
   
   int nr_iterations = 0;
+  int conv_iter = 0;
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   bool converged = false;
@@ -808,6 +809,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       end= true;
       dt /=2.0;
       converged = false;
+      conv_iter = 0;
     }
     
     //if (iter >0) converged = true;
@@ -827,12 +829,24 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * m_gp_count * 6);
     
     }
+    
+    else {
+      
+          conv_iter++;
+      }
   
     iter++;
     if (iter >max_iter) {
       end = true;
       if (!converged)dt /=2.0;
+      conv_iter = 0;
     }
+    
+    if (converged && conv_iter > 2){
+        dt *=2.0;
+    }
+    
+
   }//NR ITER //////////////////////////////// INNER LOOP
   
 
@@ -1054,6 +1068,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   if (converged){
     Time += dt;
     step_count++;
+  
   }
   remesh_ = false;    
   }// WHILE LOOP
