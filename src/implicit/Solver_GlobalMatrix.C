@@ -324,34 +324,6 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   }
 
-  // if (!m_fixed_dt){
-    // cout << "Calculate min length"<<endl;
-    // double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-    // calcMinEdgeLength();
-    // double minl = getMinLength();
-    // dt = m_cfl_factor*minl/(mat_cs);
-  // }
-  
-
-  //// NECESARY FOR Strain Calc
-  for (int d=0;d<m_dim;d++){
-    
-    //~ #ifdef CUDA_BUILD
-    //~ N = bc_count[d];
-    //~ blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    //~ ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-    //~ cudaDeviceSynchronize();
-    //~ #else
-      //~ ImposeBCV(d);
-    //~ #endif
-    //~ par_loop (n,bc_count[d]){
-      //~ double val;
-      //~ if (d == 0)       {v[m_dim*bcx_nod[n]+d] = original_bcx_val[n]; }
-      //~ else if (d == 1)  {v[m_dim*bcy_nod[n]+d] = original_bcy_val[n];}
-      //~ else if (d == 2)  {v[m_dim*bcz_nod[n]+d] = original_bcz_val[n]; }
-    //~ }
-  }
-
   //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
  
   //ELEMENT PARALLEL
@@ -405,7 +377,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // (1) Update velocities (v = prev_v + delta_v)
 
   double maxv[]={0.0,0.0,0.0};
- 
+    
     for (int i = 0; i < m_node_count * m_dim; i++) {
         v[i] = prev_v[i] + delta_v[i]; ///v: Current total velocity 
     }
@@ -418,24 +390,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     cout << "MAX V: "<<maxv[0]<<","<<maxv[1]<<", "<<maxv[2]<<endl;
 
 
- 
-    //~ //Rewrite BCs
-    //~ for (int d=0;d<m_dim;d++){
-      
-      //~ #ifdef CUDA_BUILD
-      //~ ////REMAINS TO INIT VELOCITIES
-      //~ N = bc_count[d];
-      //~ blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-      //~ ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-      //~ cudaDeviceSynchronize();
-      //~ #else
-      //~ ImposeBCV(d);
-      //~ #endif
-    //~ }
-
     // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        u[i] = dt * v[i];       // Incremental update
+        u[i] += dt * v[i];       // Incremental update
         x[i] = x_initial[i] + u[i];    // Total position
     }
 
