@@ -1879,6 +1879,13 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 // }
 
 dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
+    Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
+    K_elem.SetZero();
+
+    int gp = 0;
+      int offset_s = e * m_gp_count + gp;    // SCALAR offset
+      int offset_t = offset_s * 6;           // TENSOR offset
+    double G = mat[e]->Elastic().G();
     // 1. PREDICTOR ELÁSTICO (CORRECTO)
     tensor3 ShearStress_old = FromFlatSym(m_tau, offset_t);
     tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
@@ -1894,7 +1901,10 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
     
     // 2. CALCULAR DESVIADOR TRIAL (CORRECTO)
     tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
-    double J2_trial = 0.5 * DoubleContraction(s_trial, s_trial);
+    //double J2_trial = 0.5 * DoubleContraction(s_trial, s_trial);
+    double J2_trial = 0.5 * (s_trial.xx*s_trial.xx + 2.0*s_trial.xy*s_trial.xy + 
+                        2.0*s_trial.xz*s_trial.xz + s_trial.yy*s_trial.yy + 
+                        2.0*s_trial.yz*s_trial.yz + s_trial.zz*s_trial.zz);
     double sig_trial = sqrt(3.0 * J2_trial);
     
     // 3. TENSION DE FLUENCIA (usar pl_strain_old)
@@ -1908,7 +1918,8 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
         
         sigma_y = mat[e]->sy0;
         }
-        
+    
+    Matrix D_gp(6,6);
     // 4. VERIFICAR PLASTICIDAD
     if (sig_trial <= sigma_y) {
         // PASO ELÁSTICO
