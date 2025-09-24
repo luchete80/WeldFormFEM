@@ -361,7 +361,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   memcpy(u_old, u, sizeof(double) * m_node_count * m_dim);
   memcpy(v_old, v, sizeof(double) * m_node_count * m_dim);
   memcpy(a_old, a, sizeof(double) * m_node_count * m_dim);
-
+  
+  double u_inc[m_node_count * m_dim]; 
+  
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   bool converged = false;
@@ -377,7 +379,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     // (1) Update velocities (v = prev_v + delta_v)
 
   double maxv[]={0.0,0.0,0.0};
-    
+ 
     for (int i = 0; i < m_node_count * m_dim; i++) {
         v[i] = prev_v[i] + delta_v[i]; ///v: Current total velocity 
     }
@@ -392,8 +394,9 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
     // (2) Update OVERALL displacements  and positions (x = x_initial + u)
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        u[i] += dt * v[i];       // Incremental update
-        x[i] = x_initial[i] + u[i];    // Total position
+        u_inc[i] = dt * v[i];       // Incremental update
+        //x[i] = x_initial[i] + u[i] + u_inc[i];    // Total position
+        x[i] = prev_x[i] + u_inc[i];    // Total position
     }
 
     // (3) Recompute acceleration (a) from Newmark-β
@@ -401,20 +404,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
-    if (!converged && end) {
-        // RESTAURAR TODO el estado al inicio del paso de tiempo
-        memcpy(x, x_old, sizeof(double) * m_node_count * m_dim);
-        memcpy(u, u_old, sizeof(double) * m_node_count * m_dim); 
-        memcpy(v, v_old, sizeof(double) * m_node_count * m_dim);
-        memcpy(a, a_old, sizeof(double) * m_node_count * m_dim);
-        
-        // También restaurar variables de material
-        //~ memcpy(pl_strain, pls_old, sizeof(double) * m_elem_count);
-        //~ memcpy(m_sigma, sig_old, sizeof(double) * m_elem_count * 6);
-        //~ memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * 6);
-        
-        cout << "NR not convergedf " << dt*2 << " a " << dt << endl;
-    }
+
   
   #ifdef CUDA_BUILD
   N = getElemCount();
@@ -843,6 +833,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         prev_x[i] = x[i];  // Save converged velocity
         prev_v[i] = v[i];  // Save converged velocity
         prev_a[i] = a[i];  // Save acceleration
+        
+        u[i] += u_inc[i];
     }
     
       calcElemJAndDerivatives();
