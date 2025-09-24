@@ -1755,43 +1755,150 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 }
 
 
-dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*, 
-                                           std::vector<tensor3>& sigma_final_per_gp,
-                                           std::vector<tensor3>& tau_final_per_gp
-                                           */) {
-    Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
-    K_elem.SetZero();
-    //sigma_final_per_gp.clear();
-    //tau_final_per_gp.clear();
+// dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*, 
+                                           // std::vector<tensor3>& sigma_final_per_gp,
+                                           // std::vector<tensor3>& tau_final_per_gp
+                                           // */) {
+    // Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
+    // K_elem.SetZero();
+    // //sigma_final_per_gp.clear();
+    // //tau_final_per_gp.clear();
     
-    int gp = 0;
-      int offset_s = e * m_gp_count + gp;    // SCALAR offset
-      int offset_t = offset_s * 6;           // TENSOR offset
+    // int gp = 0;
+      // int offset_s = e * m_gp_count + gp;    // SCALAR offset
+      // int offset_t = offset_s * 6;           // TENSOR offset
       
-      // 1. ELASTIC PREDICTOR (using OLD stresses)
-      tensor3 ShearStress = FromFlatSym(m_tau, offset_t);
-      tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
-      tensor3 RotRate = FromFlatAntiSym(m_rot_rate, offset_t);
+      // // 1. ELASTIC PREDICTOR (using OLD stresses)
+      // tensor3 ShearStress = FromFlatSym(m_tau, offset_t);
+      // tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
+      // tensor3 RotRate = FromFlatAntiSym(m_rot_rate, offset_t);
       
-      // Jaumann rate terms
-      tensor3 SRT = ShearStress * Trans(RotRate);
-      tensor3 RS = RotRate * ShearStress;
-      tensor3 StrRateDev = StrRate - (1.0/3.0)*Trace(StrRate)*Identity();
+      // // Jaumann rate terms
+      // tensor3 SRT = ShearStress * Trans(RotRate);
+      // tensor3 RS = RotRate * ShearStress;
+      // tensor3 StrRateDev = StrRate - (1.0/3.0)*Trace(StrRate)*Identity();
       
-      ShearStress = ShearStress + dt * (2.0 * mat[e]->Elastic().G() * StrRateDev + SRT + RS);
-      tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;
+      // ShearStress = ShearStress + dt * (2.0 * mat[e]->Elastic().G() * StrRateDev + SRT + RS);
+      // tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress;
       
-      // 2. CALCULATE TRIAL DEVIATORIC AND J2
-      tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
-      double J2_trial = 0.5 * (s_trial.xx*s_trial.xx + 2.0*s_trial.xy*s_trial.xy + 
-                              2.0*s_trial.xz*s_trial.xz + s_trial.yy*s_trial.yy + 
-                              2.0*s_trial.yz*s_trial.yz + s_trial.zz*s_trial.zz);
-      double sig_trial = sqrt(3.0 * J2_trial);
+      // // 2. CALCULATE TRIAL DEVIATORIC AND J2
+      // tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
+      // double J2_trial = 0.5 * (s_trial.xx*s_trial.xx + 2.0*s_trial.xy*s_trial.xy + 
+                              // 2.0*s_trial.xz*s_trial.xz + s_trial.yy*s_trial.yy + 
+                              // 2.0*s_trial.yz*s_trial.yz + s_trial.zz*s_trial.zz);
+      // double sig_trial = sqrt(3.0 * J2_trial);
       
       
-      // 3. GET YIELD STRESS (using OLD plastic strain)
-      double sigma_y;
-      //cout << "calc yield "<<endl;
+      // // 3. GET YIELD STRESS (using OLD plastic strain)
+      // double sigma_y;
+      // //cout << "calc yield "<<endl;
+      // if (mat[e]->Material_model == HOLLOMON) {
+          // sigma_y = CalcHollomonYieldStress(pl_strain[e], mat[e]);
+      // } else if (mat[e]->Material_model == JOHNSON_COOK) {
+          // //double eff_strain_rate = sqrt(0.5*(  ));
+          // //sigma_y = CalcJohnsonCookYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]);
+      // } else {
+        
+        // sigma_y = mat[e]->sy0;
+        // }
+      // // ... other models
+      // //cout << "done "<<endl;
+      // // 4. DETERMINE TANGENT MATRIX AND APPLY PLASTICITY
+      // Matrix D_gp(6,6);
+      // tensor3 Sigma_final, ShearStress_final;
+      // double dep = 0.0;
+
+      // if (sig_trial <= sigma_y) {
+          // // ELASTIC STEP
+          // Sigma_final = Sigma_trial;
+          // ShearStress_final = ShearStress;
+          // D_gp = mat[e]->getElasticMatrix();
+      // } else {
+
+
+    // // Update tangent modulus if needed
+    // double Et = 0.0;
+    
+    // if(mat[e]->Material_model == HOLLOMON) {
+        // Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
+    // } else if (mat[e]->Material_model == JOHNSON_COOK) {
+    // //Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+    // } else if (mat[e]->Material_model == _GMT_){
+    // //Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+    // }
+    
+  
+  // double Ep = 0.0;
+  
+  // Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
+  
+  // if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
+  
+              
+          // // Plastic multiplier
+          // dep = (sig_trial - sigma_y) / (3.0 * mat[e]->Elastic().G() + Ep);
+          // //cout << "dep "<<dep<<endl;
+          // // Radial return
+          // double scale_factor = sigma_y / sig_trial;
+          // tensor3 s_final = s_trial * scale_factor;
+          // ShearStress_final = s_final;
+          // Sigma_final = -p[offset_s] * Identity() + s_final;
+          
+          // // Update plastic strain (will be committed only if converged)
+          // pl_strain[e] += dep;
+          
+          // // CONSISTENT PLASTIC TANGENT MATRIX
+          // //D_gp = getConsistentPlasticTangentMatrix(s_trial, sig_trial, mat[e]->Elastic().G(), Et);
+          
+          // D_gp = getHollomonTangentMatrix(pl_strain[e],mat[e]);
+      // }// plastic 
+      
+      
+      
+      // // 5. STORE RESULTS
+      // //sigma_final_per_gp.push_back(Sigma_final);
+      // //tau_final_per_gp.push_back(ShearStress_final);
+      
+      // // 6. CALCULATE ELEMENT STIFFNESS MATRIX+
+      // //cout << "calculating"<<endl;
+      // Matrix B = getElemBMatrix(e);
+      // B = B *(1.0/m_detJ[e]);
+
+      // //Matrix K_gp = MatMul(MatMul(B.Transpose(), D_gp), B) * vol[e] * m_detJ[e];
+      // Matrix K_gp = MatMul(B.getTranspose(), MatMul(D_gp, B));
+      // K_elem = K_elem + K_gp;
+      // K_elem = K_elem * (1.0/6.0*m_detJ[e]); // B is B x detJ     
+      
+      // //cout << "storing "<<endl;
+      // // 7. UPDATE STRESSES (temporary, will be committed if converged)
+      // ToFlatSymPtr(Sigma_final, m_sigma, offset_t);
+      // ToFlatSymPtr(ShearStress_final, m_tau, offset_t);
+    
+    
+    // return K_elem;
+// }
+
+dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
+    // 1. PREDICTOR ELÁSTICO (CORRECTO)
+    tensor3 ShearStress_old = FromFlatSym(m_tau, offset_t);
+    tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
+    tensor3 RotRate = FromFlatAntiSym(m_rot_rate, offset_t);
+    
+    // Término de Jaumann (CORRECTO)
+    tensor3 SRT = ShearStress_old * Trans(RotRate);
+    tensor3 RS = RotRate * ShearStress_old;
+    tensor3 StrRateDev = StrRate - (1.0/3.0)*Trace(StrRate)*Identity();
+    
+    tensor3 ShearStress_trial = ShearStress_old + dt * (2.0 * G * StrRateDev + SRT + RS);
+    tensor3 Sigma_trial = -p[offset_s] * Identity() + ShearStress_trial;
+    
+    // 2. CALCULAR DESVIADOR TRIAL (CORRECTO)
+    tensor3 s_trial = Sigma_trial - (1.0/3.0)*Trace(Sigma_trial)*Identity();
+    double J2_trial = 0.5 * DoubleContraction(s_trial, s_trial);
+    double sig_trial = sqrt(3.0 * J2_trial);
+    
+    // 3. TENSION DE FLUENCIA (usar pl_strain_old)
+    double sigma_y ;//= CalcHollomonYieldStress(pl_strain_old, mat[e]);
       if (mat[e]->Material_model == HOLLOMON) {
           sigma_y = CalcHollomonYieldStress(pl_strain[e], mat[e]);
       } else if (mat[e]->Material_model == JOHNSON_COOK) {
@@ -1801,80 +1908,43 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*,
         
         sigma_y = mat[e]->sy0;
         }
-      // ... other models
-      //cout << "done "<<endl;
-      // 4. DETERMINE TANGENT MATRIX AND APPLY PLASTICITY
-      Matrix D_gp(6,6);
-      tensor3 Sigma_final, ShearStress_final;
-      double dep = 0.0;
-
-      if (sig_trial <= sigma_y) {
-          // ELASTIC STEP
-          Sigma_final = Sigma_trial;
-          ShearStress_final = ShearStress;
-          D_gp = mat[e]->getElasticMatrix();
-      } else {
-
-
-    // Update tangent modulus if needed
-    double Et = 0.0;
-    
-    if(mat[e]->Material_model == HOLLOMON) {
-        Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
-    } else if (mat[e]->Material_model == JOHNSON_COOK) {
-    //Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
-    } else if (mat[e]->Material_model == _GMT_){
-    //Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+        
+    // 4. VERIFICAR PLASTICIDAD
+    if (sig_trial <= sigma_y) {
+        // PASO ELÁSTICO
+        Sigma_final = Sigma_trial;
+        ShearStress_final = ShearStress_trial;
+        D_gp = mat[e]->getElasticMatrix();
+    } else {///RADIAL RETURN
+        
+        // 4.1. Hardening modulus H (TANGENTE, not secant)
+        double H = CalcHollomonTangentModulus(pl_strain_old, mat[e]);
+        
+        // 4.2. Plastic  (FORMULACIÓN CLÁSICA)
+        double delta_gamma = (sig_trial - sigma_y) / (3.0 * G + H);
+        
+        // 4.3. Dirección del flujo plástico
+        tensor3 n = s_trial * (1.0 / sig_trial);
+        
+        // 4.4. RETORNO RADIAL (FORMULACIÓN CLÁSICA)
+        tensor3 s_final = s_trial - 2.0 * G * delta_gamma * n;
+        
+        // 4.5. Actualizar deformación plástica
+        double delta_ep = sqrt(2.0/3.0) * delta_gamma;
+        double pl_strain_new = pl_strain_old + delta_ep;
+        
+        // 4.6. Tensión final
+        ShearStress_final = s_final;
+        Sigma_final = -p[offset_s] * Identity() + s_final;
+        
+        // 4.7. Matriz tangente consistente (CORRECTA)
+        D_gp = getConsistentPlasticTangentMatrix(s_trial, sig_trial, G, H);
+        
+        // Guardar para actualización posterior
+        pl_strain_temp[e] = pl_strain_new;
     }
     
-  
-  double Ep = 0.0;
-  
-  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
-  
-  if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
-  
-              
-          // Plastic multiplier
-          dep = (sig_trial - sigma_y) / (3.0 * mat[e]->Elastic().G() + Ep);
-          //cout << "dep "<<dep<<endl;
-          // Radial return
-          double scale_factor = sigma_y / sig_trial;
-          tensor3 s_final = s_trial * scale_factor;
-          ShearStress_final = s_final;
-          Sigma_final = -p[offset_s] * Identity() + s_final;
-          
-          // Update plastic strain (will be committed only if converged)
-          pl_strain[e] += dep;
-          
-          // CONSISTENT PLASTIC TANGENT MATRIX
-          //D_gp = getConsistentPlasticTangentMatrix(s_trial, sig_trial, mat[e]->Elastic().G(), Et);
-          
-          D_gp = getHollomonTangentMatrix(pl_strain[e],mat[e]);
-      }// plastic 
-      
-      
-      
-      // 5. STORE RESULTS
-      //sigma_final_per_gp.push_back(Sigma_final);
-      //tau_final_per_gp.push_back(ShearStress_final);
-      
-      // 6. CALCULATE ELEMENT STIFFNESS MATRIX+
-      //cout << "calculating"<<endl;
-      Matrix B = getElemBMatrix(e);
-      B = B *(1.0/m_detJ[e]);
-
-      //Matrix K_gp = MatMul(MatMul(B.Transpose(), D_gp), B) * vol[e] * m_detJ[e];
-      Matrix K_gp = MatMul(B.getTranspose(), MatMul(D_gp, B));
-      K_elem = K_elem + K_gp;
-      K_elem = K_elem * (1.0/6.0*m_detJ[e]); // B is B x detJ     
-      
-      //cout << "storing "<<endl;
-      // 7. UPDATE STRESSES (temporary, will be committed if converged)
-      ToFlatSymPtr(Sigma_final, m_sigma, offset_t);
-      ToFlatSymPtr(ShearStress_final, m_tau, offset_t);
-    
-    
+    // ... resto del código
     return K_elem;
 }
 
