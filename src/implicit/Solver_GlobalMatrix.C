@@ -376,6 +376,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
   int nr_iterations = 0;
   int conv_iter = 0;
+
+
+  // Al inicio del paso de tiempo, guardar TODO el estado
+  double x_old[m_node_count * m_dim];
+  double u_old[m_node_count * m_dim]; 
+  double v_old[m_node_count * m_dim];
+  double a_old[m_node_count * m_dim];
+
+  // Guardar al inicio del paso de tiempo
+  memcpy(x_old, x, sizeof(double) * m_node_count * m_dim);
+  memcpy(u_old, u, sizeof(double) * m_node_count * m_dim);
+  memcpy(v_old, v, sizeof(double) * m_node_count * m_dim);
+  memcpy(a_old, a, sizeof(double) * m_node_count * m_dim);
+
   ////////////////////////////////////////////////////////////
   ////////////////////////// NR LOOP /////////////////////////
   bool converged = false;
@@ -386,12 +400,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     nr_iterations++;
     cout <<"ITER "<<iter<<endl;
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
-    // cout <<"DELTA V----"<<endl;
-    // for (int i = 0; i < m_node_count;i++){
-      // for (int d=0;d<3;d++)
-        // cout <<delta_v[m_dim*i+d]<<", ";
-      // cout <<endl;
-    // }
+
     const double gamma = 0.5;   // Newmark parameter
     // (1) Update velocities (v = prev_v + delta_v)
 
@@ -407,6 +416,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         maxv[d] = abs(v[e*m_dim+d]);
     }
     cout << "MAX V: "<<maxv[0]<<","<<maxv[1]<<", "<<maxv[2]<<endl;
+
+
  
     //~ //Rewrite BCs
     //~ for (int d=0;d<m_dim;d++){
@@ -433,7 +444,20 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         a[i] = (v[i] - prev_v[i]) / (gamma * dt) - (1.0 - gamma)/gamma * prev_a[i];
     }
 
-
+    if (!converged && end) {
+        // RESTAURAR TODO el estado al inicio del paso de tiempo
+        memcpy(x, x_old, sizeof(double) * m_node_count * m_dim);
+        memcpy(u, u_old, sizeof(double) * m_node_count * m_dim); 
+        memcpy(v, v_old, sizeof(double) * m_node_count * m_dim);
+        memcpy(a, a_old, sizeof(double) * m_node_count * m_dim);
+        
+        // También restaurar variables de material
+        //~ memcpy(pl_strain, pls_old, sizeof(double) * m_elem_count);
+        //~ memcpy(m_sigma, sig_old, sizeof(double) * m_elem_count * 6);
+        //~ memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * 6);
+        
+        cout << "NR not convergedf " << dt*2 << " a " << dt << endl;
+    }
   
   #ifdef CUDA_BUILD
   N = getElemCount();
@@ -804,7 +828,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
         //}
     }
     
-    if(max_residual>1.0e3){
+    if(max_residual>1.0e3 || iter >max_iter){
       
       end= true;
       dt /=2.0;
@@ -836,11 +860,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       }
   
     iter++;
-    if (iter >max_iter) {
-      end = true;
-      if (!converged)dt /=2.0;
-      conv_iter = 0;
-    }
+
     
     if (converged && conv_iter > 2){
         dt *=2.0;
