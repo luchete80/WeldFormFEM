@@ -1929,7 +1929,7 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
     } else {///RADIAL RETURN
         
         // 4.1. Hardening modulus H (TANGENTE, not secant)
-        double H = CalcHollomonTangentModulus(pl_strain_old, mat[e]);
+        double H = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
         
         // 4.2. Plastic  (FORMULACIÓN CLÁSICA)
         double delta_gamma = (sig_trial - sigma_y) / (3.0 * G + H);
@@ -1942,7 +1942,7 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
         
         // 4.5. Actualizar deformación plástica
         double delta_ep = sqrt(2.0/3.0) * delta_gamma;
-        double pl_strain_new = pl_strain_old + delta_ep;
+        double pl_strain_new = pl_strain[e] + delta_ep;
         
         // 4.6. Tensión final
         ShearStress_final = s_final;
@@ -1952,9 +1952,19 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
         D_gp = getConsistentPlasticTangentMatrix(s_trial, sig_trial, G, H);
         
         // Guardar para actualización posterior
-        pl_strain_temp[e] = pl_strain_new;
+        //pl_strain_temp[e] = pl_strain_new;
     }
-    
+
+      // // 6. CALCULATE ELEMENT STIFFNESS MATRIX+
+      //cout << "calculating"<<endl;
+      Matrix B = getElemBMatrix(e);
+      B = B *(1.0/m_detJ[e]);
+
+      //Matrix K_gp = MatMul(MatMul(B.Transpose(), D_gp), B) * vol[e] * m_detJ[e];
+      Matrix K_gp = MatMul(B.getTranspose(), MatMul(D_gp, B));
+      K_elem = K_elem + K_gp;
+      K_elem = K_elem * (1.0/6.0*m_detJ[e]); // B is B x detJ     
+      
     // ... resto del código
     return K_elem;
 }
