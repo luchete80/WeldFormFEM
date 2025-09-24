@@ -1881,6 +1881,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
     Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
     K_elem.SetZero();
+    tensor3 Sigma_final, ShearStress_final;
 
     int gp = 0;
       int offset_s = e * m_gp_count + gp;    // SCALAR offset
@@ -1964,8 +1965,12 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
       Matrix K_gp = MatMul(B.getTranspose(), MatMul(D_gp, B));
       K_elem = K_elem + K_gp;
       K_elem = K_elem * (1.0/6.0*m_detJ[e]); // B is B x detJ     
-      
-    // ... resto del código
+
+      // // 7. UPDATE STRESSES (temporary, will be committed if converged)
+      ToFlatSymPtr(Sigma_final, m_sigma, offset_t);
+      ToFlatSymPtr(ShearStress_final, m_tau, offset_t);
+            
+
     return K_elem;
 }
 
@@ -1981,15 +1986,21 @@ Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3& s_trial, doubl
     Matrix n_voigt(6,1);
     n_voigt.Set(0,0, n.xx); n_voigt.Set(1,0, n.yy); n_voigt.Set(2,0, n.zz);
     n_voigt.Set(3,0, n.xy); n_voigt.Set(4,0, n.yz); n_voigt.Set(5,0, n.zx);
+
+    // Usar getTranspose() para no modificar n_voigt original
+    Matrix n_voigt_transpose = n_voigt.getTranspose(); // 1x6
     
     // Consistent tangent: Dep = De - (De:n ⊗ n:De) / (H + n:De:n)
     Matrix De_n = MatMul(De, n_voigt);           // 6x1
-    Matrix n_De = MatMul(n_voigt.Transpose(), De); // 1x6
-    
-    double denominator = H + MatMul(n_voigt.Transpose(), De_n).getVal(0,0);
-    cout << "denominator"<<denominator<<endl;
-    Matrix correction = MatMul(De_n, n_De) * (1.0 / denominator);
-    
+    Matrix n_De = MatMul(n_voigt_transpose, De); // 1x6
+
+    Matrix test = MatMul(n_voigt.getTranspose(), De_n);
+       
+    //double denominator = H + MatMul(n_voigt.Transpose(), De_n).getVal(0,0);
+    double denominator = H + test.getVal(0,0);
+    //cout << "denominator"<<denominator<<", sig_trial: "<< sig_trial<<endl;
+    Matrix correction = MatMul(De_n, n_De) * (1.0 / denominator) ;
+
     Dep = De - correction;
     return Dep;
 }

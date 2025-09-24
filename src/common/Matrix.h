@@ -178,7 +178,7 @@ __spec Matrix& operator+=(Matrix other) {
     return *this;
 }
 
-__spec Matrix& operator-(Matrix other) {
+__spec Matrix operator-(Matrix other) {
     Matrix ret(*this);
     // Check dimensions match
     if (m_row != other.m_row || m_col != other.m_col) {
