@@ -243,7 +243,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  int STEP_RECOV = 50;
+
   double s_wup = 1.0; //WARM UP STEP
   while (Time < end_t) {
       
@@ -358,19 +358,19 @@ void host_ Domain_d::SolveChungHulbert(){
 
   #ifdef BUILD_REMESH  
   if (s_wup < 1.0){
-    //s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
+    //s_wup = double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
 
     //LINEAR
-    //s_wup += 1.0/double(STEP_RECOV);
+    //s_wup += 1.0/double(m_filter_params.warmup_steps);
 
 
-    double s_norm = double(step_count - last_step_remesh) / double(STEP_RECOV);
+    double s_norm = double(step_count - last_step_remesh) / double(m_filter_params.warmup_steps);
     s_norm = std::min(1.0, s_norm);
     s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
 
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
-    double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
+    double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(m_filter_params.warmup_steps)), 2.0);
     
     // 2. Aplicar límites físicos
     double dt_CFL = dt;
@@ -391,8 +391,8 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   
   if (decrease_dt){
-    //STEP_RECOV *=2;
-    s_wup = 0.5*1.0/(double(STEP_RECOV));
+    //m_filter_params.warmup_steps *=2;
+    s_wup = 0.5*1.0/(double(m_filter_params.warmup_steps));
   }
   
   
@@ -651,9 +651,17 @@ void host_ Domain_d::SolveChungHulbert(){
     memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   }
   
+  double v_max = 0.0;
+
+    
   if(s_wup<1.0){
      double r = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
+      vector_t vel = getVelVec(n);
+      if(norm(vel)>1.0e10 ){
+        v_max = norm(vel);
+      }
+      
         for (int d=0;d<m_dim;d++)
           if (r<1.0)
             v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
@@ -671,6 +679,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
 
   if (s_wup < 1.0 ){
+    cout << "Max vel before correct peaks and affect with Ekin"<<v_max<<endl;
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping((1.0-s_wup));
     //smoothFieldLaplacian(v,3);
@@ -680,8 +689,8 @@ void host_ Domain_d::SolveChungHulbert(){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
           postRemeshGlobFilter();
-          a[m_dim*i+d] *= 1.0e-1*double(step_count-last_step_remesh)/double(STEP_RECOV);
-          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(STEP_RECOV);
+          a[m_dim*i+d] *= 1.0e-1*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
+          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
       }
 
   }

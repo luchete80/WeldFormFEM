@@ -226,8 +226,10 @@ int main(int argc, char **argv) {
     dom_d->setCFL(cflFactor);
     if (fixedTS) dom_d->setFixedDt(true);
 
-
+    
     readValue(mesh["stepInterval"], remesh_interval);
+    readValue(mesh["warmupSteps"], dom_d->m_filter_params.warmup_steps);
+
     cout << "MESH INTERVAL: "<<remesh_interval<<endl;
 
     readValue(mesh["minStrain"], dom_d->m_remesh_min_pl_strain);

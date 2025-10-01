@@ -248,6 +248,83 @@ public:
     abs_bc_initialized = false;
         
   }
+
+    // ==================== REMESH ====================
+    struct FilterFlags {
+        bool enable_warmup_damping;      // Damping durante warmup
+        bool enable_velocity_peaks_correction; // Corrección de picos de velocidad
+        bool enable_stress_filtering;    // Filtrado de tensiones
+        bool enable_energy_based_limiter; // Limitador basado en energía
+        bool enable_post_remesh_filter;  // Filtro post-remallado
+        bool enable_strain_rate_smoothing; // Suavizado de tasas de deformación
+        bool enable_laplacian_smoothing; // Suavizado laplaciano de campos
+        bool enable_adaptive_dt_recovery; // Recuperación adaptativa de dt
+        
+        // Valores por defecto (conservadores)
+        FilterFlags() : 
+            enable_warmup_damping(true),
+            enable_velocity_peaks_correction(true),
+            enable_stress_filtering(true),
+            enable_energy_based_limiter(true),
+            enable_post_remesh_filter(true),
+            enable_strain_rate_smoothing(false), // Más agresivo
+            enable_laplacian_smoothing(false),   // Más agresivo  
+            enable_adaptive_dt_recovery(true)
+        {}
+    };
+    
+    struct FilterParameters {
+        // Warmup parameters
+        int warmup_steps;                // Pasos de warmup después de remallado
+        double warmup_damping_factor;    // Factor de damping durante warmup (0-1)
+        
+        // Velocity control
+        double max_allowed_velocity;     // Velocidad máxima permitida
+        double velocity_correction_aggressiveness; // 0-1: agresividad de corrección
+        
+        // Stress filtering  
+        double stress_smoothing_factor;  // Factor de suavizado de tensiones (0-1)
+        int stress_filter_interval;      // Cada cuántos pasos filtrar tensiones
+        
+        // Energy-based limits
+        double max_energy_increase_ratio; // Máximo aumento permitido de energía
+        double energy_correction_strength; // Fuerza de corrección energética
+        
+        // Post-remesh specific
+        double post_remesh_blend_duration; // Duración blending post-remallado (0-1)
+        double plastic_strain_threshold;  // Umbral de deformación plástica para filtrado
+        
+        // Default values
+        FilterParameters() :
+            warmup_steps(100),
+            warmup_damping_factor(0.8),
+            max_allowed_velocity(50.0),
+            velocity_correction_aggressiveness(0.7),
+            stress_smoothing_factor(0.3),
+            stress_filter_interval(5),
+            max_energy_increase_ratio(2.0),
+            energy_correction_strength(0.5),
+            post_remesh_blend_duration(0.1),
+            plastic_strain_threshold(0.05)
+        {}
+    };
+    
+    // Miembros en Domain_d
+    FilterFlags m_filter_flags;
+    FilterParameters m_filter_params;
+    
+    // ==================== MÉTODOS DE FILTRADO MODULARES ====================
+    void applyWarmupDamping(double s_wup);
+    void correctVelocityPeaks();
+    void filterStresses();
+    void applyEnergyBasedLimiting(double dEkin, double dEint);
+    void applyPostRemeshFiltering();
+    void smoothStrainRates();
+    void applyLaplacianSmoothing();
+    void adaptiveDTRecovery();
+    
+  ////////////// REMESH
+
   TimeInt m_timeint_type;
   void setNproc(const int &n){Nproc=n;}
   void SetDimension(const int &node_count, const int &elem_count); //Common
