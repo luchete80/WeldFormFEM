@@ -42,6 +42,9 @@ Whether you're a researcher, engineer, or student, WeldFormFEM offers a sandbox 
 - 2D Plain Strain/Axisymm & 3D
 - Thermal-Mechanical coupling (WIP)
 
+
+<img src="compression.gif" alt="Demo" width="300"/>
+
 Locking (left) and fixing (right) tetra \
 Compression cylinder \
 <img src="https://github.com/luchete80/WeldFormFEM/blob/master/20250117_2.png" width="200" height="200">
