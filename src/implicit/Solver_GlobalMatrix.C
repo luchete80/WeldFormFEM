@@ -330,9 +330,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
   // Newton-Raphson loop
-  double tolerance = 1e-6; //dv tol
-  double ftol = 1e-6;
-  int max_iter = 50;
+  double tolerance = 1e-4; //dv tol
+  double ftol = 1e-4;
+
+  //~ double tol_force = 1e-3;    // 0.1% error en fuerzas  
+  //~ double tol_disp = 1e-4;     // Desplazamientos
+  //~ double tol_energy = 1e-4;   // Energía residual
+
+
+  int max_iter = 20;
 
   double force_factor = 1.0e-3;//TO AVOID ILL CONDITIONING
   
@@ -722,6 +728,28 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       // cout << "Using alpha damp: "<<alpha_damp<<endl;
     // }
     prev_Rnorm = m_solver->getRNorm();    
+
+    alpha_damp = 1.0;
+    if (iter > 0) {
+        double residual_ratio = m_solver->getRNorm() / prev_Rnorm;
+        
+        if (residual_ratio > 2.0) {
+            // Divergencia - reducir paso
+            alpha_damp = 0.5;
+        } else if (residual_ratio > 1.2) {
+            // Convergencia lenta
+            alpha_damp = 0.8;
+        } else if (residual_ratio < 0.8) {
+            // Buena convergencia - aumentar paso
+            alpha_damp = std::min(1.5, alpha_damp * 1.2);
+        } else {
+            // Convergencia estable
+            alpha_damp = 1.0;
+        }
+        
+        // Límites más amplios
+        alpha_damp = std::max(0.3, std::min(2.0, alpha_damp));
+    }
     
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
