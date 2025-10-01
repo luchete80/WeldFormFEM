@@ -1685,7 +1685,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     
     //printf("Eps R %.4e\n",StrRate.zz);
     
-    printf("Sigma zz %.4e radial %.4e mu x szz %.4e\n", Sigma.zz,sqrt(Sigma.xx*Sigma.xx+Sigma.yy*Sigma.yy),0.3*Sigma.zz);
+    //printf("Sigma zz %.4e radial %.4e mu x szz %.4e\n", Sigma.zz,sqrt(Sigma.xx*Sigma.xx+Sigma.yy*Sigma.yy),0.3*Sigma.zz);
   }      
 
       if (m_thermal)
