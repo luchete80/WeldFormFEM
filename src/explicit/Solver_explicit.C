@@ -243,7 +243,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  int STEP_RECOV = 20;
+  int STEP_RECOV = 30;
   double s_wup = 1.0; //WARM UP STEP
   while (Time < end_t) {
       
@@ -283,7 +283,6 @@ void host_ Domain_d::SolveChungHulbert(){
       std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
       VTKWriter writer(this, ss.c_str());
       writer.writeFile();
-      STEP_RECOV = 20;
       
       #ifdef BUILD_REMESH
       ReMesher remesh(this);
@@ -360,7 +359,15 @@ void host_ Domain_d::SolveChungHulbert(){
   #ifdef BUILD_REMESH  
   if (s_wup < 1.0){
     //s_wup = double(step_count-last_step_remesh)/double(STEP_RECOV);
-    s_wup += 1.0/double(STEP_RECOV);
+
+    //LINEAR
+    //s_wup += 1.0/double(STEP_RECOV);
+
+
+    double s_norm = double(step_count - last_step_remesh) / double(STEP_RECOV);
+    s_norm = std::min(1.0, s_norm);
+    s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
+
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
     double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(STEP_RECOV)), 2.0);
@@ -587,6 +594,7 @@ void host_ Domain_d::SolveChungHulbert(){
   // COULD BE ALSO WITH KINETIC ENERGY  
   int nc=0;
   bool large_acc = false;
+  double maxv = 0.0;
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
@@ -601,6 +609,8 @@ void host_ Domain_d::SolveChungHulbert(){
       }
 
       if(norm(vel)>20.0*1.2){
+        if (norm(vel)>maxv)
+          maxv =norm(vel);
         nc++;
 
       }
@@ -611,7 +621,7 @@ void host_ Domain_d::SolveChungHulbert(){
         large_acc = true;
       
   if (large_acc){ 
-    cout << "ERROR, "<< nc <<" nodes with veloc too large "<<endl;  
+    cout << "ERROR, "<< nc <<" nodes with veloc too large "<<", max vel: "<<maxv<<endl;  
     decrease_dt = true;
   } else {
     decrease_dt = false;

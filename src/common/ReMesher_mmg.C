@@ -235,7 +235,22 @@ void ReMesher::Generate_mmg(){
   MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar);
   for (int k = 1; k <= np; k++)
       MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
-      
+
+  //~ // --- Deterministic remesh parameters ---
+
+  MMG3D_Set_iparameter(mmgMesh, mmgSol, MMG3D_IPARAM_verbose, 5);
+  
+
+  //~ MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmax, m_dom->m_remesh_length);
+  //~ MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hmin, m_dom->m_remesh_length);
+  //~ MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_DPARAM_hgrad, 1.0);
+
+  //~ MMG3D_Set_iparameter(mmgMesh, mmgSol, MMG3D_IPARAM_noswap, 1);     // No swaps
+  //~ MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_IPARAM_noinsert, 1);
+  //~ MMG3D_Set_dparameter(mmgMesh, mmgSol, MMG3D_IPARAM_nomove, 1);
+  
+   // MMG3D_Set_iparameter(mmgMesh, mmgSol, MMG3D_IPARAM_nb_iter, 1);    // Min iter
+        
 
   // Remesh
   int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
@@ -346,7 +361,8 @@ void ReMesher::Generate_mmg(){
   
   
   cout << "NEW MESH. Done mapping "<<endl;
-  cout << "Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
+  cout << "OLD Node count "<<m_dom->m_node_count<<", ELEM COUNT "<<m_dom->m_elem_count<<endl;
+  cout << "NEW Node count "<<np<<", ELEM COUNT "<<nt<<endl;
   //memcpy_t(m_dom->x,      m_x , 3*sizeof(double) * m_dom->m_node_count);       
   //memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
   
