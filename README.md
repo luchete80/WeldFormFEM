@@ -42,7 +42,7 @@ Whether you're a researcher, engineer, or student, WeldFormFEM offers a sandbox 
 - 2D Plain Strain/Axisymm & 3D
 - Thermal-Mechanical coupling (WIP)
 
-
+Remeshing (WIP, experimental) 
 <img src="compression.gif" alt="Demo" width="300"/>
 
 Locking (left) and fixing (right) tetra \
