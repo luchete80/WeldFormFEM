@@ -362,7 +362,8 @@ void host_ Domain_d::SolveChungHulbert(){
     //s_wup = double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
 
     //LINEAR
-    s_wup += 1.0/double(m_filter_params.warmup_steps);
+    if (!decrease_dt) //maintain dt instead, to ensure it will converge
+      s_wup += 1.0/double(m_filter_params.warmup_steps);
 
     //CUBIC EASE OUT
     //double s_norm = double(step_count - last_step_remesh) / double(m_filter_params.warmup_steps);
@@ -391,11 +392,11 @@ void host_ Domain_d::SolveChungHulbert(){
       // writer3.writeFile();
   }
   
-  if (decrease_dt){
-    //m_filter_params.warmup_steps *=2;
-    //s_wup = 0.5*1.0/(double(m_filter_params.warmup_steps));
-    s_wup -= 2.0*1.0/double(m_filter_params.warmup_steps);
-  }
+  // if (decrease_dt){
+    // //m_filter_params.warmup_steps *=2;
+    // //s_wup = 0.5*1.0/(double(m_filter_params.warmup_steps));
+    // s_wup -= 2.0*1.0/double(m_filter_params.warmup_steps);
+  // }
   
   
   #endif
