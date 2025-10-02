@@ -381,6 +381,13 @@ void host_ Domain_d::SolveChungHulbert(){
       s_norm = std::min(1.0, s_norm);
       s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
     }
+    
+    if (wup_step_count % 10 == 0){
+      
+      string s = "out_wup_"+std::to_string(wup_step_count) + std::to_string(step_count)+".vtk";
+      VTKWriter writer(this, s.c_str());
+      writer.writeFile();
+    }
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
     double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(m_filter_params.warmup_steps)), 2.0);
@@ -760,6 +767,7 @@ void host_ Domain_d::SolveChungHulbert(){
           for (int d=0;d<m_dim;d++)
             a[m_dim*i+d] *= 0.75;
         trans_step_count++;
+        
     } else {
       
       transition = false;
