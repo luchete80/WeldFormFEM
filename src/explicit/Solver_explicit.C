@@ -546,7 +546,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   //smoothDevStrainRates(0.5);
   #ifdef BUILD_REMESH    
-  if (s_wup < 1.0){  
+  if (s_wup < 1.0 || transition){  
     BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
   }
   #endif
@@ -577,7 +577,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcArtificialViscosity(); //Added to Sigma
 
   #ifdef BUILD_REMESH    
-  if (s_wup < 1.0){
+  if (s_wup < 1.0 || transition){
     BlendStresses(s_wup, 1.5);
     SmoothDeviatoricStress(0.8);
   }
@@ -732,11 +732,22 @@ void host_ Domain_d::SolveChungHulbert(){
   if (transition) {
     ///if (step_count - end_wup_step < m_filter_params.trans_step_count){
     if (trans_step_count < m_filter_params.trans_step_count){
-        cout << "Transition step "<< trans_step_count << " / " <<  m_filter_params.trans_step_count <<endl;
-        postRemeshGlobFilter();
+        //BlendStresses(1.0, 1.5);
+        //SmoothDeviatoricStress(0.8);
+        for (int n=0;n<m_node_count;n++){ 
+        vector_t vel = getVelVec(n);
+        if(norm(vel)>v_max )
+          v_max = norm(vel);
+        }    
+        cout << "Transition step "<< trans_step_count << " / " <<  m_filter_params.trans_step_count <<", vmax "<<v_max<<endl;
+        //postRemeshGlobFilter();
+        for (int i=0;i<m_node_count;i++)
+          for (int d=0;d<m_dim;d++)
+            a[m_dim*i+d] *= 0.75;
         trans_step_count++;
     } else {
       transition = false;
+      wup_step_count = false; //To not reactivate 
       cout << "End transition "<<endl;
     }
   }
