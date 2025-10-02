@@ -781,7 +781,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
     }
   }
-  ApplyGlobalDamping(0.1);
+  //ApplyGlobalDamping(0.1);
   #endif 
 
   ImposeBCVAllDim();
