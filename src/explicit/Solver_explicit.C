@@ -243,7 +243,7 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+  double max_vprev=0.0;
   double s_wup = 1.0; //WARM UP STEP
   while (Time < end_t) {
       
@@ -313,6 +313,7 @@ void host_ Domain_d::SolveChungHulbert(){
       remesh_count++;
       last_step_remesh = step_count;
       s_wup= 0.0;
+      max_vprev = 0.0;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -392,7 +393,8 @@ void host_ Domain_d::SolveChungHulbert(){
   
   if (decrease_dt){
     //m_filter_params.warmup_steps *=2;
-    s_wup = 0.5*1.0/(double(m_filter_params.warmup_steps));
+    //s_wup = 0.5*1.0/(double(m_filter_params.warmup_steps));
+    s_wup -= 2.0*1.0/double(m_filter_params.warmup_steps);
   }
   
   
@@ -627,6 +629,7 @@ void host_ Domain_d::SolveChungHulbert(){
     decrease_dt = false;
     }
     
+    
   #endif 
   
   #endif //CUDA_BUILD
@@ -679,6 +682,13 @@ void host_ Domain_d::SolveChungHulbert(){
   
 
   if (s_wup < 1.0 ){
+    if (max_vprev>0.0){ //NOT FIRST WARM UP STEP
+      if (v_max>max_vprev*1.1){
+        decrease_dt = true;
+        cout << "V>1,1PREV_V"<<endl;
+      }
+    }
+    max_vprev = v_max;
     cout << "Max vel before correct peaks and affect with Ekin"<<v_max<<endl;
     //if (Time > RAMP_FRACTION*end_t)
     ApplyGlobalDamping((1.0-s_wup));
