@@ -377,7 +377,8 @@ void host_ Domain_d::SolveChungHulbert(){
     if (!decrease_dt){
       double s_norm = double(step_count - last_step_remesh) / double(m_filter_params.warmup_steps);
       s_norm = std::min(1.0, s_norm);
-      s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
+      //s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
+      s_wup = 1.0 - pow(1.0 - s_norm, 2); // cubic ease-out
     }
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
