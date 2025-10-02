@@ -729,7 +729,7 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "Damping Energy factor: "<<r_damp<<endl;
     //if (Time > RAMP_FRACTION*end_t)
     
-    //ApplyGlobalDamping((1.0-s_wup));
+    ApplyGlobalDamping((1.0-s_wup));
     
     //smoothFieldLaplacian(v,3);
     const double ka = 0.5;
@@ -773,7 +773,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
     }
   }
-  //ApplyGlobalDamping(0.1);
+  ApplyGlobalDamping(0.1);
   #endif 
 
   ImposeBCVAllDim();
