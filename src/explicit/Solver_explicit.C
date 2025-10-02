@@ -241,6 +241,10 @@ void host_ Domain_d::SolveChungHulbert(){
   double dEkin,dEint;
   bool decrease_dt = false;
   double max_vel = 0.0;
+  int wup_step_count = 0;
+  bool transition = false;
+  int trans_step_count = 0;
+  int end_wup_step;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,6 +320,8 @@ void host_ Domain_d::SolveChungHulbert(){
       last_step_remesh = step_count;
       s_wup= 0.0;
       max_vprev = 0.0;
+      wup_step_count = 0;
+      transition = false;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -388,11 +394,21 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "Max vel: " << max_vel << endl;
 
     cout << "dEkin: "<<dEkin <<", dEint: "<<dEint<<endl;
+    wup_step_count++;
     
       // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
       // VTKWriter writer3(this, s.c_str());
       // writer3.writeFile();
-  }
+  } else {
+    
+        if (!transition && wup_step_count > 0) {
+        transition = true;
+        cout << "Transition phase. Warmup completed in " << wup_step_count<<" steps."<<endl;
+        trans_step_count = 0;
+        end_wup_step = step_count;
+    }
+    
+    }
   
   // if (decrease_dt){
     // //m_filter_params.warmup_steps *=2;
@@ -659,9 +675,9 @@ void host_ Domain_d::SolveChungHulbert(){
   
   double v_max = 0.0;
 
-    
+  double r_damp;
   if(s_wup<1.0){
-     double r = sqrt( Ekin_old / (Ekin + 1e-30) );    
+     r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
       vector_t vel = getVelVec(n);
       if(norm(vel)>v_max ){
@@ -669,8 +685,8 @@ void host_ Domain_d::SolveChungHulbert(){
       }
       
         for (int d=0;d<m_dim;d++)
-          if (r<1.0)
-            v[m_dim*n+d] *= r;   // nunca subir v; solo bajar si se disparó    
+          if (r_damp<1.0)
+            v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
 
     CorrectLocalVelocityPeaks();
       }
@@ -683,7 +699,8 @@ void host_ Domain_d::SolveChungHulbert(){
     //ApplyGlobalDamping(0.02);
   }
   
-
+  int DAMPING_TRANSITION_STEPS = 100;
+  
   if (s_wup < 1.0 ){
     if (max_vprev>0.0){ //NOT FIRST WARM UP STEP
       if (v_max>max_vprev*1.1){
@@ -693,22 +710,36 @@ void host_ Domain_d::SolveChungHulbert(){
     }
     max_vprev = v_max;
     cout << "Max vel before correct peaks and affect with Ekin"<<v_max<<endl;
+    cout << "Damping Energy factor: "<<r_damp<<endl;
     //if (Time > RAMP_FRACTION*end_t)
-    ApplyGlobalDamping((1.0-s_wup));
+    
+    //ApplyGlobalDamping((1.0-s_wup));
+    
     //smoothFieldLaplacian(v,3);
-    const double ka = 0.2;
+    const double ka = 0.5;
     for (int i=0;i<m_node_count;i++)
       for (int d=0;d<m_dim;d++){
         //if(abs(a[m_dim*i+d])>1.0e6)
       
-          postRemeshGlobFilter();
-          a[m_dim*i+d] *= 1.0e-1*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
+          postRemeshGlobFilter();//Filter again vel: TOO SLOW!!
+          a[m_dim*i+d] *= ka*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
           //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
       }
 
   }
   #endif //REMESH
-
+  
+  if (transition) {
+    ///if (step_count - end_wup_step < m_filter_params.trans_step_count){
+    if (trans_step_count < m_filter_params.trans_step_count){
+        cout << "Transition step "<< trans_step_count << " / " <<  m_filter_params.trans_step_count <<endl;
+        postRemeshGlobFilter();
+        trans_step_count++;
+    } else {
+      transition = false;
+      cout << "End transition "<<endl;
+    }
+  }
   //ApplyGlobalDamping(0.1);
   #endif 
 

@@ -294,6 +294,8 @@ public:
         double post_remesh_blend_duration; // Duración blending post-remallado (0-1)
         double plastic_strain_threshold;  // Umbral de deformación plástica para filtrado
         
+        int trans_step_count;
+        
         // Default values
         FilterParameters() :
             warmup_steps(100),
@@ -305,7 +307,8 @@ public:
             max_energy_increase_ratio(2.0),
             energy_correction_strength(0.5),
             post_remesh_blend_duration(0.1),
-            plastic_strain_threshold(0.05)
+            plastic_strain_threshold(0.05),
+            trans_step_count(50)
         {}
     };
     
