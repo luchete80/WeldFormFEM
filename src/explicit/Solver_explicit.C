@@ -240,6 +240,7 @@ void host_ Domain_d::SolveChungHulbert(){
   Ekin = Eint = 0.0;
   double dEkin,dEint;
   bool decrease_dt = false;
+  double max_vel = 0.0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,6 +252,7 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count % 100 == 0){
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
     cout << "Ekin: "<<Ekin <<", Eint "<<Eint<<endl; 
+    cout << "Max V"<<max_vel<<endl;
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
@@ -328,7 +330,7 @@ void host_ Domain_d::SolveChungHulbert(){
     }
   }
 
-  double max_vel=0.0;
+  max_vel=0.0;
   if (!m_fixed_dt){
     double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
     calcMinEdgeLength();
