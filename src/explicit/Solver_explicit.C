@@ -370,14 +370,15 @@ void host_ Domain_d::SolveChungHulbert(){
     //s_wup = double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
 
     //LINEAR
-    if (!decrease_dt) //maintain dt instead, to ensure it will converge
-      s_wup += 1.0/double(m_filter_params.warmup_steps);
+    //~ if (!decrease_dt) //maintain dt instead, to ensure it will converge
+      //~ s_wup += 1.0/double(m_filter_params.warmup_steps);
 
     //CUBIC EASE OUT
-    //double s_norm = double(step_count - last_step_remesh) / double(m_filter_params.warmup_steps);
-    //s_norm = std::min(1.0, s_norm);
-    //s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
-
+    if (!decrease_dt){
+      double s_norm = double(step_count - last_step_remesh) / double(m_filter_params.warmup_steps);
+      s_norm = std::min(1.0, s_norm);
+      s_wup = 1.0 - pow(1.0 - s_norm, 3); // cubic ease-out
+    }
       cout << "s warmup: "<<s_wup<<endl;
     // 1. Calcular dt_base independientemente del dt anterior
     double dt_base = dt * 0.8 * pow(s_wup+(1.0/double(m_filter_params.warmup_steps)), 2.0);
@@ -551,7 +552,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemStrainRates();
   //smoothDevStrainRates(0.5);
   #ifdef BUILD_REMESH    
-  if (s_wup < 1.0 || transition){  
+  if (s_wup < 1.0 ){  
     BlendField(s_wup,m_elem_count,6,m_str_rate_prev,m_str_rate);
   }
   #endif
@@ -582,7 +583,7 @@ void host_ Domain_d::SolveChungHulbert(){
   calcArtificialViscosity(); //Added to Sigma
 
   #ifdef BUILD_REMESH    
-  if (s_wup < 1.0 || transition){
+  if (s_wup < 1.0 ){
     BlendStresses(s_wup, 1.5);
     SmoothDeviatoricStress(0.8);
   }
@@ -706,7 +707,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   int DAMPING_TRANSITION_STEPS = 100;
   
-  if (s_wup < 1.0 ){
+  if (s_wup < 1.0 || transition){
     if (max_vprev>0.0){ //NOT FIRST WARM UP STEP
       if (v_max>max_vprev*1.1){
         decrease_dt = true;
@@ -737,8 +738,7 @@ void host_ Domain_d::SolveChungHulbert(){
   if (transition) {
     ///if (step_count - end_wup_step < m_filter_params.trans_step_count){
     if (trans_step_count < m_filter_params.trans_step_count){
-        //BlendStresses(1.0, 1.5);
-        //SmoothDeviatoricStress(0.8);
+        //DO NOT BLEND
         for (int n=0;n<m_node_count;n++){ 
         vector_t vel = getVelVec(n);
         if(norm(vel)>v_max )

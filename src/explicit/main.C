@@ -227,9 +227,11 @@ int main(int argc, char **argv) {
     if (fixedTS) dom_d->setFixedDt(true);
 
     
+    dom_d->m_filter_params.trans_step_count = 0;
     readValue(mesh["stepInterval"], remesh_interval);
     readValue(mesh["warmupSteps"], dom_d->m_filter_params.warmup_steps);
-
+    //readValue(mesh["transSteps"], dom_d->m_filter_params.trans_step_count);
+    
     cout << "MESH INTERVAL: "<<remesh_interval<<endl;
 
     readValue(mesh["minStrain"], dom_d->m_remesh_min_pl_strain);
