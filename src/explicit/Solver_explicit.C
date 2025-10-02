@@ -245,6 +245,7 @@ void host_ Domain_d::SolveChungHulbert(){
   bool transition = false;
   int trans_step_count = 0;
   int end_wup_step;
+  double r_damp;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -322,6 +323,7 @@ void host_ Domain_d::SolveChungHulbert(){
       max_vprev = 0.0;
       wup_step_count = 0;
       transition = false;
+      r_damp = 1.0;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -403,14 +405,22 @@ void host_ Domain_d::SolveChungHulbert(){
   } else {
     
         if (!transition && wup_step_count > 0) {
-        transition = true;
-        cout << "Transition phase. Warmup completed in " << wup_step_count<<" steps."<<endl;
-        trans_step_count = 0;
-        end_wup_step = step_count;
-        //smoothFieldLaplacian(v,3);
-        string s = "out_remesh_wup_bef_trans"+std::to_string(step_count)+".vtk";
-        VTKWriter writer(this, s.c_str());
-        writer.writeFile();
+          /*
+          if (max_vel>10.0){  //10 MESH SPEED
+          
+            s_wup = r_damp;
+            cout << "CORRECTED WARMUP according to damping"<<endl;
+          }else {
+        */
+          transition = true;
+          cout << "Transition phase. Warmup completed in " << wup_step_count<<" steps."<<endl;
+          trans_step_count = 0;
+          end_wup_step = step_count;
+          //smoothFieldLaplacian(v,3);
+          string s = "out_remesh_wup_bef_trans"+std::to_string(step_count)+".vtk";
+          VTKWriter writer(this, s.c_str());
+          writer.writeFile();
+      //}
         
     }
     
@@ -681,7 +691,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   double v_max = 0.0;
 
-  double r_damp;
+  
   if(s_wup<1.0|| transition){
      r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
@@ -751,6 +761,7 @@ void host_ Domain_d::SolveChungHulbert(){
             a[m_dim*i+d] *= 0.75;
         trans_step_count++;
     } else {
+      
       transition = false;
       wup_step_count = false; //To not reactivate 
       cout << "End transition "<<endl;
