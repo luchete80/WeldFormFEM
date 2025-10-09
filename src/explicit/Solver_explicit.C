@@ -238,7 +238,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double Ekin, Eint;
   double Ekin_old;
   Ekin = Eint = 0.0;
-  double dEkin,dEint;
+  double dEint;
   bool decrease_dt = false;
   double max_vel = 0.0;
   int wup_step_count = 0;
@@ -395,7 +395,7 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "New dt: " << dt << endl;
     cout << "Max vel: " << max_vel << endl;
 
-    cout << "dEkin: "<<dEkin <<", dEint: "<<dEint<<endl;
+    cout << "dEint: "<<dEint<<endl;
     cout << " Ekin: "<< Ekin <<",  Eint: "<<Eint<<", Etot: "<< Ekin + Eint << endl;
     wup_step_count++;
     
@@ -850,9 +850,27 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "Energy After r,emesh, Ekin: "<<Ekin_mapped<<endl;
         
   }
-  computeEnergies(dt,dEkin,dEint,dEvisc);
+  computeEnergies(dt,Ekin,dEint,dEvisc);
 
   Eint+=dEint; 
+
+
+  //~ if(s_wup<1.0|| transition){
+     //~ r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
+      //~ for (int n=0;n<m_node_count;n++){ 
+      //~ vector_t vel = getVelVec(n);
+      //~ if(norm(vel)>v_max ){
+        //~ v_max = norm(vel);
+      //~ }
+      
+        //~ for (int d=0;d<m_dim;d++)
+          //~ if (r_damp<1.0)
+            //~ v[m_dim*n+d] *= sqrt(r_damp);   // nunca subir v; solo bajar si se disparó    
+
+    //~ CorrectLocalVelocityPeaks();
+      //~ }
+  //~ }
+  
 
  
   if (Time>=tout){
