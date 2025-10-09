@@ -235,31 +235,32 @@ void ReMesher::Generate_mmg(){
   MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar);
 
 
-  for (int k = 1; k <= np; k++)
-    MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
+  // for (int k = 1; k <= np; k++)
+    // MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
 
 
-  //~ for (int k = 1; k <= np; k++) {
-      //~ //Calcular factor de refinamiento basado en deformación plástica
-      //~ //Más deformación → elementos más pequeños (refinamiento)
-      //~ double plastic_strain = m_dom->pl_strain[k-1];
+  for (int k = 1; k <= np; k++) {
+      //Calcular factor de refinamiento basado en deformación plástica
+      //Más deformación → elementos más pequeños (refinamiento)
+      double plastic_strain = m_dom->pl_strain[k-1];
       
-      //~ //Definir rangos de refinamiento
-      //~ double min_size = 0.3 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
-      //~ double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
+      //Definir rangos de refinamiento
+      double min_size = 0.3 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
+      double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
       
-      //~ //Mapear la deformación plástica al tamaño de elemento
-      //~ //Puedes ajustar esta función según tus necesidades
-      //~ double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
-      //~ double h_target = min_size + (max_size - min_size) * refinement_factor;
+      //Mapear la deformación plástica al tamaño de elemento
+      //Puedes ajustar esta función según tus necesidades
+      double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
+      double h_target = min_size + (max_size - min_size) * refinement_factor;
       
-      //~ //Limitar el tamaño mínimo y máximo
-      //~ if (h_target < min_size) h_target = min_size;
-      //~ if (h_target > max_size) h_target = max_size;
+      //Limitar el tamaño mínimo y máximo
+      if (h_target < min_size) h_target = min_size;
+      if (h_target > max_size) h_target = max_size;
       
-      //~ if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
-          //~ exit(EXIT_FAILURE);
-  //~ }
+      if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
+          exit(EXIT_FAILURE);
+  }
+  
   
 
   //~ // --- Deterministic remesh parameters ---
