@@ -298,7 +298,7 @@ public:
         
         // Default values
         FilterParameters() :
-            warmup_steps(100),
+            warmup_steps(10),
             warmup_damping_factor(0.8),
             max_allowed_velocity(50.0),
             velocity_correction_aggressiveness(0.7),
