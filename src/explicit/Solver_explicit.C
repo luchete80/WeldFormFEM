@@ -635,7 +635,12 @@ void host_ Domain_d::SolveChungHulbert(){
             a[m_dim*i+d] *= 0.01;
         }
       }
-
+      
+        for (int d=0;d<m_dim;d++){
+        if (std::isnan(a[m_dim*n+d]))
+          cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
+        }
+        
       if(norm(vel)>20.0*1.2){
         if (norm(vel)>maxv)
           maxv =norm(vel);
@@ -688,17 +693,15 @@ void host_ Domain_d::SolveChungHulbert(){
     cout <<"Checking velocity "<<endl;
      r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
-        vector_t vel = getVelVec(n);
-        if(norm(vel)>v_max ){
-          v_max = norm(vel);
-        }
+      vector_t vel = getVelVec(n);
+      if(norm(vel)>v_max ){
+        v_max = norm(vel);
+      }
       
-        for (int d=0;d<m_dim;d++){
-          if (std::isnan(v[m_dim*n+d]))
-            cout << "ERROR: NAN in node "<<n<<", dir "<< d <<", acc is: "<< a[m_dim*n+d]<<endl;
+        for (int d=0;d<m_dim;d++)
           if (r_damp<1.0)
             v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
-        }
+
     CorrectLocalVelocityPeaks();
       }
   }
@@ -720,7 +723,7 @@ void host_ Domain_d::SolveChungHulbert(){
       }
     }
     max_vprev = v_max;
-    cout << "Max vel before correct peaks and affect with Ekin: "<<v_max<<endl;
+    cout << "Max vel before correct peaks and affect with Ekin"<<v_max<<endl;
     cout << "Damping Energy factor: "<<r_damp<<endl;
     //if (Time > RAMP_FRACTION*end_t)
     
