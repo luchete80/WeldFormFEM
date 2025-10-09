@@ -1,25 +1,29 @@
 {
 "Configuration":
 {
-  "Nproc":12,
-"particleRadius": 0.0075,
-"hFactor": 1.2,
+  "Nproc":7,
+	"particleRadius": 0.0075, 
+	"hFactor": 1.2,
   "cflMethod": 1,
   "cflFactor": 0.3,
+  "autoTS": [false,false,false],
   "simTime": 0.1,
   "outTime": 5.0e-5,
   "solver": "Mech-LeapFrog",
   "thermal":false,
-  "artifViscCoeffs":[0.06,1.2],
-    "fixedTS": false  
-},"Meshing":{
-   "minStrain":-1.0,
-  "stepInterval": 10000,
-  "warmupSteps": 300,
-  "transSteps":50
-  }
+  "artifViscCoeffs":[0.06,1.0]
+}
 ,
+"Stabilization":{
 
+}
+,
+"Meshing":{
+  "minStrain":-0.01,
+  "stepInterval": 10000,
+  "warmupSteps": 10,
+  "maxCount":100000
+},
 "Materials":[ 
 {
 	"id": "Solid",
@@ -28,7 +32,9 @@
 	"density0": 27000.0, 
 	"youngsModulus": 68.9E9, 
 	"poissonsRatio": 0.3,
-	"yieldStress0": 190.0E6
+	"yieldStress0": 190.0E6,
+  "thermalCond":190,
+  "thermalHeatCap":8.75
 }],
 
 "DomainBlocks": 
