@@ -43,6 +43,13 @@ namespace MetFEM{
 
 class Domain_d;
 
+struct remesh_params {
+    double nodal_tol;   //fract 
+    double lambda_tol;  //element inside
+    bool   map_momentum;
+    
+}; 
+
 class ReMesher{
   public:
   
@@ -134,6 +141,8 @@ class ReMesher{
     delete[] m_x,m_elnod;//CONVERT TO free to use in CUDA
     free_t(m_closest_elem);
   }
+  
+  remesh_params m_params;
   
   protected:
   

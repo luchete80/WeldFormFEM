@@ -59,9 +59,10 @@ namespace MetFEM{
 
       m_old_mesh = mesh; 
       m_mesh = mesh;
-
-
 #endif //OMEGA_H
+
+    m_params.nodal_tol    = 1.0e-3; //relative to elem length
+    m_params.lambda_tol   = 1.0e-4; //relative to elem length
 
 }
 
@@ -258,7 +259,7 @@ double tet_volume(double v0[3], double v1[3], double v2[3],  double v3[3]) {
 
 void ReMesher::WriteDomain(){
   
-  bool m_map_momentum = true;
+  bool m_map_momentum = false;
   
   cout << "WRITING DOMAIN "<<m_node_count<<" NODES "<<m_elem_count<<"ELEMS"<<endl;  
   #ifdef REMESH_OMEGA_H
@@ -636,7 +637,8 @@ void ReMesher::WriteDomain(){
 template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
-
+    int notfound = 0;
+    int notsame = 0;
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
     for (int vert=0;vert<m_node_count;vert++){
       
@@ -671,6 +673,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
       }//node
       
       if (!found_samenode){
+        notsame++;
     //for (int n = 0; n < mesh.nverts(); n++) {
         bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
         //std::cout << mesh.coords()[n]<<std::endl;
@@ -749,13 +752,16 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
                   //~ vfield[dim * vert + d] = interpolated_value[d] / total_weight;
               //~ }
               
+              notfound++;
+              
           }
         }//found same node
 
       //n++;
-  
-    }
-
+    }//Node Loop
+    cout << "Not Inside   Node Count: " << notfound<<"( "<< notfound/m_node_count*100.0<<"%)"<<endl;
+    cout << "Not Same Old Node Count: " << notsame<<"( "<< (float)notsame/float(m_node_count)*100.0<<"%)"<<endl;
+    
 }//MAP
 
 

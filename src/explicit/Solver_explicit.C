@@ -396,6 +396,7 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "Max vel: " << max_vel << endl;
 
     cout << "dEkin: "<<dEkin <<", dEint: "<<dEint<<endl;
+    cout << " Ekin: "<< Ekin <<",  Eint: "<<Eint<<", Etot: "<< Ekin + Eint << endl;
     wup_step_count++;
     
       // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
