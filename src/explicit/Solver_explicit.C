@@ -637,8 +637,10 @@ void host_ Domain_d::SolveChungHulbert(){
       }
       
         for (int d=0;d<m_dim;d++){
-        if (std::isnan(a[m_dim*i+d]))
-          cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
+        if (std::isnan(a[m_dim*i+d])){
+            cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
+            cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
+        }
         }
         
       if(norm(vel)>20.0*1.2){

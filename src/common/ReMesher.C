@@ -494,7 +494,10 @@ void ReMesher::WriteDomain(){
     memcpy_t(m_dom->T,        Tfield, sizeof(double) * m_dom->m_node_count);     
     
   }
-
+  
+  for (int i=0;i<m_dom->m_node_count*m_dom->m_dim;i++){
+    m_dom->m_fe[i]= m_dom->m_fi[i] = 0.0;
+  }
    
   m_dom->AssignMatAddress();
   const Material_ *matt  = &m_dom->materials[0];

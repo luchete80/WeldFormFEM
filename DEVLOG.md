@@ -404,3 +404,6 @@ F90 PREVIOUS VERSION
 20250918 - Fixed Nonzero Dirichlet BC on Eigen Solver. 
          - Corrected Dirichlet BC, being the difference between applied and 
          - FIRST IMPLICIT ELASTIC WORKING.
+-------------------------------------------------------------------------------------------------------
+20251009  - Fixed Kinetic Energy
+          - Fixed m_fe(which should be zero and is not )
