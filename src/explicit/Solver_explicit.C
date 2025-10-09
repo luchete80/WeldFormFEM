@@ -396,8 +396,6 @@ void host_ Domain_d::SolveChungHulbert(){
     cout << "New dt: " << dt << endl;
     cout << "Max vel: " << max_vel << endl;
 
-    cout << "dEint: "<<dEint<<endl;
-    cout << " Ekin: "<< Ekin <<",  Eint: "<<Eint<<", Etot: "<< Ekin + Eint << endl;
     wup_step_count++;
     
       // std::string s = "out_wup_"+std::to_string(s_wup)+".vtk";
@@ -697,7 +695,7 @@ void host_ Domain_d::SolveChungHulbert(){
       
         for (int d=0;d<m_dim;d++){
           if (std::isnan(v[m_dim*n+d]))
-            cout << "ERROR: NAN in node "<<n<<endl;
+            cout << "ERROR: NAN in node "<<n<<", dir "<< d <<", acc is: "<< a[m_dim*n+d]<<endl;
           if (r_damp<1.0)
             v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
         }
