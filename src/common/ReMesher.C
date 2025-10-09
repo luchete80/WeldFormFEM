@@ -346,7 +346,9 @@ void ReMesher::WriteDomain(){
     MapNodal(afield,   m_dom->a);
     MapNodal(pafield,  m_dom->prev_a);
   }
-  
+
+  //MapNodal(pafield,  m_dom->prev_a);
+      
   cout <<"DONE"<<endl;
   double *volumes=new double[m_elem_count];
   double vol = 0.0;

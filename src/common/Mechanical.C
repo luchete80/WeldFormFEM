@@ -2306,7 +2306,7 @@ void Domain_d::ApplyGlobalDamping(double damping_factor) {
 
 dev_t void Domain_d::computeEnergies(double dt,
                        //const double* f_visc,  // optional nodal viscous forces [3*node_count] or nullptr
-                       double &Ekin, double &Eint, double &Evisc)
+                       double &Ekin, double &dEint, double &Evisc)
 {
     Ekin = 0.0;
     for (int n=0; n<m_node_count; ++n){
@@ -2329,7 +2329,7 @@ dev_t void Domain_d::computeEnergies(double dt,
         double sdot = s0*e0 + s1*e1 + s2*e2 + s3*e3 + s4*e4 + s5*e5;
         Edot_int += sdot * vol[e];
     }
-    Eint = Edot_int * dt; // energía interna producida en este paso
+    dEint = Edot_int * dt; // energía interna producida en este paso
     // si quieres la energía interna acumulada, haz Eint_total += Edot_int*dt externamente
 
     // Viscous dissipation (nodal)

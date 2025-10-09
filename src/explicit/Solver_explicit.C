@@ -255,7 +255,7 @@ void host_ Domain_d::SolveChungHulbert(){
   ////// OR TIME
   if (step_count % 100 == 0){
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
-    cout << "Ekin: "<<Ekin <<", Eint "<<Eint<<endl; 
+    cout << "Ekin: "<<Ekin <<", Eint "<<Eint<<"Etot "<<Ekin+Eint<<endl; 
     cout << "Max V"<<max_vel<<endl;
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
@@ -308,7 +308,7 @@ void host_ Domain_d::SolveChungHulbert(){
       std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
       VTKWriter writer3(this, s.c_str());
       writer3.writeFile();
-      remesh_ = true;  
+      remesh_ = true; 
       
       //smoothFieldLaplacian(v,3);
       s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
@@ -694,7 +694,7 @@ void host_ Domain_d::SolveChungHulbert(){
       
         for (int d=0;d<m_dim;d++)
           if (r_damp<1.0)
-            v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
+            v[m_dim*n+d] *= sqrt(r_damp);   // nunca subir v; solo bajar si se disparó    
 
     CorrectLocalVelocityPeaks();
       }
@@ -837,8 +837,22 @@ void host_ Domain_d::SolveChungHulbert(){
 
   }
   double dEvisc;
+  if (remesh_) {
+
+    cout << "Energy Before remesh, Ekin: "<<Ekin<<", Eint: "<<Eint<<endl;
+
+    double Ekin_mapped = 0.0;
+    for (int n=0; n<m_node_count; ++n){
+        double vx = v[3*n+0], vy = v[3*n+1], vz = v[3*n+2];
+        double k = 0.5 * m_mdiag[n] * (vx*vx + vy*vy + vz*vz);
+        Ekin_mapped += k;
+    }
+    cout << "Energy After r,emesh, Ekin: "<<Ekin_mapped<<endl;
+        
+  }
   computeEnergies(dt,dEkin,dEint,dEvisc);
-  Eint+=dEint; Ekin +=dEkin;
+
+  Eint+=dEint; 
 
  
   if (Time>=tout){
@@ -942,7 +956,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
     //}
     of <<","<<Eint<<","<<Ekin;
-    of <<endl;
+    of <<", Etot"<<Eint+Ekin<<endl;
     #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
     writer2.writeFile();
