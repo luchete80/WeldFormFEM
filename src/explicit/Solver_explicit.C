@@ -367,6 +367,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   #ifdef BUILD_REMESH  
   if (s_wup < 1.0){
+    cout <<"-----------------------------"<<endl;
     //s_wup = double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
 
     //LINEAR
@@ -676,27 +677,30 @@ void host_ Domain_d::SolveChungHulbert(){
   UpdateCorrectionAccVel();
   
   #ifdef BUILD_REMESH    
-  if (remesh_){
-    //Maintain mapped v if were mapped with momentum conservation!
-    memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
-  }
+  // if (remesh_){
+    // //Maintain mapped v if were mapped with momentum conservation!
+    // memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+  // }
   
   double v_max = 0.0;
 
   double r_damp;
   
   if(s_wup<1.0|| transition){
+    cout <<"Checking velocity "<<endl;
      r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
       for (int n=0;n<m_node_count;n++){ 
-      vector_t vel = getVelVec(n);
-      if(norm(vel)>v_max ){
-        v_max = norm(vel);
-      }
+        vector_t vel = getVelVec(n);
+        if(norm(vel)>v_max ){
+          v_max = norm(vel);
+        }
       
-        for (int d=0;d<m_dim;d++)
+        for (int d=0;d<m_dim;d++){
+          if (std::isnan(v[m_dim*n+d]))
+            cout << "ERROR: NAN in node "<<n<<endl;
           if (r_damp<1.0)
-            v[m_dim*n+d] *= 2*r_damp;   // nunca subir v; solo bajar si se disparó    
-
+            v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
+        }
     CorrectLocalVelocityPeaks();
       }
   }
@@ -718,22 +722,22 @@ void host_ Domain_d::SolveChungHulbert(){
       }
     }
     max_vprev = v_max;
-    cout << "Max vel before correct peaks and affect with Ekin"<<v_max<<endl;
+    cout << "Max vel before correct peaks and affect with Ekin: "<<v_max<<endl;
     cout << "Damping Energy factor: "<<r_damp<<endl;
     //if (Time > RAMP_FRACTION*end_t)
     
     //ApplyGlobalDamping((1.0-s_wup));
     
     //smoothFieldLaplacian(v,3);
-    const double ka = 0.5;
-    for (int i=0;i<m_node_count;i++)
-      for (int d=0;d<m_dim;d++){
-        //if(abs(a[m_dim*i+d])>1.0e6)
+    // const double ka = 0.5;
+    // for (int i=0;i<m_node_count;i++)
+      // for (int d=0;d<m_dim;d++){
+        // //if(abs(a[m_dim*i+d])>1.0e6)
       
-          postRemeshGlobFilter();//Filter again vel: TOO SLOW!!
-          a[m_dim*i+d] *= ka*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
-          //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
-      }
+          // postRemeshGlobFilter();//Filter again vel: TOO SLOW!!
+          // a[m_dim*i+d] *= ka*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
+          // //v[m_dim*i+d] *= (1.0e-2)*double(step_count-last_step_remesh)/double(m_filter_params.warmup_steps);
+      // }
 
   }
   #endif //REMESH
@@ -848,7 +852,7 @@ void host_ Domain_d::SolveChungHulbert(){
         double k = 0.5 * m_mdiag[n] * (vx*vx + vy*vy + vz*vz);
         Ekin_mapped += k;
     }
-    cout << "Energy After r,emesh, Ekin: "<<Ekin_mapped<<endl;
+    cout << "Energy After remesh, Ekin: "<<Ekin_mapped<<endl;
         
   }
   computeEnergies(dt,Ekin,dEint,dEvisc);

@@ -1022,6 +1022,7 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
 /////////////////////NEW 
 
 void ReMesher::FindMapElemClosest() {
+  int notinside = 0;
     for (int elem = 0; elem < m_elem_count; elem++) {
         std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
         
@@ -1103,8 +1104,13 @@ void ReMesher::FindMapElemClosest() {
                 std::cout << "Old barycenter: (" << closest_barycenter[0] << ", " 
                           << closest_barycenter[1] << ", " << closest_barycenter[2] << ")\n";
             }
+        } else {
+          
+          notinside++;
         }
-    }
+    }//ELEM
+    cout << "Not Inside  Elements : " << notinside<<"( "<< notinside/m_elem_count*100.0<<"%)"<<endl;
+
 }
 
 
