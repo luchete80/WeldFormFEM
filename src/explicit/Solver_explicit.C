@@ -694,7 +694,7 @@ void host_ Domain_d::SolveChungHulbert(){
       
         for (int d=0;d<m_dim;d++)
           if (r_damp<1.0)
-            v[m_dim*n+d] *= sqrt(r_damp);   // nunca subir v; solo bajar si se disparó    
+            v[m_dim*n+d] *= r_damp;   // nunca subir v; solo bajar si se disparó    
 
     CorrectLocalVelocityPeaks();
       }
@@ -855,22 +855,6 @@ void host_ Domain_d::SolveChungHulbert(){
   Eint+=dEint; 
 
 
-  //~ if(s_wup<1.0|| transition){
-     //~ r_damp = sqrt( Ekin_old / (Ekin + 1e-30) );    
-      //~ for (int n=0;n<m_node_count;n++){ 
-      //~ vector_t vel = getVelVec(n);
-      //~ if(norm(vel)>v_max ){
-        //~ v_max = norm(vel);
-      //~ }
-      
-        //~ for (int d=0;d<m_dim;d++)
-          //~ if (r_damp<1.0)
-            //~ v[m_dim*n+d] *= sqrt(r_damp);   // nunca subir v; solo bajar si se disparó    
-
-    //~ CorrectLocalVelocityPeaks();
-      //~ }
-  //~ }
-  
 
  
   if (Time>=tout){
