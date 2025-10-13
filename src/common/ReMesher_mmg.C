@@ -245,7 +245,7 @@ void ReMesher::Generate_mmg(){
       double plastic_strain = m_dom->pl_strain[k-1];
       
       //Definir rangos de refinamiento
-      double min_size = 0.3 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
+      double min_size = 0.4 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
       double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
       
       //Mapear la deformación plástica al tamaño de elemento

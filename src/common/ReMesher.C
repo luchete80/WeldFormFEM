@@ -638,6 +638,43 @@ void ReMesher::WriteDomain(){
 }
 
 
+int ReMesher::find_closest_node(const double x[3]) {
+    int closest = -1;
+    double min_dist_sq = 1.0e20;
+
+    for (int i = 0; i < m_dom->m_node_count; ++i) {
+        double dx = x[0] - m_dom->x[3*i];
+        double dy = x[1] - m_dom->x[3*i + 1];
+        double dz = x[2] - m_dom->x[3*i + 2];
+        double dist_sq = dx*dx + dy*dy + dz*dz;
+
+        if (dist_sq < min_dist_sq) {
+            min_dist_sq = dist_sq;
+            closest = i;
+        }
+    }
+
+    return closest;
+}
+
+int ReMesher::find_closest_node(const std::array<double, 3>& x) {
+    int closest = -1;
+    double min_dist_sq = 1.0e20;
+
+    for (int i = 0; i < m_dom->m_node_count; ++i) {
+        double dx = x[0] - m_dom->x[3 * i];
+        double dy = x[1] - m_dom->x[3 * i + 1];
+        double dz = x[2] - m_dom->x[3 * i + 2];
+        double dist_sq = dx * dx + dy * dy + dz * dz;
+
+        if (dist_sq < min_dist_sq) {
+            min_dist_sq = dist_sq;
+            closest = i;
+        }
+    }
+    return closest;
+}
+
 /////WITH THE RAW ELEM AND CONNECT
 //args: NEW (m_node_count), OLD(m_dom->m_elem_count)
 template <int dim>
@@ -732,31 +769,19 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
           }//elem
           if (!found) {
               //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+              
+              //
+              // 1. Encuentra el nodo más cercano en la malla old
+              int closest_old_node = find_closest_node(target_node); 
+              
+              for (int d = 0; d < dim; d++) {
+                  vfield[dim * vert + d] = o_field[dim * closest_old_node + d];
+              }
 
-              //~ // 1. Encuentra el nodo más cercano en la malla old
-              //~ int closest_old_node = find_closest_node(target_node); 
-              
-              //~ // 2. Encuentra los K nodos más cercanos en la malla old (ej: K=4)
-              //~ std::vector<int> closest_nodes = find_k_closest_nodes(target_node, 4); 
-              
-              //~ // 3. Interpola suavemente usando pesos por distancia inversa
-              //~ double total_weight = 0.0;
-              //~ std::array<double, dim> interpolated_value = {0.0, 0.0, 0.0};
-              
-              //~ for (int node_id : closest_nodes) {
-                  //~ double dist = distance(target_node, old_mesh_coords[node_id]);
-                  //~ double weight = 1.0 / (dist * dist + 1e-15); // Peso = 1/dist^2
-                  
-                  //~ for (int d=0; d<dim; d++) {
-                      //~ interpolated_value[d] += weight * o_field[dim * node_id + d];
-                  //~ }
-                  //~ total_weight += weight;
-              //~ }
-              
-              //~ // Normalizar
-              //~ for (int d=0; d<dim; d++) {
-                  //~ vfield[dim * vert + d] = interpolated_value[d] / total_weight;
-              //~ }
+              if (vert == 0) {
+                  std::cout << "USING NEAREST NODE " << closest_old_node 
+                            << " for node " << vert << std::endl;
+              }
               
               notfound++;
               
@@ -771,24 +796,6 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
 }//MAP
 
 
-int ReMesher::find_closest_node(const double x[3]) {
-    int closest = -1;
-    double min_dist_sq = 1.0e20;
-
-    for (int i = 0; i < m_dom->m_node_count; ++i) {
-        double dx = x[0] - m_dom->x[3*i];
-        double dy = x[1] - m_dom->x[3*i + 1];
-        double dz = x[2] - m_dom->x[3*i + 2];
-        double dist_sq = dx*dx + dy*dy + dz*dz;
-
-        if (dist_sq < min_dist_sq) {
-            min_dist_sq = dist_sq;
-            closest = i;
-        }
-    }
-
-    return closest;
-}
 
 // void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // const double EPS = 1.0e-4;

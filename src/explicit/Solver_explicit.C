@@ -623,6 +623,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int nc=0;
   bool large_acc = false;
   double maxv = 0.0;
+  bool isnan = false;
   for (int i=0;i<m_node_count;i++){
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
@@ -638,8 +639,9 @@ void host_ Domain_d::SolveChungHulbert(){
       
         for (int d=0;d<m_dim;d++){
         if (std::isnan(a[m_dim*i+d])){
-            cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
-            cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
+            //~ cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
+            //~ cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
+            isnan = true;
         }
         }
         
@@ -651,6 +653,8 @@ void host_ Domain_d::SolveChungHulbert(){
       }
 
   }
+  if (isnan)
+    cout << "ERROR, NAN"<<endl;
   
   if (nc>0.05*m_node_count)
         large_acc = true;
