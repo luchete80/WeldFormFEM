@@ -1,0 +1,185 @@
+diff --git a/lib/LSDynaReader b/lib/LSDynaReader
+index 86217f8..60834d6 160000
+--- a/lib/LSDynaReader
++++ b/lib/LSDynaReader
+@@ -1 +1 @@
+-Subproject commit 86217f8e361f29d290fb8aac44c8c9636e910d78
++Subproject commit 60834d6d3adb4c3e6a617a98e4fe53467375b999
+diff --git a/src/common/ReMesher.C b/src/common/ReMesher.C
+index f39b1af..82ff7d6 100644
+--- a/src/common/ReMesher.C
++++ b/src/common/ReMesher.C
+@@ -462,10 +462,11 @@ void ReMesher::WriteDomain(){
+     
+ 
+   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
+-  if (m_map_momentum)
+-    memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
+-  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
+-  memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
++
++  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
++  
++  //~ memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
++  //~ memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
+   
+   memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
+   memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
+@@ -637,6 +638,43 @@ void ReMesher::WriteDomain(){
+ }
+ 
+ 
++int ReMesher::find_closest_node(const double x[3]) {
++    int closest = -1;
++    double min_dist_sq = 1.0e20;
++
++    for (int i = 0; i < m_dom->m_node_count; ++i) {
++        double dx = x[0] - m_dom->x[3*i];
++        double dy = x[1] - m_dom->x[3*i + 1];
++        double dz = x[2] - m_dom->x[3*i + 2];
++        double dist_sq = dx*dx + dy*dy + dz*dz;
++
++        if (dist_sq < min_dist_sq) {
++            min_dist_sq = dist_sq;
++            closest = i;
++        }
++    }
++
++    return closest;
++}
++
++int ReMesher::find_closest_node(const std::array<double, 3>& x) {
++    int closest = -1;
++    double min_dist_sq = 1.0e20;
++
++    for (int i = 0; i < m_dom->m_node_count; ++i) {
++        double dx = x[0] - m_dom->x[3 * i];
++        double dy = x[1] - m_dom->x[3 * i + 1];
++        double dz = x[2] - m_dom->x[3 * i + 2];
++        double dist_sq = dx * dx + dy * dy + dz * dz;
++
++        if (dist_sq < min_dist_sq) {
++            min_dist_sq = dist_sq;
++            closest = i;
++        }
++    }
++    return closest;
++}
++
+ /////WITH THE RAW ELEM AND CONNECT
+ //args: NEW (m_node_count), OLD(m_dom->m_elem_count)
+ template <int dim>
+@@ -731,31 +769,19 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+           }//elem
+           if (!found) {
+               //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+-
+-              //~ // 1. Encuentra el nodo más cercano en la malla old
+-              //~ int closest_old_node = find_closest_node(target_node); 
+               
+-              //~ // 2. Encuentra los K nodos más cercanos en la malla old (ej: K=4)
+-              //~ std::vector<int> closest_nodes = find_k_closest_nodes(target_node, 4); 
++              //
++              // 1. Encuentra el nodo más cercano en la malla old
++              int closest_old_node = find_closest_node(target_node); 
+               
+-              //~ // 3. Interpola suavemente usando pesos por distancia inversa
+-              //~ double total_weight = 0.0;
+-              //~ std::array<double, dim> interpolated_value = {0.0, 0.0, 0.0};
+-              
+-              //~ for (int node_id : closest_nodes) {
+-                  //~ double dist = distance(target_node, old_mesh_coords[node_id]);
+-                  //~ double weight = 1.0 / (dist * dist + 1e-15); // Peso = 1/dist^2
+-                  
+-                  //~ for (int d=0; d<dim; d++) {
+-                      //~ interpolated_value[d] += weight * o_field[dim * node_id + d];
+-                  //~ }
+-                  //~ total_weight += weight;
+-              //~ }
+-              
+-              //~ // Normalizar
+-              //~ for (int d=0; d<dim; d++) {
+-                  //~ vfield[dim * vert + d] = interpolated_value[d] / total_weight;
+-              //~ }
++              for (int d = 0; d < dim; d++) {
++                  vfield[dim * vert + d] = o_field[dim * closest_old_node + d];
++              }
++
++              if (vert == 0) {
++                  std::cout << "USING NEAREST NODE " << closest_old_node 
++                            << " for node " << vert << std::endl;
++              }
+               
+               notfound++;
+               
+@@ -770,24 +796,6 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+ }//MAP
+ 
+ 
+-int ReMesher::find_closest_node(const double x[3]) {
+-    int closest = -1;
+-    double min_dist_sq = 1.0e20;
+-
+-    for (int i = 0; i < m_dom->m_node_count; ++i) {
+-        double dx = x[0] - m_dom->x[3*i];
+-        double dy = x[1] - m_dom->x[3*i + 1];
+-        double dz = x[2] - m_dom->x[3*i + 2];
+-        double dist_sq = dx*dx + dy*dy + dz*dz;
+-
+-        if (dist_sq < min_dist_sq) {
+-            min_dist_sq = dist_sq;
+-            closest = i;
+-        }
+-    }
+-
+-    return closest;
+-}
+ 
+ // void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+     // const double EPS = 1.0e-4;
+diff --git a/src/common/ReMesher_mmg.C b/src/common/ReMesher_mmg.C
+index d0a6667..91d01fa 100644
+--- a/src/common/ReMesher_mmg.C
++++ b/src/common/ReMesher_mmg.C
+@@ -245,7 +245,7 @@ void ReMesher::Generate_mmg(){
+       double plastic_strain = m_dom->pl_strain[k-1];
+       
+       //Definir rangos de refinamiento
+-      double min_size = 0.3 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
++      double min_size = 0.4 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
+       double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
+       
+       //Mapear la deformación plástica al tamaño de elemento
+diff --git a/src/explicit/Solver_explicit.C b/src/explicit/Solver_explicit.C
+index 31c539e..9e3fe53 100644
+--- a/src/explicit/Solver_explicit.C
++++ b/src/explicit/Solver_explicit.C
+@@ -623,6 +623,7 @@ void host_ Domain_d::SolveChungHulbert(){
+   int nc=0;
+   bool large_acc = false;
+   double maxv = 0.0;
++  bool isnan = false;
+   for (int i=0;i<m_node_count;i++){
+       vector_t acc = getAccVec(i);
+       vector_t vel = getVelVec(i);
+@@ -638,8 +639,9 @@ void host_ Domain_d::SolveChungHulbert(){
+       
+         for (int d=0;d<m_dim;d++){
+         if (std::isnan(a[m_dim*i+d])){
+-            cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
+-            cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
++            //~ cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
++            //~ cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
++            isnan = true;
+         }
+         }
+         
+@@ -651,6 +653,8 @@ void host_ Domain_d::SolveChungHulbert(){
+       }
+ 
+   }
++  if (isnan)
++    cout << "ERROR, NAN"<<endl;
+   
+   if (nc>0.05*m_node_count)
+         large_acc = true;

@@ -465,8 +465,9 @@ void ReMesher::WriteDomain(){
 
   memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
   
-  //~ memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
-  //~ memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
+  /// THIS SHOULD BE MAINTAINED!!!
+  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
+  memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
   
   memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
@@ -604,7 +605,7 @@ void ReMesher::WriteDomain(){
     cout << " - After: (" << final_momentum.x << ", " << final_momentum.y << ", " << final_momentum.z << ")\n";
       
   
-  }
+  }/////// IF MAP MOMENTUM
   
   //// RECALCULATED FROM MOMENTUM
   ///////if (m_dom->m_remesh_map_vel)
