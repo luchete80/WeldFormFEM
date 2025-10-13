@@ -462,10 +462,11 @@ void ReMesher::WriteDomain(){
     
 
   // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
-  if (m_map_momentum)
-    memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
-  memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
-  memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
+
+  memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * 3);  
+  
+  //~ memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3);
+  //~ memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3);  
   
   memcpy_t(m_dom->a,        afield, sizeof(double) * m_dom->m_node_count * 3);   
   memcpy_t(m_dom->prev_a,  pafield, sizeof(double) * m_dom->m_node_count * 3);   
