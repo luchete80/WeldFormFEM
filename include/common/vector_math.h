@@ -168,7 +168,12 @@ static __forceinline__ __host__ __device__ float2& as_float2(const float3 &v)
 	return *(float2*)&v;
 }
 
-
+__host__ __device__ inline double2 operator-(const double2 &a, const double2 &b){
+    return make_double2(a.x - b.x, a.y - b.y);
+}
+__host__ __device__ inline double2 operator+(const double2 &a, const double2 &b){
+    return make_double2(a.x + b.x, a.y + b.y);
+}
 // negate
 static __forceinline__ __host__ __device__ float2 operator-(const float2 &a)
 {
@@ -825,6 +830,11 @@ static __forceinline__ __host__ __device__ double length(const double3 &v)
 	return sqrt(sqlength(v));
 }
 
+// length
+static __forceinline__ __host__ __device__ double norm(const double3 &v)
+{
+	return sqrt(sqlength(v));
+}
 // normalize
 static __forceinline__ __host__ __device__ double3 normalize(const double3 &v)
 {
@@ -1502,6 +1512,10 @@ static __device__ __forceinline__ __host__ uint3 clamp(const uint3 &v, const uin
 	return make_uint3(clamp(v.x, a.x, b.x), clamp(v.y, a.y, b.y), clamp(v.z, a.z, b.z));
 }
 
+
+__host__ __device__ inline double min_(double a, double b) {
+    return (a < b) ? a : b;
+}
 
 
 #endif

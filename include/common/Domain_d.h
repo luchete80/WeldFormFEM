@@ -571,7 +571,7 @@ public:
     
   //--------------------------------------------------------------------------------------------------------------------------------
   
-  void CalcExtFaceAreas();
+  dev_t void CalcExtFaceAreas();
   std::ofstream out_file;
   void setCFL(const double &f){m_cfl_factor = f;}
   

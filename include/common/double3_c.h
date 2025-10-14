@@ -84,7 +84,7 @@ inline double sqlength(double3 &v){
 }
 
 
-inline double norm(double3 &v){
+inline double norm(double3 v){
   return sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
 }
 

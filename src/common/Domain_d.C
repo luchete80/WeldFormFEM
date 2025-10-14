@@ -249,8 +249,13 @@ dev_t void addElementFaces(Face faceList[], int& faceCount,
 }
 
 dev_t void Domain_d::SearchExtNodes() {
-
+    
+    #ifndef CUDA_BUILD
     int elements[ELNOD]; 
+    #else 
+    int elements[4];
+    #endif
+    
     m_faceCount = 0;
     
     // Extraer caras/aristas de cada elemento
@@ -323,11 +328,18 @@ dev_t void Domain_d::SearchExtNodes() {
 
 ///////////////////////////////////////////////////
 
-void Domain_d::CalcExtFaceAreas(){
+dev_t void Domain_d::CalcExtFaceAreas(){
   
   int top_faces = 0;
   double top_area=0.0;
-   bool elem_flags[m_elem_count];
+  #ifndef CUDA_BUILD
+  bool elem_flags[m_elem_count];
+  #else
+  bool *elem_flags;
+  malloc_t(elem_flags, bool, m_elem_count);
+  #endif
+  
+    
   for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
   ////////////////////////////////////
   //////// CALCULATE AREA (FOR CONTACT)
@@ -380,6 +392,9 @@ void Domain_d::CalcExtFaceAreas(){
     //printf ("Top Faces: %d\n",top_faces);
     //printf("--------------------------TOP AREA %.4e\n",top_area);
   
+  #ifdef CUDA_BUILD
+    free_t(elem_flags);
+  #endif
   
 }
 
@@ -799,10 +814,14 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   
   /// IMPLICIT THINGS
   //malloc_t(m_Kmat, Matrix, m_elem_count );  Written for asinglepointer
+  #ifndef CUDA_BUILD
   m_Kmat = new Matrix*[m_elem_count];  // or use malloc_t macro if it's defined
   for (int e=0;e<m_elem_count;e++)
     m_Kmat[e] = new Matrix(m_nodxelem* m_dim,m_nodxelem* m_dim);
-
+  #else
+  
+  #endif
+  
   malloc_t (m_elem_area, double, m_elem_count);
   //MODIFY THIS!!! IS A LOT OF SPACE
   malloc_t(faceList, Face, m_elem_count*ELFAC);
@@ -2284,9 +2303,12 @@ dev_t void Domain_d::calcMinEdgeLength(){
 }
 
 */
+//// TODO: SOLVE THIS EITHER WITH DOUBLE2 include
+#ifndef CUDA_BUILD
 inline double length(const double2 &v) {
     return sqrt(v.x * v.x + v.y * v.y);
 }
+#endif
 
 // Calculate min edge length and height
 dev_t void Domain_d::calcMinEdgeLength() {
@@ -2475,7 +2497,11 @@ dev_t void Domain_d::postRemeshGlobFilter()
         v_mag_current = sqrt(v_mag_current);
 
         // Factor de blending basado en plasticidad
+        #ifndef CUDA_BUILD
         double alpha = std::min(1.0, pl_strain[i]/(2.0*strain_threshold));
+        #else
+        double alpha = min_(1.0, pl_strain[i]/(2.0*strain_threshold));
+        #endif
         double v_target = (1.0-alpha)*v_mag_prev + alpha*v_mag_current;
 
         // Aplicar filtro (kv=1: no filtro, kv=0: full damping)
