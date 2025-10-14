@@ -1,0 +1,97 @@
+{
+"Configuration":
+{
+  "Nproc":12,
+"particleRadius": 0.0075,
+"hFactor": 1.2,
+  "cflMethod": 1,
+  "cflFactor": 0.3,
+  "simTime": 0.1,
+  "outTime": 5.0e-5,
+  "solver": "Mech-LeapFrog",
+  "thermal":false,
+  "artifViscCoeffs":[0.06,1.2],
+    "fixedTS": false  
+},
+"Meshing":{
+   "minStrain":-1.0,
+  "stepInterval": 5000,
+  "warmupSteps": 10,
+  "transSteps":50
+  }
+,
+
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 27000.0, 
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 190.0E6
+}],
+
+"DomainBlocks": 
+[{
+	"type": "File",
+	"fileName": "tetra_cyl.k",
+  "scaleFactor": 1.0,
+	"zoneId": 0
+}],
+"RigidBodies": 
+[{
+	"type": "Plane",
+	"zoneId": 10,
+	"start": [-0.02, -0.02, 0.03],
+  "partSide": 20,
+	"dim":   [0.04, 0.04, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+},
+{
+	"type": "Plane",
+	"zoneId": 1,
+  "flipnormals":true,
+	"start": [-0.02, -0.02, 0.0000],
+  "partSide": 20,
+	"dim":   [0.04, 0.04, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}
+],
+"Contact":[ 
+{
+  "fricCoeffStatic": 0.3,
+  "fricCoeffDynamic": 0.3,
+  "penaltyFactor": 0.6,
+  "heatConductance": false,
+  "heatCondCoeff": 0.01
+  
+}],
+
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 1.0, 1.0]
+}
+],
+"BoundaryConditions": [
+{
+	"zoneId": 	1,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+	"zoneId": 	10,
+	"valueType": 	1,
+  "amplitudeId" : 1,
+  "amplitudeFactor": 1.0,
+	"value": 		[ 0.0, 0.0, -1.2]
+}
+]
+
+}

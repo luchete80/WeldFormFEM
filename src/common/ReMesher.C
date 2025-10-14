@@ -286,9 +286,9 @@ void ReMesher::WriteDomain(){
   double *tau      = new double [6*m_elem_count];   
   double *rho   = new double [m_elem_count];   
   double *vol_0 = new double [m_elem_count];    
-  double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
+  double *idetF   = new double [m_elem_count];  //Inverse Deformation gradient
   
-  double *Tfield  = new double [m_dom->m_node_count];
+  double *Tfield  = new double [3*m_node_count];
   
   double rho_0 = m_dom->rho_0[0];
 
@@ -345,6 +345,10 @@ void ReMesher::WriteDomain(){
   if (m_dom->m_remesh_map_acc){
     MapNodal(afield,   m_dom->a);
     MapNodal(pafield,  m_dom->prev_a);
+  }
+  
+  if (m_dom->m_thermal){
+    MapNodalScalar(Tfield,   m_dom->T);
   }
 
   //MapNodal(pafield,  m_dom->prev_a);
@@ -684,8 +688,8 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     int notfound = 0;
     int notsame = 0;
     cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
-    for (int vert=0;vert<m_node_count;vert++){
-      
+
+    for (int vert=0;vert<m_node_count;vert++){      
         for (int d=0;d<3;d++) vfield [dim*vert+d] = 0.0;
 
    //auto coords = mesh.coords();
