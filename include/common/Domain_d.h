@@ -835,6 +835,8 @@ protected:
   std::vector<double> original_bcy_val; 
   std::vector<double> original_bcz_val;
   bool abs_bc_initialized;
+  
+  bool m_sym_axis[3]; //IN CASE OF PLANE SYMM, FOR REMESH.
 
 
 };
