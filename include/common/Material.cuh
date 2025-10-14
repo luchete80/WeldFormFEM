@@ -115,7 +115,7 @@ class Material_{
 	// //virtual  __device__ inline double CalcYieldStress(const double &strain, const double &strain_rate, const double &temp){};
 	 spec_ const Elastic_& Elastic()const{return elastic_m;}
 
-  Matrix getElasticMatrix(){
+  __spec Matrix getElasticMatrix(){
       Matrix D(6,6);
       double E = Elastic().E();
       double nu = Elastic().Poisson();
@@ -415,7 +415,7 @@ inline double dev_t CalcGMTTangentModulus(const double &plstrain, const double &
   return Et;
 }	
 
-inline Matrix getHollomonTangentMatrix(double eps_eq, Material_ *mat) {
+__spec Matrix getHollomonTangentMatrix(double eps_eq, Material_ *mat) {
     Matrix D(6,6);
     double nu = mat->Elastic().Poisson();
     double E;

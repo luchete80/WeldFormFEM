@@ -116,7 +116,7 @@ TARGET_LINK_LIBRARIES (1elem   cuda cudart cudadevrt)
 TARGET_LINK_LIBRARIES (4elem  cuda cudart cudadevrt)
 endif()
 
-TARGET_LINK_LIBRARIES (WeldFormFEM cuda cudart cudadevrt)
+TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE cuda cudart cudadevrt)
 
 link_directories (${CMAKE_BINARY_DIR}/lib/mmg-5.8.0/lib)
 

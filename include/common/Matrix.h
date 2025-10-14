@@ -319,10 +319,11 @@ __spec Matrix Matrix::SolveLU(Matrix& A, Matrix& b) {
         return empty;
     }
 
-    int n = A.m_row;
+    const int n = A.m_row;
     Matrix LU = A;  // Copia de A para la factorización
     Matrix x(n, 1);
-    int pivot[n];    // Arreglo nativo en lugar de std::vector
+    int* pivot = new int[n];
+//    int pivot[n];    // Arreglo nativo en lugar de std::vector
 
     // --- Factorización LU con pivoteo parcial ---
     for (int i = 0; i < n; ++i) {
@@ -381,7 +382,7 @@ __spec Matrix Matrix::SolveLU(Matrix& A, Matrix& b) {
         }
         x(i, 0) /= LU(i, i);
     }
-
+    delete pivot;
     return x;
 }
 
