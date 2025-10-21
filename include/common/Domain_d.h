@@ -210,6 +210,9 @@ public:
     m_contPF = 0.1;
     m_fixed_dt = false;
     m_press_algorithm = 0;
+    
+    m_remesh_min_fr = 0.4;
+    m_remesh_max_fr = 2.0;    
 
     m_remesh_min_pl_strain = 1.0e-1;
     m_remesh_max_pl_strain = 1.0e6;
@@ -627,6 +630,8 @@ public:
   bool m_remesh_map_vel,m_remesh_map_acc;
   int m_remesh_max_count;
   double m_remesh_damp_vel;
+  
+  double m_remesh_min_fr,m_remesh_max_fr; 
   
   double m_plheatfraction;
   
