@@ -50,16 +50,18 @@ void Domain_d::ThermalCalcs(){
       
         m_dTedt[e*m_nodxelem + i] += heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T);// (J) / (J/°C) = °C
         //printf ("temp inc  x node %.3e\n",heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T));
-    //~ if (e == 0) { // Solo primer elemento
-        //~ printf("DEBUG - Element %d:\n", e);
-        //~ printf("  m_q_plheat[e] = %.3e [J/m³]\n", m_q_plheat[e]);
-        //~ printf("  vol[e] = %.3e [m³]\n", vol[e]);
-        //~ printf("  heat_per_node = %.3e [J]\n", heat_per_node);
-        //~ printf("  m_mdiag[node_id] = %.3e\n", m_mdiag[node_id]);
-        //~ printf("  mat[e]->cp_T = %.3e\n", mat[e]->cp_T);
-        //~ printf("  mat[e]->k_T = %.3e\n", mat[e]->k_T);
-        //~ printf("  dT increment = %.3e [°C]\n", heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T));
-    //~ }
+    //~ if (m_dTedt[e*m_nodxelem + i]>1.0e10) { // Solo primer elemento
+    if (m_dTedt[e*m_nodxelem + i]>1.0e10) {
+        printf("DEBUG - Element %d:\n", e);
+        printf("  m_q_plheat[e] = %.3e [J/m³]\n", m_q_plheat[e]);
+        printf("  vol[e] = %.3e [m³]\n", vol[e]);
+        printf("  heat_per_node = %.3e [J]\n", heat_per_node);
+        printf("  m_mdiag[node_id] = %.3e\n", m_mdiag[node_id]);
+        printf("  mat[e]->cp_T = %.3e\n", mat[e]->cp_T);
+        printf("  mat[e]->k_T = %.3e\n", mat[e]->k_T);
+        printf("  dT increment = %.3e [°C]\n", heat_per_node / (m_mdiag[node_id]*mat[e]->cp_T));
+        printf(" dTdTe%.4e\n",m_dTedt[e*m_nodxelem + i]);
+    }
 
 
     }

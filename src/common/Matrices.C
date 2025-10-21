@@ -44,6 +44,9 @@ namespace MetFEM {
         }
           if(m_thermal){
             T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
+            //~ if (n==0){
+              //~ printf("T %.4e , dTdt %.4e, nodel_id %d, nodel %d\n",T[n],m_dTedt[eglob*m_nodxelem+ne],e,eglob*m_nodxelem+ne);  
+            //~ }
 	  }
       }//Element loop
       if (m_gp_count == 1 ) {  

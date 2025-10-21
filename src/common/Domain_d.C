@@ -562,7 +562,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   //////if thermal
   
   malloc_t (T,                double, node_count);
-  malloc_t(m_dTedt,           double, m_elem_count * m_dim * m_nodxelem);
+  malloc_t(m_dTedt,           double, m_elem_count * m_nodxelem);
   malloc_t(ps_energy,         double, m_elem_count);
   malloc_t (q_cont_conv,      double, node_count);
   malloc_t (node_area,        double, node_count); /////USED FOIR THERMAL CONTACT

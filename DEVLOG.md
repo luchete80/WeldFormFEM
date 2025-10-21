@@ -405,5 +405,7 @@ F90 PREVIOUS VERSION
          - Corrected Dirichlet BC, being the difference between applied and 
          - FIRST IMPLICIT ELASTIC WORKING.
 -------------------------------------------------------------------------------------------------------
-20251009  - Fixed Kinetic Energy
-          - Fixed m_fe(which should be zero and is not )
+20251009 - Fixed Kinetic Energy
+         - Fixed m_fe(which should be zero and is not )
+20251021 - Fixed deTdt allocation.
+         - Fixed MapScalarfield
