@@ -684,14 +684,15 @@ void host_ Domain_d::SolveChungHulbert(){
   
   #else
   UpdateCorrectionAccVel();
-  
+
+  double v_max = 0.0;  
   #ifdef BUILD_REMESH    
   // if (remesh_){
     // //Maintain mapped v if were mapped with momentum conservation!
     // memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
   // }
   
-  double v_max = 0.0;
+
 
   double r_damp;
   
