@@ -412,3 +412,4 @@ F90 PREVIOUS VERSION
 20251022 - FIXED Plane Coefficient Calculation!
          - Created new orient normals feature for uniformize 
          - Fixed flipNormals orientation
+         - Fixed Nastran Reader (now reads with fields with and w/o exponential "E")
