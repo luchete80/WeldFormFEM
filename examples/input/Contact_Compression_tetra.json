@@ -1,25 +1,45 @@
 {
 "Configuration":
 {
+  "Nproc":7,
 	"particleRadius": 0.0075, 
 	"hFactor": 1.2,
   "cflMethod": 1,
-  "cflFactor": 0.7,
+  "cflFactor": 0.15,
   "autoTS": [false,false,false],
-  "simTime": 0.01,
-  "outTime": 1.0e-4,
-  "solver": "Mech-LeapFrog"
-}
-,
+  "simTime": 0.0125,
+  "outTime": 5.0e-5,
+  "solver": "Mech-LeapFrog",
+  "reMeshStepInterval": 1000,
+  "thermal":true,
+  "artifViscCoeffs": [0.0,0.0,0.0],
+  "fixedTS": false  
+  
+},
+"Stabilization":{
+  "alpha_free": 0.0,       
+  "alpha_contact": 0.0,    
+  "hg_coeff_free": 0.0,    
+  "hg_coeff_contact": 0.0,
+  "av_coeff_div":  0.0,   
+  "av_coeff_bulk": 0.0,   
+  "log_factor": 0.0,       
+  "pspg_scale": 0.0,       
+  "p_pspg_bulkfac": 0.0,
+  "J_min":0.0,
+  "hg_forces":0.0
+},
 "Materials":[ 
 {
 	"id": "Solid",
-	"type": "Bilinear",
-  "const": [0.0],
-	"density0": 2700.0, 
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 27000.0, 
+  "thermalHeatCap": 87.50,
+  "thermalCond": 190.0,
 	"youngsModulus": 68.9E9, 
 	"poissonsRatio": 0.3,
-	"yieldStress0": 300.0E6
+	"yieldStress0": 190.4E6
 }],
 
 "DomainBlocks": 
@@ -27,37 +47,37 @@
 	"type": "File",
 	"fileName": "tetra_cyl.k",
   "scaleFactor": 1.0,
-	"zoneId": 10
+	"zoneId": 0
+}],
+"Contact":[ 
+{
+  "fricCoeffStatic": 0.3,
+  "fricCoeffDynamic": 0.3,
+  "penaltyFactor": 0.6,
+  "heatConductance": true,
+  "heatCondCoeff": 25000.0,
+  "dieTemp": 20.0
+  
 }],
 "RigidBodies": 
 [{
 	"type": "Plane",
 	"zoneId": 10,
-	"start": [-0.25, -0.25, 0.616],
+	"start": [-0.02, -0.02, 0.03],
+  "flipnormals":true,
   "partSide": 20,
-	"dim":   [0.4, 0.4, 0.0],
+	"dim":   [0.04, 0.04, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
-}],
-"Contact":[ 
-{
-  "fricCoeffStatic": 0.6,
-  "fricCoeffDynamic": 0.6,
-  "penaltyFactor": 0.6,
-  "heatConductance": false,
-  "heatCondCoeff": 0.01
-  
-}],
-"DomainZones": [
-{
-	"id": 2,
-	"start":[-1.0,-1.0, -0.03],
-	"end": 	[ 1.0, 1.0, 0.0000]
 },
 {
-	"id": 3,
-	"start":[-1.0,-1.0, 0.56],
-	"end": 	[ 1.0, 1.0, 1.0000]
+	"type": "Plane",
+	"zoneId": 1,
+	"start": [-0.02, -0.02, 0.0000],
+  "partSide": 20,
+	"dim":   [0.04, 0.04, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
 }
 ],
 
@@ -71,17 +91,22 @@
 ],
 "BoundaryConditions": [
 {
-	"zoneId": 	2,
+	"zoneId": 	1,
 	"valueType": 0,
 	"value": 		[ 0.0, 0.0, 0.0],
 	"free": 		true
 },
 {
-	"zoneId": 	3,
+	"zoneId": 	10,
 	"valueType": 	1,
   "amplitudeId" : 1,
   "amplitudeFactor": 1.0,
-	"value": 		[ 0.0, 0.0, -10.0]
+	"value": 		[ 0.0, 0.0, -1.2]
+}
+],
+"InitialConditions":[
+{
+"Temp": 20.0
 }
 ]
 
