@@ -608,13 +608,18 @@ int main(int argc, char **argv) {
       
     if (rigbody_type == "Plane"){
       msh = new TriMesh_d();
-      msh->AxisPlaneMesh(0,  2, flipnormals, start , dim_,  partSide);
+      msh->AxisPlaneMesh(0,  2, !flipnormals, start , dim_,  partSide);
     }
     else if (rigbody_type == "File"){
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      msh = new TriMesh_d(reader,flipnormals); //ALWAYS WITH NEW HERE
+      bool orient_normals = false;
+      double3 or_pt = make_double3(0.,0.,0.);
+      readVector(rigbodies[0]["orientPoint"], 	or_pt);
+      
+      readValue(rigbodies[0]["orientNormals"], 	orient_normals);       
+      msh = new TriMesh_d(reader,flipnormals,orient_normals, or_pt); //ALWAYS WITH NEW HERE
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
       
     }
@@ -677,7 +682,7 @@ int main(int argc, char **argv) {
     
     if (rigbody_type == "Plane") { 
       m = new TriMesh_d();
-      m->AxisPlaneMesh(1,  2, flipnormals, start , dim_,  partSide);
+      m->AxisPlaneMesh(1,  2, !flipnormals, start , dim_,  partSide);
 
     }
     else if (rigbody_type == "File"){
@@ -731,7 +736,8 @@ int main(int argc, char **argv) {
       //~ printf("EL %d PPLANE %f\n", e, msh->pplane[e]);  
     dom_d->setContactOn();
   } //if contact
-  
+
+    
   cout << "Calulating min element size ..."<<endl;
   #ifdef CUDA_BUILD
   calcMinEdgeLengthKernel<<<1,1>>>(dom_d); //TODO: PARALLELIZE

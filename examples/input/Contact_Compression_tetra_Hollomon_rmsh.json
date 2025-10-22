@@ -12,8 +12,7 @@
   "thermal":false,
   "artifViscCoeffs":[0.06,1.2],
     "fixedTS": false  
-},
-"Meshing":{
+},"Meshing":{
    "minStrain":-1.0,
   "stepInterval": 5000,
   "warmupSteps": 10,
@@ -45,6 +44,7 @@
 	"zoneId": 10,
 	"start": [-0.02, -0.02, 0.03],
   "partSide": 20,
+  "flipnormals":true,
 	"dim":   [0.04, 0.04, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
@@ -52,7 +52,6 @@
 {
 	"type": "Plane",
 	"zoneId": 1,
-  "flipnormals":true,
 	"start": [-0.02, -0.02, 0.0000],
   "partSide": 20,
 	"dim":   [0.04, 0.04, 0.0],

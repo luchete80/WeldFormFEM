@@ -409,3 +409,6 @@ F90 PREVIOUS VERSION
          - Fixed m_fe(which should be zero and is not )
 20251021 - Fixed deTdt allocation.
          - Fixed MapScalarfield
+20251022 - FIXED Plane Coefficient Calculation!
+         - Created new orient normals feature for uniformize 
+         - Fixed flipNormals orientation

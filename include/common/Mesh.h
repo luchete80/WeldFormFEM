@@ -100,7 +100,7 @@ class TriMesh_d{
 	
 	//double							v;						//Constant Uniform v
 	TriMesh_d();
-  TriMesh_d(NastranReader &nr, bool flipnormals);
+  TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals = false, const double3 & orient_pt = make_double3(0.,0.,0.));
 	void AxisPlaneMesh(const int &id, const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
 	void AxisPlaneMesh(const int &axis, bool positaxisorent, const double3 p1, const double3 p2,  const int &dens);
   
@@ -238,8 +238,8 @@ inline dev_t void  TriMesh_d::UpdatePlaneCoeff(){
   //if (i < elemcount) { //parallelize by element
   for (int e=0; e<elemcount;e++){
     //printf("elnode %f %f %f \n",elnode[3*i+nfar[i]].x,elnode[3*i+nfar[i]].y,elnode[3*i+nfar[i]].z);
-    pplane[e] = dot(node[elnode[3*e]+nfar[e]],normal[e]);
-    //printf("Element %d pplane %.8e, normalz %.4e \n",e, pplane[e],normal[e].z);
+    pplane[e] = dot(node[elnode[3*e+nfar[e]] ],normal[e]);
+    //printf("-------Element %d pplane %.8e, normalz %.4e, nfar %d\n",e, pplane[e],normal[e].z, nfar[e]);
   }
 }
 

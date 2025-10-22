@@ -115,9 +115,14 @@ void dev_t Domain_d::CalcContactForces(){
               }
               nodlen /= m_nodel_count[i]; 
               nodevol /=m_nodel_count[i];
-
               
-              
+              //~ printf("Element %d, delta: %.4e\n",j, d);
+              //~ printf("PPLANE: %.4e\n",trimesh->pplane[j]);
+              //~ printf("MESH NORMAL: %.4e %.4e %.4e\n",trimesh->normal[j].x,trimesh->normal[j].y,trimesh->normal[j].z);
+              //~ printf("ELNODES: %d %d %d \n", trimesh->elnode[3*j],trimesh->elnode[3*j+1],trimesh->elnode[3*j+2]);
+              //~ printf("MESH POINT: %.4e %.4e %.4e\n",trimesh->node[j].x,trimesh->node[j].y,trimesh->node[j].z);
+              //~ printf("BODY POINT : %.4e %.4e %.4e\n",getNodePos3(i).x,getNodePos3(i).y,getNodePos3(i).z);
+                            
               double beta_d = 0.1;
               //printf("NODLEN %.4e\n", nodevol);
               //double kcont = 0.8 * mat[0]->Elastic().E() * node_area[i]/nodlen;       
@@ -142,6 +147,7 @@ void dev_t Domain_d::CalcContactForces(){
               double F_damp = damping_ratio * ccrit * v_reln;
 
               double F_normal = m_contPF * kcont * d;
+
               //double F_normal = m_contPF * kcont * eff_penet;
 
               //double F_damp = beta_d * sqrt(kcont * m_mdiag[i]) * v_reln;
