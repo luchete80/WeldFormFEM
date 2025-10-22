@@ -104,24 +104,6 @@ inline void NastranReader::read(const char* fName){
 			//Search + or - symbol (SCIENTIFIC NOTATION)
 			//BUT! If these signs (mainly the minus), are the FIRST character there is 
 			//not the exponential sign
-      int sign_pos = 0;
-      if (temp.find("+")!=std::string::npos) {
-          sign_pos = temp.find("+"); //Performance....
-          temp.insert(sign_pos,"E");
-      }
-      else if (temp.find("-")!=std::string::npos) {
-          sign_pos = temp.find("-");
-          if (sign_pos!=0)
-              temp.insert(sign_pos,"E");
-          else { //Search for another "-" (NOW IT WILL BE SCIENTIFIC NOTATION)
-              sign_pos = temp.find("-",1);
-              if (sign_pos !=std::string::npos) {
-                  temp.insert(sign_pos,"E");
-              }
-          }
-      }
-
-
       for (auto &c : temp) {
           if (c == 'D' || c == 'd') c = 'E';  // FORTRAN uses D
       }
