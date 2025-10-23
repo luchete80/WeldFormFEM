@@ -661,8 +661,9 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
     if(orientNormals){
 
         double3 vec = centroid_h[e] - global_centroid;
-        //~ cout << "element dir (against centroid) "<<vec.x <<", "<<vec.y<<", "<<vec.z<<endl;
-        cout << "normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z<<endl;
+        cout << "element " << e << " centroid "<<centroid_h[e].x <<", "<<centroid_h[e].y<<", "<<centroid_h[e].z<<endl;
+        cout << "Elem " << e <<  " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z<<endl;
+        cout << "Node centroid position: "<<vec.x<<", "<<vec.y<<", "<<vec.z<<endl;
         if(dot(normal_h[e], vec) < 0.){
           normal_h[e].x = -normal_h[e].x; normal_h[e].y = -normal_h[e].y; normal_h[e].z = -normal_h[e].z;
           //invert conn
