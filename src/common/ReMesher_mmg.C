@@ -238,15 +238,40 @@ void ReMesher::Generate_mmg(){
   // for (int k = 1; k <= np; k++)
     // MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
 
-
-  for (int k = 1; k <= np; k++) {
+  double max_ps = 0;
+  int max_ps_elem;
+  double min_el_size=1000;
+  double min_size = 0.2 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
+  double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
+  
+  double *ps_nod = new double[m_dom->m_node_count];
+  
+  //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
+  //avgScalarDom(m_dom->pl_strain,ps_nod,6,m_dom)
+  
+  cout << "Setting size "<<endl;
+  for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
+    
       //Calcular factor de refinamiento basado en deformación plástica
       //Más deformación → elementos más pequeños (refinamiento)
-      double plastic_strain = m_dom->pl_strain[k-1];
+      double ps=0;
+      for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
+        int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
+        ps+=m_dom->pl_strain[eglob];
+      }
+      ps/=m_dom->m_nodel_count[k-1];
+
+
+      //double plastic_strain = m_dom->pl_strain[k-1];
+      double plastic_strain = ps;
+      
+      if (plastic_strain>max_ps){
+        max_ps = plastic_strain;
+        max_ps_elem = k-1;
+        }
       
       //Definir rangos de refinamiento
-      double min_size = 0.4 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
-      double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
+
       
       //Mapear la deformación plástica al tamaño de elemento
       //Puedes ajustar esta función según tus necesidades
@@ -257,9 +282,15 @@ void ReMesher::Generate_mmg(){
       if (h_target < min_size) h_target = min_size;
       if (h_target > max_size) h_target = max_size;
       
+      if (h_target<min_el_size) min_el_size = h_target;
+      
       if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
           exit(EXIT_FAILURE);
   }
+  
+  //delete [] ps_nod;
+  
+  printf("Max PS %.4e at element %d Min Element size %.4e.Size Limits: min %.4e , max %.4e\n", max_ps,max_ps_elem,min_el_size,min_size,max_size);
   
   
 

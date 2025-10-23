@@ -69,6 +69,18 @@
                                 for (int d=0;d<dim;d++) a[n*dim + d]/=dom->m_nodel_count[n];\
                               }
 
+#define avgScalarDom(v,a,dim, dom)    for (int n=0;n<dom->m_node_count;n++){\
+                                for (int d=0;d<dim;d++)\
+                                  a[n*dim + d] = 0.0;\
+                                for (int e=0; e<dom->m_nodel_count[n];e++) {\
+                                  int eglob   = dom->m_nodel     [dom->m_nodel_offset[n]+e];\
+                                  int ne      = dom->m_nodel_loc [dom->m_nodel_offset[n]+e];\
+                                  int offset  = eglob * dom->m_nodxelem * dim;\
+                                  for (int d=0;d<dim;d++) a[n*dim + d]+=v[eglob*dim + d];\
+                                  }\
+                                for (int d=0;d<dim;d++) a[n*dim + d]/=dom->m_nodel_count[n];\
+                              }
+
 enum dom_type {_Plane_Strain_=0,_Plane_Stress_, _Axi_Symm_, _3D_};
 
 

@@ -662,7 +662,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
 
         double3 vec = centroid_h[e] - global_centroid;
         //~ cout << "element dir (against centroid) "<<vec.x <<", "<<vec.y<<", "<<vec.z<<endl;
-        //~ cout << "normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z<<endl;
+        cout << "normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z<<endl;
         if(dot(normal_h[e], vec) < 0.){
           normal_h[e].x = -normal_h[e].x; normal_h[e].y = -normal_h[e].y; normal_h[e].z = -normal_h[e].z;
           //invert conn
@@ -673,18 +673,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
     }
     
 
-      double3 v1,v2;      
-      //~ //In COUNTERCLOCKWISE
-      //~ v1 = *node[nr.elcon[3*e+1]] - *node[nr.elcon[3*e]];
-      //~ v2 = *node[nr.elcon[3*e+2]] - *node[nr.elcon[3*e]];
-      //~ element[e] ->normal = cross (v1,v2);
-      //~ element[e] ->normal /= Norm(element[e] ->normal);
-      v1 = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
-      v2 = node_h[nr.elcon[3*e+2]] - node_h[nr.elcon[3*e]];
-      normal_h[e] = cross (v1,v2);
-      normal_h[e] = normal_h[e]/norm(normal_h[e]);
-
-    //cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
+    cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
     //~ cout << "Elcon: "<<nr.elcon[3*e]<<", "<<nr.elcon[3*e+1]<<", "<<nr.elcon[3*e+2]<<endl;
     
   }/////ELEMENT
