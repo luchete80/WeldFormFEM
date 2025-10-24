@@ -295,7 +295,7 @@ void ReMesher::Generate_mmg(){
             exit(EXIT_FAILURE);
     }
   } else if (m_dom->m_remesh_type == 1) {
-    cout << "REMESH TYPE IS LINEAR"<<endl;
+    cout << "REMESH TYPE IS EXPONENTIAL"<<endl;
   //~ ///// EXPONENTIAL
   for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
     double h0        = m_dom->m_remesh_length;
