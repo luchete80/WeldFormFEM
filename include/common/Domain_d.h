@@ -666,6 +666,13 @@ public:
   void setName(std::string name){m_name = name;}
   std::string getName(){return m_name;}
   
+  
+  
+  double m_remesh_min_frac  = 0.4;    // min_size = 0.35*h0
+  double m_remesh_max_frac  = 2.0;     // max_size = 2.0*h0
+  double m_remesh_eps_ref   = 0.1;    // plastic strain que consideras "alto" (ajustar)
+  double m_remesh_beta      = 4.0;     // controla rapidez del refinamiento exponencial
+  
 protected:
   std::string     m_name;
   double          m_tot_mass; //Only for testing, not needed
@@ -710,6 +717,8 @@ protected:
   double m_cfl_factor;
   int             m_remesh_interval;
   double          m_remesh_length;
+
+    
 
   double          *pl_strain, *sigma_y;
   

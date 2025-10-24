@@ -244,6 +244,13 @@ int main(int argc, char **argv) {
     readValue(mesh["mapAcc"],     dom_d->m_remesh_map_acc);
     readValue(mesh["maxCount"],   dom_d->m_remesh_max_count);
     readValue(mesh["dampFactor"],   dom_d->m_remesh_damp_vel);
+
+    readValue(mesh["minFrac"],dom_d->m_remesh_min_frac);
+    readValue(mesh["maxFrac"],dom_d->m_remesh_max_frac);
+    readValue(mesh["epsRef"],dom_d->m_remesh_eps_ref);
+    readValue(mesh["beta"],dom_d->m_remesh_beta);
+
+
     
     double3 artifvisc;
     dom_d->m_artifvisc[0] = 0.0; //Alpha. linear 0.3-0.6

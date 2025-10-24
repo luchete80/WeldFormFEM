@@ -241,15 +241,18 @@ void ReMesher::Generate_mmg(){
   double max_ps = 0;
   int max_ps_elem;
   double min_el_size=1000;
-  double min_size = 0.2 * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
-  double max_size = 2.0 * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
+  
+  double min_size = m_dom->m_remesh_min_frac * m_dom->m_remesh_length;  //Tamaño mínimo en zonas de alta deformación
+  double max_size = m_dom->m_remesh_max_frac * m_dom->m_remesh_length;  //Tamaño máximo en zonas sin deformación
   
   double *ps_nod = new double[m_dom->m_node_count];
   
   //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
   //avgScalarDom(m_dom->pl_strain,ps_nod,6,m_dom)
-  
-  cout << "Setting size "<<endl;
+ 
+ 
+  //////////////////////// HYPERBOLIC
+  //~ cout << "Setting size "<<endl;
   for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
     
       //Calcular factor de refinamiento basado en deformación plástica
@@ -288,8 +291,104 @@ void ReMesher::Generate_mmg(){
           exit(EXIT_FAILURE);
   }
   
-  //delete [] ps_nod;
+  cout << "BETA: "<<m_dom->m_remesh_beta<<endl;
+  cout << "EPS REF: "<<m_dom->m_remesh_eps_ref<<endl;
   
+  //~ ///// EXPONENTIAL
+  //~ for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
+    //~ double h0        = m_dom->m_remesh_length;
+
+    //~ int    np_nodes  = np;
+
+
+      //~ //double plastic_strain = m_dom->pl_strain[k-1];
+
+      //~ double plastic_strain=0;
+      //~ for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
+        //~ int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
+        //~ plastic_strain+=m_dom->pl_strain[eglob];
+      //~ }
+      //~ plastic_strain/=m_dom->m_nodel_count[k-1];
+      
+
+      //~ // Normalizar y clamp entre 0 y 1
+      //~ double s = plastic_strain / m_dom->m_remesh_eps_ref;
+      //~ if (s < 0.0) s = 0.0;
+      //~ if (s > 1.0) s = 1.0;
+
+      //~ // Exponencial: factor ∈ (0,1], más s → factor → pequeño
+      //~ double refinement_factor = std::exp(-m_dom->m_remesh_beta * s); // cuando s=0 -> 1, s=1 -> exp(-beta)
+
+      //~ double h_target = min_size + (max_size - min_size) * refinement_factor;
+
+      //~ // Limitar por seguridad (por si acaso)
+      //~ if (h_target < min_size) h_target = min_size;
+      //~ if (h_target > max_size) h_target = max_size;
+
+      //~ if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
+          //~ exit(EXIT_FAILURE);
+                    
+    //~ } 
+      
+
+    //~ // parámetros
+    //~ double h0               = m_dom->m_remesh_length;
+    //~ double min_frac         = 0.35;
+    //~ double max_frac         = 2.0;
+    //~ double eps_ref          = 0.1;
+    //~ double beta             = 4.0;
+    //~ double max_resize_ratio = 1.25; // no cambiar más del 25% por remesh
+    //~ double quality_thresh   = 0.4;
+    //~ double ps_activate      = 0.02;
+
+    //~ for (int k = 1; k <= np; k++) {
+      //~ // promedio de plastic strain alrededor del nodo
+      //~ double plastic_strain = 0.0;
+      //~ for (int e=0; e<m_dom->m_nodel_count[k-1]; e++) {
+        //~ int eglob = m_dom->m_nodel[m_dom->m_nodel_offset[k-1]+e];
+        //~ plastic_strain += m_dom->pl_strain[eglob];
+      //~ }
+      //~ plastic_strain /= m_dom->m_nodel_count[k-1];
+
+      //~ // calcula calidad local (0..1) según tu criterio (angles, J, aspect)
+      //~ double quality = computeLocalQualityForNode(k); // implementar: 1=buena,0=mala
+
+      //~ // normaliza y limita s
+      //~ double s = plastic_strain / eps_ref;
+      //~ if (s < 0.0) s = 0.0;
+      //~ if (s > 1.0) s = 1.0;
+
+      //~ double min_size = min_frac * h0;
+      //~ double max_size = max_frac * h0;
+
+      //~ // mezcla strain y distorsión: si quality baja -> aumentar refinamiento
+      //~ double q_factor = 1.0 - quality; // 0 si buena calidad, 1 si mala
+      //~ double combined = 0.7 * s + 0.3 * q_factor; // pesos: ajustar (0.7,0.3)
+
+      //~ double refinement_factor = std::exp(-beta * combined);
+      //~ double h_target = min_size + (max_size - min_size) * refinement_factor;
+
+      //~ // si plastic strain muy bajo y calidad buena, no remalles (previene ruido)
+      //~ if (plastic_strain < ps_activate && quality > 0.7) {
+        //~ h_target = max_size; // mantener malla gruesa
+      //~ }
+
+      //~ // limitar cambio respecto h anterior si existe (prev_h[k])
+      //~ double prev_h = getPrevHTargetForNode(k); // implementa caché/array
+      //~ if (prev_h > 0.0) {
+        //~ double min_allowed = prev_h / max_resize_ratio;
+        //~ double max_allowed = prev_h * max_resize_ratio;
+        //~ if (h_target < min_allowed) h_target = min_allowed;
+        //~ if (h_target > max_allowed) h_target = max_allowed;
+      //~ }
+
+      //~ // set scalar for MMG
+      //~ if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1)
+        //~ exit(EXIT_FAILURE);
+    //~ }
+
+
+
   printf("Max PS %.4e at element %d Min Element size %.4e.Size Limits: min %.4e , max %.4e\n", max_ps,max_ps_elem,min_el_size,min_size,max_size);
   
   
