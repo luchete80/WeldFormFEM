@@ -7,15 +7,17 @@
   "cflMethod": 1,
   "cflFactor": 0.3,
   "simTime": 0.1,
-  "outTime": 5.0e-4,
+  "outTime": 2.5e-4,
   "solver": "Mech-LeapFrog",
   "thermal":false,
   "artifViscCoeffs":[0.06,1.2],
     "fixedTS": false  
-},"Meshing":{
+},
+
+"Meshing":{
    "minStrain":-1.0,
-  "stepInterval": 5000,
-  "warmupSteps": 10,
+  "stepInterval": 2500,
+  "warmupSteps": 100,
   "transSteps":50
   }
 ,
@@ -40,14 +42,12 @@
 }],
 "RigidBodies": 
 [{
-	"type": "Plane",
-	"zoneId": 10,
-	"start": [-0.02, -0.02, 0.03],
-  "partSide": 20,
-  "flipnormals":true,
-	"dim":   [0.04, 0.04, 0.0],
-	"translation": [1.0, 0.0, 0.0],
-	"scale": [1, 1, 1]
+	"zoneId": 10,  
+	"type": "File",
+  "fileName":"pin.nas",
+  "flipnormals": false,
+  "orientNormals": true,
+  "orientPoint": [0.0,0.0,1.0]
 },
 {
 	"type": "Plane",
@@ -61,9 +61,9 @@
 ],
 "Contact":[ 
 {
-  "fricCoeffStatic": 0.3,
-  "fricCoeffDynamic": 0.3,
-  "penaltyFactor": 0.6,
+  "fricCoeffStatic": 0.1,
+  "fricCoeffDynamic": 0.1,
+  "penaltyFactor": 1.0,
   "heatConductance": false,
   "heatCondCoeff": 0.01
   
