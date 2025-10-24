@@ -707,6 +707,9 @@ protected:
   double *node_area; //THERMAL CONTACT
   double  contact_hc; //MOVETO CONTACT INTERFACE
   double *m_elem_length; //FOR CONTACT
+  
+  double *m_elem_min_angle,*m_elem_max_angle;
+  
   double *p_node; //FOR CONTACT AND ANP (ANP will be overriden by HG later)
   double *m_elem_area;
   
@@ -714,6 +717,8 @@ protected:
   
   double m_min_length;
   double m_min_height;
+  
+  double m_min_angle,m_max_angle;
   double m_cfl_factor;
   int             m_remesh_interval;
   double          m_remesh_length;

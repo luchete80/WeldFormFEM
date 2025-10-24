@@ -574,6 +574,9 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (m_elem_length,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
   malloc_t (m_mesh_in_contact,      int, 	m_node_count); /////USED FOIR CONTACT
 
+  malloc_t (m_elem_min_angle,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
+  malloc_t (m_elem_max_angle,        	double, m_elem_count); /////USED FOIR THERMAL CONTACT
+  
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODX ELEM
   /// TO AVOID EXCESSIVE OFFSET, SPLIT DIMENSIONS
@@ -2310,16 +2313,103 @@ inline double length(const double2 &v) {
 }
 #endif
 
-// Calculate min edge length and height
+//~ // Calculate min edge length and height
+//~ dev_t void Domain_d::calcMinEdgeLength() {
+    //~ double min_len = 1.0e6;
+    //~ double min_height = 1.0e6;
+    
+    //~ for (int e = 0; e < m_elem_count; e++) {
+        //~ double elem_min_height = 1.0e6;
+        //~ int off = m_nodxelem * e;
+
+        //~ if (m_dim == 3) {  // Tetrahedron case
+            //~ int a = m_elnod[off];
+            //~ int b = m_elnod[off + 1];
+            //~ int c = m_elnod[off + 2];
+            //~ int d = m_elnod[off + 3];
+            
+            //~ double3 A = getPosVec3(a);
+            //~ double3 B = getPosVec3(b);
+            //~ double3 C = getPosVec3(c);
+            //~ double3 D = getPosVec3(d);
+
+            //~ // Compute all 6 edges once
+            //~ double3 edges[6] = {B-A, C-A, D-A, C-B, D-B, D-C};
+            //~ for (int i = 0; i < 6; i++) {
+                //~ double len = length(edges[i]);
+                //~ if (len < min_len) min_len = len;
+            //~ }
+
+            //~ // Compute heights for all 4 faces
+            //~ double3 faces[4][3] = {
+                //~ {B, C, D}, {A, C, D}, {A, B, D}, {A, B, C}
+            //~ };
+            //~ for (int i = 0; i < 4; i++) {
+                //~ double3 x1 = faces[i][1] - faces[i][0];
+                //~ double3 x2 = faces[i][2] - faces[i][0];
+                //~ double3 normal = cross(x1, x2);
+                //~ double area = length(normal);
+                //~ if (area < 1e-12) continue;  // Skip degenerate faces
+                //~ normal = normal / area;
+                
+                //~ double3 vec = getPosVec3(m_elnod[off + i]) - faces[i][0];
+                //~ double height = fabs(dot(vec, normal));
+                //~ if (height < elem_min_height) elem_min_height = height;
+            //~ }
+            //~ m_elem_length[e] = elem_min_height;
+            //~ if (elem_min_height < min_height) min_height = elem_min_height;
+        
+        //~ } else if (m_dim == 2) {  // Triangle in 2D
+            //~ int a = m_elnod[off];
+            //~ int b = m_elnod[off + 1];
+            //~ int c = m_elnod[off + 2];
+
+            //~ double2 A = getPosVec2(a);
+            //~ double2 B = getPosVec2(b);
+            //~ double2 C = getPosVec2(c);
+
+            //~ // Edge lengths
+            //~ double2 edges[3] = {B - A, C - B, A - C};
+            //~ for (int i = 0; i < 3; i++) {
+                //~ double len = length(edges[i]);
+                //~ if (len < min_len) min_len = len;
+            //~ }
+
+            //~ // Compute triangle area and heights
+            //~ double area = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
+            //~ if (area > 1e-12) {
+                //~ double base = length(B - A);
+                //~ double height = 2.0 * area / base;
+                //~ elem_min_height = height;
+                //~ if (height < min_height) min_height = height;
+            //~ }
+
+            //~ m_elem_length[e] = elem_min_height;
+        //~ }
+
+        //~ // Optionally add: else if (m_domtype == _AxiSym_) → treat like 2D but radial weighting
+
+
+    //~ } // 
+    //~ m_min_length = min_len;  // Now stores actual length (not squared)
+    //~ m_min_height = min_height;
+//~ }
+
+////// NEW INCLUDING ANGLES
 dev_t void Domain_d::calcMinEdgeLength() {
     double min_len = 1.0e6;
     double min_height = 1.0e6;
-    
+    double min_angle = 1.0e6;
+    double max_angle = -1.0e6;
+
     for (int e = 0; e < m_elem_count; e++) {
         double elem_min_height = 1.0e6;
+        double elem_min_angle = 1.0e6;
+        double elem_max_angle = -1.0e6;
+
         int off = m_nodxelem * e;
 
-        if (m_dim == 3) {  // Tetrahedron case
+        if (m_dim == 3) {  // --- Tetrahedron case ---
             int a = m_elnod[off];
             int b = m_elnod[off + 1];
             int c = m_elnod[off + 2];
@@ -2330,33 +2420,55 @@ dev_t void Domain_d::calcMinEdgeLength() {
             double3 C = getPosVec3(c);
             double3 D = getPosVec3(d);
 
-            // Compute all 6 edges once
+            // --- edge lengths (igual que antes) ---
             double3 edges[6] = {B-A, C-A, D-A, C-B, D-B, D-C};
             for (int i = 0; i < 6; i++) {
                 double len = length(edges[i]);
                 if (len < min_len) min_len = len;
             }
 
-            // Compute heights for all 4 faces
-            double3 faces[4][3] = {
-                {B, C, D}, {A, C, D}, {A, B, D}, {A, B, C}
-            };
+            // --- heights (igual que antes) ---
+            double3 faces[4][3] = {{B, C, D}, {A, C, D}, {A, B, D}, {A, B, C}};
             for (int i = 0; i < 4; i++) {
                 double3 x1 = faces[i][1] - faces[i][0];
                 double3 x2 = faces[i][2] - faces[i][0];
                 double3 normal = cross(x1, x2);
                 double area = length(normal);
-                if (area < 1e-12) continue;  // Skip degenerate faces
+                if (area < 1e-12) continue;
                 normal = normal / area;
-                
+
                 double3 vec = getPosVec3(m_elnod[off + i]) - faces[i][0];
                 double height = fabs(dot(vec, normal));
                 if (height < elem_min_height) elem_min_height = height;
             }
             m_elem_length[e] = elem_min_height;
             if (elem_min_height < min_height) min_height = elem_min_height;
-        
-        } else if (m_dim == 2) {  // Triangle in 2D
+
+            // --- angle computation (dihedral angles between faces) ---
+            int face_nodes[4][3] = {
+                {b, c, d}, {a, c, d}, {a, b, d}, {a, b, c}
+            };
+            double3 normals[4];
+            for (int i = 0; i < 4; i++) {
+                double3 P1 = getPosVec3(face_nodes[i][0]);
+                double3 P2 = getPosVec3(face_nodes[i][1]);
+                double3 P3 = getPosVec3(face_nodes[i][2]);
+                double3 n = cross(P2 - P1, P3 - P1);
+                double ln = length(n);
+                if (ln > 1e-16) n = n / ln;
+                normals[i] = n;
+            }
+            // 6 dihedral angles between face pairs
+            int pairs[6][2] = {{0,1},{0,2},{0,3},{1,2},{1,3},{2,3}};
+            for (int p = 0; p < 6; p++) {
+                double cang = dot(normals[pairs[p][0]], normals[pairs[p][1]]);
+                cang = fmax(-1.0, fmin(1.0, cang));
+                double ang_deg = acos(cang) * 180.0 / M_PI;
+                if (ang_deg < elem_min_angle) elem_min_angle = ang_deg;
+                if (ang_deg > elem_max_angle) elem_max_angle = ang_deg;
+            }
+
+        } else if (m_dim == 2) {  // --- Triangle case ---
             int a = m_elnod[off];
             int b = m_elnod[off + 1];
             int c = m_elnod[off + 2];
@@ -2365,32 +2477,56 @@ dev_t void Domain_d::calcMinEdgeLength() {
             double2 B = getPosVec2(b);
             double2 C = getPosVec2(c);
 
-            // Edge lengths
-            double2 edges[3] = {B - A, C - B, A - C};
-            for (int i = 0; i < 3; i++) {
-                double len = length(edges[i]);
-                if (len < min_len) min_len = len;
-            }
+            // --- edges ---
+            double2 AB = B - A;
+            double2 BC = C - B;
+            double2 CA = A - C;
 
-            // Compute triangle area and heights
+            double lenAB = length(AB);
+            double lenBC = length(BC);
+            double lenCA = length(CA);
+            if (lenAB < min_len) min_len = lenAB;
+            if (lenBC < min_len) min_len = lenBC;
+            if (lenCA < min_len) min_len = lenCA;
+
+            // --- area/height (igual que antes) ---
             double area = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
             if (area > 1e-12) {
-                double base = length(B - A);
+                double base = lenAB;
                 double height = 2.0 * area / base;
                 elem_min_height = height;
                 if (height < min_height) min_height = height;
             }
-
             m_elem_length[e] = elem_min_height;
+
+            // --- internal angles (ley de cosenos) ---
+            double cosA = (lenAB*lenAB + lenCA*lenCA - lenBC*lenBC) / (2.0 * lenAB * lenCA);
+            double cosB = (lenAB*lenAB + lenBC*lenBC - lenCA*lenCA) / (2.0 * lenAB * lenBC);
+            double cosC = (lenBC*lenBC + lenCA*lenCA - lenAB*lenAB) / (2.0 * lenBC * lenCA);
+            cosA = fmax(-1.0, fmin(1.0, cosA));
+            cosB = fmax(-1.0, fmin(1.0, cosB));
+            cosC = fmax(-1.0, fmin(1.0, cosC));
+            double angA = acos(cosA) * 180.0 / M_PI;
+            double angB = acos(cosB) * 180.0 / M_PI;
+            double angC = acos(cosC) * 180.0 / M_PI;
+            elem_min_angle = fmin(angA, fmin(angB, angC));
+            elem_max_angle = fmax(angA, fmax(angB, angC));
         }
 
-        // Optionally add: else if (m_domtype == _AxiSym_) → treat like 2D but radial weighting
+        // guardar resultados
+        m_elem_min_angle[e] = elem_min_angle;
+        m_elem_max_angle[e] = elem_max_angle;
+        if (elem_min_angle < min_angle) min_angle = elem_min_angle;
+        if (elem_max_angle > max_angle) max_angle = elem_max_angle;
+    }
 
-
-    } // 
-    m_min_length = min_len;  // Now stores actual length (not squared)
+    // global min/max
+    m_min_length = min_len;
     m_min_height = min_height;
+    m_min_angle  = min_angle;
+    m_max_angle  = max_angle;
 }
+
 
 ///// ALREADY ALLOCATED
 void Domain_d::setNode(const int &i, const double &_x, const double &_y, const double &_z){

@@ -303,6 +303,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   ResultsJson results(m_name);
   int saved_idx = 0;
+  bool need_remesh = false;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +329,7 @@ void host_ Domain_d::SolveChungHulbert(){
 
   double initial_dt;
   /////AFTER J AND DERIVATIVES
-  if ( (step_count - last_step_remesh) % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
+  if ( (step_count - last_step_remesh) % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count || need_remesh)
   //if (0) //debug
   {
     //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
@@ -380,6 +381,7 @@ void host_ Domain_d::SolveChungHulbert(){
       max_vprev = 0.0;
       wup_step_count = 0;
       transition = false;
+      need_remesh = false;
       }
       //#########################################################
   //////////////////////////// IF REMESH
@@ -411,7 +413,19 @@ void host_ Domain_d::SolveChungHulbert(){
     if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
       
     }
+    
+    need_remesh = false;
+    int bad_elem_count = 0;
+    for (int e=0;e<m_elem_count;e++){
+      if (m_elem_min_angle[e] < 15.0 || m_elem_max_angle[e] > 160.0)
+        bad_elem_count++;
+    }
+    double bad_frac = double(bad_elem_count) / double(m_elem_count);
+    if (bad_frac > 0.05){  // más del 5% de los elementos malos
+      need_remesh = true;
+      printf("Mesh quality: %.2f%% elements out of range [15°,160°]\n", bad_frac * 100.0);
 
+    }
     // if (dt_new > 1.0e-20)
       // dt = dt_new;
     // else{

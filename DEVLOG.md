@@ -416,3 +416,4 @@ F90 PREVIOUS VERSION
 20251023 - Fixed Plastic Strain resizing (was wrongly miss placing )
 20251024 - Changed output. Now generates json results file
          - Changed vtks to index instead of time 
+         - Added distorsion criteria.   
