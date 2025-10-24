@@ -22,6 +22,61 @@ using namespace std;
 std::ostringstream m_oss;
 std::string m_fname;
 
+struct VtkEntry {
+    std::string file;
+    double time;
+};
+
+class ResultsJson {
+public:
+    ResultsJson(const std::string& base) : baseName(base) {
+        jsonFile = baseName + "_res.json";
+    }
+
+    void addFile(int stepNumber, double time) {
+        std::ostringstream oss;
+        oss << baseName << "_" << std::setw(5) << std::setfill('0') << stepNumber << ".vtk";
+        std::string vtkName = oss.str();
+
+        files.push_back({vtkName, time});
+        writeJson(); // actualiza el JSON en tiempo real
+    }
+
+private:
+    std::string baseName;
+    std::string jsonFile;
+    std::vector<VtkEntry> files;
+
+    void writeJson() {
+        std::ofstream ofs(jsonFile);
+        ofs << "{\n  \"vtk_files\": [\n";
+        for (size_t i = 0; i < files.size(); ++i) {
+            ofs << "    { \"file\": \"" << files[i].file << "\", \"time\": " << files[i].time << " }";
+            if (i != files.size() - 1) ofs << ",";
+            ofs << "\n";
+        }
+        ofs << "  ]\n}\n";
+    }
+};
+
+//~ {
+  //~ "input_file": "XXXX.k",
+  //~ "vtk_files": [
+    //~ "XXXX_0001.vtk",
+    //~ "XXXX_0002.vtk"
+  //~ ],
+  //~ "solver_info": {
+    //~ "mass_scaling": 1.5,
+    //~ "time_step": 1e-5,
+    //~ "total_steps": 1200,
+    //~ "material": "Steel_A36"
+  //~ },
+  //~ "metadata": {
+    //~ "date": "2025-10-24",
+    //~ "author": "Luciano",
+    //~ "solver_version": "1.0.0"
+  //~ }
+//~ }
 
 namespace MetFEM{
 
@@ -245,6 +300,9 @@ void host_ Domain_d::SolveChungHulbert(){
   bool transition = false;
   int trans_step_count = 0;
   int end_wup_step;
+  
+  ResultsJson results(m_name);
+  int saved_idx = 0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -871,7 +929,12 @@ void host_ Domain_d::SolveChungHulbert(){
 
  
   if (Time>=tout){
-    string outfname = "out_" + std::to_string(Time) + ".vtk";
+    std::ostringstream oss;
+    oss << std::setw(5) << std::setfill('0') << saved_idx;
+    string outfname = m_name +  "_"+oss.str()  + ".vtk";
+    results.addFile(saved_idx, Time);
+    saved_idx++;
+    
     timer.click();
 
     ostringstream oss_out;

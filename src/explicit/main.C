@@ -173,6 +173,9 @@ int main(int argc, char **argv) {
     dom_d->out_file.open(out_name.c_str());
 
     ostringstream oss_out;
+
+    std::string baseName = inputFileName.substr(0, inputFileName.find_last_of('.'));
+    dom_d->setName(baseName);
     
     oss_out << "-----------------------------------------------"<<endl;
     oss_out << "------------------ WELDFORM FEM -----------------"<<endl;
@@ -185,6 +188,7 @@ int main(int argc, char **argv) {
     dom_d->out_file.flush(); // Optional
 
     cout << "Opening JSON format file"<<endl;
+    cout << "Model Name: "<<dom_d->getName()<<endl;
     
     nlohmann::json j;
 

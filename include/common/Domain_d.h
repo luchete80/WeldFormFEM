@@ -663,7 +663,11 @@ public:
   
   void CorrectLocalVelocityPeaks();
   
+  void setName(std::string name){m_name = name;}
+  std::string getName(){return m_name;}
+  
 protected:
+  std::string     m_name;
   double          m_tot_mass; //Only for testing, not needed
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
 	int 						m_dim;

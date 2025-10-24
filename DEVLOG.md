@@ -413,3 +413,6 @@ F90 PREVIOUS VERSION
          - Created new orient normals feature for uniformize 
          - Fixed flipNormals orientation
          - Fixed Nastran Reader (now reads with fields with and w/o exponential "E")
+20251023 - Fixed Plastic Strain resizing (was wrongly miss placing )
+20251024 - Changed output. Now generates json results file
+         - Changed vtks to index instead of time 
