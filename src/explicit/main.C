@@ -249,6 +249,7 @@ int main(int argc, char **argv) {
     readValue(mesh["maxFrac"],dom_d->m_remesh_max_frac);
     readValue(mesh["epsRef"],dom_d->m_remesh_eps_ref);
     readValue(mesh["beta"],dom_d->m_remesh_beta);
+    readValue(mesh["type"],dom_d->m_remesh_type);
 
 
     

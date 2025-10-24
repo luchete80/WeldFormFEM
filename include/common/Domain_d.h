@@ -672,7 +672,7 @@ public:
   double m_remesh_max_frac  = 2.0;     // max_size = 2.0*h0
   double m_remesh_eps_ref   = 0.1;    // plastic strain que consideras "alto" (ajustar)
   double m_remesh_beta      = 4.0;     // controla rapidez del refinamiento exponencial
-  
+  int    m_remesh_type      = 0;        // LINEAR (HYPERBOLIC)
 protected:
   std::string     m_name;
   double          m_tot_mass; //Only for testing, not needed

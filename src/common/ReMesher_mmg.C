@@ -249,88 +249,94 @@ void ReMesher::Generate_mmg(){
   
   //TODO: IN GPU SHOULD BE WITH HOST ARRAY INSTEAD OF DEVICE vars 
   //avgScalarDom(m_dom->pl_strain,ps_nod,6,m_dom)
- 
- 
-  //////////////////////// HYPERBOLIC
-  //~ cout << "Setting size "<<endl;
+
+  cout << "BETA: "<<m_dom->m_remesh_beta<<endl;
+  cout << "EPS REF: "<<m_dom->m_remesh_eps_ref<<endl;
+   
+  if (m_dom->m_remesh_type == 0) {
+    cout << "REMESH TYPE IS LINEAR"<<endl;
+    //////////////////////// HYPERBOLIC
+    //~ cout << "Setting size "<<endl;
+    for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
+      
+        //Calcular factor de refinamiento basado en deformación plástica
+        //Más deformación → elementos más pequeños (refinamiento)
+        double ps=0;
+        for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
+          int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
+          ps+=m_dom->pl_strain[eglob];
+        }
+        ps/=m_dom->m_nodel_count[k-1];
+
+
+        //double plastic_strain = m_dom->pl_strain[k-1];
+        double plastic_strain = ps;
+        
+        if (plastic_strain>max_ps){
+          max_ps = plastic_strain;
+          max_ps_elem = k-1;
+          }
+        
+        //Definir rangos de refinamiento
+
+        
+        //Mapear la deformación plástica al tamaño de elemento
+        //Puedes ajustar esta función según tus necesidades
+        double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
+        double h_target = min_size + (max_size - min_size) * refinement_factor;
+        
+        //Limitar el tamaño mínimo y máximo
+        if (h_target < min_size) h_target = min_size;
+        if (h_target > max_size) h_target = max_size;
+        
+        if (h_target<min_el_size) min_el_size = h_target;
+        
+        if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
+            exit(EXIT_FAILURE);
+    }
+  } else if (m_dom->m_remesh_type == 1) {
+    cout << "REMESH TYPE IS LINEAR"<<endl;
+  //~ ///// EXPONENTIAL
   for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
-    
-      //Calcular factor de refinamiento basado en deformación plástica
-      //Más deformación → elementos más pequeños (refinamiento)
-      double ps=0;
-      for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
-        int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
-        ps+=m_dom->pl_strain[eglob];
-      }
-      ps/=m_dom->m_nodel_count[k-1];
+    double h0        = m_dom->m_remesh_length;
+
+    int    np_nodes  = np;
 
 
       //double plastic_strain = m_dom->pl_strain[k-1];
-      double plastic_strain = ps;
-      
-      if (plastic_strain>max_ps){
-        max_ps = plastic_strain;
-        max_ps_elem = k-1;
-        }
-      
-      //Definir rangos de refinamiento
 
+      double plastic_strain=0;
+      for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
+        int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
+        plastic_strain+=m_dom->pl_strain[eglob];
+      }
+      plastic_strain/=m_dom->m_nodel_count[k-1];
       
-      //Mapear la deformación plástica al tamaño de elemento
-      //Puedes ajustar esta función según tus necesidades
-      double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
+
+      // Normalizar y clamp entre 0 y 1
+      double s = plastic_strain / m_dom->m_remesh_eps_ref;
+      if (s < 0.0) s = 0.0;
+      if (s > 1.0) s = 1.0;
+
+      // Exponencial: factor ∈ (0,1], más s → factor → pequeño
+      double refinement_factor = std::exp(-m_dom->m_remesh_beta * s); // cuando s=0 -> 1, s=1 -> exp(-beta)
+
       double h_target = min_size + (max_size - min_size) * refinement_factor;
-      
-      //Limitar el tamaño mínimo y máximo
+
+      // Limitar por seguridad (por si acaso)
       if (h_target < min_size) h_target = min_size;
       if (h_target > max_size) h_target = max_size;
-      
-      if (h_target<min_el_size) min_el_size = h_target;
-      
+
       if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
           exit(EXIT_FAILURE);
-  }
-  
-  cout << "BETA: "<<m_dom->m_remesh_beta<<endl;
-  cout << "EPS REF: "<<m_dom->m_remesh_eps_ref<<endl;
-  
-  //~ ///// EXPONENTIAL
-  //~ for (int k = 1; k <= np; k++) { //REMEMBER: np = m_dom->m_node_count;
-    //~ double h0        = m_dom->m_remesh_length;
-
-    //~ int    np_nodes  = np;
-
-
-      //~ //double plastic_strain = m_dom->pl_strain[k-1];
-
-      //~ double plastic_strain=0;
-      //~ for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
-        //~ int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
-        //~ plastic_strain+=m_dom->pl_strain[eglob];
-      //~ }
-      //~ plastic_strain/=m_dom->m_nodel_count[k-1];
-      
-
-      //~ // Normalizar y clamp entre 0 y 1
-      //~ double s = plastic_strain / m_dom->m_remesh_eps_ref;
-      //~ if (s < 0.0) s = 0.0;
-      //~ if (s > 1.0) s = 1.0;
-
-      //~ // Exponencial: factor ∈ (0,1], más s → factor → pequeño
-      //~ double refinement_factor = std::exp(-m_dom->m_remesh_beta * s); // cuando s=0 -> 1, s=1 -> exp(-beta)
-
-      //~ double h_target = min_size + (max_size - min_size) * refinement_factor;
-
-      //~ // Limitar por seguridad (por si acaso)
-      //~ if (h_target < min_size) h_target = min_size;
-      //~ if (h_target > max_size) h_target = max_size;
-
-      //~ if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
-          //~ exit(EXIT_FAILURE);
                     
-    //~ } 
+    } 
       
-
+    } else {
+      
+      cout << "NO REMESH TYPE!!!!"<<endl;
+      exit(1);
+      }    
     //~ // parámetros
     //~ double h0               = m_dom->m_remesh_length;
     //~ double min_frac         = 0.35;
