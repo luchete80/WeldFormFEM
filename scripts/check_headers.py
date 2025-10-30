@@ -50,9 +50,31 @@ def extract_start_year(content):
         return m.group(1)
     return str(CURRENT_YEAR)
 
-def remove_header(content):
-    """Elimina el bloque de header que empieza con /******** y termina con */"""
-    return re.sub(r"(?s)^/\*{9,}.*?\*/\s*", "", content, count=1)
+def remove_header(content, filepath):
+    """
+    Elimina líneas al inicio del archivo que comiencen con '/*' o '*',
+    hasta encontrar la primera línea que no sea comentario.
+    """
+    lines = content.splitlines()
+    new_lines = []
+    removed = 0
+
+    for line in lines:
+        stripped = line.lstrip()
+        if stripped.startswith("/*") or stripped.startswith("*"):
+            removed += 1
+            continue
+        else:
+            # Primera línea de código detectada, detener eliminación
+            new_lines = lines[removed:]
+            break
+
+    if removed > 0:
+        print(f"[REMOVE] Removed {removed} header-like lines from: {filepath}")
+    else:
+        print(f"[INFO] No header-like lines found in: {filepath}")
+
+    return "\n".join(new_lines) + "\n"
 
 def process_file(filepath, action):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -73,7 +95,7 @@ def process_file(filepath, action):
 
     elif action == "remove":
         if has_header(content):
-            content = remove_header(content)
+            content = remove_header(content,filepath)
             print(f"Removed header from: {filepath}")
 
     with open(filepath, "w", encoding="utf-8") as f:
