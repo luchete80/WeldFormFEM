@@ -18,13 +18,14 @@ HEADER_TEMPLATE = """\
 /*  {project_name} - High-Performance Explicit & Implicit FEM Solvers     */
 /*  (CPU/GPU, C++/CUDA)                                                  */
 /*                                                                       */
-/*  {email}                                                              */
-/*  {web}                                                                */
+/*  {email}                                                */
+/*  {web}                                    */
 /*                                                                       */
 /*  Copyright (c) {start_year}-{end_year} {author:<25} */
 /*                                                                       */
 /*  This file is part of the {project_name} project.                     */
-/*  Licensed under the {license}. See the LICENSE file in the project    */
+/*  Licensed under the {license}. */ 
+/*  See the LICENSE file in the project    */
 /*  root for full license information.                                   */
 /*************************************************************************/
 """
