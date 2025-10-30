@@ -42,7 +42,7 @@ def generate_header(filename, start_year):
     )
 
 def has_header(content):
-    return "This file is part of the" in content and "Copyright" in content
+    return "Copyright" in content
 
 def extract_start_year(content):
     m = re.search(r"Copyright \(c\) (\d{4})", content)

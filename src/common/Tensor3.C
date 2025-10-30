@@ -1,4 +1,3 @@
-/*  Copyright (c) 2013-2019 INGV, EDF, UniCT, JHU
 
     Istituto Nazionale di Geofisica e Vulcanologia, Sezione di Catania, Italy
     Électricité de France, Paris, France
