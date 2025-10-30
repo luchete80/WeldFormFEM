@@ -8,7 +8,8 @@ PROJECT_NAME = "WeldformFEM"
 AUTHOR = "Luciano Buglioni"
 LICENSE = "GNU General Public License v3.0 or later"
 EMAIL = "weldform.sph@gmail.com"
-WEB = "https://www.opensourcemech.com"
+WEB = "https://www.opensourcemech.com",
+START_YEAR = "2023"
 CURRENT_YEAR = datetime.datetime.now().year
 
 HEADER_TEMPLATE = """\
@@ -34,7 +35,7 @@ def generate_header(filename, start_year):
         project_name=PROJECT_NAME,
         email=EMAIL,
         web=WEB,
-        start_year=start_year,
+        start_year=START_YEAR,
         end_year=CURRENT_YEAR,
         author=AUTHOR,
         license=LICENSE
@@ -92,7 +93,7 @@ def main():
 
     for root, _, files in os.walk(path):
         for file in files:
-            if file.endswith((".cpp", ".c", ".h", ".hpp", "CMakeLists.txt", "README.md")):
+            if file.endswith((".cpp", ".c", ".h", ".hpp",".C", "CMakeLists.txt", "README.md")):
                 filepath = os.path.join(root, file)
                 process_file(filepath, action)
 
