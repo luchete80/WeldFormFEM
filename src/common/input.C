@@ -1,23 +1,17 @@
-/***********************************************************************************
-* WeldFormFEM - A C++/CUDA library to simulate Mechanical Systems using            *
-*               explicit Finite Element Methods                                    *
-* Copyright (C) 2023 - 2025 Luciano Buglioni  (luciano.buglioni@gmail.com)         *
-*               https://www.opensourcemech.com                                     *
-*                                                                                  *
-* This file is part of WeldFormFEM                                                 *
-*                                                                                  *
-* This is free software; you can redistribute it and/or modify it under the        *
-* terms of the GNU General Public License as published by the Free Software        *
-* Foundation; either version 3 of the License, or (at your option) any later       *
-* version.                                                                         *
-*                                                                                  *
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY  *
-* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A  *
-* PARTICULAR PURPOSE. See the GNU General Public License for more details.         *
-*                                                                                  *
-* You should have received a copy of the GNU General Public License along with     *
-* PersianSPH; if not, see <http://www.gnu.org/licenses/>                           *
-************************************************************************************/
+/*************************************************************************/
+/*  inpout.C                                                     */
+/*  WeldformFEM - High-Performance Explicit & Implicit FEM Solvers     */
+/*  (CPU/GPU, C++/CUDA)                                                  */
+/*                                                                       */
+/*  weldform.sph@gmail.com                                                              */
+/*  https://www.opensourcemech.com                                                                */
+/*                                                                       */
+/*  Copyright (c) 2025-2025 Luciano Buglioni          */
+/*                                                                       */
+/*  This file is part of the WeldformFEM project.                     */
+/*  Licensed under the GNU General Public License v3.0 or later. See the LICENSE file in the project    */
+/*  root for full license information.                                   */
+/*************************************************************************/
 
 #include "Domain_d.h"
 #include <string>

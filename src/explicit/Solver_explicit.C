@@ -1,3 +1,14 @@
+/***********************************************************************************
+* WeldFormFEM - A C++/CUDA library to simulate Mechanical Systems using            *
+*               explicit Finite Element Methods                                    *
+* Copyright (C) 2023 - 2025 Luciano Buglioni  (luciano.buglioni@gmail.com)         *
+*               https://www.opensourcemech.com                                     *
+*                                                                                  *
+* This file is part of WeldFormFEM                                                 *
+* You should have received a copy of the GNU General Public License along with     *
+* WeldFormFEM; if not, see <http://www.gnu.org/licenses/>                           *
+************************************************************************************/
+
 #include "Domain_d.h"
 #include <iostream>
 #include "VTKWriter.h"
