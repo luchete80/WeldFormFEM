@@ -674,6 +674,7 @@ public:
                        
   dev_t double getPtrMax(double *v, const int &size, const int &dim);
   
+  double3 ComputeCentroid() const; 
   
   
   

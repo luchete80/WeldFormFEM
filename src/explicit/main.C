@@ -386,6 +386,7 @@ int main(int argc, char **argv) {
       readValue(ic["id"], id);
       cout << "Initial Temp: "<<IniTemp<<endl;      
     }
+  double3 dom_centroid = dom_d->ComputeCentroid();
         
   bool thermal = false;
   readValue(config["thermal"], thermal);
@@ -623,8 +624,8 @@ int main(int argc, char **argv) {
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      bool orient_normals = false;
-      double3 or_pt = make_double3(0.,0.,0.);
+      bool orient_normals = true;
+      double3 or_pt = dom_centroid;
       readVector(rigbodies[0]["orientPoint"], 	or_pt);
       
       readValue(rigbodies[0]["orientNormals"], 	orient_normals);       
@@ -698,8 +699,14 @@ int main(int argc, char **argv) {
       string filename = "";
       readValue(rigbodies[1]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
-      m = new TriMesh_d(reader,flipnormals); //DO NOT USE COPY CONSTUCTOR LIKE THIS *msh = TriMesh(...) 
-      //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
+      bool orient_normals = true;
+      double3 or_pt = dom_centroid;
+      readVector(rigbodies[1]["orientPoint"], 	or_pt);
+      
+      readValue(rigbodies[1]["orientNormals"], 	orient_normals);       
+      m = new TriMesh_d(reader,flipnormals,orient_normals, or_pt); //ALWAYS WITH NEW HERE
+
+
     }
 
     // Verifica que la construcción fue exitosa

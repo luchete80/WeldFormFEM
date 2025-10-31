@@ -579,6 +579,16 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
 		//~ node_v.Push(new Vec3_t(0.,0.,0.));
   }
 
+  double3 centroid_matriz = make_double3(0.0, 0.0, 0.0);
+  for (int n = 0; n < nodecount; ++n)
+      centroid_matriz = centroid_matriz + node_h[n];
+  centroid_matriz = centroid_matriz/(double)nodecount;
+
+  std::cout << "Centroid of matrix: "
+            << centroid_matriz.x << ", "
+            << centroid_matriz.y << ", "
+            << centroid_matriz.z << std::endl;
+
   memcpy_t(node,       node_h,  nodecount * sizeof(double3));
   memcpy_t(node_v,    node_vh,  nodecount * sizeof(double3));
   cout << "endl"<<endl;
@@ -611,8 +621,8 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
           //~ global_centroid = global_centroid + node_h[n];
       //~ global_centroid = global_centroid / nodecount;
   //~ }
-  double3 global_centroid  = orient_pt;
-  cout << "Global Centroid:" <<global_centroid.x<<", "<<global_centroid.y<<", "<<global_centroid.z<<endl;
+
+  cout << "Global Centroid:" <<orient_pt.x<<", "<<orient_pt.y<<", "<<orient_pt.z<<endl;
     
   
   cout << "Writing elements..."<<endl;
@@ -675,29 +685,34 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
     if (flipnormals){
       normal_h[e].x = -normal_h[e].x;      normal_h[e].y = -normal_h[e].y;      normal_h[e].z = -normal_h[e].z;}
     
-    // Optional reorientation
-    if(orientNormals){
-
-        double3 vec = centroid_h[e] - global_centroid;
-        cout << "element " << e << " centroid "<<centroid_h[e].x <<", "<<centroid_h[e].y<<", "<<centroid_h[e].z<<endl;
-        cout << "Elem " << e <<  " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z<<endl;
-        cout << "Node centroid position: "<<vec.x<<", "<<vec.y<<", "<<vec.z<<endl;
-        if(dot(normal_h[e], vec) < 0.){
-          normal_h[e].x = -normal_h[e].x; normal_h[e].y = -normal_h[e].y; normal_h[e].z = -normal_h[e].z;
-          //invert conn
-          elnode_h[3*e+1] = nr.elcon[3*e  ];
-          elnode_h[3*e  ] = nr.elcon[3*e+1];
-        }
-
-    }
     
-
     cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
     //~ cout << "Elcon: "<<nr.elcon[3*e]<<", "<<nr.elcon[3*e+1]<<", "<<nr.elcon[3*e+2]<<endl;
     
   }/////ELEMENT
   //~ cout << "Generated "<<element.Size()<< " trimesh elements. "<<endl;  
 
+  // --- Después de haber calculado todos los centroides y normales ---
+  if (orientNormals) {
+      double3 dir = centroid_matriz - orient_pt;
+      double dist = norm(dir);
+      dir = dir / dist;
+
+      // Punto seguro dentro de la matriz
+      double3 centroid_matriz_seguro = centroid_matriz + dir * (2.0 * dist);
+
+      for (int e = 0; e < nr.elem_count; e++) {
+          double3 vec = centroid_h[e] - centroid_matriz_seguro;
+
+          if (dot(normal_h[e], vec) < 0.0) {
+              normal_h[e].x = -normal_h[e].x;normal_h[e].y = -normal_h[e].y;      normal_h[e].z = -normal_h[e].z;
+              //~ std::swap(elnode_h[3*e], elnode_h[3*e+1]);
+              double tmp = elnode_h[3*e];
+              elnode_h[3*e] = elnode_h[3*e+1];
+              elnode_h[3*e+1] = tmp;
+          }
+      }
+  }
 
 
   

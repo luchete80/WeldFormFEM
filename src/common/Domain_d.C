@@ -2796,6 +2796,30 @@ void Domain_d::CorrectLocalVelocityPeaks() {
     //~ }
 //~ }
 
+double3 Domain_d::ComputeCentroid() const {
+    // Verificación básica
+    if (m_node_count == 0 || x == nullptr) {
+        std::cerr << "Error: Domain_d::ComputeCentroid called on empty domain." << std::endl;
+        return make_double3(0.0, 0.0, 0.0);
+    }
+
+    double3 centroid = make_double3(0.0, 0.0, 0.0);
+
+    // Sumar todas las posiciones nodales
+    for (int n = 0; n < m_node_count; ++n) {
+        centroid.x += x[3 * n + 0];
+        centroid.y += x[3 * n + 1];
+        centroid.z += x[3 * n + 2];
+    }
+
+    // Promediar
+    centroid.x /= m_node_count;
+    centroid.y /= m_node_count;
+    centroid.z /= m_node_count;
+
+    return centroid;
+}
+
 void Domain_d::addMeshData(const TriMesh_d &m){
   trimesh->AddMesh(m);
 }
