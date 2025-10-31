@@ -573,7 +573,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
 
       //~ node.Push(new Vec3_t(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]));
       node_h[n] = make_double3(nr.node[3*n],nr.node[3*n+1],nr.node[3*n+2]);
-      cout << "Node " << n <<" Pos "<<nr.node[3*n]<<", "<<nr.node[3*n+1]<<", "<<nr.node[3*n+2]<<endl;
+      //cout << "Node " << n <<" Pos "<<nr.node[3*n]<<", "<<nr.node[3*n+1]<<", "<<nr.node[3*n+2]<<endl;
 
     node_vh[n] = make_double3(0.0,0.0,0.0);
 		//~ node_v.Push(new Vec3_t(0.,0.,0.));
@@ -683,10 +683,11 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
     
     //Connectivities are already inverted
     if (flipnormals){
-      normal_h[e].x = -normal_h[e].x;      normal_h[e].y = -normal_h[e].y;      normal_h[e].z = -normal_h[e].z;}
+      normal_h[e].x = -normal_h[e].x;      normal_h[e].y = -normal_h[e].y;      normal_h[e].z = -normal_h[e].z;
+    }
     
     
-    cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
+    //cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
     //~ cout << "Elcon: "<<nr.elcon[3*e]<<", "<<nr.elcon[3*e+1]<<", "<<nr.elcon[3*e+2]<<endl;
     
   }/////ELEMENT
@@ -694,6 +695,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
 
   // --- Después de haber calculado todos los centroides y normales ---
   if (orientNormals) {
+      cout << "Reorienting normals.."<<endl;
       double3 dir = centroid_matriz - orient_pt;
       double dist = norm(dir);
       dir = dir / dist;
@@ -712,6 +714,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
               elnode_h[3*e+1] = tmp;
           }
       }
+      cout << "Done."<<endl;
   }
 
 

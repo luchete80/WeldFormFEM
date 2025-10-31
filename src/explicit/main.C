@@ -702,7 +702,9 @@ int main(int argc, char **argv) {
       bool orient_normals = true;
       double3 or_pt = dom_centroid;
       readVector(rigbodies[1]["orientPoint"], 	or_pt);
-      
+      if (orient_normals)
+        cout << "Contact Mesh 1. Oriented normals is set to true"<<endl;
+
       readValue(rigbodies[1]["orientNormals"], 	orient_normals);       
       m = new TriMesh_d(reader,flipnormals,orient_normals, or_pt); //ALWAYS WITH NEW HERE
 
