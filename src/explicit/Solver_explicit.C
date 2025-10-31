@@ -434,10 +434,10 @@ void host_ Domain_d::SolveChungHulbert(){
     
     need_remesh = false;
     int bad_elem_count = 0;
-    for (int e=0;e<m_elem_count;e++){
-      if (m_elem_min_angle[e] < 15.0 || m_elem_max_angle[e] > 160.0)
-        bad_elem_count++;
-    }
+    //~ for (int e=0;e<m_elem_count;e++){
+      //~ if (m_elem_min_angle[e] < 15.0 || m_elem_max_angle[e] > 160.0)
+        //~ bad_elem_count++;
+    //~ }
     double bad_frac = double(bad_elem_count) / double(m_elem_count);
     if (bad_frac > 0.05){  // más del 5% de los elementos malos
       need_remesh = true;
