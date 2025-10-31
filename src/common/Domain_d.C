@@ -2520,9 +2520,10 @@ dev_t void Domain_d::calcMinEdgeLength() {
             elem_max_angle = fmax(angA, fmax(angB, angC));
         }
 
-        // guardar resultados
-        m_elem_min_angle[e] = elem_min_angle;
-        m_elem_max_angle[e] = elem_max_angle;
+
+        //m_elem_min_angle[e] = elem_min_angle;
+        //m_elem_max_angle[e] = elem_max_angle;
+        
         if (elem_min_angle < min_angle) min_angle = elem_min_angle;
         if (elem_max_angle > max_angle) max_angle = elem_max_angle;
     }
