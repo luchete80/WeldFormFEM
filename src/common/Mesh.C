@@ -713,6 +713,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
               elnode_h[3*e] = elnode_h[3*e+1];
               elnode_h[3*e+1] = tmp;
           }
+          cout << "Corrected " << e << " normal "<<normal_h[e].x<<", "<<normal_h[e].y<<", "<<normal_h[e].z <<endl;
       }
       cout << "Done."<<endl;
   }
