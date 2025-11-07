@@ -270,7 +270,8 @@ void ReMesher::Generate_mmg(){
 
   cout << "BETA: "<<m_dom->m_remesh_beta<<endl;
   cout << "EPS REF: "<<m_dom->m_remesh_eps_ref<<endl;
-   
+  double threshold = 1.0;
+  
   if (m_dom->m_remesh_type == 0) {
     cout << "REMESH TYPE IS LINEAR"<<endl;
     //////////////////////// HYPERBOLIC
@@ -296,12 +297,20 @@ void ReMesher::Generate_mmg(){
           }
         
         //Definir rangos de refinamiento
-
+        
         
         //Mapear la deformación plástica al tamaño de elemento
         //Puedes ajustar esta función según tus necesidades
         double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
         double h_target = min_size + (max_size - min_size) * refinement_factor;
+
+        if (m_dom->ext_nodes[k-1] && 
+                 (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
+                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
+                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
+          h_target = min_size; // forzar refinamiento local
+        }
+
         
         //Limitar el tamaño mínimo y máximo
         if (h_target < min_size) h_target = min_size;
@@ -341,6 +350,13 @@ void ReMesher::Generate_mmg(){
 
       double h_target = min_size + (max_size - min_size) * refinement_factor;
 
+      if (m_dom->ext_nodes[k-1] && 
+               (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
+                m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
+                m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
+        h_target = min_size; // forzar refinamiento local
+      }
+        
       // Limitar por seguridad (por si acaso)
       if (h_target < min_size) h_target = min_size;
       if (h_target > max_size) h_target = max_size;
