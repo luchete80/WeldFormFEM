@@ -371,6 +371,116 @@ void ReMesher::Generate_mmg(){
       cout << "NO REMESH TYPE!!!!"<<endl;
       exit(1);
       }    
+
+    ///// NEW REMESH TO MAINTAIN INNER COARSE 
+    // // Parámetros recomendados (ajustalos)
+    // const double GRADATION_MAX_RATIO = 1.3;    // factor máximo de cambio entre vecinos
+    // const int SMOOTH_ITERS = 5;                // iteraciones de suavizado
+    // const double CF_REF = 1e-3;                // referencia de fuerza de contacto (ajustar)
+    // const double CONTACT_STRONG_FACTOR = 0.5;  // fracc. del min_size si ext_nodes (0..1)
+
+    // // min_size / max_size calculados como en tu código:
+    // double min_size = m_dom->m_remesh_min_frac * m_dom->m_remesh_length;
+    // double max_size = m_dom->m_remesh_max_frac * m_dom->m_remesh_length;
+
+    // // Array temporal para guardar tamaños nodales
+    // std::vector<double> h_node(m_dom->m_node_count, max_size);
+
+    // // 1) Calculo base por nodo: mezcla de plastic strain y contacto
+    // for (int k = 0; k < m_dom->m_node_count; ++k) {
+        // // 1.a) plastic strain promedio en vecindad nodal (similar a tu bucle)
+        // double ps = 0.0;
+        // int cnt = m_dom->m_nodel_count[k];
+        // if (cnt > 0) {
+            // for (int ie = 0; ie < cnt; ++ie) {
+                // int eglob = m_dom->m_nodel[m_dom->m_nodel_offset[k] + ie];
+                // ps += m_dom->pl_strain[eglob];
+            // }
+            // ps /= double(cnt);
+        // }
+
+        // // Mapeo simple de plastic strain -> tamaño (exponencial suave)
+        // double s = ps / std::max(1e-12, m_dom->m_remesh_eps_ref); // normaliza
+        // if (s < 0.0) s = 0.0;
+        // if (s > 1.0) s = 1.0;
+        // double h_plastic = min_size + (max_size - min_size) * std::exp(-m_dom->m_remesh_beta * s);
+
+        // // 1.b) criterio de contacto: magnitud vectorial del contforce nodal
+        // double cfmag = 0.0;
+        // for (int d = 0; d < m_dim; ++d)
+            // cfmag += contforce[m_dim*k + d] * contforce[m_dim*k + d];
+        // cfmag = sqrt(cfmag);
+
+        // // Escala de contacto (0..1)
+        // double contact_factor = std::min(cfmag / std::max(CF_REF, 1e-30), 1.0);
+        // // Si hay fuerza, queremos tamaños menores: factor inverso
+        // double h_contact = min_size + (max_size - min_size) * (1.0 - contact_factor);
+
+        // // 1.c) si es nodo externo en contacto, forzar más refinamiento (opcional)
+        // double h_ext = max_size;
+        // if (ext_nodes[k]) {
+            // // Proponer una fracción del tamaño mínimo (para superficie)
+            // h_ext = std::max(min_size, min_size * (1.0 + CONTACT_STRONG_FACTOR));
+        // }
+
+        // // 1.d) combinación: tomar el más restrictivo (menor)
+        // double h_t = std::min(h_plastic, h_contact);
+        // h_t = std::min(h_t, h_ext);
+
+        // // Guardar
+        // h_node[k] = std::min(max_size, std::max(min_size, h_t));
+    // }
+
+    // // 2) Suavizado simple iterativo (Jacobi) usando conectividad nodal (m_nodel arrays)
+    // std::vector<double> h_tmp(m_dom->m_node_count);
+
+    // for (int iter = 0; iter < SMOOTH_ITERS; ++iter) {
+        // for (int k = 0; k < m_dom->m_node_count; ++k) {
+            // double sum = h_node[k];
+            // int ncount = 1;
+            // // vecinos por elementos que comparten el nodo
+            // for (int ie = 0; ie < m_dom->m_nodel_count[k]; ++ie) {
+                // int eglob = m_dom->m_nodel[m_dom->m_nodel_offset[k] + ie];
+                // // recorrer nodos del elemento eglob
+                // for (int nn = 0; nn < m_nodxelem; ++nn) {
+                    // int node_j = m_dom->m_elnod[eglob * m_nodxelem + nn];
+                    // if (node_j == k) continue;
+                    // sum += h_node[node_j];
+                    // ncount++;
+                // }
+            // }
+            // h_tmp[k] = sum / double(ncount);
+        // }
+        // // copiar de vuelta
+        // h_node.swap(h_tmp);
+    // }
+
+    // // 3) Limitación de gradación local (no más de GRADATION_MAX_RATIO entre vecinos)
+    // for (int k = 0; k < m_dom->m_node_count; ++k) {
+        // for (int ie = 0; ie < m_dom->m_nodel_count[k]; ++ie) {
+            // int eglob = m_dom->m_nodel[m_dom->m_nodel_offset[k] + ie];
+            // for (int nn = 0; nn < m_nodxelem; ++nn) {
+                // int node_j = m_dom->m_elnod[eglob * m_nodxelem + nn];
+                // if (node_j == k) continue;
+                // double allowed_max = h_node[node_j] * GRADATION_MAX_RATIO;
+                // double allowed_min = h_node[node_j] / GRADATION_MAX_RATIO;
+                // if (h_node[k] > allowed_max) h_node[k] = allowed_max;
+                // if (h_node[k] < allowed_min) h_node[k] = allowed_min;
+            // }
+        // }
+    // }
+
+    // // 4) Finalmente: setear en MMG (indices 1..np)
+    // for (int k = 0; k < m_dom->m_node_count; ++k) {
+        // double h_to_set = std::min(max_size, std::max(min_size, h_node[k]));
+        // if (MMG3D_Set_scalarSol(mmgSol, h_to_set, k + 1) != 1) {
+            // std::cerr << "MMG3D_Set_scalarSol failed for node " << k << std::endl;
+            // exit(EXIT_FAILURE);
+        // }
+    // }
+
+
+
     //~ // parámetros
     //~ double h0               = m_dom->m_remesh_length;
     //~ double min_frac         = 0.35;
