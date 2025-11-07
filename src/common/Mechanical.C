@@ -2308,19 +2308,78 @@ void Domain_d::smoothFieldLaplacian(double *v_nodal, int dim) {
     delete[] v_temp;
 }
 
-void Domain_d::ApplyGlobalDamping(double damping_factor) {
-  par_loop(nid,m_node_count){
-    if (!ext_nodes[nid]) {
-        for (int d = 0; d < 3; d++) {
-            // Amortiguación en velocidades
-            v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
+// void Domain_d::ApplyGlobalDamping(double damping_factor) {
+  // par_loop(nid,m_node_count){
+    // if (!ext_nodes[nid]) {
+        // for (int d = 0; d < 3; d++) {
+            // // Amortiguación en velocidades
+            // v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
             
-            //~ // Opcional: aplicar a desplazamientos si es necesario
-            //~ u[3 * nid + d] -= damping_factor * u[3 * nid + d];
-        }
+            // //~ // Opcional: aplicar a desplazamientos si es necesario
+            // //~ u[3 * nid + d] -= damping_factor * u[3 * nid + d];
+        // }
+    // }
+  // }
+// }
+
+// void Domain_d::ApplyGlobalDamping(double base_damping, double vel_scale) {
+  // par_loop(nid, m_node_count) {
+    // if (!ext_nodes[nid]) {
+      // double vx = v[m_dim * nid + 0];
+      // double vy = v[m_dim * nid + 1];
+      // double vz = v[m_dim * nid + 2];
+      // double vmag = sqrt(vx * vx + vy * vy + vz * vz);
+
+      // // Damping proporcional a la velocidad
+      // double damping_factor = base_damping * (1.0 + vel_scale * vmag);
+
+      // for (int d = 0; d < 3; d++) {
+        // v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
+      // }
+    // }
+  // }
+// }
+
+void Domain_d::ApplyGlobalDamping(double base_damping, double vel_ref) {
+  par_loop(nid, m_node_count) {
+    if (!ext_nodes[nid]) {
+      double vx = v[m_dim * nid + 0];
+      double vy = v[m_dim * nid + 1];
+      double vz = v[m_dim * nid + 2];
+      double vmag = sqrt(vx * vx + vy * vy + vz * vz);
+
+      // Escalado tipo sigmoide
+      double ratio = vmag / (vel_ref + 1e-12);
+      double damping_factor = base_damping * (ratio / (1.0 + ratio));
+
+      for (int d = 0; d < 3; d++) {
+        v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
+      }
     }
   }
 }
+
+//// IF DYN RELAXATION
+// void Domain_d::ApplyEnergyBasedDamping(double base_damping, double Ekin_ref) {
+  // par_loop(nid, m_node_count) {
+    // if (!ext_nodes[nid]) {
+      // double vx = v[m_dim * nid + 0];
+      // double vy = v[m_dim * nid + 1];
+      // double vz = v[m_dim * nid + 2];
+      // double Ekin_local = 0.5 * (vx*vx + vy*vy + vz*vz);
+
+      // // Factor proporcional a energía cinética (normalizado)
+      // double damping_factor = base_damping * (Ekin_local / (Ekin_ref + 1e-12));
+
+      // if (damping_factor > base_damping) damping_factor = base_damping;
+
+      // for (int d = 0; d < 3; d++) {
+        // v[m_dim * nid + d] -= damping_factor * v[m_dim * nid + d];
+      // }
+    // }
+  // }
+// }
+
 
 dev_t void Domain_d::computeEnergies(double dt,
                        //const double* f_visc,  // optional nodal viscous forces [3*node_count] or nullptr

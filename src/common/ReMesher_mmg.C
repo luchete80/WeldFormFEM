@@ -253,8 +253,7 @@ void ReMesher::Generate_mmg(){
   MMG3D_Set_solSize(mmgMesh, mmgSol, MMG5_Vertex, np, MMG5_Scalar);
 
 
-  // for (int k = 1; k <= np; k++)
-    // MMG3D_Set_scalarSol(mmgSol, 2.0*m_dom->m_remesh_length, k);  // uniform sizing via scalar field
+
 
   double max_ps = 0;
   int max_ps_elem;
@@ -367,8 +366,18 @@ void ReMesher::Generate_mmg(){
     } 
       
     } else {
+      for (int k = 1; k <= np; k++){
+        double h_target =  2.0*m_dom->m_remesh_length;
+        if (m_dom->ext_nodes[k-1] && 
+                 (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
+                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
+                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
+          h_target = min_size; // forzar refinamiento local
+        }
       
-      cout << "NO REMESH TYPE!!!!"<<endl;
+        MMG3D_Set_scalarSol(mmgSol,h_target, k);  // uniform sizing via scalar field      
+      }      
+      cout << "UNIFORM REMESH!!!!"<<endl;
       exit(1);
       }    
 

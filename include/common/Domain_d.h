@@ -652,7 +652,7 @@ public:
   void setContactPF(const double &pf){m_contPF = pf;}
 
   __device__ void ApplyGlobalSprings();
-  void ApplyGlobalDamping(double damping_factor);
+  void ApplyGlobalDamping(double damping_factor,double vel_ref = 0.5);
   
   double  m_remesh_min_pl_strain,m_remesh_max_pl_strain;
   bool m_remesh_map_vel,m_remesh_map_acc;
