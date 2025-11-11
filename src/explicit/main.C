@@ -248,7 +248,9 @@ int main(int argc, char **argv) {
     readValue(mesh["beta"],dom_d->m_remesh_beta);
     readValue(mesh["type"],dom_d->m_remesh_type);
 
-
+    cout << "REMESH PARAMETERS: "<<endl;
+    cout << "m_remesh_min_pl_strain"<<dom_d->m_remesh_min_pl_strain<<endl;
+    cout << "m_remesh_max_pl_strain"<<dom_d->m_remesh_max_pl_strain<<endl;
     
     double3 artifvisc;
     dom_d->m_artifvisc[0] = 0.0; //Alpha. linear 0.3-0.6

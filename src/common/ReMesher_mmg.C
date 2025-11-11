@@ -365,21 +365,59 @@ void ReMesher::Generate_mmg(){
                     
     } 
       
-    } else {
+    } else if (m_dom->m_remesh_type == 2) {
+      cout << "UNIFORM REMESH WITH EXTERNAL LINEAR!!!!"<<endl;
       for (int k = 1; k <= np; k++){
         double h_target =  2.0*m_dom->m_remesh_length;
         if (m_dom->ext_nodes[k-1] && 
                  (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
                   m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
                   m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
-          h_target = min_size; // forzar refinamiento local
+          //h_target = min_size; // forzar refinamiento local
+          //Calcular factor de refinamiento basado en deformación plástica
+          //Más deformación → elementos más pequeños (refinamiento)
+          double ps=0;
+          for (int e=0; e<m_dom->m_nodel_count[k-1];e++) {
+            int eglob   = m_dom->m_nodel     [m_dom->m_nodel_offset[k-1]+e];
+            ps+=m_dom->pl_strain[eglob];
+          }
+          ps/=m_dom->m_nodel_count[k-1];
+
+
+          //double plastic_strain = m_dom->pl_strain[k-1];
+          double plastic_strain = ps;
+          
+          if (plastic_strain>max_ps){
+            max_ps = plastic_strain;
+            max_ps_elem = k-1;
+            }
+          
+          //Definir rangos de refinamiento
+          
+          
+          //Mapear la deformación plástica al tamaño de elemento
+          //Puedes ajustar esta función según tus necesidades
+          double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
+          h_target = min_size + (max_size - min_size) * refinement_factor;       
+        
         }
+        
+        if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
+          exit(EXIT_FAILURE);
       
-        MMG3D_Set_scalarSol(mmgSol,h_target, k);  // uniform sizing via scalar field      
+
       }      
-      cout << "UNIFORM REMESH!!!!"<<endl;
+
+      } else if (m_dom->m_remesh_type == 3)  {
+        double h_target =  2.0*m_dom->m_remesh_length;
+        for (int k = 1; k <= np; k++)
+          if (MMG3D_Set_scalarSol(mmgSol, h_target, k) != 1) 
+            exit(EXIT_FAILURE);
+      }else{
+      cout << "No remesh type set!"<<endl;
       exit(1);
-      }    
+        
+      }
 
     ///// NEW REMESH TO MAINTAIN INNER COARSE 
     // // Parámetros recomendados (ajustalos)
