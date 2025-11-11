@@ -1,6 +1,6 @@
-[submodule "lib/Math"]
-	path = lib/Math
-	url = git@github.com:luchete80/Math.git
 [submodule "lib/LSDynaReader"]
-	path = lib/LSDynaReader
-	url = git@github.com:luchete80/LSDynaReader.git
+    path = lib/LSDynaReader
+    url = https://github.com/luchete80/LSDynaReader.git
+[submodule "lib/Math"]
+    path = lib/Math
+    url = https://github.com/luchete80/Math.git
