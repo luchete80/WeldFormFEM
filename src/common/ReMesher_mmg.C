@@ -303,12 +303,12 @@ void ReMesher::Generate_mmg(){
         double refinement_factor = 1.0 / (1.0 + 2.0 * plastic_strain);  //Más strain → factor menor
         double h_target = min_size + (max_size - min_size) * refinement_factor;
 
-        if (m_dom->ext_nodes[k-1] && 
-                 (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
-                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
-                  m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
-          h_target = min_size; // forzar refinamiento local
-        }
+        //~ if (m_dom->ext_nodes[k-1] && 
+                 //~ (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
+                  //~ m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
+                  //~ m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
+          //~ h_target = min_size; // forzar refinamiento local
+        //~ }
 
         
         //Limitar el tamaño mínimo y máximo
@@ -349,12 +349,12 @@ void ReMesher::Generate_mmg(){
 
       double h_target = min_size + (max_size - min_size) * refinement_factor;
 
-      if (m_dom->ext_nodes[k-1] && 
-               (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
-                m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
-                m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
-        h_target = min_size; // forzar refinamiento local
-      }
+      //~ if (m_dom->ext_nodes[k-1] && 
+               //~ (m_dom->contforce[3*(k-1)]*m_dom->contforce[3*(k-1)]+
+                //~ m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1]+
+                //~ m_dom->contforce[3*(k-1)+1]*m_dom->contforce[3*(k-1)+1])> threshold) {
+        //~ h_target = min_size; // forzar refinamiento local
+      //~ }
         
       // Limitar por seguridad (por si acaso)
       if (h_target < min_size) h_target = min_size;
