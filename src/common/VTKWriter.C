@@ -30,7 +30,7 @@
 //#include "Matrix.h"
 #endif
 
-#include "tensor3.C"
+#include "Tensor3.C"
 
 using namespace std;
 

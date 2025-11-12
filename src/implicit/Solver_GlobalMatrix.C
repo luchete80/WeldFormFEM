@@ -36,7 +36,7 @@
 #include <omp.h>
 
 #include "Solver_Eigen.h"
-#include "tensor3.C"
+#include "Tensor3.C"
 
 using namespace std;
 

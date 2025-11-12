@@ -40,7 +40,7 @@
 //#include "Matrix.h"
 #endif
 
-#include "tensor3.C"
+#include "Tensor3.C"
 #include "../lib/LSDynaReader/src/lsdynaReader.h"
 
 #include "parallel_for_each.h"
