@@ -865,7 +865,8 @@ int main(int argc, char **argv) {
           if (coord < symtol ) {
           dom_d->AddBCVelNode(i,d,0);
           xyzfixcount[d]++;
-                
+          dom_d->setSymm(d);      
+               
           }
         #endif
       }

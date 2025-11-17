@@ -277,6 +277,8 @@ public:
     if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.1;
     
     abs_bc_initialized = false;
+    
+    m_symm[0]=m_symm[1]=m_symm[2]=false;
         
   }
 
@@ -366,6 +368,7 @@ public:
   void SetDimensionImplicit(const int &node_count, const int &elem_count); //TO NOT USE virtual (GPU issues)
   void AddBoxLength(vector_t const & V, vector_t const & L, const double &r, const bool &red_int = true, const bool &tritetra = false);
   void CreateFromLSDyna(LS_Dyna::lsdynaReader &reader);
+  void setSymm(const int &d){m_symm[d]=true;}
   ///// (CUDA HOST) FUNCTIONS 
   inline dev_t double2 getPosVec2(const int &n){
     return make_double2(x[m_dim*n], x[m_dim*n+1]);
@@ -496,7 +499,7 @@ public:
     #endif
   }
 
-  
+  void setFixSymm(); //Set Nodes for fixing 
   void AssignMaterial (Material_ *material_h); //Create and copy material
   
   dev_t void AssignMatAddress(); //Assign particle data to material array to zero array
@@ -696,6 +699,7 @@ protected:
   dev_t int symm_idx[3][3] = {{0,3,5},{3,1,4},{5,4,2}};
 	int 						m_dim;
   int             m_node_count, m_elem_count;
+  bool            m_symm[3];
 	
 	unsigned int 		*m_elnod;              /// TO SHIFT 
   

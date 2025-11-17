@@ -2821,6 +2821,28 @@ double3 Domain_d::ComputeCentroid() const {
     return centroid;
 }
 
+
+void Domain_d::setFixSymm(){
+  double symtol = 1.0e-4;
+
+  for (int i=0;i<getNodeCount();i++){
+    for (int d=0;d<3;d++){
+      if (m_symm[d]){
+        #ifdef CUDA_BUILD
+        #else
+          double coord;
+          if      (d==0)  coord = getPosVec3(i).x;
+          else if (d==1)  coord = getPosVec3(i).y;
+          else            coord = getPosVec3(i).z;
+          if (coord < symtol ) {
+            AddBCVelNode(i,d,0);
+          }
+        #endif
+      }
+    }
+  }
+}
+
 void Domain_d::addMeshData(const TriMesh_d &m){
   trimesh->AddMesh(m);
 }

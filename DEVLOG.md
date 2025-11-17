@@ -419,3 +419,4 @@ F90 PREVIOUS VERSION
          - Added distorsion criteria. 
 --------------------------------------------------------------------------------------------------------
 20251117 - Fixed Etot from output file to appear on column.
+         - Added Symmetry to remesh.
