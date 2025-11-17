@@ -1066,7 +1066,7 @@ void host_ Domain_d::SolveChungHulbert(){
     
     //}
     of <<","<<Eint<<","<<Ekin;
-    of <<", Etot"<<Eint+Ekin<<endl;
+    of <<","<<Eint+Ekin<<endl;
     #ifndef CUDA_BUILD
     VTKWriter writer2(this, outfname.c_str());
     writer2.writeFile();
