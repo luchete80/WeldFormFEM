@@ -424,7 +424,22 @@ void ReMesher::WriteDomain(){
 
   cout << "Map done"<<endl;  
   // /////////////////////// BOUNDARY CONDITIONS
+  cout <<"Deleting BCs"<<endl;
+  if (m_dom->bc_count[0]>0){free_t(m_dom->bcx_nod);  free_t(m_dom->bcx_val); }
+  if (m_dom->bc_count[1]>0){free_t(m_dom->bcy_nod);  free_t(m_dom->bcy_val);  }
+  if (m_dom->bc_count[2]>0){free_t(m_dom->bcz_nod);   free_t(m_dom->bcz_val);}
+  //~ free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
+  //~ free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);      
+  cout << "Done"<<endl;
+  
   m_dom->bc_count[0]=m_dom->bc_count[1]=m_dom->bc_count[2]=0;
+  m_dom->bcx_nod_h.clear();  m_dom->bcy_nod_h.clear();  m_dom->bcz_nod_h.clear();
+  m_dom->bcx_val_h.clear();  m_dom->bcy_val_h.clear();  m_dom->bcz_val_h.clear();
+
+
+    
+  //~ free_t(m_dom->bcx_nod);  free_t(m_dom->bcy_nod);  free_t(m_dom->bcz_nod);
+  //~ free_t(m_dom->bcx_val);  free_t(m_dom->bcy_val);  free_t(m_dom->bcz_val);
   //~ int bccount[3];
   //~ int    *bcx_nod,*bcy_nod,*bcz_nod;
   //~ double *bcx_val,*bcy_val,*bcz_val;
@@ -634,7 +649,7 @@ void ReMesher::WriteDomain(){
   ///////if (m_dom->m_remesh_map_vel)
   /////memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
           
-    
+  
   
   //~ ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
   //~ ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);

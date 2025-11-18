@@ -422,4 +422,4 @@ F90 PREVIOUS VERSION
          - Added Symmetry to remesh.
 20251118 - Fixed Remesh in Symmetry plane models.
          - Disabled by now remap BCs (was crashing).
-         - FIXED BCs in domains with NO contact.
+         - FIXED BCs in domains with NO contact. Was applied on every domain.

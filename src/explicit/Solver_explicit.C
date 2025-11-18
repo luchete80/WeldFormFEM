@@ -373,8 +373,9 @@ void host_ Domain_d::SolveChungHulbert(){
       //remesh.Generate_omegah();
       remesh.Generate_mmg();
       remesh.WriteDomain(); 
-      
+      cout <<"Checking BCs"<<endl;
       setFixSymm();
+      AllocateBCs();
       //cout << "Step "<<step_count<<endl;
       //parallel_for ()
 
