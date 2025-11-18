@@ -201,6 +201,7 @@ struct boundaryCondition {
   double cv_coeff;
   double T_inf;
   double T;
+  double3 start, end;
 };
 
 class TriMesh_d;
@@ -679,7 +680,7 @@ public:
   
   double3 ComputeCentroid() const; 
   
-  
+  int getBCCount(const int &d){if (d==0)return bcx_nod_h.size(); else if(d==1)return bcy_nod_h.size(); else if (d==2)return bcz_nod_h.size(); else return 0;}
   
   void CorrectLocalVelocityPeaks();
   

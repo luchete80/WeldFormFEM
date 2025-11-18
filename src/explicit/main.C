@@ -529,7 +529,7 @@ int main(int argc, char **argv) {
     dom_d->AssignMaterial(material_h);
   }
   cout << "Done."<<endl;
-  
+
   //////////////////////////////////////////////////////
   //////////////////// BOUNDARY CONDITIONS
   std::vector<boundaryCondition> bConds;
@@ -561,9 +561,11 @@ int main(int argc, char **argv) {
       readValue(bc["id"], 		zoneid);
       readVector(bc["start"], 	start);
       readVector(bc["end"], 	end);
+      bcon.start=start;
+      bcon.end = end;
       
-      int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
-      cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
+      //~ int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
+      //~ cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
   
 	if (bcon.valueType == 0){//Constant
 
@@ -577,7 +579,8 @@ int main(int argc, char **argv) {
 
   } //BCs
   
-      
+
+        
   // //////////////////////////////////////////////////////////
   // ////////////////// RIGID BODIES //////////////////////////
   string rigbody_type;
@@ -670,6 +673,25 @@ int main(int argc, char **argv) {
     //THIS MESH SHOULD NOT BE DELETED 
 	printf("-------------------\n");
   }
+
+
+  if (!contact){
+    //printf("Searching bcs for ZoneID %d..\n", id);
+    for (int bc=0;bc<bConds.size();bc++){
+      //~ if (bConds[bc].zoneId==id){
+      //~ printf("BC Found for Zone ID: %d\n", id);
+      //~ printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
+
+      int bcn= dom_d->AddBCVelZone(bConds[bc].start, bConds[bc].end,bConds[bc].value);
+      cout << bcn << " Nodes with Velocity " << bConds[bc].value.x<<", "<<bConds[bc].value.y<<", "<<bConds[bc].value.z<<endl; 
+
+      //~ }
+    }
+  }
+  
+
+    
+  
   
   cout <<"Done"<<endl;
   if (rigbodies.size() > 1){

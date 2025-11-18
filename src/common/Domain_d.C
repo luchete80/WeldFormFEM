@@ -1138,7 +1138,9 @@ host_   void Domain_d::AddBCVelNode(const int &node, const int &dim, const doubl
 }
 
 host_   void Domain_d::AllocateBCs() {
-  for (int d=0;d<m_dim;d++){cout << "Allocated "<<bc_count[d]<< " Velocity BCs for dof "<<d<<endl; }
+  //for (int d=0;d<m_dim;d++){cout << "Allocated "<<bc_count[d]<< " Velocity BCs for dof "<<d<<endl; }
+  cout <<"Allocated BCS: "<< endl;
+  cout << "X "<<bcx_nod_h.size()<<endl;  cout << "Y "<<bcy_nod_h.size()<<endl;  cout << "Z "<<bcz_nod_h.size()<<endl;
   // cudaMalloc((void **)&bcx_nod, bc_count[0] * sizeof (int)); 
   // cudaMalloc((void **)&bcy_nod, bc_count[1] * sizeof (int)); 
   // cudaMalloc((void **)&bcz_nod, bc_count[2] * sizeof (int)); 
@@ -2834,6 +2836,7 @@ void Domain_d::setFixSymm(){
           if      (d==0)  coord = getPosVec3(i).x;
           else if (d==1)  coord = getPosVec3(i).y;
           else            coord = getPosVec3(i).z;
+          //cout << "BCZ COUNT "<<bcz_nod_h.size()<<endl;
           if (coord < symtol ) {
             AddBCVelNode(i,d,0);
           }
