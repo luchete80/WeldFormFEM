@@ -420,3 +420,6 @@ F90 PREVIOUS VERSION
 --------------------------------------------------------------------------------------------------------
 20251117 - Fixed Etot from output file to appear on column.
          - Added Symmetry to remesh.
+20251118 - Fixed Remesh in Symmetry plane models.
+         - Disabled by now remap BCs (was crashing).
+         

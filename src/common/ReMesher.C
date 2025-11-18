@@ -424,20 +424,21 @@ void ReMesher::WriteDomain(){
 
   cout << "Map done"<<endl;  
   // /////////////////////// BOUNDARY CONDITIONS
-  int bccount[3];
-  int    *bcx_nod,*bcy_nod,*bcz_nod;
-  double *bcx_val,*bcy_val,*bcz_val;
-  for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+  m_dom->bc_count[0]=m_dom->bc_count[1]=m_dom->bc_count[2]=0;
+  //~ int bccount[3];
+  //~ int    *bcx_nod,*bcy_nod,*bcz_nod;
+  //~ double *bcx_val,*bcy_val,*bcz_val;
+  //~ for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
     
-  bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
-  bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
-  bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
+  //~ bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
+  //~ bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
+  //~ bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
   
   
     
-  for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
-  for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
-  for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
+  //~ for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
+  //~ for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
+  //~ for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
   
   /// BEFORE DELETE, SAVE MASS FOR CONSERVATION
   if (m_map_momentum){
@@ -635,16 +636,16 @@ void ReMesher::WriteDomain(){
           
     
   
-  ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
-  ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
-  ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
+  //~ ReMapBCs(bcx_nod,bcx_val,m_dom->bcx_nod, m_dom->bcx_val, bccount[0]);
+  //~ ReMapBCs(bcy_nod,bcy_val,m_dom->bcy_nod, m_dom->bcy_val, bccount[1]);
+  //~ ReMapBCs(bcz_nod,bcz_val,m_dom->bcz_nod, m_dom->bcz_val, bccount[2]);
 
   
   cout << "deleting "<<endl;
   delete [] ufield, vfield, afield, pafield;
   delete [] esfield,pfield,sigfield, syfield, psfield;
   delete [] str_rate,rot_rate, tau,rho,vol_0,idetF;
-  delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
+  //delete [] bcx_nod,bcy_nod,bcz_nod,bcx_val,bcy_val,bcz_val;
   delete [] Tfield;
   cout << "MESH CHANGED"<<endl;
 
