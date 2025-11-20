@@ -586,6 +586,56 @@ void host_ Domain_d::SolveChungHulbert(){
     CalcNodalMassFromVol();
   }
   #endif
+  
+  #ifndef CUDA_BUILD
+  if (last_step_remesh == step_count){
+
+
+    // after remesh & mapping
+    double minVol = 1e300, maxVol = 0, sumVol = 0;
+    double minMass = 1e300, maxMass = 0, sumMass = 0;
+    for (int e=0;e<m_elem_count;++e){
+        double V = vol[e]; // o lo que uses
+        minVol = std::min(minVol, V);
+        maxVol = std::max(maxVol, V);
+        sumVol += V;
+    }
+    for (int n=0;n<m_node_count;++n){
+        double m = m_mdiag[n]; // masa nodal
+        minMass = std::min(minMass, m);
+        maxMass = std::max(maxMass, m);
+        sumMass += m;
+    }
+    double meanVol = sumVol / double(m_elem_count);
+    double meanMass = sumMass / double(m_node_count);
+
+    printf("MIN MASS AFTER REMESH: %g, MIN VOL: %g\n", minMass, minVol);
+    printf("meanMass: %g, meanVol: %g\n", meanMass, meanVol);
+    printf("ratios: minMass/meanMass=%g, minVol/meanVol=%g\n",
+           minMass/meanMass, minVol/meanVol);  
+
+    // --- 2) Chequeo detJ inmediato ---
+    int badJcount=0;
+    double minDetJ = 1e300, maxDetJ = -1e300;
+    for(int e=0;e<m_elem_count;++e){
+        double dj = m_detJ[e]; // ajustá nombre si es otro
+        if (!std::isfinite(dj)) { printf("detJ NaN at elem %d\n", e); }
+        if (dj <= 0.0) { printf("INVERTED ELEMENT %d detJ=%g\n", e, dj); badJcount++; }
+        minDetJ = std::min(minDetJ, dj);
+        maxDetJ = std::max(maxDetJ, dj);
+    }
+    printf("detJ stats: min=%g max=%g badCount=%d\n", minDetJ, maxDetJ, badJcount);
+    if (badJcount>0){
+       // opcional: revertir remesh o forzar corrección
+    }    
+
+    // small mass floor
+    double mass_floor = 1e-8 * meanMass;
+    for (int n=0;n<m_node_count;++n) if (m_mdiag[n] < mass_floor) m_mdiag[n] = mass_floor;
+      
+  }
+
+  #endif
    
 
   
@@ -707,6 +757,16 @@ void host_ Domain_d::SolveChungHulbert(){
   
   assemblyForces(); 
   //ApplyGlobalSprings();
+  
+  #ifndef CUDA_BUILD
+  // --- 3) Check internal forces (m_fi) and prevent NaN propagation ---
+  for (int i=0;i<m_node_count*m_dim;++i){
+      if (!std::isfinite(m_fi[i])){
+          printf("Non-finite internal force at idx %d value %g\n", i, m_fi[i]);
+          m_fi[i] = 0.0;
+      }
+  }
+  #endif
 
   calcAccel();
   
@@ -717,7 +777,9 @@ void host_ Domain_d::SolveChungHulbert(){
   bool large_acc = false;
   double maxv = 0.0;
   bool isnan = false;
+  int nan_count = 0;
   for (int i=0;i<m_node_count;i++){
+      bool node_nan = false;
       vector_t acc = getAccVec(i);
       vector_t vel = getVelVec(i);
       if(norm(acc)>1.0e7 ){
@@ -732,6 +794,7 @@ void host_ Domain_d::SolveChungHulbert(){
       
         for (int d=0;d<m_dim;d++){
         if (std::isnan(a[m_dim*i+d])){
+            a[m_dim*i+d] = 0.0; // o fallback promedio vecinos
             //cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
             //cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
             isnan = true;
@@ -744,10 +807,11 @@ void host_ Domain_d::SolveChungHulbert(){
         nc++;
 
       }
+      if(node_nan) nan_count++;
+  }//NODE
 
-  }
-  if (isnan)
-    cout << "ERROR, NAN"<<endl;
+  if(nan_count>0) 
+      std::cout << "WARN: " << nan_count << " nodes had NaN accelerations, clamped to 0\n";
   
   if (nc>0.05*m_node_count)
         large_acc = true;

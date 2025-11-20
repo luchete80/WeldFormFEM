@@ -423,3 +423,4 @@ F90 PREVIOUS VERSION
 20251118 - Fixed Remesh in Symmetry plane models.
          - Disabled by now remap BCs (was crashing).
          - FIXED BCs in domains with NO contact. Was applied on every domain.
+20251120 - Added several controls for mass, volume, detJ Internal Forces & NAN Acc after remeshing.
