@@ -798,6 +798,7 @@ void host_ Domain_d::SolveChungHulbert(){
             //cout << "ERROR: NAN in node "<<i<<", dir "<< d <<", mass is: "<< m_mdiag[i]<<", prev a: "<< prev_a[m_dim*i+d]<< endl;
             //cout << "cont force "<<contforce[m_dim*i+d]<< "int force "<<m_fi[m_dim*i+d]<<endl;
             isnan = true;
+            node_nan = true;
         }
         }
         
