@@ -424,3 +424,5 @@ F90 PREVIOUS VERSION
          - Disabled by now remap BCs (was crashing).
          - FIXED BCs in domains with NO contact. Was applied on every domain.
 20251120 - Added several controls for mass, volume, detJ Internal Forces & NAN Acc after remeshing.
+---------------------------------------------------------------------------------------------------------
+20251209 - Begining to add Perzyna's Law
