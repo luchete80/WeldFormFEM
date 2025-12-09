@@ -1677,6 +1677,34 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     
 
   }//IF PLASTIC
+  
+  
+  
+  ////// TODO: VISCO PLASTICITY:
+  //////////////////////////////////////////////////////////////
+  ////////////////////// PERZYNA ///////////////////////////////
+  //////////////////////////////////////////////////////////////
+  
+  // double overstress = (sig_trial - sigma_y[e]);
+
+  // // Viscoplastic flow = Perzyna
+  // double K_visco = mat[e]->K_visco;   // parámetro de viscosidad
+  // double n_visco = mat[e]->n_visco;   // exponente de sensibilidad
+
+  // double dep = 0.0;
+  // if (overstress > 0.0) {
+      // dep = dt * pow(overstress / K_visco, n_visco);
+      
+      // // Plastic strain increment direction (flow rule J2)
+      // tensor3 n_dir = s_trial / sig_trial;
+      // tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
+
+      // // Update deviatoric stress: subtract viscous part
+      // ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr;
+
+      // // Update eq. plastic strain
+      // pl_strain[e] += dep;
+  // }
 
 
 
