@@ -1016,7 +1016,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   
  
   if (Time>=tout){
-    string outfname = "out_" + std::to_string(Time) + ".vtk";
+    string outfname = "out_" + std::to_string(iter) + ".vtk";
     timer.click();
 
     ostringstream oss_out;
