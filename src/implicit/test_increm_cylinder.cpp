@@ -51,6 +51,33 @@ int main(int argc, char **argv) {
   
   Domain_d *dom_d = new Domain_d;
   dom_d->m_timeint_type = TimeInt::IMPLICIT;
+
+    std::string mode = "";  // default
+
+    // Parse arguments
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+
+        if (arg == "--mode" && i + 1 < argc) {
+            mode = argv[++i];
+        }
+    }
+
+    // Select solver
+    if (mode == "dynamic") {
+        std::cout << "Running DYNAMIC solver...\n";
+        //return runExplicit();
+    }
+    else if (mode == "static") {
+        std::cout << "Running STATIC solver...\n";
+        //return runImplicit();
+    }
+    else {
+        std::cerr << "ERROR: Unknown mode: " << mode << std::endl;
+        std::cerr << "Use: --mode explicit   or   --mode implicit\n";
+        exit;
+    }
+
   
   //~ cout << "Set dimension"<<endl;
   //~ dom_d->SetDimensionImplicit(m_node_count,m_elem_count);	 //AFTER CREATING DOMAIN
@@ -169,8 +196,11 @@ int main(int argc, char **argv) {
   //dom_d->SolveStaticDisplacement();
   
   dom_d->SetEndTime (1.0);
-  dom_d->SolveImplicitGlobalMatrix();
   
+  if (mode == "dynamic")
+    dom_d->SolveImplicitGlobalMatrix();
+  else 
+    dom_d->SolveStaticDisplacement();
   VTKWriter writer(dom_d, "out.vtk");
   writer.writeFile();
 	

@@ -426,3 +426,5 @@ F90 PREVIOUS VERSION
 20251120 - Added several controls for mass, volume, detJ Internal Forces & NAN Acc after remeshing.
 ---------------------------------------------------------------------------------------------------------
 20251209 - Begining to add Perzyna's Law
+         - IMPLICIT: CORRECTED Contact!
+         -           ADDED New displacement formulation.
