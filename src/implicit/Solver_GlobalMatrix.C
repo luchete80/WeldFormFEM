@@ -560,12 +560,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if (contact)
       CalcContactForces();
 
-    solver->assembleContactStiffness(1.0e+8,dt);
+
 
     bool end_it = false;
       
     solver->setZero(); //RESET K and R matrices.
     solver->beginAssembly();
+
     
     /////////////////////// THIS IS BEB
     //par_loop(e,m_elem_count){
@@ -711,13 +712,13 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
       
       
       //calcElemForces();
+
+      //solver->assembleContactStiffness(1.0e8,dt);
       
        solver->finalizeAssembly();     
 
       for (int n = 0; n < m_node_count*m_dim; n++)      
-        solver->addToR(n,contforce[n]); //EXTERNAL FORCES
-
-      solver->assembleContactStiffness(1.0e8,dt);
+        solver->addToR(n,contforce[n]); //EXTERNAL FORCES      solver->assembleContactStiffness(1.0e8,dt);
 
       //INERTIAL TERMS
       for (int n = 0; n < m_node_count; n++){   
