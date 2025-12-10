@@ -111,6 +111,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
   
   cout << "Initializing Values ..."<<endl;
+  cout << "USING DYNAMIC SOLVER"<<endl;
   InitValues();
   cout << "Done. "<<endl;  
   double3 *m_v_orig;
@@ -254,6 +255,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   cout << "------------------------MAIN LOOP---------------------------"<<endl;
   cout << "Time: "<<Time <<", End Time "<< end_t<<endl;
+  cout << "Time Step: "<<dt <<endl;
+  
   bool end_all = false;
   while (Time < end_t && !end_all) {
 
@@ -548,6 +551,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     if (contact)
       CalcContactForces();
 
+    solver->assembleContactStiffness(1.0e+8,dt);
+
     bool end_it = false;
       
     solver->setZero(); //RESET K and R matrices.
@@ -702,6 +707,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
       for (int n = 0; n < m_node_count*m_dim; n++)      
         solver->addToR(n,contforce[n]); //EXTERNAL FORCES
+
+      solver->assembleContactStiffness(1.0e8,dt);
 
       //INERTIAL TERMS
       for (int n = 0; n < m_node_count; n++){   

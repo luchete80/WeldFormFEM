@@ -1693,8 +1693,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   double overstress = (sig_trial - sigma_y[e]);
 
   // // Viscoplastic flow = Perzyna
-  double K_visco = 300.0e6;
-  double n_visco = 1.0;
+  double K_visco = 500.0e6;
+  double n_visco = 2.0;
   
   //double K_visco = mat[e]->K_visco;   // 
   //double n_visco = mat[e]->n_visco;   //

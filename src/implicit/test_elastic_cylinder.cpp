@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
   // cout << "Solving system"<<endl;
   //solver->SetRDOF(11,-1.0e3); // NOT WORKING
   
-  solver->Solve();
+  //solver->Solve();
   cout << "solved. "<<endl;
   for (int i=0;i<dom_d->getNodeCount();i++){
     //~ for (int d=0;d<3;d++){
@@ -180,7 +180,7 @@ int main(int argc, char **argv) {
   
   //dom_d->SolveStaticDisplacement();
   //cout << "Solving "<<endl;
-  //dom_d->SolveImplicitGlobalMatrix();
+  dom_d->SolveImplicitGlobalMatrix();
   
 
 	// cout << "Program ended."<<endl;

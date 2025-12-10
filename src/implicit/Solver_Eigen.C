@@ -341,6 +341,10 @@ void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
         // normal en el nodo (ya la calculaste en contforce)
         //Eigen::Vector3d n = m_dom->contactNormal[i]; 
         Eigen::Vector3d n (m_dom->contforce[3*i], m_dom->contforce[3*i+1],m_dom->contforce[3*i+2]);
+        
+        double g = n.norm(); // penetración
+        if (g < 1e-12) continue;
+        
         n /= n.norm();
         Eigen::Matrix3d nnT = n * n.transpose();   // (n ⊗ n)
 
@@ -354,6 +358,11 @@ void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
                 m_triplets.emplace_back(base + r, base + c, Kc(r,c));
             }
         }
+    
+        //~ for (int d = 0; d < 3; ++d) {
+            //~ R[base+d] -= kn * g * n[d];
+        //~ }    
+    
     }
 }
 
