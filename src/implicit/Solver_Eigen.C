@@ -336,7 +336,7 @@ int Solver_Eigen::Solve(){
 
 void Solver_Eigen::assembleContactStiffness(double kn, double dt) {
     for (int i = 0; i < m_dom->m_node_count; ++i) {
-        if (m_dom->m_mesh_in_contact[i]>-1) continue;  // marcás qué nodos están en contacto
+        //if (m_dom->m_mesh_in_contact[i]>-1) continue;  // marcás qué nodos están en contacto
 
         // normal en el nodo (ya la calculaste en contforce)
         //Eigen::Vector3d n = m_dom->contactNormal[i]; 

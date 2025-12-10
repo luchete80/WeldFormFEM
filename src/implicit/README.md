@@ -42,3 +42,8 @@ I'm building Eigen and PETSC (I have compiled it in both OS).
 
 ## HOWTO BUILD 
 
+
+## CASES WORKING 
+Special Cases
+test_increm_cylinder.cpp
+
