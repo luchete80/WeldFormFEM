@@ -1692,8 +1692,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   double overstress = (sig_trial - sigma_y[e]);
 
   // // Viscoplastic flow = Perzyna
-  double K_visco = 500.0e6;
-  double n_visco = 2.0;
+  double K_visco = 300.0e6;
+  double n_visco = 1.0;
   
   //double K_visco = mat[e]->K_visco;   // 
   //double n_visco = mat[e]->n_visco;   //
@@ -1717,6 +1717,66 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       pl_strain[e] += dep;
       
     }
+    
+
+
+    //~ // Perzyna viscoplastic law (safe, robust)
+    //~ double overstress = (sig_trial - sigma_y[e]);
+
+    //~ // Material / model params (puedes tomar de mat[e] si los declaraste)
+    //~ double K_visco = 500.0e6;   // -> ideal: mat[e]->K_visco
+    //~ double n_visco = 2.0;       // -> ideal: mat[e]->n_visco
+
+    //~ if (overstress > 0.0) {
+      //~ // equivalent plastic strain increment (Perzyna)
+      //~ double dep_candidate = dt * pow(overstress / K_visco, n_visco);
+
+      //~ // protect from huge increments: cap relative to trial stress (tunable)
+      //~ double max_frac = 0.5; // no más del 50% del sig_trial en una iteración (ajustable)
+      //~ double max_dep = max_frac * sig_trial; 
+      //~ double dep = std::min(dep_candidate, max_dep);
+
+      //~ // avoid division by zero
+      //~ const double SMALL = 1e-12;
+      //~ double safe_sig = std::max(sig_trial, SMALL);
+
+      //~ // flow direction (J2) n_dir = s_trial / ||s_trial||
+      //~ tensor3 n_dir;
+      //~ if (safe_sig > 1e-12) {
+        //~ n_dir = s_trial * (1.0 / safe_sig); // s_trial already deviatoric
+      //~ } else {
+        //~ // if practically zero, no plastic flow direction
+        //~ n_dir = nullTensor3();
+      //~ }
+
+      //~ // plastic strain increment tensor (consistent with J2 flow)
+      //~ tensor3 Strain_pl_incr_local = n_dir;
+      //~ Strain_pl_incr_local = Strain_pl_incr_local * ( (2.0/3.0) * dep );
+
+      //~ // update deviatoric stress:
+      //~ if (m_devElastic) {
+        //~ // elasto-visco: restamos la parte elástica asociada a dep
+        //~ ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr_local;
+      //~ } else {
+        //~ // rigid-dev: proyectar el desviador sobre la superficie de fluencia
+        //~ double scale_factor = sigma_y[e] / safe_sig;
+        //~ // Ensure scale_factor in (0,1]
+        //~ if (scale_factor > 1.0) scale_factor = 1.0;
+        //~ if (scale_factor < 0.0) scale_factor = 0.0;
+        //~ // s_trial es el desviador 'trial' — proyectarlo radialmente
+        //~ ShearStress = s_trial * scale_factor;
+      //~ }
+
+      //~ // update scalar equivalent plastic strain
+      //~ pl_strain[e] += dep;
+
+      //~ // store the plastic strain increment tensor for outputs/heating
+      //~ Strain_pl_incr = Strain_pl_incr_local;
+    //~ } else {
+      //~ // no overstress: zero plastic increment
+      //~ Strain_pl_incr = nullTensor3();
+    //~ }    
+
   
   }//PERZYNA
 

@@ -73,6 +73,19 @@ __spec tensor3 FromFlatSym(double flat[]){
 	return ret;
 }
 
+__spec tensor3 nullTensor3(){
+	tensor3 ret;
+  ret.xx = ret.yy = ret.zz = 0.0;
+  ret.xy = ret.yx = 0.0;
+  ret.yz = ret.zy = 0.0;
+  ret.xz = ret.zx = 0.0;  
+	
+	return ret;  
+  
+  
+}
+
+
 __spec tensor3 FromFlatSym(double *flat, int initial){
 	tensor3 ret;
   ret.xx = flat[initial + 0];		ret.yy = flat[initial +1];		ret.zz = flat[initial +2];
