@@ -359,8 +359,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
   // Newton-Raphson loop
-  double tolerance = 1e-3; //dv tol
-  double ftol = 1e-3;
+  double tolerance = 1e-4; //dv tol
+  double ftol = 1e-4;
 
   //~ double tol_force = 1e-3;    // 0.1% error en fuerzas  
   //~ double tol_disp = 1e-4;     // Desplazamientos
