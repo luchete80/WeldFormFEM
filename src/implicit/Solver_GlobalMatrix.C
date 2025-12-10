@@ -45,6 +45,7 @@ std::ostringstream m_oss;
 std::string m_fname;
 
 
+
 namespace MetFEM{
 
 
@@ -249,6 +250,14 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
   double prev_x[m_node_count * m_dim];
+
+
+  double fac_incr = 1.2;   // Factor para aumentar dt
+  double fac_decr = 0.5;   // Factor para reducir dt
+  int n_target = 5;        // Iteraciones óptimas
+  //~ double dt_max = 1e-3;    // Paso máximo permitido
+  //~ double dt_min = 1e-6;    // Paso mínimo permitido
+
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
@@ -842,6 +851,8 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
     }
+
+
     
     //~ //SWITCH BACK TO PREVIOUS STRESS STATE, WHICH IS TAKEN BY calcStressStrain
     if (!converged){
@@ -856,14 +867,22 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
     else {
       
           conv_iter++;
+        // Ajuste adaptativo del dt según iteraciones del paso actual
+        if (iter < n_target) {
+            dt = std::min(dt * 1.2, dt_max);  // convergió rápido → aumentar dt
+        } else if (iter > n_target) {
+            dt = std::max(dt * 0.7, dt_min);  // convergió lento → reducir dt
+        }
+        // si n_iter == n_target → dt queda igual
+
       }
   
     iter++;
 
     
-    if (converged && conv_iter > 2){
-        dt *=2.0;
-    }
+    //~ if (converged && conv_iter > 2){
+        //~ dt *=2.0;
+    //~ }
     
 
   }//NR ITER //////////////////////////////// INNER LOOP
@@ -935,14 +954,15 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
 
 
-    // if (contact){
-      // double f =1.0;
 
-      // if(Time < RAMP_FRACTION*end_t) {
-          // f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
-      // } else {
-          // f = 1.0;
-      // }
+       double f =1.0;
+
+       if(Time < RAMP_FRACTION*end_t) {
+           f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
+       } else {
+          f = 1.0;
+        }
+    // if (contact){
       // for (int n=0;n<trimesh->nodecount;n++){
         // trimesh->node_v[n] = f*m_v_orig[n];
       // }

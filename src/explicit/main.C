@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
     readValue(config["devElastic"], devElastic);
     
     if (plType == "Perzyna"){
-      dom_d->m_plastType == PlasticityType::Perzyna;
+      dom_d->m_plastType = PlasticityType::Perzyna;
       dom_d->m_devElastic = devElastic;
       cout << "Plastic Type is set to Viscous PERZYNA"<<endl;
     }

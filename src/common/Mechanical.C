@@ -1684,7 +1684,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   } else if (m_plastType == PlasticityType::Perzyna){// hardeing
   
   
-  
   ////// TODO: VISCO PLASTICITY:
   //////////////////////////////////////////////////////////////
   ////////////////////// PERZYNA ///////////////////////////////
@@ -1700,7 +1699,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   //double n_visco = mat[e]->n_visco;   //
 
   if (overstress > 0.0) {
-      // dep = dt * pow(overstress / K_visco, n_visco);
+      dep = dt * pow(overstress / K_visco, n_visco);
       
       // // Plastic strain increment direction (flow rule J2)
       tensor3 n_dir = 1.0/ sig_trial * s_trial ;
@@ -1709,13 +1708,13 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       if (m_devElastic){
       // // Update deviatoric stress: subtract viscous part
         ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr;
-      } else {
+      } else {// m_devElastic == false -> RIGID (dev) case: radial return / viscoplastic handling
         // En rigido-visco, no hay G, simplemente escalás el trial stress
         double scale_factor = sigma_y[e] / sig_trial; // opción simple
         ShearStress = s_trial * scale_factor;
       }
       // // Update eq. plastic strain
-      // pl_strain[e] += dep;
+      pl_strain[e] += dep;
       
     }
   
