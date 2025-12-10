@@ -63,6 +63,8 @@ class Material_{
 	double n/*, m*/;
 	double eps_0;
   
+  double K_visco, n_visco;
+  
   //GMT
   double C1, C2, m1, m2, n1,n2, I1,I2;
   

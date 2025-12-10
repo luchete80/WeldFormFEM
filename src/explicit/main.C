@@ -215,6 +215,28 @@ int main(int argc, char **argv) {
     readValue(config["simTime"], sim_time);
 
     readValue(config["plHeatFrac"], dom_d->m_plheatfraction);
+
+
+    string plType = "Hardening";
+    readValue(config["plasticType"], plType);    
+
+
+    bool devElastic = true;
+    readValue(config["devElastic"], devElastic);
+    
+    if (plType == "Perzyna"){
+      dom_d->m_plastType == PlasticityType::Perzyna;
+      dom_d->m_devElastic = devElastic;
+      cout << "Plastic Type is set to Viscous PERZYNA"<<endl;
+    }
+    else if (plType == "Hardening"){
+      if (!devElastic) cout << "WARNING: DEVIATORIC CANNOT BE RIGID IN HARDENING PLASTIC MODEL"<<endl;      
+    }
+    
+    
+    if (!dom_d->m_devElastic)
+      cout << "DEVIATORIC IS SET TO RIGID"<<endl; 
+    
     
     dom_d->out_file << "Plastic Heat Fraction Coeff: " <<dom_d->m_plheatfraction<<endl;
     dom_d->out_file.flush(); // Optional

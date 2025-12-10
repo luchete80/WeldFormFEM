@@ -140,6 +140,11 @@ struct StabilizationParams {
     double hg_forces;
 };
 
+enum class PlasticityType {
+    Hardening,     // Elasto-plástico con endurecimiento
+    Perzyna,       // Rígido-plástico viscoplástico
+    Norton         // Similar a Perzyna, otro flujo viscoplástico
+};
  
 
 // Structure to define a face with 4 nodes
@@ -694,6 +699,11 @@ public:
   double m_remesh_eps_ref   = 1.0;    // plastic strain que consideras "alto" (ajustar)
   double m_remesh_beta      = 4.0;     // controla rapidez del refinamiento exponencial
   int    m_remesh_type      = 0;        // LINEAR (HYPERBOLIC)
+  
+  bool m_devElastic = true;
+  PlasticityType m_plastType = PlasticityType::Hardening; //PlasticityType::Perzyna //Norton
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 protected:
   std::string     m_name;
   double          m_tot_mass; //Only for testing, not needed

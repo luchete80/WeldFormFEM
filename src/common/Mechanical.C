@@ -1599,7 +1599,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
       //tensor3 test = StrRate - 1.0/3.0*Trace(StrRate) * Identity();
       
-      ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT + RS);
+      if (m_devElastic)
+        ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT + RS);
       
       //TODO: SAVE IN DOMAIN?
       double eff_strain_rate = sqrt ( 	0.5*( (StrRate.xx-StrRate.yy)*(StrRate.xx-StrRate.yy) +
@@ -1632,51 +1633,55 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         sigma_y[e] = CalcGMTYieldStress(pl_strain[e], eff_strain_rate, T[e], mat[e]); 
       }
         
-        //printf("sy %.3f\n",sigma_y[e]);
-  // Inside your plasticity block where (sigma_y[e] < sig_trial)
-  double dep = 0.0; //Incremental plastic strain
-  if (sigma_y[e] < sig_trial) {
-	  double Ep = 0.0; //Hardening
-      //printf("YIELD: %.5e\n", sigma_y[e]);
-      // Calculate scaling factor
-      double scale_factor = sigma_y[e] / sig_trial;
+      double dep = 0.0; //Incremental plastic 
+        
+      if (m_plastType == PlasticityType::Hardening) {
+            //printf("sy %.3f\n",sigma_y[e]);
+      // Inside your plasticity block where (sigma_y[e] < sig_trial)
       
-      // Scale the entire deviatoric stress tensor
-      ShearStress = ShearStress * scale_factor;
-      
-      // Reconstruct the full stress tensor
-      //Sigma = -p[offset_s] * Identity() + ShearStress;
-      
+      if (sigma_y[e] < sig_trial) {
+        double Ep = 0.0; //Hardening
+          //printf("YIELD: %.5e\n", sigma_y[e]);
+          // Calculate scaling factor
+          double scale_factor = sigma_y[e] / sig_trial;
+          
+          // Scale the entire deviatoric stress tensor
+          ShearStress = ShearStress * scale_factor;
+          
+          // Reconstruct the full stress tensor
+          //Sigma = -p[offset_s] * Identity() + ShearStress;
+          
 
-      
-      // Calculate new equivalent stress for verification
-      //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
-      //~ double J2_new = 0.5*(s_new.xx*s_new.xx + 2.0*s_new.xy*s_new.xy + 
-                          //~ 2.0*s_new.xz*s_new.xz + s_new.yy*s_new.yy +  
-                          //~ 2.0*s_new.yz*s_new.yz + s_new.zz*s_new.zz);
-      //~ double sig_new = sqrt(3.0*J2_new);
-      
+          
+          // Calculate new equivalent stress for verification
+          //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
+          //~ double J2_new = 0.5*(s_new.xx*s_new.xx + 2.0*s_new.xy*s_new.xy + 
+                              //~ 2.0*s_new.xz*s_new.xz + s_new.yy*s_new.yy +  
+                              //~ 2.0*s_new.yz*s_new.yz + s_new.zz*s_new.zz);
+          //~ double sig_new = sqrt(3.0*J2_new);
+          
 
+          
+          // Update tangent modulus if needed
+          if(mat[e]->Material_model == HOLLOMON) {
+              Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
+          } else if (mat[e]->Material_model == JOHNSON_COOK) {
+          Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+          } else if (mat[e]->Material_model == _GMT_){
+          Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
+          }
+        
+        Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
+        
+        if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
+        dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+          // Update plastic strain
+        pl_strain[e] += dep;
       
-      // Update tangent modulus if needed
-      if(mat[e]->Material_model == HOLLOMON) {
-          Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
-      } else if (mat[e]->Material_model == JOHNSON_COOK) {
-		  Et = CalcJohnsonCookTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
-      } else if (mat[e]->Material_model == _GMT_){
-		  Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
-      }
-	  
-	  Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
-	  
-	  if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
-    dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
-      // Update plastic strain
-    pl_strain[e] += dep;
-  
-    
+        
 
-  }//IF PLASTIC
+      }//IF PLASTIC
+  } else if (m_plastType == PlasticityType::Perzyna){// hardeing
   
   
   
@@ -1685,26 +1690,36 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   ////////////////////// PERZYNA ///////////////////////////////
   //////////////////////////////////////////////////////////////
   
-  // double overstress = (sig_trial - sigma_y[e]);
+  double overstress = (sig_trial - sigma_y[e]);
 
   // // Viscoplastic flow = Perzyna
-  // double K_visco = mat[e]->K_visco;   // parámetro de viscosidad
-  // double n_visco = mat[e]->n_visco;   // exponente de sensibilidad
+  double K_visco = 300.0e6;
+  double n_visco = 1.0;
+  
+  //double K_visco = mat[e]->K_visco;   // 
+  //double n_visco = mat[e]->n_visco;   //
 
-  // double dep = 0.0;
-  // if (overstress > 0.0) {
+  if (overstress > 0.0) {
       // dep = dt * pow(overstress / K_visco, n_visco);
       
       // // Plastic strain increment direction (flow rule J2)
-      // tensor3 n_dir = s_trial / sig_trial;
-      // tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
+      tensor3 n_dir = 1.0/ sig_trial * s_trial ;
+      tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
 
+      if (m_devElastic){
       // // Update deviatoric stress: subtract viscous part
-      // ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr;
-
+        ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr;
+      } else {
+        // En rigido-visco, no hay G, simplemente escalás el trial stress
+        double scale_factor = sigma_y[e] / sig_trial; // opción simple
+        ShearStress = s_trial * scale_factor;
+      }
       // // Update eq. plastic strain
       // pl_strain[e] += dep;
-  // }
+      
+    }
+  
+  }//PERZYNA
 
 
 
