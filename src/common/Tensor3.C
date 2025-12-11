@@ -433,6 +433,32 @@ __spec void print(const tensor3 &m_data){
 	m_data.zx,m_data.zy,m_data.zz);
 }
 
+__spec tensor3 Inverse(const tensor3 &A) {
+    tensor3 inv;
+    double det = A.xx*(A.yy*A.zz - A.yz*A.zy)
+               - A.xy*(A.yx*A.zz - A.yz*A.zx)
+               + A.xz*(A.yx*A.zy - A.yy*A.zx);
+
+    if (fabs(det) < 1e-12) {
+        printf("Warning: tensor3 inversion near-singular, det=%.3e\n", det);
+        return tensor3(); // retorna cero o identity según convenga
+    }
+
+    inv.xx =  (A.yy*A.zz - A.yz*A.zy) / det;
+    inv.xy = -(A.xy*A.zz - A.xz*A.zy) / det;
+    inv.xz =  (A.xy*A.yz - A.xz*A.yy) / det;
+
+    inv.yx = -(A.yx*A.zz - A.yz*A.zx) / det;
+    inv.yy =  (A.xx*A.zz - A.xz*A.zx) / det;
+    inv.yz = -(A.xx*A.yz - A.xz*A.yx) / det;
+
+    inv.zx =  (A.yx*A.zy - A.yy*A.zx) / det;
+    inv.zy = -(A.xx*A.zy - A.xy*A.zx) / det;
+    inv.zz =  (A.xx*A.yy - A.xy*A.yx) / det;
+
+    return inv;
+}
+
 #undef __spec
 
 #endif

@@ -227,7 +227,18 @@ void host_ Domain_d::SolveStaticDisplacement(){
 
 
   double prev_x[m_node_count * m_dim];
-  tensor3 F_prev[m_node_count * m_dim];
+
+  double* F_prev_flat = new double[m_elem_count * 9]; // 3x3 por elemento
+  memset(F_prev_flat, 0, sizeof(double) * m_elem_count * 9);
+
+  // Inicialización a identidad
+  for(int e=0; e<m_elem_count; e++){
+      int offset = e*9;
+      F_prev_flat[offset + 0] = 1.0; // xx
+      F_prev_flat[offset + 4] = 1.0; // yy
+      F_prev_flat[offset + 8] = 1.0; // zz
+  }
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,15 +444,32 @@ void host_ Domain_d::SolveStaticDisplacement(){
         // Green-Lagrange strain
         Matrix E = 0.5 * (MatMul(F.Transpose(), F) - Identity(m_dim));
 
-        // Guardar F y E en tus arrays si los necesitás
-        //m_F[e] = F;
-        //m_E[e] = E;
+        Matrix F_prev = FromFlatMat(F_prev_flat, e*9, 3, 3);
+        
+        // Incremental deformation gradient
+        Matrix F_inc = MatMul(F, F_prev.Inv()); // F_prev[e] debe estar almacenado
+        Matrix L = (F_inc - Identity(m_dim)) * (1.0 / dt); // Aproximación de L ≈ (F_inc - I)/dt
+
+        // Tasa de deformación simétrica y rotación
+        Matrix D = 0.5 * (L + L.Transpose());
+        Matrix W = 0.5 * (L - L.Transpose());
+
+        // Offset para el vector plano
+        int offset_s = e;
+        int offset_t = offset_s * 6; // misma convención que CalcStressStrain
+
+        // Copiar D y W a los vectores planos
+        D.ToFlatSymPtr(m_str_rate, offset_t);
+        W.ToFlatSymPtr(m_rot_rate, offset_t);
+        
+        ToFlatMat(F_prev,F_prev_flat,e*9);
     }
 
 
     for (int e = 0; e < m_elem_count; e++) {
         tensor3 F = nullTensor3();        // F = 0
         tensor3 F_initial = Identity();   // F inicial = I, si se quiere acumular o comparar
+        tensor3 F_prev = FromFlatSym(F_prev_flat, e*9);
 
         for (int n = 0; n < m_nodxelem; n++) {
             // Posición actual del nodo
@@ -468,20 +496,21 @@ void host_ Domain_d::SolveStaticDisplacement(){
         tensor3 Ft = Trans(F) * F;          // F^T * F
         tensor3 E = 0.5 * (Ft - Identity()); // E = 0.5*(F^T F - I)
     
-        tensor3 F_inc = F * Inverse(F_prev[e]); // F_prev[e] debe almacenarse del paso anterior
+        tensor3 F_inc = F * Inverse(F_prev); // F_prev[e] debe almacenarse del paso anterior
         tensor3 L = (F_inc - Identity()) * (1.0 / dt); // L ≈ (F_inc - I)/dt
 
         tensor3 D = 0.5 * (L + Trans(L));  // tasa de deformación simétrica
         tensor3 W = 0.5 * (L - Trans(L));  // rotación (antisimétrica)
-
+        
+        int offset_s = e;
         int offset_t = offset_s * 6; // mismo offset que usás en CalcStressStrain
 
         ToFlatSymPtr(D, m_str_rate, offset_t); // Tensor de tasas de deformación
         // Para W, si tu función FromFlatAntiSym espera el mismo formato
         // deberías tener un ToFlatAntiSymPtr
-        ToFlatAntiSymPtr(W, m_rot_rate, offset_t); 
+        ToFlatSymPtr(W, m_rot_rate, offset_t); 
         
-        F_prev[e] = F; // para el próximo paso
+        //F_prev = F; // para el próximo paso
     
     }
 

@@ -720,23 +720,6 @@ __spec Matrix SolveLinearSystem(Matrix A, Matrix b) {
 }
 
 
-__spec void ToFlatMat(const Matrix& M, double* flat, int start) {
-    for (int i = 0; i < M.m_row; ++i) {
-        for (int j = 0; j < M.m_col; ++j) {
-            flat[start + i * M.m_col + j] = M.at(i, j);
-        }
-    }
-}
-
-__spec Matrix FromFlatMat(double* flat, int start, int rows, int cols) {
-    Matrix M(rows, cols);
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            M.Set(i, j, flat[start + i * cols + j]);
-        }
-    }
-    return M;
-}
 
 //~ /*__spec*/ Matrix MatMul(const Matrix& A, const tensor3& T) {
     //~ if (A.m_col != 3) {
@@ -766,6 +749,26 @@ __spec Matrix FromFlatMat(double* flat, int start, int rows, int cols) {
 
     //~ return MatMul(Tmat, A);
 //~ }
+
+
+__spec void ToFlatMat(const Matrix& M, double* flat, int start) {
+    for (int i = 0; i < M.m_row; ++i) {
+        for (int j = 0; j < M.m_col; ++j) {
+            flat[start + i * M.m_col + j] = M.at(i, j);
+        }
+    }
+}
+
+__spec Matrix FromFlatMat(double* flat, int start, int rows, int cols) {
+    Matrix M(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            M.Set(i, j, flat[start + i * cols + j]);
+        }
+    }
+    return M;
+}
+
 
 __spec Matrix FromFlatSymMat(double* flat, int initial) {
     Matrix M(3, 3);
