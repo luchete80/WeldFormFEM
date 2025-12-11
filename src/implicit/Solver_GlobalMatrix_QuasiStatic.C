@@ -666,24 +666,9 @@ void host_ Domain_d::SolveStaticDisplacement(){
             }
           }
 
-          // cout <<"INTERTIA TERMS OF RESIDUAL"<<endl;
-          // ////// Residual forces (with inertial term)
-          // //Matrix R = f_ext - fint;
-          // for (int i = 0; i < m_nodxelem; i++) {
-              // int node = getElemNode(e, i);
-              // for (int d=0;d<m_dim;d++){
-              // //R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
-                // cout << "Node DIM "<<node<<","<<d<<", "<<"R Orig"<<R.getVal(gdof,0)<<"Inertia"<<-m_mdiag[node] * a[gdof]<<endl;
-                // R.Set(i,0,R.getVal(gdof,0)-m_mdiag[node] * a[gdof]);
-
-              // }
-          // }
-          
           solver->assembleElement(e, K);
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
-      
-        //cout << "Element R "<<endl;
-        //R.Print();
+
       } // end par element loop
       
       
