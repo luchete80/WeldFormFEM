@@ -646,8 +646,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
               int node = getElemNode(e, i);        // Get global node number
               for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
                   int idx = i*m_dim + d;           // Local DOF index
-                  double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
-                  K.Set(idx, idx, (K.getVal(idx, idx)+ mass_term ) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
+                  //double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
+                  K.Set(idx, idx, (K.getVal(idx, idx)/*+ mass_term */) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
               }
           }
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
@@ -689,12 +689,16 @@ void host_ Domain_d::SolveStaticDisplacement(){
       
       //calcElemForces();
       
-       solver->finalizeAssembly();     
-
-      for (int n = 0; n < m_node_count*m_dim; n++)      
-        solver->addToR(n,contforce[n]); //EXTERNAL FORCES
-
+      if(contact)
       solver->assembleContactStiffness(1.0e8,dt);
+      
+       solver->finalizeAssembly();     
+      
+      if (contact)
+        for (int n = 0; n < m_node_count*m_dim; n++)      
+          solver->addToR(n,contforce[n]); //EXTERNAL FORCES
+
+
 
       //AFTER ASSEMBLY!
       // cout <<"K BEFORE  Dirichlet"<<endl;
