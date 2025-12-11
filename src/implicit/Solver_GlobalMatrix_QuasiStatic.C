@@ -603,6 +603,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
           /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
           // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
           //~ //Matrix& Kgeo = *(m_Kgeo[e]);
+          double idetJ = 1.0/m_detJ[e];       // detJ at GP (current config)
+
           Matrix Kgeo(m_dim*m_nodxelem,m_dim*m_nodxelem);
           Kgeo.SetZero();
           
@@ -611,16 +613,16 @@ void host_ Domain_d::SolveStaticDisplacement(){
           for (int a = 0; a < 4; ++a) {
             // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
             Matrix grad_a(3, 1);
-            grad_a.Set(0, 0, getDerivative(e, 0, 0, a)); // ∂N/∂x
-            grad_a.Set(1, 0, getDerivative(e, 0, 1, a)); // ∂N/∂y
-            grad_a.Set(2, 0, getDerivative(e, 0, 2, a)); // ∂N/∂z
+            grad_a.Set(0, 0, getDerivative(e, 0, 0, a)*idetJ); // ∂N/∂x
+            grad_a.Set(1, 0, getDerivative(e, 0, 1, a)*idetJ); // ∂N/∂y
+            grad_a.Set(2, 0, getDerivative(e, 0, 2, a)*idetJ); // ∂N/∂z
 
             for (int b = 0; b < 4; ++b) {
               // ∇Nᵇ in current config
               Matrix grad_b(3, 1);
-              grad_b.Set(0, 0, getDerivative(e, 0, 0, b));
-              grad_b.Set(1, 0, getDerivative(e, 0, 1, b));
-              grad_b.Set(2, 0, getDerivative(e, 0, 2, b));
+              grad_b.Set(0, 0, getDerivative(e, 0, 0, b)*idetJ);
+              grad_b.Set(1, 0, getDerivative(e, 0, 1, b)*idetJ);
+              grad_b.Set(2, 0, getDerivative(e, 0, 2, b)*idetJ);
 
               // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
               Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
@@ -629,15 +631,13 @@ void host_ Domain_d::SolveStaticDisplacement(){
 
               // Fill 3x3 block (assumes 3 DOF per node)
               for (int i = 0; i < 3; ++i) {
-                Kgeo.Set(3*a + i, 3*b + i, Kgeo.getVal(3*a + i, 3*b + i) + k_ab);
+                Kgeo.Set(3*a+i, 3*b+i, Kgeo.getVal(3*a+i,3*b+i) + k_ab);
               }
             }
           }
 
-          Kgeo = Kgeo * (1.0/(6.0*m_detJ[e]));
           Matrix K = Kgeo + Kmat;
       
-
           K = K*dt;
           
           double beta = 0.25;
