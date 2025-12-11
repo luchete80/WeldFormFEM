@@ -61,10 +61,10 @@ public:
         
   for (int i=0;i<row*col;i++) m_data[i] = 0.0;
 }
-  //~ void setIdentity(){
-    //~ for (int r=0;r<m_row;r++){
-        //~ if (r<m_col)Set(r,r,1.0);
-    //~ }
+  void setIdentity(){
+    for (int r=0;r<m_row;r++){
+        if (r<m_col)Set(r,r,1.0);
+    }
   
   inline double & getVal(int a, int b);
   double& at(int i, int j)const;          // non-const accessor for assignment

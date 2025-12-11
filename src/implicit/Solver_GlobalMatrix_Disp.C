@@ -37,6 +37,7 @@
 
 #include "Solver_Eigen.h"
 #include "Tensor3.C"
+#include "Matrix.h"
 
 using namespace std;
 
@@ -44,6 +45,51 @@ using namespace std;
 namespace MetFEM{
 
 
+//~ tensor3 ComputeDeformationGradient(int e, const double* x, const double* x_old) {
+    //~ tensor3 F = {0};
+    //~ tensor3 F_old = Identity();  // Configuración inicial: F_old = I
+
+    //~ for (int n = 0; n < m_nodxelem; n++) {
+        //~ double x_a[3] = { /* Posición actual */ };
+        //~ double X_a[3] = { /* Posición inicial */ };
+        //~ double gradN_X[3] = { /* ∇N(X) */ };
+
+        //~ // Producto diádico para F y F_old
+        //~ F.xx += x_a[0] * gradN_X[0]; F.xy += x_a[0] * gradN_X[1]; F.xz += x_a[0] * gradN_X[2];
+        //~ F.yx += x_a[1] * gradN_X[0]; F.yy += x_a[1] * gradN_X[1]; F.yz += x_a[1] * gradN_X[2];
+        //~ F.zx += x_a[2] * gradN_X[0]; F.zy += x_a[2] * gradN_X[1]; F.zz += x_a[2] * gradN_X[2];
+
+        //~ F_old.xx += X_a[0] * gradN_X[0]; /* ... (similar para F_old) ... */
+    //~ }
+
+    //~ return F;  // F = ∑ x_a ⊗ ∇N_a(X)
+//~ }
+
+
+//~ void ComputeStress(int e) {
+    //~ // 1. Deformación y volumen
+    //~ Matrix F = computeDeformationGradient(e);
+    //~ double J = F.Det();
+    //~ double p = mat[e]->BulkMod() * log(J); // Presión hiperelástica
+
+    //~ // 2. Parte deviatorica
+    //~ Matrix E_total = 0.5 * (MatMul(F.Transpose(), F) - Identity(3));
+    //~ Matrix E_dev = E_total - (1.0/3.0) * Trace(E_total) * Identity(3);
+    //~ Matrix sigma_dev_trial = 2.0 * mat[e]->ShearMod() * E_dev;
+
+    //~ // 3. Plasticidad
+    //~ double sigma_eq_trial = sqrt(3.0 * 0.5 * sigma_dev_trial.DoubleContract(sigma_dev_trial));
+    //~ double sigma_y = computeYieldStress(pl_strain[e], eff_strain_rate, T[e]);
+
+    //~ if (sigma_eq_trial > sigma_y) {
+        //~ sigma_dev_trial *= (sigma_y / sigma_eq_trial);
+        //~ pl_strain[e] += (sigma_eq_trial - sigma_y) / (3.0 * mat[e]->ShearMod());
+    //~ }
+
+    //~ // 4. Tensión final
+    //~ Matrix sigma = -p * Identity(3) + sigma_dev_trial;
+    //~ return sigma;
+//~ }
 
 
 
@@ -91,24 +137,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
   WallTimer timer;
 
   std::ofstream of("Contact_Forces.csv", std::ios::out);
-  
-  int N;
-	N = getElemCount();
-  #if CUDA_BUILD
-	threadsPerBlock = 256; //Or BlockSize
-	//threadsPerBlock = 1; //Or BlockSize
-	blocksPerGrid =				// Or gridsize
-	(N + threadsPerBlock - 1) / threadsPerBlock;
-	cout << "Blocks per grid"<<blocksPerGrid<<", Threads per block"<< threadsPerBlock<<endl;
 
-  ////// MATERIAL
-  cout << "Assignin material.."<<endl;
-  AssignMatAddressKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  cudaDeviceSynchronize();
-  #else 
   AssignMatAddress();
-  #endif
-
 
   
   cout << "Initializing Values ..."<<endl;
@@ -126,19 +156,11 @@ void host_ Domain_d::SolveStaticDisplacement(){
   
   //cout << "Imposing BCVs.. "<<endl;
   for (int d=0;d<m_dim;d++){
-    
-    #ifdef CUDA_BUILD
-    ////REMAINS TO INIT VELOCITIES
-    N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-    cudaDeviceSynchronize();
-    #else
       for (int n=0;n<m_node_count*m_dim;n++){
         v[n]=a[n]=u[n]=0.0;
       }
        ImposeBCV(d);
-    #endif
+
   }
 
   cout << "Done."<<endl;
@@ -146,35 +168,6 @@ void host_ Domain_d::SolveStaticDisplacement(){
   ostringstream oss_out;
   
   
-  //cout << "Calculating derivatives..."<<endl;
-	#if CUDA_BUILD
-	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize(); 
-  //cout << "Calculating Volume..."<<endl;
-  calcElemInitialVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
-  
-  calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();
-  
-  calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();
-  
-  //assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	//cudaDeviceSynchronize();
-  
-  N = this->m_node_count;
-	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
-  
-  CalcNodalVolKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  
-  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  N = this->getElemCount();
-	blocksPerGrid =	(N + threadsPerBlock - 1) / threadsPerBlock;
-    
-  #else
   calcElemJAndDerivatives();
 
   CalcElemInitialVol(); //ALSO CALC VOL
@@ -192,23 +185,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
   
   cout << "Done."<<endl;
   
-  #endif
-	//cout << "Done. "<<endl;
 
-/*
-  printf("INITIAL VEL\n");
-  for(int e=0;e<m_elem_count;e++)
-  for (int n=0;n<m_nodxelem;n++)
-    printf ("elem  %d %f\n",e,getVElem(e,n,0));  
-  */
-
-  ////IMPLICIT DEFS (SAVINGS MEM)
-  #ifndef BUILD_GPU
-    std::vector<Matrix> Bmat_per_thread(Nproc);
-    std::vector<Matrix> sig_per_thread(Nproc);
-  #else
-    
-  #endif
   
 
   Time = 0.0;
@@ -235,10 +212,10 @@ void host_ Domain_d::SolveStaticDisplacement(){
   double dt = dt_initial;
   
   
-  double *delta_v, *x_initial;
+  double *delta_u, *x_initial;
   
   #ifndef BUILD_GPU
-    delta_v   = new double [m_dim * m_node_count];
+    delta_u   = new double [m_dim * m_node_count];
     x_initial = new double [m_dim * m_node_count];
   #else
   
@@ -250,7 +227,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
 
 
   double prev_x[m_node_count * m_dim];
-  
+  tensor3 F_prev[m_node_count * m_dim];
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,14 +253,10 @@ void host_ Domain_d::SolveStaticDisplacement(){
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
 
-  
-  //cout << "Storing previous values"<<endl;
   memcpy(prev_v,    v, sizeof(double) * m_node_count * m_dim);
-
   memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
-
   memcpy(prev_x, x, sizeof(double) * m_node_count * m_dim);
-  //cout << "Done."<<endl;
+
   
   //cout << "Calc External Faces"<<endl;
   if (step_count % 10 == 0){
@@ -291,72 +264,10 @@ void host_ Domain_d::SolveStaticDisplacement(){
     CalcExtFaceAreas();
     //cout << "Done"<<endl;
     }
-  //cout << "Done"<<endl;
-  
-  //~ if (step_count % 50 == 0)
-    //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
-
-
-  /////AFTER J AND DERIVATIVES
-  if ( step_count % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count)
-  //if (0) //debug
-  {
-    //cout << "REMAINING " <<(step_count) % m_remesh_interval<<"INTERVAL "<<m_remesh_interval<<endl;
-    //cout << "step_count "<<step_count<<endl;
-    double max=0.0;
-    int emin;
-    for (int e=0;e<m_elem_count;e++)
-      if (pl_strain[e]>max){
-        max = pl_strain[e];
-        emin = e;
-      }
-      if (max>m_remesh_min_pl_strain){
-  //////////////////////////// IF REMESH
-      //#########################################################
-      cout << "REMESHING "<< " at step "<<step_count<<endl;
-      std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer(this, ss.c_str());
-      writer.writeFile();
-      
-      #ifdef BUILD_REMESH
-      ReMesher remesh(this);
-      remesh.m_type = MMG;
-      //remesh.Generate_omegah();
-      remesh.Generate_mmg();
-      remesh.WriteDomain(); 
-      //cout << "Step "<<step_count<<endl;
-      //parallel_for ()
-
-      //TO MODIFY
-      double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-
-      //cout << "Searching ext nodes "<<endl;
-      SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
-      //cout << "Done "<<endl;
-      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
-      remesh_ = true;  
-      #endif
-      remesh_count++;
-      }
-      //#########################################################
-  //////////////////////////// IF REMESH
-
-  }
-
-  //cout << "----------------DISP "<<x[0]<<", "<<x[1]<<","<<x[2]<<endl;
- 
-  //ELEMENT PARALLEL
-
 
   // Newton-Raphson loop
   double tolerance = 1e-4; //dv tol
   double ftol = 1e-4;
-
-  //~ double tol_force = 1e-3;    // 0.1% error en fuerzas  
-  //~ double tol_disp = 1e-4;     // Desplazamientos
-  //~ double tol_energy = 1e-4;   // Energía residual
 
 
   int max_iter = 20;
@@ -368,7 +279,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
   double alpha_damp= 1.0;
 
   ////delta_v: Pure NR correction term
-  for (int i=0;i<m_node_count*m_dim;i++)delta_v[i]=0.0;
+  for (int i=0;i<m_node_count*m_dim;i++)delta_u[i]=0.0;
  
   
   double flat_fold[6*m_elem_count];
@@ -408,7 +319,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
   double maxv[]={0.0,0.0,0.0};
  
     for (int i = 0; i < m_node_count * m_dim; i++) {
-        v[i] = prev_v[i] + delta_v[i]; ///v: Current total velocity 
+        x[i] = prev_x[i] + delta_u[i]; ///v: Current total velocity 
     }
  
    for (int e=0;e<m_node_count;e++)
@@ -423,24 +334,11 @@ void host_ Domain_d::SolveStaticDisplacement(){
     for (int i = 0; i < m_node_count * m_dim; i++) {
         u_inc[i] = dt * v[i];       // Incremental update
         //x[i] = x_initial[i] + u[i] + u_inc[i];    // Total position
-        x[i] = prev_x[i] + u_inc[i];    // Total position
+        //x[i] = prev_x[i] + u_inc[i];    // Total position
+        x[i] = prev_x[i] + delta_u[i];    // Total position
     }
+    
 
-  
-  #ifdef CUDA_BUILD
-  N = getElemCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  
-	calcElemJAndDerivKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize(); 
-  
-	calcElemVolKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();   
-  
-  CalcNodalMassFromVolKernel<<< blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  
-  #else
   calcElemJAndDerivatives();
   if (!remesh_) { //Already calculated previously to account for conservation.
     CalcElemVol();  
@@ -448,70 +346,12 @@ void host_ Domain_d::SolveStaticDisplacement(){
     CalcNodalMassFromVol();
   }
 
-  #endif
-   
-
-  
-  //////// END REMESH 
-  ////////////////////////////////////////////
-  
-  #if CUDA_BUILD    
-  calcElemStrainRatesKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize(); 
-
-  calcElemDensityKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	cudaDeviceSynchronize();
-
-  //AFTER DERIVATIVES AND RHO CALC (NEEDS JACOBIAN)
-  N = getElemCount();
-
-	// blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  // calcElemMassMatKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  // cudaDeviceSynchronize();   
-  
-  // //printf("CALCULATING MASS\n");
-  // N = getNodeCount();
-  // blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-  // assemblyMassMatrixKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-	// cudaDeviceSynchronize();   
- 
-
-  
-    //STRESSES CALC
-  N = getElemCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemPressureKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  cudaDeviceSynchronize(); 
-
-  N = getElemCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  //cout << "dt "<<dt<<endl;
-  calcStressStrainKernel<<<blocksPerGrid,threadsPerBlock>>>(this, dt);
-  cudaDeviceSynchronize();
-
-  N = getNodeCount();
-  blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;  
-  calcElemForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-
-  calcElemHourglassForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  
-  assemblyForcesKernel<<<blocksPerGrid,threadsPerBlock>>>(this);
-  cudaDeviceSynchronize();
-  
-
-
-  #else
-  //SECOND TIME
-    //STRESSES CALC
     
   calcElemStrainRates();
   calcElemDensity();
-  // if (m_dim == 3 && m_nodxelem ==4){
-  //calcElemPressureANP_Nodal();
-  //calcElemPressureANP();
-  // }else
+
+
+
 
   if      (m_press_algorithm == 0)
     calcElemPressure();
@@ -522,9 +362,6 @@ void host_ Domain_d::SolveStaticDisplacement(){
 
   
   //CalcStressStrain(dt);
-  
-
-  
 
   par_loop(e,m_elem_count){
     int offset = e*m_nodxelem*m_dim;  
@@ -533,14 +370,123 @@ void host_ Domain_d::SolveStaticDisplacement(){
         m_f_elem[offset + n*m_dim + d] = 0.0;
   }
   
-
     //~ calcElemHourglassForces();
     
     if (contact)
       CalcContactForces();
 
     bool end_it = false;
-      
+        
+    //~ ////// INCREMENTAL DEFORMATION GRADIENT & GREEN LAGRANGE
+    //~ for (int e = 0; e < m_elem_count; e++) {
+        //~ Matrix F_inc(m_dim, m_dim);    // F incremental
+        //~ Matrix F_prev(m_dim, m_dim);   // F del paso anterior
+        //~ F_inc = Identity(m_dim);           // F_inc = I
+        //~ //F_prev.setIdentity();          // Suponiendo que F_prev se almacena o inicializa en I
+        //~ F_prev = Identity(m_dim);          // Suponiendo que F_prev se almacena o inicializa en I
+        
+        //~ for (int n = 0; n < m_nodxelem; n++) {
+            //~ Matrix x_curr(m_dim, 1);  // Posición actual del nodo
+            //~ Matrix x_prev(m_dim, 1);  // Posición del nodo en paso anterior
+            ////// SHOULD BE USED TOTAL
+            //~ Matrix gradN(1, m_dim); // ∇N evaluado en la configuración previa
+
+            //~ for (int d = 0; d < m_dim; d++) {
+                //~ x_curr.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]);
+                //~ x_prev.Set(d, 0, prev_x[e * m_nodxelem * m_dim + n * m_dim + d]);
+                //~ gradN.Set(0, d, getDerivative(e, 0, d, n)); // derivadas en config previa
+            //~ }
+
+            //~ // Δx ⊗ ∇N
+            //~ Matrix dx = x_curr - x_prev;
+            //~ F_inc += MatMul(dx, gradN);
+        //~ }
+
+        //~ // Si querés Green-Lagrange incremental:
+        //~ Matrix E_inc = 0.5 * (MatMul(F_inc.Transpose(), F_inc) - Identity(m_dim));
+
+        //~ // Si querés F acumulada (opcional):
+        //~ // F_prev = obtener_F_anterior(e); // según cómo guardes F_prev
+        //~ // Matrix F_total = MatMul(F_inc, F_prev);
+        //~ // Matrix E_total = 0.5 * (MatMul(F_total.Transpose(), F_total) - Identity(m_dim));
+    //~ }
+    
+    ////// DEFORMATION GRADIENT & GREEN LAGRANGE (TOTAL)
+    ///MATRIX FORM
+    for (int e = 0; e < m_elem_count; e++) {
+        Matrix F(m_dim, m_dim);       // F total
+        F.SetZero();
+
+        for (int n = 0; n < m_nodxelem; n++) {
+            Matrix x_a(m_dim, 1);    // Posición actual del nodo
+            Matrix gradN(1, m_dim);  // Derivadas actuales en configuración actual
+
+            for (int d = 0; d < m_dim; d++) {
+                x_a.Set(d, 0, x[e * m_nodxelem * m_dim + n * m_dim + d]);  // Posición actual
+                gradN.Set(0, d, getDerivative(e, 0, d, n));               // derivadas actuales
+            }
+
+            // F = Σ x_a ⊗ ∇N_a(x_current)
+            F += MatMul(x_a, gradN);
+        }
+
+        // Green-Lagrange strain
+        Matrix E = 0.5 * (MatMul(F.Transpose(), F) - Identity(m_dim));
+
+        // Guardar F y E en tus arrays si los necesitás
+        //m_F[e] = F;
+        //m_E[e] = E;
+    }
+
+
+    for (int e = 0; e < m_elem_count; e++) {
+        tensor3 F = nullTensor3();        // F = 0
+        tensor3 F_initial = Identity();   // F inicial = I, si se quiere acumular o comparar
+
+        for (int n = 0; n < m_nodxelem; n++) {
+            // Posición actual del nodo
+            double x_a[3] = {
+                x[e*m_nodxelem*m_dim + n*m_dim + 0],
+                x[e*m_nodxelem*m_dim + n*m_dim + 1],
+                x[e*m_nodxelem*m_dim + n*m_dim + 2]
+            };
+
+            // Derivadas actuales ∇N evaluadas en la configuración actual
+            double gradN[3] = {
+                getDerivative(e, 0, 0, n),
+                getDerivative(e, 0, 1, n),
+                getDerivative(e, 0, 2, n)
+            };
+
+            // Producto diádico: F += x_a ⊗ gradN
+            F.xx += x_a[0] * gradN[0];  F.xy += x_a[0] * gradN[1];  F.xz += x_a[0] * gradN[2];
+            F.yx += x_a[1] * gradN[0];  F.yy += x_a[1] * gradN[1];  F.yz += x_a[1] * gradN[2];
+            F.zx += x_a[2] * gradN[0];  F.zy += x_a[2] * gradN[1];  F.zz += x_a[2] * gradN[2];
+        }
+
+        // Green-Lagrange total
+        tensor3 Ft = Trans(F) * F;          // F^T * F
+        tensor3 E = 0.5 * (Ft - Identity()); // E = 0.5*(F^T F - I)
+    
+        tensor3 F_inc = F * Inverse(F_prev[e]); // F_prev[e] debe almacenarse del paso anterior
+        tensor3 L = (F_inc - Identity()) * (1.0 / dt); // L ≈ (F_inc - I)/dt
+
+        tensor3 D = 0.5 * (L + Trans(L));  // tasa de deformación simétrica
+        tensor3 W = 0.5 * (L - Trans(L));  // rotación (antisimétrica)
+
+        int offset_t = offset_s * 6; // mismo offset que usás en CalcStressStrain
+
+        ToFlatSymPtr(D, m_str_rate, offset_t); // Tensor de tasas de deformación
+        // Para W, si tu función FromFlatAntiSym espera el mismo formato
+        // deberías tener un ToFlatAntiSymPtr
+        ToFlatAntiSymPtr(W, m_rot_rate, offset_t); 
+        
+        F_prev[e] = F; // para el próximo paso
+    
+    }
+
+    
+    ////////////////////////////// COINSTITTIVE 
     solver->setZero(); //RESET K and R matrices.
     solver->beginAssembly();
     
@@ -558,9 +504,6 @@ void host_ Domain_d::SolveStaticDisplacement(){
           //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           B = B *(1.0/m_detJ[e]);
-
-          //cout << "B mat "<<endl;
-          //B.Print();
 
           // 7) Compute internal force: fint = V_e * B^T * σ
 
@@ -584,18 +527,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
             //cout << "ERROR, not known material."<<endl;
           }
 
-          //Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
-          
-          //cout << "Calculating stress tangent "<<endl;
-          //Matrix Kmat(12,12);
           Matrix Kmat = CalcElementStressAndTangent(e,dt);
-          
-          // Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
-          
-          
-          //if (e==0) Kmat.Print();
+
 
           double Ve = vol[e]; // Current volume (updated Lagrangian)
 
@@ -666,18 +599,6 @@ void host_ Domain_d::SolveStaticDisplacement(){
             }
           }
 
-          // cout <<"INTERTIA TERMS OF RESIDUAL"<<endl;
-          // ////// Residual forces (with inertial term)
-          // //Matrix R = f_ext - fint;
-          // for (int i = 0; i < m_nodxelem; i++) {
-              // int node = getElemNode(e, i);
-              // for (int d=0;d<m_dim;d++){
-              // //R[i] -= m_mdiag[node] * a[node] / (beta * dt);  // a = (v_new - v_old)/(γ*Δt)
-                // cout << "Node DIM "<<node<<","<<d<<", "<<"R Orig"<<R.getVal(gdof,0)<<"Inertia"<<-m_mdiag[node] * a[gdof]<<endl;
-                // R.Set(i,0,R.getVal(gdof,0)-m_mdiag[node] * a[gdof]);
-
-              // }
-          // }
           
           solver->assembleElement(e, K);
           solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
@@ -753,11 +674,11 @@ void host_ Domain_d::SolveStaticDisplacement(){
     for (int n = 0; n < m_node_count; n++) {
         for (int d = 0; d < m_dim; d++) {
             int idx = n * m_dim + d;
-            double dv = m_solver->getU(n,d);
+            double du = m_solver->getU(n,d);
             double df = m_solver->getR(n,d);
-            delta_v[idx] += alpha_damp*dv;
+            delta_u[idx] += alpha_damp*du;
             // Track maximum residual
-            max_residual = std::max(max_residual, std::abs(dv));
+            max_residual = std::max(max_residual, std::abs(du));
             max_f_residual = std::max(max_residual, std::abs(df));
         }
     }
@@ -840,10 +761,6 @@ void host_ Domain_d::SolveStaticDisplacement(){
   
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
-  // //ToFlatSymPtr(Strain, 	strain,6*i);		
-  // ToFlatSymPtr(ShearStress, m_tau, offset_t);
-    
     
     
   if (converged){
@@ -878,13 +795,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
     
     CalcStressStrain(dt);
 
-    N = getNodeCount();
-    //printf("Correction\n");	
-    #ifdef CUDA_BUILD
-    
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    
-    #else
+
     
     if (contact){
       //if (Time > RAMP_FRACTION*end_t)
@@ -896,36 +807,16 @@ void host_ Domain_d::SolveStaticDisplacement(){
       ApplyGlobalDamping(m_remesh_damp_vel);
     }
 
-    //ApplyGlobalDamping(0.1);
-    #endif
-
-
-
-    // if (contact){
-      // double f =1.0;
-
-      // if(Time < RAMP_FRACTION*end_t) {
-          // f = pow(Time/(RAMP_FRACTION*end_t), 0.5);  // Square root for smoother start
-      // } else {
-          // f = 1.0;
-      // }
-      // for (int n=0;n<trimesh->nodecount;n++){
-        // trimesh->node_v[n] = f*m_v_orig[n];
-      // }
-        // //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
-    // }
 
     
     if (contact){
-      //MeshUpdate(this->trimesh,dt);
-    #ifdef CUDA_BUILD  
-    #else
+
       trimesh->Move( dt);
       trimesh->CalcCentroids();
       trimesh->CalcNormals();
 
       trimesh->UpdatePlaneCoeff();
-    #endif
+
     }
     if (remesh_){
      //printf("DISPLACEMENTS\n");
@@ -954,11 +845,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
     
     
     }//Not converged
-  ///assemblyForces(); 
-  //ApplyGlobalSprings();
 
-  
-  #endif
   
  
   if (Time>=tout){
