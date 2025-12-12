@@ -1998,36 +1998,113 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     // return K_elem;
 // }
 
-Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3& s_trial, double sig_trial, 
-                                                  double G, double H) {
-    Matrix Dep(6,6);
-    Matrix De = mat[0]->getElasticMatrix();  // Assuming same material for all elements
+// Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3& s_trial, double sig_trial, 
+                                                  // double G, double H) {
+    // Matrix Dep(6,6);
+    // Matrix De = mat[0]->getElasticMatrix();  // Assuming same material for all elements
     
-    // Normalized deviatoric tensor (flow direction)
-    tensor3 n = s_trial * (1.5 / sig_trial);
+    // // Normalized deviatoric tensor (flow direction)
+    // tensor3 n = s_trial * (1.5 / sig_trial);
     
-    // Convert to Voigt notation
-    Matrix n_voigt(6,1);
-    n_voigt.Set(0,0, n.xx); n_voigt.Set(1,0, n.yy); n_voigt.Set(2,0, n.zz);
-    n_voigt.Set(3,0, n.xy); n_voigt.Set(4,0, n.yz); n_voigt.Set(5,0, n.zx);
+    // // Convert to Voigt notation
+    // Matrix n_voigt(6,1);
+    // n_voigt.Set(0,0, n.xx); n_voigt.Set(1,0, n.yy); n_voigt.Set(2,0, n.zz);
+    // n_voigt.Set(3,0, n.xy); n_voigt.Set(4,0, n.yz); n_voigt.Set(5,0, n.zx);
 
-    // Usar getTranspose() para no modificar n_voigt original
-    Matrix n_voigt_transpose = n_voigt.getTranspose(); // 1x6
+    // // Usar getTranspose() para no modificar n_voigt original
+    // Matrix n_voigt_transpose = n_voigt.getTranspose(); // 1x6
     
-    // Consistent tangent: Dep = De - (De:n ⊗ n:De) / (H + n:De:n)
-    Matrix De_n = MatMul(De, n_voigt);           // 6x1
-    Matrix n_De = MatMul(n_voigt_transpose, De); // 1x6
+    // // Consistent tangent: Dep = De - (De:n ⊗ n:De) / (H + n:De:n)
+    // Matrix De_n = MatMul(De, n_voigt);           // 6x1
+    // Matrix n_De = MatMul(n_voigt_transpose, De); // 1x6
 
-    Matrix test = MatMul(n_voigt.getTranspose(), De_n);
+    // Matrix test = MatMul(n_voigt.getTranspose(), De_n);
        
-    //double denominator = H + MatMul(n_voigt.Transpose(), De_n).getVal(0,0);
-    double denominator = H + test.getVal(0,0);
-    //cout << "denominator"<<denominator<<", sig_trial: "<< sig_trial<<endl;
-    Matrix correction = MatMul(De_n, n_De) * (1.0 / denominator) ;
+    // //double denominator = H + MatMul(n_voigt.Transpose(), De_n).getVal(0,0);
+    // double denominator = H + test.getVal(0,0);
+    // //cout << "denominator"<<denominator<<", sig_trial: "<< sig_trial<<endl;
+    // Matrix correction = MatMul(De_n, n_De) * (1.0 / denominator) ;
 
-    Dep = De - correction;
+    // Dep = De - correction;
+    // return Dep;
+// }
+
+
+
+Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3 &s_trial,
+                                         double sig_trial,
+                                         double G,
+                                         double H)
+{
+    // De debe estar en NOTACIÓN INGENIERIL (coincide con tu B)
+    Matrix De = mat[0]->getElasticMatrix(); // 6x6
+
+    //------------------------------------------------------
+    // 1) n_tensor = (3/2) * s / sigma_eq   (derivada de von Mises)
+    //------------------------------------------------------
+    tensor3 n_t;
+    if (sig_trial > 0.0) {
+        double factor = 1.5 / sig_trial;   // = 3/2 * 1/sigma_eq
+        n_t = s_trial * factor;
+    } else {
+        n_t = tensor3(); // cero
+    }
+
+    //------------------------------------------------------
+    // 2) Convertir a Voigt-ingenieril:
+    //    [xx, yy, zz, gamma_xy, gamma_yz, gamma_zx]
+    //    gamma = 2 * epsilon
+    //------------------------------------------------------
+    Matrix n_voigt(6,1);
+    n_voigt.Set(0,0, n_t.xx);
+    n_voigt.Set(1,0, n_t.yy);
+    n_voigt.Set(2,0, n_t.zz);
+    
+    //Being B defined enginnering [not with 1/2]
+    n_voigt.Set(3,0, 2.0 * n_t.xy);
+    n_voigt.Set(4,0, 2.0 * n_t.yz);
+    n_voigt.Set(5,0, 2.0 * n_t.zx);
+
+    Matrix nT = n_voigt.getTranspose();
+
+    //------------------------------------------------------
+    // 3) De * n   → vector 6×1
+    //------------------------------------------------------
+    Matrix De_n = MatMul(De, n_voigt);
+
+    //------------------------------------------------------
+    // 4) denom = H + n^T De n
+    //------------------------------------------------------
+    Matrix temp = MatMul(nT, De_n);
+    double denom = H + temp.getVal(0,0);
+
+    const double tol = 1e-14;
+    if (std::abs(denom) < tol)
+        denom = (denom >= 0 ? tol : -tol);
+
+    //------------------------------------------------------
+    // 5) correction = (De*n)(De*n)^T / denom
+    //------------------------------------------------------
+    Matrix De_nT = De_n.getTranspose();
+    Matrix corr = MatMul(De_n, De_nT) * (1.0 / denom);
+
+    //------------------------------------------------------
+    // 6) D_ep = De - correction
+    //------------------------------------------------------
+    Matrix Dep = De - corr;
+
+    // Simetrizar (para evitar drift numérico)
+    for (int i=0; i<6; i++){
+        for (int j=i+1; j<6; j++){
+            double s = 0.5*(Dep.getVal(i,j)+Dep.getVal(j,i));
+            Dep.Set(i,j,s);
+            Dep.Set(j,i,s);
+        }
+    }
+
     return Dep;
 }
+
 
 /*
 void Domain_d::CalcStressStrainQuasiStatic() {
