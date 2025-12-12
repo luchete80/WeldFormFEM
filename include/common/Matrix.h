@@ -853,7 +853,7 @@ __spec Matrix FlatSymToMatrix(double flat[]){
   for (int i=0;i<3;i++) ret.Set(i,i,flat[i]);
   ret.Set(0,1,flat[3]); ret.Set(1,0,flat[3]);
   ret.Set(1,2,flat[4]); ret.Set(2,1,flat[4]);  
-  ret.Set(0,2,flat[5]); ret.Set(2,1,flat[5]);
+  ret.Set(0,2,flat[5]); ret.Set(2,0,flat[5]);
   
 	return ret;
 }

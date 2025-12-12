@@ -627,6 +627,7 @@ public:
   void SolveImplicitGlobalMatrix();
   /// DISPLACEMENT (STATIC) FUNCTIONS
   void SolveStaticDisplacement();
+  void SolveStaticQS_UP();
   
   void SolveElastic(); //SIMPLE 
   
