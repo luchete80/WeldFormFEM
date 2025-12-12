@@ -415,7 +415,15 @@ void host_ Domain_d::SolveStaticQS_UP(){
           B = B *(1.0/m_detJ[e]);
 
           Matrix Ddot = FlatSymToVoigt(m_str_rate, m_dim, m_nodxelem);
-          
+
+          int ndof = m_nodxelem * m_dim;
+          Matrix vloc(ndof, 1);
+          for (int a=0;a<m_nodxelem;a++){
+            int node = getElemNode(e,a);
+            for (int d=0; d<m_dim; d++){
+              vloc.Set(a*m_dim + d, 0, v[node*m_dim + d]);
+            }
+          }          
                     //Matrix Ddot = MatMul(B, vloc); // 6x1
           //Strain rate
           /////D - Ddot_dev y e_dot_eq (tasa equivalente)
@@ -476,8 +484,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
           
           ///////G) Perzyna: eta_eff o dot_gamma (tasa viscoplástica) y d(eta)/de si hace falta para tangente
           
-          double sigma_y = /* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
-          double sigma_eq_trial = /* si usas trial, calcula con s_trial */;
+          double sigma_y = 0.0;/* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
+          double sigma_eq_trial = 0.0;/* si usas trial, calcula con s_trial */;
 
           double overstress = sigma_eq_trial - sigma_y;
           double dot_gamma = 0.0;
