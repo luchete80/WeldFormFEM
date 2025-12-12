@@ -49,6 +49,14 @@ class Material_{
   double K, m;
 	double eps0, eps1;
   double sy0;
+  
+  ////////////////////// PERZYNA
+  double visc_relax_time;
+  double perzyna_m;
+  
+  
+  
+  
   void InitHollomon(){}
 
   ////// NO //virtual FUNCTIONS, JOHNSON COOK MATERIAL ///////

@@ -492,7 +492,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           if (overstress > 0.0) {
             double tau_relax = mat[e]->visc_relax_time; // define en material (ej.)
             double m_perz = mat[e]->perzyna_m;
-            double sigma0 = mat[e]->sigma0; // escala
+            double sigma0 = mat[e]->sy0; // escala
             dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
           } else {
             dot_gamma = 0.0;
@@ -523,7 +523,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix nT = n_voigt.getTranspose();
           Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
 
-          Matrix C_visc = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
+          Matrix D_gp = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
 
 
           //////I) Kgp = B^T * D_gp * B * (vol[e]) (ndof×ndof)
@@ -568,7 +568,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix Qgp = MatMul( Bvol.getTranspose(), Bvol ); // ndof x ndof
           Qgp = Qgp * vol[e];
 
-          Q_elem = Q_elem + Qgp;
+          //Q_elem = Q_elem + Qgp;
+          Matrix Q_elem =  Qgp;
           
           //// N) Assemble elemental matrix A_elem = H_elem + Kgp + Kgp * Q_elem ???
           Matrix Aelem = H_elem;
@@ -576,8 +577,13 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Aelem = Aelem + Q_elem;    // si Q está en forma ndof x ndof
 
           // Rhs elemental: R = f_ext_elem - f_int_elem - sigma_bar*Pstar - Kgp * (Q_elem * vloc)
-          Matrix f_int_elem = MatMul(B.getTranspose(), /*stress_voigt*/); // ya lo calculas
-          Matrix rhs = f_ext_elem - f_int_elem; // f_ext_elem may be zeros except contact
+          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
+          //CHANGE TO FORCES TO MATRIX! already calculated
+          Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
+ 
+          fint = fint * vol[e];
+          
+          Matrix rhs = /*f_ext_elem */-1.0* fint; // f_ext_elem may be zeros except contact
           rhs = rhs - Pstar * sigma_bar; // Pstar scalar*vector
           Matrix temp = MatMul( Q_elem, vloc );
           rhs = rhs - MatMul(Kgp, temp);
@@ -586,114 +592,6 @@ void host_ Domain_d::SolveStaticQS_UP(){
           solver->assembleResidual(e, rhs);
 
 
-          
-          // 7) Compute internal force: fint = V_e * B^T * σ
-
-          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
-          //CHANGE TO FORCES TO MATRIX! already calculated
-          Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
- 
-          fint = fint * vol[e];
-
-          ///TANGENT!
-          // // 8.1) Compute tangent stiffness matrix Ktan = V_e * B^T * D * B
-          Matrix D(6,6);
-
-          //Virtual functions not working for CUDA
-          if(mat[e]->Material_model == HOLLOMON ){
-            //cout << "pl strain: "<<pl_strain[e]<<endl;
-            D = getHollomonTangentMatrix(pl_strain[e],mat[e]);
-          } else{
-            D =  mat[e]->getElasticMatrix();   
-            
-            //cout << "ERROR, not known material."<<endl;
-          }
-
-          //Matrix Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
-          
-          //cout << "Calculating stress tangent "<<endl;
-          //Matrix Kmat(12,12);
-          Matrix Kmat = CalcElementStressAndTangent(e,dt);
-          
-          // Kmat = MatMul(B.getTranspose(), MatMul(D, B));
-          //Kmat = Kmat * (1.0/6.0*m_detJ[e]); // B is B x detJ
-          
-          
-          //if (e==0) Kmat.Print();
-
-          double Ve = vol[e]; // Current volume (updated Lagrangian)
-
-          ///////////////////////////////////////////////////
-          /////////// IMPORTANT!!! --A LOT-- FASTER (LESS PRODUCTS) THAN: Kgeo = G^T sigma G
-          // 2. Initialize Kgeo (12x12 for 4-node tetrahedron)
-          //~ //Matrix& Kgeo = *(m_Kgeo[e]);
-          double idetJ = 1.0/m_detJ[e];       // detJ at GP (current config)
-
-          Matrix Kgeo(m_dim*m_nodxelem,m_dim*m_nodxelem);
-          Kgeo.SetZero();
-          
-          // // 3. Loop over node pairs (a, b)
-          // // REMEMBER DERIVATIVES ARE AFFECTED BY DETJ
-          for (int a = 0; a < 4; ++a) {
-            // ∇Nᵃ in current config (∂Nᵃ/∂x, ∂Nᵃ/∂y, ∂Nᵃ/∂z)
-            Matrix grad_a(3, 1);
-            grad_a.Set(0, 0, getDerivative(e, 0, 0, a)*idetJ); // ∂N/∂x
-            grad_a.Set(1, 0, getDerivative(e, 0, 1, a)*idetJ); // ∂N/∂y
-            grad_a.Set(2, 0, getDerivative(e, 0, 2, a)*idetJ); // ∂N/∂z
-
-            for (int b = 0; b < 4; ++b) {
-              // ∇Nᵇ in current config
-              Matrix grad_b(3, 1);
-              grad_b.Set(0, 0, getDerivative(e, 0, 0, b)*idetJ);
-              grad_b.Set(1, 0, getDerivative(e, 0, 1, b)*idetJ);
-              grad_b.Set(2, 0, getDerivative(e, 0, 2, b)*idetJ);
-
-              // Compute K_geo(a,b) = (∇Nᵃ)ᵀ · σ · ∇Nᵇ * Ve
-              Matrix sigma_grad_b = MatMul(FlatSymToMatrix(m_sigma), grad_b); // σ · ∇Nᵇ (3x1)
-              Matrix kab = MatMul(grad_a.getTranspose(), sigma_grad_b); // 1x1 scalar
-              double k_ab = kab.getVal(0, 0) * Ve;
-
-              // Fill 3x3 block (assumes 3 DOF per node)
-              for (int i = 0; i < 3; ++i) {
-                Kgeo.Set(3*a+i, 3*b+i, Kgeo.getVal(3*a+i,3*b+i) + k_ab);
-              }
-            }
-          }
-
-          Matrix K = Kgeo + Kmat;
-
-          double beta = 0.25;
-          // // Add mass scaling for stability (FORGE does this)
-          for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
-              int node = getElemNode(e, i);        // Get global node number
-              for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
-                  int idx = i*m_dim + d;           // Local DOF index
-                  double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
-                  K.Set(idx, idx, (K.getVal(idx, idx) + mass_term ) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
-              }
-          }
-          
-          K = K*dt;
-          
-          //cout <<"CHECKING INTERNAL FORCES"<<endl;
-          
-          calcElemForces(e);
-          ///// TODO: HOURGLASS FORCES
-
-          Matrix R(m_dim*m_nodxelem,1);
-          int offset = e*m_nodxelem*m_dim;
-          for (int i = 0; i < m_nodxelem; i++) {
-            //int node = getElemNode(e, i % m_nodxelem);
-            for (int d=0;d<m_dim;d++){
-            //cout << "NODE, DIM "<<i<<","<<d<<", fint mat"<<fint.getVal(m_dim*i+d,0)<<", fel "<<m_f_elem[i*m_dim+d]<<endl;
-            //R.Set(i,0,-fint.getVal(m_dim*i+d,0)); //ADD EXTERNAL ELEMENT FORCES
-            R.Set(m_dim*i+d,0,-m_f_elem[offset + i*m_dim+d]/*+m_f_elem_hg [offset + i*m_dim + d]*/); //ADD EXTERNAL ELEMENT FORCES
-            }
-          }
-
-          solver->assembleElement(e, K);
-          solver->assembleResidual(e,R);//SHOULD BE NEGATIVE!  
 
       } // end par element loop
       
