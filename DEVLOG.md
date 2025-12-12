@@ -428,3 +428,5 @@ F90 PREVIOUS VERSION
 20251209 - Begining to add Perzyna's Law
          - IMPLICIT: CORRECTED Contact!
          -           ADDED New displacement formulation.
+20251210 - Added Perzyna Viscoplastic Law (coeffs need to be checked).
+20251212 - FIXED IMPLICIT TANGENT CONSISTENT J2

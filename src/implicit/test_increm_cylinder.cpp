@@ -162,7 +162,7 @@ int main(int argc, char **argv) {
   for (int i=0;i<dom_d->getNodeCount();i++){
     if (dom_d->getPosVec3_h(i).z>0.029){
       for (int d=0;d<2;d++) dom_d->AddBCVelNode(i,d,0.0);
-      dom_d->AddBCVelNode(i,2,-1.0e-4);
+      dom_d->AddBCVelNode(i,2,-10.0e-3);
       velcount++;
     }
     

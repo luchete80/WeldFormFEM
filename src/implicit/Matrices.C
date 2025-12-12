@@ -88,6 +88,70 @@ Matrix Domain_d::getElemBMatrix(const int &e){
   return B;
 }
 
+
+void Domain_d::CalcMaterialStiffElementMatrix(){
+  par_loop(e, m_elem_count){
+    /// TODO: CHANGE FOR DIM = 2
+    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
+    if (m_dim == 3){
+    //3D Voigt notation, where:
+    for (int i=0;i<m_nodxelem;i++){
+      int base = m_dim * i;
+      double dN_dx = getDerivative(e, 0, 0, i);
+      double dN_dy = getDerivative(e, 0, 1, i);
+      double dN_dz = getDerivative(e, 0, 2, i);
+      
+      //cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
+      B.Set(0, base + 0, dN_dx);  // ε_xx
+      B.Set(1, base + 1, dN_dy);  // ε_yy
+      B.Set(2, base + 2, dN_dz);  // ε_zz
+      
+      B.Set(3, base + 0, dN_dy);  // ε_xy
+      B.Set(3, base + 1, dN_dx);
+      B.Set(4, base + 1, dN_dz);  // ε_yz
+      B.Set(4, base + 2, dN_dy);
+      B.Set(5, base + 2, dN_dx);  // ε_zx
+      B.Set(5, base + 0, dN_dz);
+    }
+  }
+    B = B *(1.0/m_detJ[e]);
+    
+    //printf ("BMAT\n");
+    //B.Print();
+    Matrix BT(m_nodxelem* m_dim,2*m_dim);
+    BT=B.getTranspose();
+    Matrix D(6,6);
+    
+    double G  = mat[e]->Elastic().G();
+    //cout << "Material G "<<G<<endl;
+    double E  = mat[e]->Elastic().E();
+    double nu = mat[e]->Elastic().Poisson();
+    double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
+    D.Set(0,1, lambda);               D.Set(0,2, lambda);
+    D.Set(1,0, lambda);               D.Set(1,2, lambda);
+    D.Set(2,0, lambda);               D.Set(2,1, lambda);
+    
+    //printf("Cmat\n");
+    
+    for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
+    for (int d=3;d<6;d++) D.Set(d,d,G);    
+    //D.Print();
+    
+    MatMul(MatMul(BT,D),B, m_Kmat[e]);
+    //printf("K ELEM\n");
+    //m_Kmat[e]->Print();
+
+    // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
+    *(m_Kmat[e]) = *(m_Kmat[e]) * vol[e];  // Multiply by element volume (Ve)
+    
+    //cout << "KMAT"<<endl;
+    //(m_Kmat[e])->Print();
+    
+  }//element
+  //cout << "Done."<<endl;
+  
+}
+
 dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
     Matrix K_elem(m_nodxelem * m_dim, m_nodxelem * m_dim);
     K_elem.SetZero();
@@ -184,67 +248,79 @@ dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt) {
     return K_elem;
 }
 
-void Domain_d::CalcMaterialStiffElementMatrix(){
-  par_loop(e, m_elem_count){
-    /// TODO: CHANGE FOR DIM = 2
-    Matrix B(2*m_dim, m_nodxelem* m_dim); // WITH m_dim==2?
-    if (m_dim == 3){
-    //3D Voigt notation, where:
-    for (int i=0;i<m_nodxelem;i++){
-      int base = m_dim * i;
-      double dN_dx = getDerivative(e, 0, 0, i);
-      double dN_dy = getDerivative(e, 0, 1, i);
-      double dN_dz = getDerivative(e, 0, 2, i);
-      
-      //cout << " dN_dx dN_dy dN_dz: %f %f %f "<<dN_dx<<", "<<dN_dy<<", "<<dN_dz<<endl;
-      B.Set(0, base + 0, dN_dx);  // ε_xx
-      B.Set(1, base + 1, dN_dy);  // ε_yy
-      B.Set(2, base + 2, dN_dz);  // ε_zz
-      
-      B.Set(3, base + 0, dN_dy);  // ε_xy
-      B.Set(3, base + 1, dN_dx);
-      B.Set(4, base + 1, dN_dz);  // ε_yz
-      B.Set(4, base + 2, dN_dy);
-      B.Set(5, base + 2, dN_dx);  // ε_zx
-      B.Set(5, base + 0, dN_dz);
-    }
-  }
-    B = B *(1.0/m_detJ[e]);
-    
-    //printf ("BMAT\n");
-    //B.Print();
-    Matrix BT(m_nodxelem* m_dim,2*m_dim);
-    BT=B.getTranspose();
-    Matrix D(6,6);
-    
-    double G  = mat[e]->Elastic().G();
-    //cout << "Material G "<<G<<endl;
-    double E  = mat[e]->Elastic().E();
-    double nu = mat[e]->Elastic().Poisson();
-    double lambda  = (E * nu) /((1.0+nu)*(1.0-2.0*nu)); 
-    D.Set(0,1, lambda);               D.Set(0,2, lambda);
-    D.Set(1,0, lambda);               D.Set(1,2, lambda);
-    D.Set(2,0, lambda);               D.Set(2,1, lambda);
-    
-    //printf("Cmat\n");
-    
-    for (int d=0;d<3;d++) D.Set(d,d,lambda+2.0*G);
-    for (int d=3;d<6;d++) D.Set(d,d,G);    
-    //D.Print();
-    
-    MatMul(MatMul(BT,D),B, m_Kmat[e]);
-    //printf("K ELEM\n");
-    //m_Kmat[e]->Print();
 
-    // Compute element stiffness: K_e = ∫Bᵀ·D·B dV ≈ Bᵀ·D·B * Ve
-    *(m_Kmat[e]) = *(m_Kmat[e]) * vol[e];  // Multiply by element volume (Ve)
+Matrix Domain_d::getConsistentPlasticTangentMatrix(const tensor3 &s_trial,
+                                         double sig_trial,
+                                         double G,
+                                         double H)
+{
+    // De debe estar en NOTACIÓN INGENIERIL (coincide con tu B)
+    Matrix De = mat[0]->getElasticMatrix(); // 6x6
+
+    //------------------------------------------------------
+    // 1) n_tensor = (3/2) * s / sigma_eq   (derivada de von Mises)
+    //------------------------------------------------------
+    tensor3 n_t;
+    if (sig_trial > 0.0) {
+        double factor = 1.5 / sig_trial;   // = 3/2 * 1/sigma_eq
+        n_t = s_trial * factor;
+    } else {
+        n_t = tensor3(); // cero
+    }
+
+    //------------------------------------------------------
+    // 2) Convertir a Voigt-ingenieril:
+    //    [xx, yy, zz, gamma_xy, gamma_yz, gamma_zx]
+    //    gamma = 2 * epsilon
+    //------------------------------------------------------
+    Matrix n_voigt(6,1);
+    n_voigt.Set(0,0, n_t.xx);
+    n_voigt.Set(1,0, n_t.yy);
+    n_voigt.Set(2,0, n_t.zz);
     
-    //cout << "KMAT"<<endl;
-    //(m_Kmat[e])->Print();
-    
-  }//element
-  //cout << "Done."<<endl;
-  
+    //Being B defined enginnering [not with 1/2]
+    n_voigt.Set(3,0, 2.0 * n_t.xy);
+    n_voigt.Set(4,0, 2.0 * n_t.yz);
+    n_voigt.Set(5,0, 2.0 * n_t.zx);
+
+    Matrix nT = n_voigt.getTranspose();
+
+    //------------------------------------------------------
+    // 3) De * n   → vector 6×1
+    //------------------------------------------------------
+    Matrix De_n = MatMul(De, n_voigt);
+
+    //------------------------------------------------------
+    // 4) denom = H + n^T De n
+    //------------------------------------------------------
+    Matrix temp = MatMul(nT, De_n);
+    double denom = H + temp.getVal(0,0);
+
+    const double tol = 1e-14;
+    if (std::abs(denom) < tol)
+        denom = (denom >= 0 ? tol : -tol);
+
+    //------------------------------------------------------
+    // 5) correction = (De*n)(De*n)^T / denom
+    //------------------------------------------------------
+    Matrix De_nT = De_n.getTranspose();
+    Matrix corr = MatMul(De_n, De_nT) * (1.0 / denom);
+
+    //------------------------------------------------------
+    // 6) D_ep = De - correction
+    //------------------------------------------------------
+    Matrix Dep = De - corr;
+
+    // Simetrizar (para evitar drift numérico)
+    for (int i=0; i<6; i++){
+        for (int j=i+1; j<6; j++){
+            double s = 0.5*(Dep.getVal(i,j)+Dep.getVal(j,i));
+            Dep.Set(i,j,s);
+            Dep.Set(j,i,s);
+        }
+    }
+
+    return Dep;
 }
 
 

@@ -229,7 +229,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
   m_solver->setDomain(this);
   m_solver->Allocate();
 
-  double dt_initial = end_t / 10.0; // Initial guess
+  double dt_initial = end_t / 1000.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
@@ -646,8 +646,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
               int node = getElemNode(e, i);        // Get global node number
               for (int d = 0; d < m_dim; d++) {   // Loop over dimensions (x,y,z)
                   int idx = i*m_dim + d;           // Local DOF index
-                  //double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
-                  K.Set(idx, idx, (K.getVal(idx, idx)/*+ mass_term */) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
+                  double mass_term = m_mdiag[node] / (beta * dt);  //kg/s = (kgxm/s2) x s/m = N/m x s
+                  K.Set(idx, idx, (K.getVal(idx, idx) + mass_term ) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
               }
           }
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
