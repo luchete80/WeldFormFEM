@@ -931,6 +931,26 @@ void host_ Domain_d::SolveStaticDisplacement(){
       ThermalCalcs(); //m_dTedt[e1n1 e1n2 e1n3 e1n4 _ e2n1 ..]
 
   }
+  
+    string outfname = "out_" + std::to_string(iter) + ".vtk";
+    timer.click();
+
+    ostringstream oss_out;
+    oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
+    oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
+
+    of <<std::scientific<<std::setprecision(6)<< iter ;
+
+    if (contact){
+    calcContactForceFromPressure();
+    
+    of <<std::scientific<<std::setprecision(6)<<", "<<
+                                                    //trimesh->react_p_force[m]<<
+                                                    trimesh->react_p_force[0]<<", "<<
+                                                    //trimesh->react_force[0].z<<","<<
+                                                    trimesh->cont_area;
+                                                    
 
 
     
@@ -952,24 +972,24 @@ void host_ Domain_d::SolveStaticDisplacement(){
   
  
   if (Time>=tout){
-    string outfname = "out_" + std::to_string(Time) + ".vtk";
-    timer.click();
+    // string outfname = "out_" + std::to_string(Time) + ".vtk";
+    // timer.click();
 
-    ostringstream oss_out;
-    oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
-    oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
-    oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
+    // ostringstream oss_out;
+    // oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    // oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
+    // oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
 
-    of <<std::scientific<<std::setprecision(6)<< Time ;
+    // of <<std::scientific<<std::setprecision(6)<< Time ;
 
-    if (contact){
-    calcContactForceFromPressure();
+    // if (contact){
+    // calcContactForceFromPressure();
     
-    of <<std::scientific<<std::setprecision(6)<<", "<<
-                                                    //trimesh->react_p_force[m]<<
-                                                    trimesh->react_p_force[0]<<", "<<
-                                                    //trimesh->react_force[0].z<<","<<
-                                                    trimesh->cont_area;
+    // of <<std::scientific<<std::setprecision(6)<<", "<<
+                                                    // //trimesh->react_p_force[m]<<
+                                                    // trimesh->react_p_force[0]<<", "<<
+                                                    // //trimesh->react_force[0].z<<","<<
+                                                    // trimesh->cont_area;
     } else{
    bool is_elem_sum[m_elem_count];
 
@@ -1005,6 +1025,8 @@ void host_ Domain_d::SolveStaticDisplacement(){
       cout << "Cont Elements"<<ecount<<endl;
       of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
     } //NOT CONTACT, TO DELETE
+    
+    
   double max[]={0.0,0.0,0.0};
 
      for (int e=0;e<m_node_count;e++)
