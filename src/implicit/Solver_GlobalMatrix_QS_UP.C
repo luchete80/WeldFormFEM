@@ -557,7 +557,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix Hgp = MatMul( b_gp, b_gp.getTranspose() ); // ndof x ndof
           Hgp = Hgp * ( coef * vol[e] );
 
-          H_elem = H_elem + Hgp;
+          Matrix H_elem = H_elem + Hgp;
           
           
           ///////////////M) Q_elem (ndof×ndof) — volumetric coupling
