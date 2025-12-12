@@ -637,9 +637,7 @@ void host_ Domain_d::SolveStaticDisplacement(){
           }
 
           Matrix K = Kgeo + Kmat;
-      
-          K = K*dt;
-          
+
           double beta = 0.25;
           // // Add mass scaling for stability (FORGE does this)
           for (int i = 0; i < m_nodxelem; i++) {  // Loop over element nodes
@@ -650,6 +648,9 @@ void host_ Domain_d::SolveStaticDisplacement(){
                   K.Set(idx, idx, (K.getVal(idx, idx) + mass_term ) *(1.0 + 1.0e-8) ); //ALSO ADDED DIAG REGULARIZATION
               }
           }
+          
+          K = K*dt;
+          
           //cout <<"CHECKING INTERNAL FORCES"<<endl;
           
           calcElemForces(e);
