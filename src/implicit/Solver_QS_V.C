@@ -338,7 +338,6 @@ void host_ Domain_d::SolveStaticQS_V(){
       B = B * (1.0 / m_detJ[e]); // ajustar según definición B
 
       // 2. Calc str rate (Voigt)
-      cout<<"str rate"<<endl;
       tensor3 D_loc = FromFlatSym(m_str_rate, offset_t);
       double Dxx = D_loc.xx;double Dyy = D_loc.yy;double Dzz = D_loc.zz;
       double Dxy = D_loc.xy;double Dyz = D_loc.yz;double Dzx = D_loc.zx;
@@ -358,7 +357,6 @@ void host_ Domain_d::SolveStaticQS_V(){
       double e_dot_eq = sqrt( (2.0/3.0) * sum );
       if(e_dot_eq < 1e-18) e_dot_eq = 1e-18;
       
-      cout<<"flow dir"<<endl;
       // 4. Plastic FlowDirection //NOT USED,USED  n_dir
       Matrix n_voigt(6,1);
       for(int i=0; i<6; i++){
@@ -372,7 +370,6 @@ void host_ Domain_d::SolveStaticQS_V(){
       double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
       double sigma_eq = sqrt(1.5 * sum_s);
 
-       cout<<"shear"<<endl;
       tensor3 shear_stress = FromFlatSym(m_tau,offset_t);
       tensor3 Strain_pl_incr;      
       tensor3 s_trial=shear_stress;
@@ -382,12 +379,11 @@ void host_ Domain_d::SolveStaticQS_V(){
       double sigma_y;
       if(mat[e]->Material_model == HOLLOMON ){
         sigma_y = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
-        cout <<"sy "<<sigma_y<<endl;
       }
         
       double overstress = sigma_eq - sigma_y;
       double dot_gamma = 0.0;
-      cout <<"overstress: "<<overstress<<endl;
+
       if(overstress > 0.0){
           double tau_relax = mat[e]->visc_relax_time;
           double m_perz = mat[e]->perzyna_m;
@@ -407,7 +403,6 @@ void host_ Domain_d::SolveStaticQS_V(){
          
 
       }//overstress
-      cout <<"pressure"<<p[e]<<endl;
       tensor3 Sigma = shear_stress -p[e]*Identity();
       
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
@@ -440,22 +435,29 @@ void host_ Domain_d::SolveStaticQS_V(){
           Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
           D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
       }
-      cout << "Kp"<<endl;
+
       // 8. Kp
       Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
       Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
 
       // 9.  Rhs elemental (solo -f_int)
-      Matrix stress_voigt = FlatSymToVoigt(m_sigma, m_dim, m_nodxelem);
-      Matrix fint = MatMul(B.getTranspose(), stress_voigt);
-      fint = fint * vol[e];
-
-      Matrix rhs = -1.0 * fint;
-      cout << "assemble"<<endl;
+      calcElemForces(e);
+      
+      // Matrix stress_voigt = FlatSymToVoigt(m_sigma, m_dim, m_nodxelem);
+      // Matrix fint = MatMul(B.getTranspose(), stress_voigt);
+      // fint = fint * vol[e];
+      // Matrix rhs = -1.0 * fint;
+      Matrix rhs(m_dim*m_nodxelem,1);
+      int offset = e*m_nodxelem*m_dim;
+      for (int i = 0; i < m_nodxelem; i++) {
+        for (int d=0;d<m_dim;d++){
+        rhs.Set(m_dim*i+d,0,-m_f_elem[offset + i*m_dim+d]); 
+        }
+      }
+      
       // 10. Assembly
       solver->assembleElement(e, Kgp);  // solo Kgp
       solver->assembleResidual(e, rhs);         
-      cout << "assembly done"<<endl;
 
       } // end par element loop
       
