@@ -1,4 +1,3 @@
-
 /*************************************************************************/
 /*  Solver_GlobalMatrix.C                                        */
 /*  WeldformFEM - High-Performance Explicit & Implicit FEM Solvers     */
@@ -376,222 +375,112 @@ void host_ Domain_d::SolveStaticQS_UP(){
     //par_loop(e,m_elem_count){
     for (int e=0;e<m_elem_count;e++){
       
-    // // // // Dentro de loop elementos
-    // // // Matrix B = getElemBMatrix(e); B = B*(1.0/m_detJ[e]);
-    // // // Matrix vloc = extract_vloc(e);
-    // // // Matrix Ddot = MatMul(B, vloc); // 6x1
-    // // // compute Dev, e_dot_eq, n_voigt from Ddot
-    // // // compute sigma_y = ... // yield
-    // // // compute sigma_eq_trial from s_trial if using trial, else use last sigma
+     // ============================================
+// ELEMENT LOOP IMPLÍCITO: DEFORM + Perzyna
+// ============================================
 
-    // // // compute dot_gamma (Perzyna) OR check f_trial
-    // // // if elastic:
-       // // // D_gp = mat[e]->getElasticMatrix();
-    // // // else if radial-return:
-       // // // D_gp = getConsistentPlasticTangentMatrix(...)
-    // // // else if perzyna-visco:
-       // // // build C_visc as shown (Pdev + outer_nn term)
+Matrix B;
+B = getElemBMatrix(e); // 6 x (m_nodxelem*m_dim)
+B = B * (1.0 / m_detJ[e]); // ajustar según definición B
 
-    // // // Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B)) * vol[e];
-    // // // Matrix b_gp = MatMul(Kgp, vloc);
-    // // // Pstar_elem += b_gp * (1.0/e_dot_eq) * vol[e];
+// 1️⃣ Obtener velocidades locales del elemento
+int ndof = m_nodxelem * m_dim;
+Matrix vloc(ndof,1);
+for (int a=0; a<m_nodxelem; a++){
+    int node = getElemNode(e,a);
+    for (int d=0; d<m_dim; d++){
+        vloc.Set(a*m_dim + d, 0, v[node*m_dim + d]);
+    }
+}
 
-    // // // Matrix bbT = MatMul(b_gp, b_gp.getTranspose());
-    // // // double dsig_dedot = ... // model-specific
-    // // // double coef = ( dsig_dedot*(1.0/e_dot_eq) - sigma_bar/(e_dot_eq*e_dot_eq) )*(1.0/e_dot_eq);
-    // // // H_elem += bbT * (coef * vol[e]);
+// 2️⃣ Calcular tasa de deformación (Voigt)
+Matrix Ddot = MatMul(B, vloc); // 6x1
+double Dxx = Ddot.getVal(0,0);
+double Dyy = Ddot.getVal(1,0);
+double Dzz = Ddot.getVal(2,0);
+double Dxy = Ddot.getVal(3,0);
+double Dyz = Ddot.getVal(4,0);
+double Dzx = Ddot.getVal(5,0);
 
-    // // // Matrix Bvol = MatMul(Cmat, B); // 1xndof
-    // // // Q_elem += MatMul( Bvol.getTranspose(), Bvol ) * vol[e];
+// 3️⃣ Desviador y tasa equivalente
+double trace = Dxx + Dyy + Dzz;
+double Dev[6];
+Dev[0] = Dxx - trace/3.0;
+Dev[1] = Dyy - trace/3.0;
+Dev[2] = Dzz - trace/3.0;
+Dev[3] = Dxy;
+Dev[4] = Dyz;
+Dev[5] = Dzx;
 
-    // // // // Form Aelem and rhs, assemble
+double sum = Dev[0]*Dev[0] + Dev[1]*Dev[1] + Dev[2]*Dev[2]
+           + 2.0*(Dev[3]*Dev[3] + Dev[4]*Dev[4] + Dev[5]*Dev[5]);
+double e_dot_eq = sqrt( (2.0/3.0) * sum );
+if(e_dot_eq < 1e-18) e_dot_eq = 1e-18;
 
+// 4️⃣ Dirección del flujo plástico
+Matrix n_voigt(6,1);
+for(int i=0; i<6; i++){
+    n_voigt.Set(i,0, Dev[i]/e_dot_eq);
+}
 
+// 5️⃣ Stress deviator y sigma_eq
+Matrix s_voigt = FlatSymToVoigt(m_tau, m_dim, m_nodxelem); 
+double s0=s_voigt.getVal(0,0), s1=s_voigt.getVal(1,0), s2=s_voigt.getVal(2,0);
+double s3=s_voigt.getVal(3,0), s4=s_voigt.getVal(4,0), s5=s_voigt.getVal(5,0);
+double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
+double sigma_eq = sqrt(1.5 * sum_s);
 
-          //Matrix &B = Bmat_per_thread[tid];
-          Matrix B;
-          
-          //// HERE B is in fact BxdetJ
-          B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
-          B = B *(1.0/m_detJ[e]);
+// 6️⃣ Tasa viscoplástica Perzyna
+double sigma_y = mat[e]->sy0; // yield stress
+double overstress = sigma_eq - sigma_y;
+double dot_gamma = 0.0;
+if(overstress > 0.0){
+    double tau_relax = mat[e]->visc_relax_time;
+    double m_perz = mat[e]->perzyna_m;
+    double sigma0 = mat[e]->sy0;
+    dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
+}
 
-          Matrix Ddot = FlatSymToVoigt(m_str_rate, m_dim, m_nodxelem);
+// 7️⃣ Tangente constitutiva D_gp
+Matrix D_gp(6,6);
+D_gp.SetZero();
 
-          int ndof = m_nodxelem * m_dim;
-          Matrix vloc(ndof, 1);
-          for (int a=0;a<m_nodxelem;a++){
-            int node = getElemNode(e,a);
-            for (int d=0; d<m_dim; d++){
-              vloc.Set(a*m_dim + d, 0, v[node*m_dim + d]);
-            }
-          }          
-                    //Matrix Ddot = MatMul(B, vloc); // 6x1
-          //Strain rate
-          /////D - Ddot_dev y e_dot_eq (tasa equivalente)
-          //Matrix Ddot = MatMul(B, vloc); // 6x1
-          double Dxx = Ddot.getVal(0,0);
-          double Dyy = Ddot.getVal(1,0);
-          double Dzz = Ddot.getVal(2,0);
-          double Dxy = Ddot.getVal(3,0); // engineering gamma_xy
-          double Dyz = Ddot.getVal(4,0);
-          double Dzx = Ddot.getVal(5,0);
+// 7a) Parte desviadora estándar
+for(int i=0;i<3;i++) D_gp.Set(i,i, 2.0 * dot_gamma); // normales
+D_gp.Set(3,3, 2.0 * dot_gamma); // cortes
+D_gp.Set(4,4, 2.0 * dot_gamma);
+D_gp.Set(5,5, 2.0 * dot_gamma);
 
-          // volumetric rate
-          double trace = Dxx + Dyy + Dzz;
-          double Dvol = trace; // since B gives engineering strain rates (norms consistent)
+// 7b) Opcional: tangente exacta
+bool useExactTangent = true; // activar/desactivar
+if(useExactTangent){
+    // derivada de dot_gamma respecto a sigma_eq
+    double deta_de = 0.0;
+    if(overstress > 0.0){
+        double tau_relax = mat[e]->visc_relax_time;
+        double m_perz = mat[e]->perzyna_m;
+        double sigma0 = mat[e]->sy0;
+        deta_de = (1.0 / tau_relax) * m_perz * pow(overstress / sigma0, m_perz - 1) / sigma0;
+    }
+    Matrix nT = n_voigt.getTranspose();
+    Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
+    D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
+}
 
-          // desviador (Voigt ingenieril): normales - 1/3 trace, cortes dejar igual
-          double Dev[6];
-          Dev[0] = Dxx - trace/3.0;
-          Dev[1] = Dyy - trace/3.0;
-          Dev[2] = Dzz - trace/3.0;
-          Dev[3] = Dxy;
-          Dev[4] = Dyz;
-          Dev[5] = Dzx;
+// 8️⃣ Matriz elemental K_gp
+Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
+Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
 
-          // norma equivalente: e_dot_eq = sqrt(2/3 * (Dev : Dev_tensor))
-          double sum = Dev[0]*Dev[0] + Dev[1]*Dev[1] + Dev[2]*Dev[2]
-                     + 2.0*(Dev[3]*Dev[3] + Dev[4]*Dev[4] + Dev[5]*Dev[5]); // engineering
-          double e_dot_eq = sqrt( (2.0/3.0) * sum );
-          if (e_dot_eq < 1e-18) e_dot_eq = 1e-18;
-          
-          ///E) n_COIGT FLUX DIRECTION
-          Matrix n_voigt(6,1);
-          n_voigt.Set(0,0, Dev[0]/e_dot_eq);
-          n_voigt.Set(1,0, Dev[1]/e_dot_eq);
-          n_voigt.Set(2,0, Dev[2]/e_dot_eq);
-          // para ingenieril, las componentes de corte deben ser multiplicadas por 1 si Dev ya contiene gamma; 
-          // si usas convención de n_t = (3/2) s / sigma_eq en retorno radial, ajusta como hiciste
-          n_voigt.Set(3,0, Dev[3]/e_dot_eq);
-          n_voigt.Set(4,0, Dev[4]/e_dot_eq);
-          n_voigt.Set(5,0, Dev[5]/e_dot_eq);
+// 9️⃣ Rhs elemental (solo -f_int)
+Matrix stress_voigt = FlatSymToVoigt(m_sigma, m_dim, m_nodxelem);
+Matrix fint = MatMul(B.getTranspose(), stress_voigt);
+fint = fint * vol[e];
 
-          
-          //cout << "B mat "<<endl;
-          //B.Print();
+Matrix rhs = -1.0 * fint;
 
-
-          /////F) Sigma Eq
-          Matrix s_voigt = FlatSymToVoigt(m_tau, m_dim, m_nodxelem); // o usa offset
-          // implementar norma: sigma_eq = sqrt(3/2 * s_dev : s_dev)
-          double s0 = s_voigt.getVal(0,0);
-          double s1 = s_voigt.getVal(1,0);
-          double s2 = s_voigt.getVal(2,0);
-          double s3 = s_voigt.getVal(3,0); // tau_xy (engineering)
-          double s4 = s_voigt.getVal(4,0);
-          double s5 = s_voigt.getVal(5,0);
-          double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
-          double sigma_eq = sqrt(1.5 * sum_s);
-          
-          ///////G) Perzyna: eta_eff o dot_gamma (tasa viscoplástica) y d(eta)/de si hace falta para tangente
-          
-          double sigma_y = 0.0;/* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
-          double sigma_eq_trial = 0.0;/* si usas trial, calcula con s_trial */;
-
-          double overstress = sigma_eq_trial - sigma_y;
-          double dot_gamma = 0.0;
-          if (overstress > 0.0) {
-            double tau_relax = mat[e]->visc_relax_time; // define en material (ej.)
-            double m_perz = mat[e]->perzyna_m;
-            double sigma0 = mat[e]->sy0; // escala
-            dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
-          } else {
-            dot_gamma = 0.0;
-          }
-
-          ////s=2ηε˙dev,η=2ε˙eqσeq
-          
-          /////// H) C_visc o D_gp — matriz tangente constitutiva (6×6)
-          /////////////////////////////////////////////////////////////
-          
-          
-          // Construir P_dev (6x6)
-          Matrix Pdev(6,6); Pdev.SetZero();
-          // normales
-          for (int i=0;i<3;i++){
-            for (int j=0;j<3;j++){
-              Pdev.Set(i,j, (i==j?1.0:0.0) - 1.0/3.0 );
-            }
-          }
-          // cortes -> 1 on diag positions 3,4,5
-          Pdev.Set(3,3,1.0); Pdev.Set(4,4,1.0); Pdev.Set(5,5,1.0);
-
-          // eta and deta (example using sigma_eq/edot definition)
-          double eta = 0.5 * sigma_eq_trial / e_dot_eq; // careful, only meaningful if sigma_eq defined from current state
-          double deta_de = /* analytic derivative or small eps approx */ 0.0;
-
-          // term outer
-          Matrix nT = n_voigt.getTranspose();
-          Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
-
-          Matrix D_gp = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
-
-
-          //////I) Kgp = B^T * D_gp * B * (vol[e]) (ndof×ndof)
-          Matrix Kgp = MatMul( B.getTranspose(), MatMul(D_gp, B) );
-          Kgp = Kgp * vol[e]; // or * (detJ*weight)
-          
-          /////////////////////////////////////////////////////////
-          /// J) b_gp = Kgp * vloc (ndof×1)
-
-          Matrix b_gp = MatMul(Kgp, vloc);
-          
-          /////// K) Pstar (vector ndof×1)
-          
-          Matrix Pstar(ndof,1); Pstar.SetZero();
-          Pstar = Pstar + b_gp * ( (1.0 / e_dot_eq) * vol[e] );
-
-
-          //////////////// L) H_elem (ndof×ndof) — integrar coef * (b b^T)
-          //////////////// Coef según Martins / tu imagen (simplificada operativa):
-
-          // compute sigma_bar (||s||) from s_dev (use shear stress trial or current)
-          double sigma_bar = sigma_eq_trial; // recomendable usar trial or updated s
-
-          // derivative dsigma/de (depends on model)  — for Norton/Kelvin you can get analytic
-          double dsig_dedot = /* analytic or approximate */ 0.0;
-
-          // coef
-          double coef = ( dsig_dedot * (1.0 / e_dot_eq) - sigma_bar / (e_dot_eq*e_dot_eq) ) * (1.0 / e_dot_eq);
-
-          // H contribution:
-          Matrix Hgp = MatMul( b_gp, b_gp.getTranspose() ); // ndof x ndof
-          Hgp = Hgp * ( coef * vol[e] );
-
-          Matrix H_elem = H_elem + Hgp;
-          
-          
-          ///////////////M) Q_elem (ndof×ndof) — volumetric coupling
-          Matrix Cmat(1,6); Cmat.SetZero();
-          Cmat.Set(0,0,1.0); Cmat.Set(0,1,1.0); Cmat.Set(0,2,1.0);
-
-          Matrix Bvol = MatMul(Cmat, B); // 1 x ndof
-          Matrix Qgp = MatMul( Bvol.getTranspose(), Bvol ); // ndof x ndof
-          Qgp = Qgp * vol[e];
-
-          //Q_elem = Q_elem + Qgp;
-          Matrix Q_elem =  Qgp;
-          
-          //// N) Assemble elemental matrix A_elem = H_elem + Kgp + Kgp * Q_elem ???
-          Matrix Aelem = H_elem;
-          Aelem = Aelem + Kgp;       // o Kelem_visc
-          Aelem = Aelem + Q_elem;    // si Q está en forma ndof x ndof
-
-          // Rhs elemental: R = f_ext_elem - f_int_elem - sigma_bar*Pstar - Kgp * (Q_elem * vloc)
-          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
-          //CHANGE TO FORCES TO MATRIX! already calculated
-          Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
- 
-          fint = fint * vol[e];
-          
-          Matrix rhs = /*f_ext_elem */-1.0* fint; // f_ext_elem may be zeros except contact
-          rhs = rhs - Pstar * sigma_bar; // Pstar scalar*vector
-          Matrix temp = MatMul( Q_elem, vloc );
-          rhs = rhs - MatMul(Kgp, temp);
-
-          solver->assembleElement(e, Aelem);
-          solver->assembleResidual(e, rhs);
-
+// 10️⃣ Ensamblaje
+solver->assembleElement(e, Kgp);  // solo Kgp
+solver->assembleResidual(e, rhs);         
 
 
       } // end par element loop
