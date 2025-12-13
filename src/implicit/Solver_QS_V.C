@@ -430,6 +430,8 @@ double s3=s_voigt.getVal(3,0), s4=s_voigt.getVal(4,0), s5=s_voigt.getVal(5,0);
 double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
 double sigma_eq = sqrt(1.5 * sum_s);
 
+tensor3 shear_stress = FlatSymmToTensor(m_tau);
+
 // 6️⃣ Tasa viscoplástica Perzyna
 double sigma_y = mat[e]->sy0; // yield stress
 double overstress = sigma_eq - sigma_y;
@@ -447,6 +449,11 @@ if(overstress > 0.0){
     tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
 
     pl_strain[e] += dep;
+double scale = sigma_y / sigma_eq;
+//ShearStress = s_trial * scale;
+pl_strain[e] += dep; // dep calculado según Perzyna
+    shear_stress = shear_stress * scale;
+   
 
 }
 
