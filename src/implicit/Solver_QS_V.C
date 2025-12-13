@@ -449,13 +449,21 @@ if(overstress > 0.0){
     tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
 
     pl_strain[e] += dep;
-double scale = sigma_y / sigma_eq;
-//ShearStress = s_trial * scale;
-pl_strain[e] += dep; // dep calculado según Perzyna
+    double scale = sigma_y / sigma_eq;
+    //ShearStress = s_trial * scale;
+    pl_strain[e] += dep; // dep calculado según Perzyna
     shear_stress = shear_stress * scale;
    
 
-}
+}//overstress
+
+tensor3 Sigma = shear_stress -p*Identity();
+int offset_t = e*6;
+ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
+ToFlatSymPtr(shear_stress, m_tau, offset_t);
+ToFlatSymPtr(Strain,      m_eps, offset_t);      
+ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+      
 
 // 7️⃣ Tangente constitutiva D_gp
 Matrix D_gp(6,6);
