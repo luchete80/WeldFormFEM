@@ -460,6 +460,7 @@ void host_ Domain_d::SolveStaticQS_V(){
       solver->assembleResidual(e, rhs);         
 
       } // end par element loop
+      cout <<"end elem loop"<<endl;
       
       
       if(contact)
@@ -475,7 +476,8 @@ void host_ Domain_d::SolveStaticQS_V(){
       for (int d = 0; d < m_dim; d++)
         CalcIncBCV(d);
       
-      m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS      
+      m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS  
+      cout <<"Solving"<<endl;
       m_solver->Solve();
     
     // Update displacements and check convergence
