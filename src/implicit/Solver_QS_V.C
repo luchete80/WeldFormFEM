@@ -387,7 +387,7 @@ void host_ Domain_d::SolveStaticQS_V(){
         
       double overstress = sigma_eq - sigma_y;
       double dot_gamma = 0.0;
-      cout <<"overstress"<<endl;
+      cout <<"overstress: "<<overstress<<endl;
       if(overstress > 0.0){
           double tau_relax = mat[e]->visc_relax_time;
           double m_perz = mat[e]->perzyna_m;
@@ -407,7 +407,7 @@ void host_ Domain_d::SolveStaticQS_V(){
          
 
       }//overstress
-
+      cout <<"pressure"<<p[e]<<endl;
       tensor3 Sigma = shear_stress -p[e]*Identity();
       
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
@@ -426,7 +426,7 @@ void host_ Domain_d::SolveStaticQS_V(){
       D_gp.Set(5,5, 2.0 * dot_gamma);
 
       // 7b) Opcional: tangente exacta
-      bool useExactTangent = true; // activar/desactivar
+      bool useExactTangent = false; // activar/desactivar
       if(useExactTangent){
           // derivada de dot_gamma respecto a sigma_eq
           double deta_de = 0.0;
@@ -440,7 +440,7 @@ void host_ Domain_d::SolveStaticQS_V(){
           Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
           D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
       }
-
+      cout << "Kp"<<endl;
       // 8. Kp
       Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
       Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
@@ -451,11 +451,11 @@ void host_ Domain_d::SolveStaticQS_V(){
       fint = fint * vol[e];
 
       Matrix rhs = -1.0 * fint;
-
+      cout << "assemble"<<endl;
       // 10. Assembly
       solver->assembleElement(e, Kgp);  // solo Kgp
       solver->assembleResidual(e, rhs);         
-
+      cout << "assembly done"<<endl;
 
       } // end par element loop
       
