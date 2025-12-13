@@ -439,6 +439,15 @@ if(overstress > 0.0){
     double m_perz = mat[e]->perzyna_m;
     double sigma0 = mat[e]->sy0;
     dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
+    
+    double dep = dt * pow(overstress / sigma0, m_perz);
+
+    // dirección del flujo plástico
+    tensor3 n_dir = (1.0 / sigma_eq) * s_trial; // normalizado
+    tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
+
+    pl_strain[e] += dep;
+
 }
 
 // 7️⃣ Tangente constitutiva D_gp
