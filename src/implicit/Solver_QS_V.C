@@ -87,27 +87,12 @@ void Domain_d::CalcIncBCU(int dim/*, double load_factor*/) {
 }
 
 
-void host_ Domain_d::SolveStaticQS_UP(){
+void host_ Domain_d::SolveStaticQS_V(){
   WallTimer timer;
 
   std::ofstream of("Contact_Forces.csv", std::ios::out);
-  
-  int N;
-	N = getElemCount();
-  #if CUDA_BUILD
-	threadsPerBlock = 256; //Or BlockSize
-	//threadsPerBlock = 1; //Or BlockSize
-	blocksPerGrid =				// Or gridsize
-	(N + threadsPerBlock - 1) / threadsPerBlock;
-	cout << "Blocks per grid"<<blocksPerGrid<<", Threads per block"<< threadsPerBlock<<endl;
 
-  ////// MATERIAL
-  cout << "Assignin material.."<<endl;
-  AssignMatAddressKernel<<<blocksPerGrid,threadsPerBlock >>>(this);
-  cudaDeviceSynchronize();
-  #else 
   AssignMatAddress();
-  #endif
 
 
   
@@ -126,19 +111,10 @@ void host_ Domain_d::SolveStaticQS_UP(){
   
   //cout << "Imposing BCVs.. "<<endl;
   for (int d=0;d<m_dim;d++){
-    
-    #ifdef CUDA_BUILD
-    ////REMAINS TO INIT VELOCITIES
-    N = bc_count[d];
-    blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
-    ImposeBCVKernel<<<blocksPerGrid,threadsPerBlock >>>(this, d);
-    cudaDeviceSynchronize();
-    #else
       for (int n=0;n<m_node_count*m_dim;n++){
         v[n]=a[n]=u[n]=0.0;
       }
        ImposeBCV(d);
-    #endif
   }
 
   cout << "Done."<<endl;
@@ -188,6 +164,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
   
+  double Kpres =1.0e+6;
   
   double *delta_v, *x_initial;
   
@@ -230,12 +207,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
   }
 
-  
-  //cout << "Storing previous values"<<endl;
   memcpy(prev_v,    v, sizeof(double) * m_node_count * m_dim);
-
   memcpy(x_initial, x, sizeof(double) * m_node_count * m_dim);
-
   memcpy(prev_x, x, sizeof(double) * m_node_count * m_dim);
   //cout << "Done."<<endl;
   
@@ -336,23 +309,10 @@ void host_ Domain_d::SolveStaticQS_UP(){
   //STRESSES CALC
   calcElemStrainRates();
   calcElemDensity();
-  // if (m_dim == 3 && m_nodxelem ==4){
-  //calcElemPressureANP_Nodal();
-  //calcElemPressureANP();
-  // }else
 
-  if      (m_press_algorithm == 0)
-    calcElemPressure();
-  else if (m_press_algorithm == 1)
-    calcElemPressureANP();
-
+  calcElemPressureRigid(Kpres);
   calcNodalPressureFromElemental();
 
-  
-  //CalcStressStrain(dt);
-  
-
-  
 
   par_loop(e,m_elem_count){
     int offset = e*m_nodxelem*m_dim;  
@@ -371,149 +331,137 @@ void host_ Domain_d::SolveStaticQS_UP(){
     solver->setZero(); //RESET K and R matrices.
     solver->beginAssembly();
     
-    /////////////////////// THIS IS BEB
-    //par_loop(e,m_elem_count){
     for (int e=0;e<m_elem_count;e++){
+      int offset_t = e*6;
+      Matrix B;
+      B = getElemBMatrix(e); // 6 x (m_nodxelem*m_dim)
+      B = B * (1.0 / m_detJ[e]); // ajustar según definición B
+
+      // 2. Calc str rate (Voigt)
+      cout<<"str rate"<<endl;
+      tensor3 D_loc = FromFlatSym(m_str_rate, offset_t);
+      double Dxx = D_loc.xx;double Dyy = D_loc.yy;double Dzz = D_loc.zz;
+      double Dxy = D_loc.xy;double Dyz = D_loc.yz;double Dzx = D_loc.zx;
+
+      // 3. Dev
+      double trace = Dxx + Dyy + Dzz;
+      double Dev[6];
+      Dev[0] = Dxx - trace/3.0;
+      Dev[1] = Dyy - trace/3.0;
+      Dev[2] = Dzz - trace/3.0;
+      Dev[3] = Dxy;
+      Dev[4] = Dyz;
+      Dev[5] = Dzx;
+
+      double sum = Dev[0]*Dev[0] + Dev[1]*Dev[1] + Dev[2]*Dev[2]
+                 + 2.0*(Dev[3]*Dev[3] + Dev[4]*Dev[4] + Dev[5]*Dev[5]);
+      double e_dot_eq = sqrt( (2.0/3.0) * sum );
+      if(e_dot_eq < 1e-18) e_dot_eq = 1e-18;
       
-     // ============================================
-// ELEMENT LOOP IMPLÍCITO: DEFORM + Perzyna
-// ============================================
+      cout<<"flow dir"<<endl;
+      // 4. Plastic FlowDirection //NOT USED,USED  n_dir
+      Matrix n_voigt(6,1);
+      for(int i=0; i<6; i++){
+          n_voigt.Set(i,0, Dev[i]/e_dot_eq);
+      }
 
-Matrix B;
-B = getElemBMatrix(e); // 6 x (m_nodxelem*m_dim)
-B = B * (1.0 / m_detJ[e]); // ajustar según definición B
+      // 5. Stress deviator y sigma_eq
+      Matrix s_voigt = FlatSymToVoigt(m_tau, m_dim, m_nodxelem); 
+      double s0=s_voigt.getVal(0,0), s1=s_voigt.getVal(1,0), s2=s_voigt.getVal(2,0);
+      double s3=s_voigt.getVal(3,0), s4=s_voigt.getVal(4,0), s5=s_voigt.getVal(5,0);
+      double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
+      double sigma_eq = sqrt(1.5 * sum_s);
 
-// 1️⃣ Obtener velocidades locales del elemento
-int ndof = m_nodxelem * m_dim;
-Matrix vloc(ndof,1);
-for (int a=0; a<m_nodxelem; a++){
-    int node = getElemNode(e,a);
-    for (int d=0; d<m_dim; d++){
-        vloc.Set(a*m_dim + d, 0, v[node*m_dim + d]);
-    }
-}
+       cout<<"shear"<<endl;
+      tensor3 shear_stress = FromFlatSym(m_tau,offset_t);
+      tensor3 Strain_pl_incr;      
+      tensor3 s_trial=shear_stress;
 
-// 2️⃣ Calcular tasa de deformación (Voigt)
-Matrix Ddot = MatMul(B, vloc); // 6x1
-double Dxx = Ddot.getVal(0,0);
-double Dyy = Ddot.getVal(1,0);
-double Dzz = Ddot.getVal(2,0);
-double Dxy = Ddot.getVal(3,0);
-double Dyz = Ddot.getVal(4,0);
-double Dzx = Ddot.getVal(5,0);
+      // 6. Perzyna
+      //double sigma_y = mat[e]->sy0; // yield stress
+      double sigma_y;
+      if(mat[e]->Material_model == HOLLOMON ){
+        sigma_y = CalcHollomonYieldStress(pl_strain[e],mat[e]); 
+        cout <<"sy "<<sigma_y<<endl;
+      }
+        
+      double overstress = sigma_eq - sigma_y;
+      double dot_gamma = 0.0;
+      cout <<"overstress"<<endl;
+      if(overstress > 0.0){
+          double tau_relax = mat[e]->visc_relax_time;
+          double m_perz = mat[e]->perzyna_m;
+          double sigma0 = mat[e]->sy0;
+          dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
+          
+          double dep = dt * pow(overstress / sigma0, m_perz);
 
-// 3️⃣ Desviador y tasa equivalente
-double trace = Dxx + Dyy + Dzz;
-double Dev[6];
-Dev[0] = Dxx - trace/3.0;
-Dev[1] = Dyy - trace/3.0;
-Dev[2] = Dzz - trace/3.0;
-Dev[3] = Dxy;
-Dev[4] = Dyz;
-Dev[5] = Dzx;
+          // dirección del flujo plástico
+          tensor3 n_dir = (1.0 / sigma_eq) * s_trial; // normalizado
+          Strain_pl_incr = (2.0/3.0) * dep * n_dir;
 
-double sum = Dev[0]*Dev[0] + Dev[1]*Dev[1] + Dev[2]*Dev[2]
-           + 2.0*(Dev[3]*Dev[3] + Dev[4]*Dev[4] + Dev[5]*Dev[5]);
-double e_dot_eq = sqrt( (2.0/3.0) * sum );
-if(e_dot_eq < 1e-18) e_dot_eq = 1e-18;
+          double scale = sigma_y / sigma_eq;
+          //ShearStress = s_trial * scale;
+          pl_strain[e] += dep; // dep calculado según Perzyna
+          shear_stress = shear_stress * scale;
+         
 
-// 4️⃣ Dirección del flujo plástico
-Matrix n_voigt(6,1);
-for(int i=0; i<6; i++){
-    n_voigt.Set(i,0, Dev[i]/e_dot_eq);
-}
+      }//overstress
 
-// 5️⃣ Stress deviator y sigma_eq
-Matrix s_voigt = FlatSymToVoigt(m_tau, m_dim, m_nodxelem); 
-double s0=s_voigt.getVal(0,0), s1=s_voigt.getVal(1,0), s2=s_voigt.getVal(2,0);
-double s3=s_voigt.getVal(3,0), s4=s_voigt.getVal(4,0), s5=s_voigt.getVal(5,0);
-double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
-double sigma_eq = sqrt(1.5 * sum_s);
-
-tensor3 shear_stress = FlatSymmToTensor(m_tau);
-
-// 6️⃣ Tasa viscoplástica Perzyna
-double sigma_y = mat[e]->sy0; // yield stress
-double overstress = sigma_eq - sigma_y;
-double dot_gamma = 0.0;
-if(overstress > 0.0){
-    double tau_relax = mat[e]->visc_relax_time;
-    double m_perz = mat[e]->perzyna_m;
-    double sigma0 = mat[e]->sy0;
-    dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
-    
-    double dep = dt * pow(overstress / sigma0, m_perz);
-
-    // dirección del flujo plástico
-    tensor3 n_dir = (1.0 / sigma_eq) * s_trial; // normalizado
-    tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
-
-    pl_strain[e] += dep;
-    double scale = sigma_y / sigma_eq;
-    //ShearStress = s_trial * scale;
-    pl_strain[e] += dep; // dep calculado según Perzyna
-    shear_stress = shear_stress * scale;
-   
-
-}//overstress
-
-tensor3 Sigma = shear_stress -p*Identity();
-int offset_t = e*6;
-ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
-ToFlatSymPtr(shear_stress, m_tau, offset_t);
-ToFlatSymPtr(Strain,      m_eps, offset_t);      
-ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+      tensor3 Sigma = shear_stress -p[e]*Identity();
       
+      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
+      ToFlatSymPtr(shear_stress, m_tau, offset_t); 
+      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+            
 
-// 7️⃣ Tangente constitutiva D_gp
-Matrix D_gp(6,6);
-D_gp.SetZero();
+      // 7. Tangente constitutiva D_gp
+      Matrix D_gp(6,6);
+      D_gp.SetZero();
 
-// 7a) Parte desviadora estándar
-for(int i=0;i<3;i++) D_gp.Set(i,i, 2.0 * dot_gamma); // normales
-D_gp.Set(3,3, 2.0 * dot_gamma); // cortes
-D_gp.Set(4,4, 2.0 * dot_gamma);
-D_gp.Set(5,5, 2.0 * dot_gamma);
+      // 7a) Parte desviadora estándar
+      for(int i=0;i<3;i++) D_gp.Set(i,i, 2.0 * dot_gamma); // normales
+      D_gp.Set(3,3, 2.0 * dot_gamma); // cortes
+      D_gp.Set(4,4, 2.0 * dot_gamma);
+      D_gp.Set(5,5, 2.0 * dot_gamma);
 
-// 7b) Opcional: tangente exacta
-bool useExactTangent = true; // activar/desactivar
-if(useExactTangent){
-    // derivada de dot_gamma respecto a sigma_eq
-    double deta_de = 0.0;
-    if(overstress > 0.0){
-        double tau_relax = mat[e]->visc_relax_time;
-        double m_perz = mat[e]->perzyna_m;
-        double sigma0 = mat[e]->sy0;
-        deta_de = (1.0 / tau_relax) * m_perz * pow(overstress / sigma0, m_perz - 1) / sigma0;
-    }
-    Matrix nT = n_voigt.getTranspose();
-    Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
-    D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
-}
+      // 7b) Opcional: tangente exacta
+      bool useExactTangent = true; // activar/desactivar
+      if(useExactTangent){
+          // derivada de dot_gamma respecto a sigma_eq
+          double deta_de = 0.0;
+          if(overstress > 0.0){
+              double tau_relax = mat[e]->visc_relax_time;
+              double m_perz = mat[e]->perzyna_m;
+              double sigma0 = mat[e]->sy0;
+              deta_de = (1.0 / tau_relax) * m_perz * pow(overstress / sigma0, m_perz - 1) / sigma0;
+          }
+          Matrix nT = n_voigt.getTranspose();
+          Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
+          D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
+      }
 
-// 8️⃣ Matriz elemental K_gp
-Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
-Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
+      // 8. Kp
+      Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
+      Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
 
-// 9️⃣ Rhs elemental (solo -f_int)
-Matrix stress_voigt = FlatSymToVoigt(m_sigma, m_dim, m_nodxelem);
-Matrix fint = MatMul(B.getTranspose(), stress_voigt);
-fint = fint * vol[e];
+      // 9.  Rhs elemental (solo -f_int)
+      Matrix stress_voigt = FlatSymToVoigt(m_sigma, m_dim, m_nodxelem);
+      Matrix fint = MatMul(B.getTranspose(), stress_voigt);
+      fint = fint * vol[e];
 
-Matrix rhs = -1.0 * fint;
+      Matrix rhs = -1.0 * fint;
 
-// 10️⃣ Ensamblaje
-solver->assembleElement(e, Kgp);  // solo Kgp
-solver->assembleResidual(e, rhs);         
+      // 10. Assembly
+      solver->assembleElement(e, Kgp);  // solo Kgp
+      solver->assembleResidual(e, rhs);         
 
 
       } // end par element loop
       
       
-      //calcElemForces();
-      
       if(contact)
-      solver->assembleContactStiffness(1.0e8,dt);
+        solver->assembleContactStiffness(1.0e8,dt);
       
        solver->finalizeAssembly();     
       
@@ -521,17 +469,308 @@ solver->assembleResidual(e, rhs);
         for (int n = 0; n < m_node_count*m_dim; n++)      
           solver->addToR(n,contforce[n]); //EXTERNAL FORCES
 
-
-
-      //AFTER ASSEMBLY!
-      // cout <<"K BEFORE  Dirichlet"<<endl;
-      // solver->printK();
-      
       //Change prescribed 
       for (int d = 0; d < m_dim; d++)
         CalcIncBCV(d);
       
-      m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS
-      //cout << "Solving system"<<endl;      
+      m_solver->applyDirichletBCs(); //SYMMETRY OR DISPLACEMENTS      
+      m_solver->Solve();
+    
+    // Update displacements and check convergence
+    double max_residual = 0.0;
+    double max_f_residual = 0.0;
+    
+    double max = 0.0;
+    for (int e=0;e<m_elem_count;e++)
+      if (pl_strain[e]>max){
+        max = pl_strain[e];
+      }
+     
+    cout << "Max plastic strain: "<<max<<endl;
+
+    prev_Rnorm = m_solver->getRNorm();    
+
+    alpha_damp = 1.0;
+    if (iter > 0) {
+        double residual_ratio = m_solver->getRNorm() / prev_Rnorm;
+        
+        if (residual_ratio > 2.0) {
+            // Divergencia - reducir paso
+            alpha_damp = 0.5;
+        } else if (residual_ratio > 1.2) {
+            // Convergencia lenta
+            alpha_damp = 0.8;
+        } else if (residual_ratio < 0.8) {
+            // Buena convergencia - aumentar paso
+            alpha_damp = std::min(1.5, alpha_damp * 1.2);
+        } else {
+            // Convergencia estable
+            alpha_damp = 1.0;
+        }
+        
+        // Límites más amplios
+        alpha_damp = std::max(0.3, std::min(2.0, alpha_damp));
+    }
+    
+    for (int n = 0; n < m_node_count; n++) {
+        for (int d = 0; d < m_dim; d++) {
+            int idx = n * m_dim + d;
+            double dv = m_solver->getU(n,d);
+            double df = m_solver->getR(n,d);
+            delta_v[idx] += alpha_damp*dv;
+            // Track maximum residual
+            max_residual = std::max(max_residual, std::abs(dv));
+            max_f_residual = std::max(max_residual, std::abs(df));
+        }
+    }
+      
+      double F_ref = 0.0;
+      // 1. Fuerzas externas aplicadas (contacto, cargas, etc.)
+      for (int n = 0; n < m_node_count * m_dim; n++) {
+          F_ref = std::max(F_ref, std::abs(contforce[n])); // Fuerzas de contacto
+          // Agregar otras fuerzas externas si las tienes
+      }
+      
+      // 2. Fuerzas internas representativas (opcional pero recomendado)
+      for (int e = 0; e < m_elem_count; e++) {
+          for (int i = 0; i < m_nodxelem * m_dim; i++) {
+              F_ref = std::max(F_ref, std::abs(m_f_elem[e * m_nodxelem * m_dim + i]));
+          }
+      }
       
     
+      
+    cout << "MAX Residuals, DV: "<< max_residual<<
+    ", DF ABS: "<<max_f_residual<<", DF rel "<< max_f_residual/F_ref<<endl;
+    
+    // cout << "Urel "<<max_residual/m_solver->getUNorm()<<"U Norm "<<m_solver->getUNorm()<<endl;
+    // cout << "frel "<<max_f_residual/m_solver->getRNorm()<<"R Norm "<<m_solver->getRNorm()<<endl;
+    
+    // Check convergence
+    if (max_residual < tolerance && max_f_residual/F_ref < ftol) {
+        if (iter>0)
+          converged = true;
+        end = true;
+        //if (step_count % 10 == 0) {
+            std::cout << "NR converged in " << iter+1 << " iterations" << std::endl;
+        //}
+    }
+    
+    if(max_residual>1.0e3 || iter >max_iter){
+      
+      end= true;
+      dt /=2.0;
+      converged = false;
+      conv_iter = 0;
+    }
+    
+    //if (iter >0) converged = true;
+    
+    if (iter == max_iter-1 && !converged) {
+        std::cerr << "Warning: NR did not converge in " << max_iter << " iterations" << std::endl;
+
+
+    }
+    
+    //~ //SWITCH BACK TO PREVIOUS STRESS STATE, WHICH IS TAKEN BY calcStressStrain
+    if (!converged){
+      memcpy(pl_strain, pls_old, sizeof(double) * m_elem_count);
+      memcpy(m_sigma, sig_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+      memcpy(m_tau, tau_old, sizeof(double) * m_elem_count * m_gp_count * 6);
+    
+    }
+    
+    else {
+      
+          conv_iter++;
+      }
+  
+    iter++;
+
+    
+    if (converged && conv_iter > 2){
+        dt *=2.0;
+    }
+    
+
+  }//NR ITER //////////////////////////////// INNER LOOP
+
+    
+  if (converged){
+    // After NR converges:
+    for (int i = 0; i < m_node_count * m_dim; i++) {
+        prev_x[i] = x[i];  // Save converged velocity
+        prev_v[i] = v[i];  // Save converged velocity
+        
+        u[i] += u_inc[i];
+    }
+    
+    // calcElemJAndDerivatives();
+    // if (!remesh_) { //Already calculated previously to account for conservation.
+      // CalcElemVol();  
+      // CalcNodalVol();
+      // CalcNodalMassFromVol();
+    // }
+    // calcElemStrainRates();
+    // calcElemDensity();
+
+    // calcElemPressureRigid(Kpres);
+    // calcNodalPressureFromElemental();
+    // CalcStressStrain(dt);
+
+    
+  
+    string outfname = "out_" + std::to_string(iter) + ".vtk";
+    timer.click();
+
+    ostringstream oss_out;
+    oss_out << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
+    oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
+    oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
+
+    of <<std::scientific<<std::setprecision(6)<< iter ;
+
+    if (contact){
+    calcContactForceFromPressure();
+    
+    of <<std::scientific<<std::setprecision(6)<<", "<<
+                                                    //trimesh->react_p_force[m]<<
+                                                    trimesh->react_p_force[0]<<", "<<
+                                                    //trimesh->react_force[0].z<<","<<
+                                                    trimesh->cont_area;
+                                                    
+
+
+    
+  } else{ ///// NOT CONVERGED
+    for (int i = 0; i < m_node_count * m_dim; i++) {
+        x[i] = prev_x[i];  // Save converged velocity
+        v[i] = prev_v[i];  // Save converged velocity
+
+    }
+       
+    
+    
+    }//Not converged
+  ///assemblyForces(); 
+  //ApplyGlobalSprings();
+
+    
+ 
+  if (Time>=tout){
+
+    } else{
+   bool is_elem_sum[m_elem_count];
+
+   //double pxa_el[m_elem_count];
+  double zmax = 0.0;
+      for (int i=0;i<m_node_count;i++)
+        if (getNodePos3(i).z>zmax)
+          zmax = getNodePos3(i).z;
+        
+    int ecount = 0;
+   double area = 0.0;
+   
+         for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
+      double cfsum = 0.0;
+      for (int i=0;i<m_node_count;i++){
+        if ((getNodePos3(i).z-zmax)*(getNodePos3(i).z-zmax)<1.0e-5){
+          for (int ne=0; ne<m_nodel_count[i];ne++) {
+            int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+            if (!is_elem_sum[e]){
+              //pxa_el[e]+=p[e]*m_elem_area[e];
+              is_elem_sum[e]=true;
+              cfsum += p[e]*m_elem_area[e];
+              area+=m_elem_area[e];
+              ecount++;
+            }
+              //~ if (!is_node_sum[i]){
+                //~ area+=node_area[i];
+                //~ }
+          }//nodel
+        }//mesh in contact
+        
+      }//Node count    
+      cout << "Cont Elements"<<ecount<<endl;
+      of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
+    } //NOT CONTACT, TO DELETE
+    
+    
+  double max[]={0.0,0.0,0.0};
+
+     for (int e=0;e<m_node_count;e++)
+        for (int d=0;d<3;d++)
+              if (this->u[e*m_dim+d]*this->u[e*m_dim+d]>max[d]){
+          max[d] = this->u[e*m_dim+d];
+
+      } 
+  
+  cout << "MAX DISP "<<sqrt(max[0])<< " "<<sqrt(max[1])<< " "<<sqrt(max[2])<<endl;                                                     
+
+    
+    cout << oss_out.str();
+    if (!out_file.is_open()) {
+        std::cerr << " out_file is not open! Cannot write." << std::endl;
+    } else {
+        out_file << oss_out.str();
+        out_file.flush();
+    }
+    
+    
+    //}
+    of <<endl;
+    #ifndef CUDA_BUILD
+    VTKWriter writer2(this, outfname.c_str());
+    writer2.writeFile();
+    #endif
+    tout +=m_dtout;
+  }
+    
+    if (converged){
+      Time += dt;
+      step_count++;
+    
+    }
+    remesh_ = false;    
+  }//////////////////////////////////////////////////////////////////////////// MAIN WHILE LOOP
+
+  
+
+
+  double max[]={0.0,0.0,0.0};
+  
+     for (int e=0;e<m_node_count;e++)
+        for (int d=0;d<3;d++)
+              if (this->u[e*m_dim+d]>max[d]){
+          max[d] = this->u[e*m_dim+d];
+
+      } 
+  
+  cout << "MAX DISP "<<max[0]<< " "<<max[1]<< " "<<max[2]<<endl;
+
+
+  cout << "Writing output "<<endl;
+  //VTUWriter writer(this, "out.vtu");
+  //writer.writeFile();
+
+  
+  #ifndef CUDA_BUILD
+  //cout << "Writing output"<<endl;
+  VTKWriter writer2(this, "out.vtk");
+  writer2.writeFile();
+  #endif
+  cout << "Done."<<endl;
+
+
+  VTKWriter writer3(this, "out_remesh.vtk");
+  writer3.writeFile();
+  
+  //AFTER WRITE
+
+  timer.stop();
+  std::cout << "Overall elapsed time: " << timer.elapsed() << " seconds\n";  
+  of.close();
+  }//SOLVE
+    
+};
+

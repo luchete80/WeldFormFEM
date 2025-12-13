@@ -434,6 +434,7 @@ public:
   dev_t void calcElemHourglassForces();
   dev_t void calcElemPressure_Hex(); //FROM STRAIN
   dev_t void calcElemPressure(); //FROM STRAIN
+  dev_t void calcElemPressureRigid(const double &K);
   dev_t void calcElemElasticJ();
   dev_t void calcElemPressureLocal(); //SF Style
   dev_t void calcElemPressureCaylak();
@@ -628,6 +629,7 @@ public:
   /// DISPLACEMENT (STATIC) FUNCTIONS
   void SolveStaticDisplacement();
   void SolveStaticQS_UP();
+  void SolveStaticQS_V();
   
   void SolveElastic(); //SIMPLE 
   

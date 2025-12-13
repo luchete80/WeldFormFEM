@@ -111,12 +111,13 @@ endif ()
 
 
 set (SOURCES                          
-                        #ImpDomain_d.C
+
                         Matrices.C
                         Solver.C
                         Solver_GlobalMatrix.C
                         Solver_GlobalMatrix_QuasiStatic.C
                         Solver_GlobalMatrix_QS_UP.C
+                        Solver_QS_V.C
                         Solver_Eigen.C
                         
                           
