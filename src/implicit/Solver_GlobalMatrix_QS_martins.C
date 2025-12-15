@@ -483,10 +483,12 @@ void host_ Domain_d::SolveStaticQS_UP(){
           double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
           double sigma_eq = sqrt(1.5 * sum_s);
           
+          //sigma_eq = K * pow(e_dot_eq, m);
+          
           ///////G) Perzyna: eta_eff o dot_gamma (tasa viscoplástica) y d(eta)/de si hace falta para tangente
           
-          double sigma_y = 0.0;/* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
-          double sigma_eq_trial = 0.0;/* si usas trial, calcula con s_trial */;
+          double sigma_y = CalcHollomonYieldStress(pl_strain[e], mat[e]);/* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
+          double sigma_eq_trial = sigma_eq;/* si usas trial, calcula con s_trial */;
 
           double overstress = sigma_eq_trial - sigma_y;
           double dot_gamma = 0.0;
@@ -589,19 +591,10 @@ void host_ Domain_d::SolveStaticQS_UP(){
           rhs = rhs - MatMul(Kgp, temp);
 
           solver->assembleElement(e, Aelem);
-          
-          //~ // --- Kvv ---
-          //~ std::vector<int> vdofs;
-          //~ getElementVelocityDOFs(e, vdofs);
-          //~ solver->assembleElementBlock(vdofs, vdofs, Kvv);
-          
                     
           
           solver->assembleResidual(e, rhs);
           
-          //~ // --- Rv ---
-          //~ Matrix fint = MatMul(B.getTranspose(), stress_voigt) * vol[e];
-          //~ solver->assembleResidualBlock(vdofs, -fint);>
 
 
 
