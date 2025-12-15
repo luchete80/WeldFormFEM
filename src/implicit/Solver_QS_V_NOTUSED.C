@@ -164,7 +164,6 @@ void host_ Domain_d::SolveStaticQS_V(){
   double dt_max = end_t / 2.0;      // Maximum allowable
   double dt = dt_initial;
   
-  double Kpres =1.0e+6;
   
   double *delta_v, *x_initial;
   
@@ -310,8 +309,8 @@ void host_ Domain_d::SolveStaticQS_V(){
   calcElemStrainRates();
   calcElemDensity();
 
-  calcElemPressureRigid(Kpres);
-  calcNodalPressureFromElemental();
+//  calcElemPressureRigid(Kpres);
+//  calcNodalPressureFromElemental();
 
 
   par_loop(e,m_elem_count){
@@ -356,6 +355,9 @@ void host_ Domain_d::SolveStaticQS_V(){
                  + 2.0*(Dev[3]*Dev[3] + Dev[4]*Dev[4] + Dev[5]*Dev[5]);
       double e_dot_eq = sqrt( (2.0/3.0) * sum );
       if(e_dot_eq < 1e-18) e_dot_eq = 1e-18;
+      
+      double div_v = Dxx + Dyy + Dzz;
+      //p[e] = Kpres * div_v;
       
       // 4. Plastic FlowDirection //NOT USED,USED  n_dir
       Matrix n_voigt(6,1);
@@ -403,7 +405,9 @@ void host_ Domain_d::SolveStaticQS_V(){
          
 
       }//overstress
-      tensor3 Sigma = shear_stress -p[e]*Identity();
+      //tensor3 Sigma = shear_stress -p[e]*Identity();
+      
+      tensor3 Sigma = shear_stress;
       
       ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
       ToFlatSymPtr(shear_stress, m_tau, offset_t); 
@@ -415,10 +419,25 @@ void host_ Domain_d::SolveStaticQS_V(){
       D_gp.SetZero();
 
       // 7a) Parte desviadora estándar
-      for(int i=0;i<3;i++) D_gp.Set(i,i, 2.0 * dot_gamma); // normales
-      D_gp.Set(3,3, 2.0 * dot_gamma); // cortes
-      D_gp.Set(4,4, 2.0 * dot_gamma);
-      D_gp.Set(5,5, 2.0 * dot_gamma);
+      double eta_eff = sigma_eq / (3.0 * e_dot_eq);
+      double Kpres = 1.0e4 * eta_eff;
+      // normales
+      D_gp.Set(0,0,  2.0*eta_eff*(2.0/3.0));
+      D_gp.Set(0,1, -2.0*eta_eff*(1.0/3.0));
+      D_gp.Set(0,2, -2.0*eta_eff*(1.0/3.0));
+
+      D_gp.Set(1,0, -2.0*eta_eff*(1.0/3.0));
+      D_gp.Set(1,1,  2.0*eta_eff*(2.0/3.0));
+      D_gp.Set(1,2, -2.0*eta_eff*(1.0/3.0));
+
+      D_gp.Set(2,0, -2.0*eta_eff*(1.0/3.0));
+      D_gp.Set(2,1, -2.0*eta_eff*(1.0/3.0));
+      D_gp.Set(2,2,  2.0*eta_eff*(2.0/3.0));
+
+      // cortes (ingenieriles)
+      D_gp.Set(3,3, 2.0*eta_eff);
+      D_gp.Set(4,4, 2.0*eta_eff);
+      D_gp.Set(5,5, 2.0*eta_eff);
 
       // 7b) Opcional: tangente exacta
       bool useExactTangent = false; // activar/desactivar
@@ -435,10 +454,29 @@ void host_ Domain_d::SolveStaticQS_V(){
           Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
           D_gp = D_gp + outer_nn * (2.0 * deta_de); // suma del término exacto
       }
+      
+      //K_vol = Kpres * (G^T * G)
 
       // 8. Kp
       Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
       Kgp = Kgp * vol[e]; // multiplicar por volumen o peso de integración
+
+
+      Matrix G(1, m_nodxelem * m_dim);
+      G.SetZero();
+
+      for(int a = 0; a < m_nodxelem; ++a){
+          int col = a * m_dim;
+
+          G.Set(0, col + 0, B.getVal(0, col + 0)); // dN/dx
+          G.Set(0, col + 1, B.getVal(1, col + 1)); // dN/dy
+          G.Set(0, col + 2, B.getVal(2, col + 2)); // dN/dz
+      }
+      
+      Matrix Kvol = MatMul(G.getTranspose(), G);
+      Kvol = Kvol * Kpres * vol[e];
+      Kgp = Kgp + Kvol;
+
 
       // 9.  Rhs elemental (solo -f_int)
       calcElemForces(e);

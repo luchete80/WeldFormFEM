@@ -181,7 +181,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
   Solver_Eigen *solver = new Solver_Eigen();
   m_solver = solver;
   m_solver->setDomain(this);
-  m_solver->Allocate();
+  m_solver->AllocateUP();
 
   double dt_initial = end_t / 1000.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
@@ -588,7 +588,10 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix temp = MatMul( Q_elem, vloc );
           rhs = rhs - MatMul(Kgp, temp);
 
-          solver->assembleElement(e, Aelem);
+          //solver->assembleElement(e, Aelem);
+          solver->assembleElementBlock();
+          
+          
           solver->assembleResidual(e, rhs);
 
 

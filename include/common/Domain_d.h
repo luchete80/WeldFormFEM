@@ -640,6 +640,21 @@ public:
                                                   double G, double H);
 
   dev_t void calcElemForces(const int &e); //FOR IMPLICIT
+  
+  inline void getElementVelocityDOFs(int e, std::vector<int>& dofs) {
+    const int ndof = m_dom->m_nodxelem * m_dom->m_dim;
+    dofs.resize(ndof);
+
+    for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+        const int node = m_dom->getElemNode(e, a);
+        for (int d = 0; d < m_dom->m_dim; ++d) {
+            dofs[a*m_dom->m_dim + d] = node*m_dom->m_dim + d;
+        }
+    }
+  }
+  inline int getElementPressureDOF(int e) {
+    return m_dof_v + e;
+  }
 
   //--------------------------------------------------------------------------------------------------------------------------------
   //IF USING INCREMENTAL BCs

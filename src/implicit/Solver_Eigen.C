@@ -38,6 +38,38 @@ void Solver_Eigen::Allocate(){
   
 }
 
+void Solver_Eigen::AllocateUP(){
+  m_dof_v = m_dom->m_node_count * m_dom->m_dim;
+  m_dof_p = m_dom->m_elem_count
+
+  m_dof = m_dof_v + m_dof_p;
+  
+  cout << "Allocate for Domain DOFs: "<< m_dof<<", VELOCITY DOFS: "<<m_dof_v<<", PRESSURE DOFS: "<<m_dof_p<<endl;
+  K.resize(m_dof,m_dof);
+  //U.resize(m_dof);
+  U = Eigen::VectorXd::Zero(m_dof);
+  //R.resize(m_dof);
+  R = Eigen::VectorXd::Zero(m_dof);
+
+  // Now K has positive dimensions and you can safely call .sum(), .norm(), etc.
+  std::cout << "K.sum() = " << K.sum() << std::endl;
+  
+}
+
+void Solver_Eigen::Allocate(){
+  m_dof = m_dom->m_node_count * m_dom->m_dim;
+  cout << "Allocate for Domain DOFs: "<< m_dof<<endl;
+  K.resize(m_dof,m_dof);
+  //U.resize(m_dof);
+  U = Eigen::VectorXd::Zero(m_dof);
+  //R.resize(m_dof);
+  R = Eigen::VectorXd::Zero(m_dof);
+
+  // Now K has positive dimensions and you can safely call .sum(), .norm(), etc.
+  std::cout << "K.sum() = " << K.sum() << std::endl;
+  
+}
+
 ///// RELIES ON MEMORY SAVED Kelemen.
 
 void Solver_Eigen::assemblyGlobalMatrix() {
@@ -316,19 +348,39 @@ int Solver_Eigen::Solve(){
   
 }
 
-    void Solver_Eigen::assembleElement(int e, /*const*/ Matrix& Ke) {
-        std::vector<int> global_dofs(m_dom->m_nodxelem * m_dom->m_dim);
-        
-        // Compute global DOFs for this element
-        for (int a = 0; a < m_dom->m_nodxelem; ++a) {
-            const int node = m_dom->getElemNode(e, a);
-            for (int i = 0; i < m_dom->m_dim; ++i) {
-                global_dofs[a * m_dom->m_dim + i] = node * m_dom->m_dim + i;
+void Solver_Eigen::assembleElement(int e, /*const*/ Matrix& Ke) {
+    std::vector<int> global_dofs(m_dom->m_nodxelem * m_dom->m_dim);
+    
+    // Compute global DOFs for this element
+    for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+        const int node = m_dom->getElemNode(e, a);
+        for (int i = 0; i < m_dom->m_dim; ++i) {
+            global_dofs[a * m_dom->m_dim + i] = node * m_dom->m_dim + i;
+        }
+    }
+    
+    addElementToTriplets(Ke, global_dofs, m_triplets);
+}
+
+void Solver_Eigen::assembleElementBlock(
+    const std::vector<int>& row_dofs,
+    const std::vector<int>& col_dofs,
+    const Matrix& Ke)
+{
+    const int nr = row_dofs.size();
+    const int nc = col_dofs.size();
+
+    for (int i = 0; i < nr; ++i) {
+        const int I = row_dofs[i];
+        for (int j = 0; j < nc; ++j) {
+            const int J = col_dofs[j];
+            const double val = Ke.getVal(i,j);
+            if (val != 0.0) {
+                m_triplets.emplace_back(I, J, val);
             }
         }
-        
-        addElementToTriplets(Ke, global_dofs, m_triplets);
     }
+}
 
 
 // SIMPLEST CASE, NODE TO RIGID

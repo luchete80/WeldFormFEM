@@ -101,6 +101,10 @@ protected:
 	int maxits;
   
   Domain_d *m_dom;
+  
+  ///// UP CASE
+  int m_dof_v;
+  int m_dof_p;
 
 };
 

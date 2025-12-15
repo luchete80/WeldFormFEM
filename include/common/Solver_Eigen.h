@@ -74,6 +74,7 @@ public:
   virtual void assemblyGlobalMatrix();
   ////////////////////////////////////
   virtual void Allocate();
+  virtual void AllocateUP();
   virtual void applyDirichletBCs();
   virtual void SetRDOF(const int &, const double &val);
 
@@ -98,6 +99,10 @@ public:
 
     // Add a single element to the assembly (NOT NEED TO BE STORED!)
     void assembleElement(int e, /*const*/ Matrix& Ke);
+    
+    void assembleElementBlock(    const std::vector<int>& row_dofs,
+    const std::vector<int>& col_dofs,
+    const Matrix& Ke);
 
     // Finalize the assembly
     void finalizeAssembly();
@@ -179,6 +184,7 @@ protected:
   std::vector<T> m_triplets;  // Almacenamiento temporal para los triplets durante el ensamblaje
   
   std::vector<std::pair<int, double>> incremental_bcs;
+
 
 
 private:
