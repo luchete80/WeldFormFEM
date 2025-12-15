@@ -524,12 +524,13 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix nT = n_voigt.getTranspose();
           Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
 
-          Matrix D_gp = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
+          //Matrix D_gp = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
+          Matrix D_gp = Pdev * (2.0 * eta);
 
 
           //////I) Kgp = B^T * D_gp * B * (vol[e]) (ndof×ndof)
-          Matrix Kvv = MatMul( B.getTranspose(), MatMul(D_gp, B) );
-          Kvv = Kvv * vol[e]; // or * (detJ*weight)
+          Matrix Kgp = MatMul( B.getTranspose(), MatMul(D_gp, B) );
+          Kgp = Kgp * vol[e]; // or * (detJ*weight)
           
           /////////////////////////////////////////////////////////
           /// J) b_gp = Kgp * vloc (ndof×1)
@@ -573,9 +574,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix Q_elem =  Qgp;
           
           //// N) Assemble elemental matrix A_elem = H_elem + Kgp + Kgp * Q_elem ???
-          Matrix Aelem = H_elem;
-          Aelem = Aelem + Kgp;       // o Kelem_visc
-          Aelem = Aelem + Q_elem;    // si Q está en forma ndof x ndof
+          Matrix Aelem = Kgp + H_elem + Q_elem;    
 
           // Rhs elemental: R = f_ext_elem - f_int_elem - sigma_bar*Pstar - Kgp * (Q_elem * vloc)
           Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);

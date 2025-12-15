@@ -116,7 +116,7 @@ set (SOURCES
                         Solver.C
                         Solver_GlobalMatrix.C
                         Solver_GlobalMatrix_QuasiStatic.C
-                        Solver_GlobalMatrix_QS_UP.C
+                        Solver_GlobalMatrix_QS_martins.C
                         Solver_Eigen.C
                         
                           
