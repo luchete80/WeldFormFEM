@@ -587,7 +587,7 @@ void host_ Domain_d::SolveImplicitGlobalMatrix(){
 
           // 7) Compute internal force: fint = V_e * B^T * σ
 
-          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
+          Matrix stress_voigt = FlatSymToVoigt(m_sigma,e*6,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
  

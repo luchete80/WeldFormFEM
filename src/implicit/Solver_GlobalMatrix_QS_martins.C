@@ -410,6 +410,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
 
           //Matrix &B = Bmat_per_thread[tid];
           Matrix B;
+          int offset_t = e*6;
           
           //// HERE B is in fact BxdetJ
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
@@ -474,7 +475,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
 
 
           /////F) Sigma Eq
-          Matrix s_voigt = FlatSymToVoigt(m_tau, m_dim, m_nodxelem); // o usa offset
+          Matrix s_voigt = FlatSymToVoigt(m_tau, e*6,m_dim, m_nodxelem); // o usa offset
           // implementar norma: sigma_eq = sqrt(3/2 * s_dev : s_dev)
           double s0 = s_voigt.getVal(0,0);
           double s1 = s_voigt.getVal(1,0);
@@ -577,7 +578,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
 
           // H contribution:
           Matrix Hgp = MatMul( b_gp, b_gp.getTranspose() ); // ndof x ndof
-          Hgp = Hgp * ( coef * vol[e] );
+          Hgp = Hgp * coef ; // vol already accounted in b_gp....
 
           Matrix H_elem = H_elem + Hgp;
           
@@ -597,7 +598,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix Aelem = Kgp + H_elem + Q_elem;    
 
           // Rhs elemental: R = f_ext_elem - f_int_elem - sigma_bar*Pstar - Kgp * (Q_elem * vloc)
-          Matrix stress_voigt = FlatSymToVoigt(m_sigma,m_dim,m_nodxelem);
+          Matrix stress_voigt = FlatSymToVoigt(m_sigma,e*6,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
  

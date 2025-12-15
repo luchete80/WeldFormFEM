@@ -838,10 +838,10 @@ __spec Matrix MatrixToVoigt(/*const*/ Matrix& mat) {
 
 
 ////S
-__spec Matrix FlatSymToVoigt(double flat[], const int &m_dim, const int &m_nodxelem){
+__spec Matrix FlatSymToVoigt(double flat[], const int &start, const int &m_dim, const int &m_nodxelem){
 	Matrix ret(3*m_nodxelem,1);
   for (int i=0;i<m_dim*m_nodxelem;i++)
-    ret.Set(i,0,flat[i]);		
+    ret.Set(i,0,flat[start+i]);		
 	
 	return ret;
 }
