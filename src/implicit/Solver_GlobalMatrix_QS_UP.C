@@ -181,7 +181,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
   Solver_Eigen *solver = new Solver_Eigen();
   m_solver = solver;
   m_solver->setDomain(this);
-  m_solver->AllocateUP();
+  
+  m_solver->Allocate();
 
   double dt_initial = end_t / 1000.0; // Initial guess
   double dt_min = end_t / 10000.0;   // Minimum allowable
@@ -527,8 +528,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
 
 
           //////I) Kgp = B^T * D_gp * B * (vol[e]) (ndof×ndof)
-          Matrix Kgp = MatMul( B.getTranspose(), MatMul(D_gp, B) );
-          Kgp = Kgp * vol[e]; // or * (detJ*weight)
+          Matrix Kvv = MatMul( B.getTranspose(), MatMul(D_gp, B) );
+          Kvv = Kvv * vol[e]; // or * (detJ*weight)
           
           /////////////////////////////////////////////////////////
           /// J) b_gp = Kgp * vloc (ndof×1)
@@ -588,11 +589,20 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix temp = MatMul( Q_elem, vloc );
           rhs = rhs - MatMul(Kgp, temp);
 
-          //solver->assembleElement(e, Aelem);
-          solver->assembleElementBlock();
+          solver->assembleElement(e, Aelem);
           
+          //~ // --- Kvv ---
+          //~ std::vector<int> vdofs;
+          //~ getElementVelocityDOFs(e, vdofs);
+          //~ solver->assembleElementBlock(vdofs, vdofs, Kvv);
+          
+                    
           
           solver->assembleResidual(e, rhs);
+          
+          //~ // --- Rv ---
+          //~ Matrix fint = MatMul(B.getTranspose(), stress_voigt) * vol[e];
+          //~ solver->assembleResidualBlock(vdofs, -fint);>
 
 
 
