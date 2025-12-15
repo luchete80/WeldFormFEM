@@ -419,10 +419,12 @@ void host_ Domain_d::SolveStaticQS_UP(){
 
           int ndof = m_nodxelem * m_dim;
           Matrix vloc(ndof, 1);
+          Matrix delta_vloc(ndof, 1);
           for (int a=0;a<m_nodxelem;a++){
             int node = getElemNode(e,a);
             for (int d=0; d<m_dim; d++){
               vloc.Set(a*m_dim + d, 0, v[node*m_dim + d]);
+              delta_vloc.Set(a*m_dim + d, 0, delta_v[node*m_dim + d]);
             }
           }          
                     //Matrix Ddot = MatMul(B, vloc); // 6x1
@@ -483,6 +485,8 @@ void host_ Domain_d::SolveStaticQS_UP(){
           double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
           double sigma_eq = sqrt(1.5 * sum_s);
           
+          tensor3 s_test = FromFlatSym(m_tau,          offset_t );
+          
           //sigma_eq = K * pow(e_dot_eq, m);
           
           ///////G) Perzyna: eta_eff o dot_gamma (tasa viscoplástica) y d(eta)/de si hace falta para tangente
@@ -497,12 +501,26 @@ void host_ Domain_d::SolveStaticQS_UP(){
             double m_perz = mat[e]->perzyna_m;
             double sigma0 = mat[e]->sy0; // escala
             dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
+            
+            double dep = dt * pow(overstress / sigma0, m_perz);
+            pl_strain[e] += dep; // dep calculado según Perzyna
+            
+            
           } else {
             dot_gamma = 0.0;
           }
 
           ////s=2ηε˙dev​,η=2ε˙eq​σeq​​
+
+          tensor3 Sigma = shear_stress;
           
+          s_voigt = s_voigt + MatMul(D_gp, MatMul(B,delta_vloc)); //D::eps_dot         
+          ToFlatMat(s_voigt,m_tau,e*6);
+          
+          //ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
+          //ToFlatSymPtr(shear_stress, m_tau, offset_t); 
+          //ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+      
           /////// H) C_visc o D_gp — matriz tangente constitutiva (6×6)
           /////////////////////////////////////////////////////////////
           
