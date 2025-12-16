@@ -627,7 +627,7 @@ public:
   
   void SolveImplicitGlobalMatrix();
   /// DISPLACEMENT (STATIC) FUNCTIONS
-  void SolveStaticDisplacement();
+  void SolveStaticQS_EPHV(); ///// ELASTOPLASTIC HARDENING, VIA VELOCITIES
   void SolveStaticQS_UP();
   void SolveStaticQS_V();
   

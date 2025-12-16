@@ -87,6 +87,7 @@ void Domain_d::CalcIncBCV(int dim/*, double load_factor*/) {
     }
 }
 
+
 void host_ Domain_d::SolveStaticQS_EPHV(){
   WallTimer timer;
 
