@@ -416,7 +416,7 @@ void host_ Domain_d::SolveStaticQS_UP(){
           B = getElemBMatrix(e); // dimensions 6 x (m_nodxelem * m_dim)
           B = B *(1.0/m_detJ[e]);
 
-          Matrix Ddot = FlatSymToVoigt(m_str_rate, m_dim, m_nodxelem);
+          Matrix Ddot = FlatSymToVoigt(m_str_rate, e*6, m_dim, m_nodxelem);
 
           int ndof = m_nodxelem * m_dim;
           Matrix vloc(ndof, 1);
@@ -486,24 +486,24 @@ void host_ Domain_d::SolveStaticQS_UP(){
           double sum_s = s0*s0 + s1*s1 + s2*s2 + 2.0*(s3*s3 + s4*s4 + s5*s5);
           double sigma_eq = sqrt(1.5 * sum_s);
           
-          tensor3 s_test = FromFlatSym(m_tau,          offset_t );
+          tensor3 s_test = FromFlatSym(m_tau, offset_t );
           
           //sigma_eq = K * pow(e_dot_eq, m);
           
           ///////G) Perzyna: eta_eff o dot_gamma (tasa viscoplástica) y d(eta)/de si hace falta para tangente
           
           double sigma_y = CalcHollomonYieldStress(pl_strain[e], mat[e]);/* tu CalcHollomonYieldStress(pl_strain[e], mat[e]) */;
-          double sigma_eq_trial = sigma_eq;/* si usas trial, calcula con s_trial */;
 
-          double overstress = sigma_eq_trial - sigma_y;
+          double overstress = sigma_eq - sigma_y;
           double dot_gamma = 0.0;
+          double tau_relax = mat[e]->visc_relax_time; // define en material (ej.)
+          double m_perz = mat[e]->perzyna_m;
+          
           if (overstress > 0.0) {
-            double tau_relax = mat[e]->visc_relax_time; // define en material (ej.)
-            double m_perz = mat[e]->perzyna_m;
             double sigma0 = mat[e]->sy0; // escala
             dot_gamma = (1.0 / tau_relax) * pow( overstress / sigma0, m_perz );
             
-            double dep = dt * pow(overstress / sigma0, m_perz);
+            double dep = dt * dot_gamma;
             pl_strain[e] += dep; // dep calculado según Perzyna
             
             
@@ -511,48 +511,57 @@ void host_ Domain_d::SolveStaticQS_UP(){
             dot_gamma = 0.0;
           }
 
-          ////s=2ηε˙dev​,η=2ε˙eq​σeq​​
-
-          tensor3 Sigma = shear_stress;
+          double eta = 0.5 * sigma_eq / e_dot_eq; // careful, only meaningful if sigma_eq defined from current state
           
-          s_voigt = s_voigt + MatMul(D_gp, MatMul(B,delta_vloc)); //D::eps_dot         
+          //tensor3 Sigma = shear_stress;
+          
+          ////// RIGID PLASTIC
+          ////s=2ηε˙dev​,η=2ε˙eq​σeq​​
+          s_voigt.Set(0,0, 2.0*eta*Dev[0]);
+          s_voigt.Set(1,0, 2.0*eta*Dev[1]);
+          s_voigt.Set(2,0, 2.0*eta*Dev[2]);
+          s_voigt.Set(3,0, 2.0*eta*Dev[3]);
+          s_voigt.Set(4,0, 2.0*eta*Dev[4]);
+          s_voigt.Set(5,0, 2.0*eta*Dev[5]);
           ToFlatMat(s_voigt,m_tau,e*6);
+
+          //UPDATE
+          sigma_eq = sigma_y * pow(tau_relax * e_dot_eq, 1.0/m_perz);
+          
+          double K  = mat[e]->Elastic().BulkMod();
+          p[e] = K * Dvol;
           
           //ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM	
           //ToFlatSymPtr(shear_stress, m_tau, offset_t); 
           //ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
-      
-          /////// H) C_visc o D_gp — matriz tangente constitutiva (6×6)
+   
           /////////////////////////////////////////////////////////////
-          
-          
-          // Construir P_dev (6x6)
-          Matrix Pdev(6,6); Pdev.SetZero();
+          // H) D_gp — Tangente viscoplástica DIAGONAL (Martins)
+          /////////////////////////////////////////////////////////////
+
+          Matrix D_gp(6,6);
+          D_gp.SetZero();
+
           // normales
-          for (int i=0;i<3;i++){
-            for (int j=0;j<3;j++){
-              Pdev.Set(i,j, (i==j?1.0:0.0) - 1.0/3.0 );
-            }
-          }
-          // cortes -> 1 on diag positions 3,4,5
-          Pdev.Set(3,3,1.0); Pdev.Set(4,4,1.0); Pdev.Set(5,5,1.0);
+          D_gp.Set(0,0, 2.0/3.0);
+          D_gp.Set(1,1, 2.0/3.0);
+          D_gp.Set(2,2, 2.0/3.0);
 
-          // eta and deta (example using sigma_eq/edot definition)
-          double eta = 0.5 * sigma_eq_trial / e_dot_eq; // careful, only meaningful if sigma_eq defined from current state
-          double deta_de = /* analytic derivative or small eps approx */ 0.0;
+          // cortes (ingenieril)
+          D_gp.Set(3,3, 1.0/3.0);
+          D_gp.Set(4,4, 1.0/3.0);
+          D_gp.Set(5,5, 1.0/3.0);
 
-          // term outer
-          Matrix nT = n_voigt.getTranspose();
-          Matrix outer_nn = MatMul(n_voigt, nT); // 6x6
+          // factor común
+          D_gp = D_gp * (2.0 * eta);
 
-          //Matrix D_gp = Pdev * (2.0 * eta) + outer_nn * (2.0 * deta_de);
-          Matrix D_gp = Pdev * (2.0 * eta);
+          /////////////////////////////////////////////////////////////
+          // I) Kgp = Bᵀ · D_gp · B · vol
+          /////////////////////////////////////////////////////////////
 
+          Matrix Kgp = MatMul(B.getTranspose(), MatMul(D_gp, B));
+          Kgp = Kgp * vol[e];
 
-          //////I) Kgp = B^T * D_gp * B * (vol[e]) (ndof×ndof)
-          Matrix Kgp = MatMul( B.getTranspose(), MatMul(D_gp, B) );
-          Kgp = Kgp * vol[e]; // or * (detJ*weight)
-          
           /////////////////////////////////////////////////////////
           /// J) b_gp = Kgp * vloc (ndof×1)
 
@@ -563,25 +572,21 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix Pstar(ndof,1); Pstar.SetZero();
           Pstar = Pstar + b_gp * ( (1.0 / e_dot_eq) * vol[e] );
 
-
           //////////////// L) H_elem (ndof×ndof) — integrar coef * (b b^T)
           //////////////// Coef según Martins / tu imagen (simplificada operativa):
 
           // compute sigma_bar (||s||) from s_dev (use shear stress trial or current)
-          double sigma_bar = sigma_eq_trial; // recomendable usar trial or updated s
 
           // derivative dsigma/de (depends on model)  — for Norton/Kelvin you can get analytic
+          //HOLLOMON CASE 
           double dsig_dedot = /* analytic or approximate */ 0.0;
 
           // coef
-          double coef = ( dsig_dedot * (1.0 / e_dot_eq) - sigma_bar / (e_dot_eq*e_dot_eq) ) * (1.0 / e_dot_eq);
+          double coef = ( dsig_dedot * (1.0 / e_dot_eq) - sigma_eq / (e_dot_eq*e_dot_eq) ) * (1.0 / e_dot_eq);
 
           // H contribution:
-          Matrix Hgp = MatMul( b_gp, b_gp.getTranspose() ); // ndof x ndof
-          Hgp = Hgp * coef ; // vol already accounted in b_gp....
-
-          Matrix H_elem = H_elem + Hgp;
-          
+          Matrix H_elem = coef * MatMul( b_gp, b_gp.getTranspose() ); // ndof x ndof
+        
           
           ///////////////M) Q_elem (ndof×ndof) — volumetric coupling
           Matrix Cmat(1,6); Cmat.SetZero();
@@ -601,17 +606,14 @@ void host_ Domain_d::SolveStaticQS_UP(){
           Matrix stress_voigt = FlatSymToVoigt(m_sigma,e*6,m_dim,m_nodxelem);
           //CHANGE TO FORCES TO MATRIX! already calculated
           Matrix fint = MatMul(B.getTranspose(), stress_voigt); //DO NOT TRANSPOSE B DEFITELY
- 
           fint = fint * vol[e];
-          
           Matrix rhs = /*f_ext_elem */-1.0* fint; // f_ext_elem may be zeros except contact
-          rhs = rhs - Pstar * sigma_bar; // Pstar scalar*vector
+          rhs = rhs - Pstar * sigma_eq; // Pstar scalar*vector
           Matrix temp = MatMul( Q_elem, vloc );
           rhs = rhs - MatMul(Kgp, temp);
-
-          solver->assembleElement(e, Aelem);
-                    
           
+          /// ASSEMBLY 
+          solver->assembleElement(e, Aelem);
           solver->assembleResidual(e, rhs);
           
 

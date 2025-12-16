@@ -200,8 +200,8 @@ int main(int argc, char **argv) {
   if (mode == "dynamic")
     dom_d->SolveImplicitGlobalMatrix();
   else 
-    //dom_d->SolveStaticDisplacement();
-    dom_d->SolveStaticQS_V();
+    dom_d->SolveStaticQS_UP();
+    
   VTKWriter writer(dom_d, "out.vtk");
   writer.writeFile();
 	

@@ -470,13 +470,14 @@ int main(int argc, char **argv) {
   string soltype = "Dynamic";
 	cout << "Reading Solver type" << endl; readValue(config["type"], 	soltype); //0: Box
  
-  if (soltype == "Static"){
-    cout << "Solver type is Static"<<endl;
-    dom_d->SolveStaticDisplacement();
-  } else if (soltype == "Dynamic") {
-    cout << "Solver Type is Dynamic "<<endl;
-        dom_d->SolveImplicitGlobalMatrix();
-  }
+  //~ if (soltype == "Static"){
+    //~ cout << "Solver type is Static"<<endl;
+    //~ dom_d->SolveStaticDisplacement();
+  //~ } else if (soltype == "Dynamic") {
+    //~ cout << "Solver Type is Dynamic "<<endl;
+        //~ dom_d->SolveImplicitGlobalMatrix();
+  //~ }
+  dom_d->SolveStaticQS_UP();
   
 	cout << "Program ended."<<endl;
     
