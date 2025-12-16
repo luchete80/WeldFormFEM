@@ -114,7 +114,7 @@ set (SOURCES
 
                         Matrices.C
                         Solver.C
-                        Solver_GlobalMatrix.C
+                        Solver_GlobalMatrix_EPHV.C
                         Solver_GlobalMatrix_QS_martins.C
                         Solver_Eigen.C
                         
