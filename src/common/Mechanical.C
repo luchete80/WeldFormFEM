@@ -1869,17 +1869,17 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
         + 2.0*(Ddev.xy*Ddev.xy + Ddev.yz*Ddev.yz + Ddev.zx*Ddev.zx);
       
       double edot_eq = sqrt(2.0/3.0 * Ddev2);
-      //double edot_max = 500.0;
-      //edot_eq = min(edot_eq, edot_max);
+      double edot_max = 100.0;
+      edot_eq = min(edot_eq, edot_max);
       
-      // ---- flow stress
-      //~ if(mat[e]->Material_model == HOLLOMON)
-        //~ sigma_y[e] = CalcHollomonYieldStress(pl_strain[e], mat[e]);
-      //~ else if(mat[e]->Material_model == JOHNSON_COOK)
-        //~ sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
-      //~ else if(mat[e]->Material_model == _GMT_)
-        //~ sigma_y[e] = CalcGMTYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
-      //~ else if(mat[e]->Material_model == NORTON_HOFF)
+      //~ // ---- flow stress
+      if(mat[e]->Material_model == HOLLOMON)
+        sigma_y[e] = CalcHollomonYieldStress(pl_strain[e], mat[e]);
+      else if(mat[e]->Material_model == JOHNSON_COOK)
+        sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
+      else if(mat[e]->Material_model == _GMT_)
+        sigma_y[e] = CalcGMTYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
+      else if(mat[e]->Material_model == NORTON_HOFF)
         sigma_y[e] = CalcNortonHoffEqStress(edot_eq, mat[e]);
         
       // ---- viscosity (Norton / Perzyna rigid)
