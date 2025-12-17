@@ -322,6 +322,20 @@ void host_ Domain_d::SolveChungHulbert(){
   ResultsJson results(m_name);
   int saved_idx = 0;
   bool need_remesh = false;
+  
+  double f_pen = 50.0;
+  double K_pen;
+    if(mat[0]->Material_model == HOLLOMON ){
+    K_pen = f_pen *CalcHollomonYieldStress(0.0,mat[0]); 
+  } else if (mat[0]->Material_model == JOHNSON_COOK){
+    K_pen = f_pen * CalcJohnsonCookYieldStress(0.0, 0.0, 0.0, mat[0]); 
+    cout << "INITIAL YIELD STRESS: "<<CalcJohnsonCookYieldStress(0.0, 0.0, 0.0, mat[0])<<endl;
+  } else if (mat[0]->Material_model == _GMT_){
+    K_pen = f_pen * CalcGMTYieldStress(0.0, 0.0, 0.0, mat[0]); 
+  }
+  cout << "K_pen "<<K_pen<<"; Bulk Modulus: "<< mat[0]->Elastic().BulkMod()<<endl;
+  
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -707,9 +721,13 @@ void host_ Domain_d::SolveChungHulbert(){
   //calcElemPressureANP();
   // }else
   //if (!remesh_){
-  if      (m_press_algorithm == 0)
-    calcElemPressure();
-  else if (m_press_algorithm == 1)
+  if      (m_press_algorithm == 0){
+    if (m_devElastic)
+      calcElemPressure();
+    else 
+      calcElemPressureRigid(K_pen);
+    
+  } else if (m_press_algorithm == 1)
     calcElemPressureANP();
   //}
 
@@ -723,7 +741,12 @@ void host_ Domain_d::SolveChungHulbert(){
   
   //calcElemPressureFromJ();
   
+  if (m_plastType == PlasticityType::Hardening)
   CalcStressStrain(dt);
+  else if (m_plastType == PlasticityType::Perzyna){
+    if (!m_devElastic)
+        CalcStressStrainRigidViscoPlastic(dt);
+  }
   calcArtificialViscosity(); //Added to Sigma
 
   #ifdef BUILD_REMESH    

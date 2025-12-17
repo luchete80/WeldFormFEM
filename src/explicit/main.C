@@ -514,7 +514,10 @@ int main(int argc, char **argv) {
   } else if (mattype == "JohnsonCook") {
     // //Order is 
                                // //A(sy0) ,B,  ,C,   m   ,n   ,eps_0,T_m, T_transition
-   material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[3],c[2],c[6], c[4],c[5]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
+   if (thermal)
+    material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[2],c[3],c[4], c[5],c[6]); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
+   else //&m_, const double &T_m_, const double &T_t_):
+    material_h  = new JohnsonCook(el,Fy, c[0],c[1],c[2],c[3],1.0, 1.0e10,0.0); //First is hardening // A,B,C,m,n_,eps_0,T_m, T_t);	 //FIRST IS n_ than m
    cout << "Johnson Cook Material"<<endl; 
    
     // //Only 1 material to begin with
@@ -537,7 +540,10 @@ int main(int argc, char **argv) {
       cout << "Strain Rate Range: " <<material_h->er_min<<", "<<material_h->er_max <<endl;
       cout << "Temp   Range: "      <<material_h->T_min<<", "<<material_h->T_max <<endl;
 
-    }    
+    }  else if (mattype == "NortonHoff"){
+      
+      material_h  = new NortonHoff(el,c[0],c[1]);
+    }  
     
     else                              //throw new Fatal("Invalid material type.");                            
     printf("ERROR: Invalid material type.\n");

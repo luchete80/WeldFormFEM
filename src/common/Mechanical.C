@@ -1641,8 +1641,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       //ShearStress = dt * (2.0 * ( StrRate -SRT + RS));
       //tensor3 test = StrRate - 1.0/3.0*Trace(StrRate) * Identity();
       
-      if (m_devElastic)
-        ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT + RS);
+      
+      ShearStress	= ShearStress  + dt*(2.0* mat[e]->Elastic().G()*(StrRate - 1.0/3.0*Trace(StrRate) * Identity() ) + SRT + RS);
       
       //TODO: SAVE IN DOMAIN?
       double eff_strain_rate = sqrt ( 	0.5*( (StrRate.xx-StrRate.yy)*(StrRate.xx-StrRate.yy) +
@@ -1689,21 +1689,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
           
           // Scale the entire deviatoric stress tensor
           ShearStress = ShearStress * scale_factor;
-          
-          // Reconstruct the full stress tensor
-          //Sigma = -p[offset_s] * Identity() + ShearStress;
-          
 
-          
-          // Calculate new equivalent stress for verification
-          //~ tensor3 s_new = Sigma - (1.0/3.0)*Trace(Sigma)*Identity();
-          //~ double J2_new = 0.5*(s_new.xx*s_new.xx + 2.0*s_new.xy*s_new.xy + 
-                              //~ 2.0*s_new.xz*s_new.xz + s_new.yy*s_new.yy +  
-                              //~ 2.0*s_new.yz*s_new.yz + s_new.zz*s_new.zz);
-          //~ double sig_new = sqrt(3.0*J2_new);
-          
-
-          
           // Update tangent modulus if needed
           if(mat[e]->Material_model == HOLLOMON) {
               Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
@@ -1730,6 +1716,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   //////////////////////////////////////////////////////////////
   ////////////////////// PERZYNA ///////////////////////////////
   //////////////////////////////////////////////////////////////
+
   
   double overstress = (sig_trial - sigma_y[e]);
 
@@ -1761,87 +1748,15 @@ dev_t void Domain_d::CalcStressStrain(double dt){
     }
     
 
+  
+  }//PERZYNA
 
-    //~ // Perzyna viscoplastic law (safe, robust)
-    //~ double overstress = (sig_trial - sigma_y[e]);
 
-    //~ // Material / model params (puedes tomar de mat[e] si los declaraste)
-    //~ double K_visco = 500.0e6;   // -> ideal: mat[e]->K_visco
-    //~ double n_visco = 2.0;       // -> ideal: mat[e]->n_visco
 
-    //~ if (overstress > 0.0) {
-      //~ // equivalent plastic strain increment (Perzyna)
-      //~ double dep_candidate = dt * pow(overstress / K_visco, n_visco);
-
-      //~ // protect from huge increments: cap relative to trial stress (tunable)
-      //~ double max_frac = 0.5; // no más del 50% del sig_trial en una iteración (ajustable)
-      //~ double max_dep = max_frac * sig_trial; 
-      //~ double dep = std::min(dep_candidate, max_dep);
-
-      //~ // avoid division by zero
-      //~ const double SMALL = 1e-12;
-      //~ double safe_sig = std::max(sig_trial, SMALL);
-
-      //~ // flow direction (J2) n_dir = s_trial / ||s_trial||
-      //~ tensor3 n_dir;
-      //~ if (safe_sig > 1e-12) {
-        //~ n_dir = s_trial * (1.0 / safe_sig); // s_trial already deviatoric
-      //~ } else {
-        //~ // if practically zero, no plastic flow direction
-        //~ n_dir = nullTensor3();
-      //~ }
-
-      //~ // plastic strain increment tensor (consistent with J2 flow)
-      //~ tensor3 Strain_pl_incr_local = n_dir;
-      //~ Strain_pl_incr_local = Strain_pl_incr_local * ( (2.0/3.0) * dep );
-
-      //~ // update deviatoric stress:
-      //~ if (m_devElastic) {
-        //~ // elasto-visco: restamos la parte elástica asociada a dep
-        //~ ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr_local;
-      //~ } else {
-        //~ // rigid-dev: proyectar el desviador sobre la superficie de fluencia
-        //~ double scale_factor = sigma_y[e] / safe_sig;
-        //~ // Ensure scale_factor in (0,1]
-        //~ if (scale_factor > 1.0) scale_factor = 1.0;
-        //~ if (scale_factor < 0.0) scale_factor = 0.0;
-        //~ // s_trial es el desviador 'trial' — proyectarlo radialmente
-        //~ ShearStress = s_trial * scale_factor;
-      //~ }
-
-      //~ // update scalar equivalent plastic strain
-      //~ pl_strain[e] += dep;
-
-      //~ // store the plastic strain increment tensor for outputs/heating
-      //~ Strain_pl_incr = Strain_pl_incr_local;
-    //~ } else {
-      //~ // no overstress: zero plastic increment
-      //~ Strain_pl_incr = nullTensor3();
-    //~ }    
-
-			//cout << "dep: "<<dep<<endl;
-			//pl_strain[e] += dep;
-			//delta_pl_strain = dep; // For heating work calculation
-			
-      //if (Material_model < JOHNSON_COOK ) //In johnson cook there are several fluences per T,eps,strain rate
-			//if (Material_model == BILINEAR )
-			//  Sigmay += dep*Ep;
-
-      ///// OUTPUT TO Flatten arrays
-      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
-      //ToFlatSymPtr(Strain, 	strain,6*i);		
-      ToFlatSymPtr(ShearStress, m_tau, offset_t);
-      ToFlatSymPtr(Strain,      m_eps, offset_t);
       
-      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
-      
-    }//gp
-  }//el < elcount
-    // end do !gauss point
-  // end do
-  //printf("ELEMENT %d SIGMA\n");
- 
-}// elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+      //printf("Shear Stress\n");
+      //print(ShearStress);
+      // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    // +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
@@ -1930,62 +1845,63 @@ dev_t void Domain_d::CalcStressStrain(double dt){
  
 }
 
-// 
-// !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
-// !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
-dev_t void Domain_d::CalcStressStrain(double dt){
-  
-  par_loop(e,m_elem_count){
+// assumes StrRate and pressure are computed at t+1/2
+dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
+{
+  par_loop(e, m_elem_count){
+
+      int offset_s = e;
+      int offset_t = offset_s * 6;
+
+      tensor3 StrRate = FromFlatSym(m_str_rate, offset_t);
+      tensor3 Strain  = FromFlatSym(m_eps, offset_t);
+
+      // ---- deviatoric strain rate
+      tensor3 Ddev = StrRate - (1.0/3.0)*Trace(StrRate)*Identity();
+
+      double Ddev2 =
+          Ddev.xx*Ddev.xx + Ddev.yy*Ddev.yy + Ddev.zz*Ddev.zz
+        + 2.0*(Ddev.xy*Ddev.xy + Ddev.yz*Ddev.yz + Ddev.zx*Ddev.zx);
       
-      tensor3 RotRate;
-      tensor3 StrRate;
-      tensor3 ShearStress;
-      tensor3 Sigma;
-      tensor3 Strain_pl_incr;
-      tensor3 Strain;
+      double edot_max = 500.0;
+      double edot_eq = sqrt(2.0/3.0 * Ddev2);
 
-      int offset_s = e;   //SCALAR
-      int offset_t = offset_s * 6 ; //SYM TENSOR
-      ShearStress = FromFlatSym(m_tau,          offset_t );
-      StrRate     = FromFlatSym(m_str_rate,     offset_t );
-      RotRate     = FromFlatAntiSym(m_rot_rate, offset_t );
-
-tensor3 D = StrRate;
-tensor3 Ddev = D - (1.0/3.0)*Trace(D)*Identity();
-
-double edot_eq = sqrt(2.0/3.0 * Inner(Ddev, Ddev));
-edot_eq = max(edot_eq, SMALL);
-
-// constitutive law
-double sigma_eq = CalcFlowStress(pl_strain[e], edot_eq, T[e], mat[e]);
-
-double eta = sigma_eq / (2.0 * edot_eq);
-
-// deviatoric stress
-ShearStress = 2.0 * eta * Ddev;
-
-// plastic strain rate
-double dep = edot_eq * dt;
-pl_strain[e] += dep;      Strain      = FromFlatSym(m_eps,          offset_t );
-
-
-
-// pressure (penalty)
-//double p = K * (1.0 - J);//external
-
-// total stress
-Sigma = s - p * Identity();
-
-      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
-      //ToFlatSymPtr(Strain, 	strain,6*i);		
-      ToFlatSymPtr(ShearStress, m_tau, offset_t);
-      ToFlatSymPtr(Strain,      m_eps, offset_t);
+      edot_eq = min(edot_eq, edot_max);
       
-      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
-     
+      // ---- flow stress
+      if(mat[e]->Material_model == HOLLOMON)
+        sigma_y[e] = CalcHollomonYieldStress(pl_strain[e], mat[e]);
+      else if(mat[e]->Material_model == JOHNSON_COOK)
+        sigma_y[e] = CalcJohnsonCookYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
+      else if(mat[e]->Material_model == _GMT_)
+        sigma_y[e] = CalcGMTYieldStress(pl_strain[e], edot_eq, T[e], mat[e]);
+      else if(mat[e]->Material_model == NORTON_HOFF)
+        sigma_y[e] = CalcNortonHoffYieldStress(edot_eq, mat[e]);
+        
+      // ---- viscosity (Norton / Perzyna rigid)
+      double eta = (2.0/3.0)*sigma_y[e] / (edot_eq + 1.0e-2);
+
+      // ---- deviatoric stress (DIRECT)
+      tensor3 ShearStress = 2.0 * eta * Ddev;
+
+      // ---- total stress
+      tensor3 Sigma = -p[offset_s]*Identity() + ShearStress;
+
+      // ---- plastic strain increment
+      double dep = edot_eq * dt;
+      pl_strain[e] += dep;
+
+      // ---- strain update
+      Strain = Strain + dt * StrRate;
+
+      // ---- output
+      ToFlatSymPtr(Sigma,       m_sigma, offset_t);
+      ToFlatSymPtr(ShearStress,m_tau,   offset_t);
+      ToFlatSymPtr(Strain,      m_eps,   offset_t);
 
   }
 }
+
 
 
 // dev_t Matrix Domain_d::CalcElementStressAndTangent(int e, double dt/*, 

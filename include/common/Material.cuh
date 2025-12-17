@@ -10,6 +10,7 @@
 #define HOLLOMON				1 //POWER LAW
 #define JOHNSON_COOK		2
 #define _GMT_         	3
+#define NORTON_HOFF     4
 
 class Elastic_{
 	private:
@@ -79,6 +80,10 @@ class Material_{
   //THERMAL
   double k_T, cp_T; ///MAYBE MOVE TO element or nodes
 
+  //Norton Hoff
+    double K_nh;        // Consistencia
+    double m_nh;        // Exponente de tasa
+    double epsdot0 = 1.0e-3;     // Regularización
 
   spec_ void InitHollomon(const Elastic_ &el, const double sy0_, const double &k_, const double &m_)
   {
@@ -186,7 +191,10 @@ public Material_{
               const double &m_, const double &T_m_, const double &T_t_):
 	Material_(el),A(a),B(b),C(c),
   m(m_),n(n_),eps_0(eps_0_),T_m(T_m_),T_t(T_t_)
-  { Material_model = JOHNSON_COOK;
+  { 
+    printf("JOHNSON COOK MATERIAL PARAMS\n");
+    printf("A: %.3e, B: %.3e, n: %3.e, c:%.3e, eps_0: %.3e, m:%.3e, Tm: %.3e, Tt: %.3e\n",a,b,n,c,eps_0_,m_,T_m_,T_t_);
+    Material_model = JOHNSON_COOK;
   }
 	inline double dev_t CalcYieldStress(){return 0.0;}	
 	inline double dev_t CalcYieldStress(const double &plstrain){
@@ -295,6 +303,48 @@ public Material_{
   //~JohnsonCook(){}
 };
 
+class NortonHoff :
+public Material_
+{
+  public:
+    double K_nh;        // Consistencia
+    double m_nh;        // Exponente de tasa
+    double epsdot0;     // Regularización
+
+    spec_ NortonHoff(){
+      Material_model = NORTON_HOFF;
+      epsdot0 = 1e-3;
+    }
+
+    spec_ NortonHoff(const double &K_, const double &m_, const double &epsdot0_=1e-3)
+    : K_nh(K_), m_nh(m_), epsdot0(epsdot0_)
+    {
+      Material_model = NORTON_HOFF;
+    }
+
+    spec_ NortonHoff(const Elastic_ &el,
+                     const double &K_, const double &m_,
+                     const double &epsdot0_=1e-3)
+    : Material_(el), K_nh(K_), m_nh(m_), epsdot0(epsdot0_)
+    {
+      Material_model = NORTON_HOFF;
+    }
+
+    // -------- equivalent stress
+    dev_t inline double CalcEqStress(const double &edot_eq) const
+    {
+      double ed = edot_eq + epsdot0;
+      return K_nh * pow(ed, m_nh);
+    }
+
+    // -------- viscosity
+    dev_t inline double CalcViscosity(const double &edot_eq) const
+    {
+      double ed = edot_eq + epsdot0;
+      return (2.0/3.0) * (K_nh * pow(ed, m_nh)) / ed;
+    }
+};
+
 
 /////// VIRTUAL FUNCTIONS NOT SUPPORTED ON CUDA ///////
 
@@ -311,6 +361,11 @@ dev_t inline double CalcHollomonYieldStress(const double &strain, Material_ *mat
   
 }
 
+dev_t inline double CalcNortonHoffYieldStress(const double &edot_eq, Material_ *mat) {
+  double ed = edot_eq + mat->epsdot0;
+  return mat->K_nh * pow(ed, mat->m_nh);
+}
+
 dev_t inline void ShowProps(Material_ *mat) //IN CASE OF NOT USING //virtual FUNCTIONS
 {
   printf("K %f \n eps0 %f \n eps1 \n%f, sy0 \n%f, m %f \n", mat->K,mat->eps0,mat->eps1,mat->sy0,mat->m);
@@ -323,7 +378,7 @@ dev_t inline double CalcJohnsonCookYieldStress(const double &strain, const doubl
 	double sr = strain_rate;
 	if (strain_rate == 0.0)
 		sr = 1.e-5;
-	
+	printf("JOHNSON COOK TH %.f, tm %.f, tt%.f\n", T_h,mat->T_m,mat->T_t);
 	double sy = (mat->A+mat->B*pow(strain, mat->n))*(1.0 + mat->C * log (sr/ mat->eps_0) ) * (1.0 - pow(T_h,mat->m));
 	
 	return sy;
