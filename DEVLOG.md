@@ -430,3 +430,5 @@ F90 PREVIOUS VERSION
          -           ADDED New displacement formulation.
 20251210 - Added Perzyna Viscoplastic Law (coeffs need to be checked).
 20251212 - FIXED IMPLICIT TANGENT CONSISTENT J2
+20251217 - ADDED ELASTO & RIGID ViscoPlastic Stress Calc 
+         - Added Contact dt

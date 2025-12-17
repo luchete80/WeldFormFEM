@@ -50,6 +50,8 @@ void dev_t Domain_d::CalcContactForces(){
   */
   //~ par_loop(i,m_dim*m_node_count)
     //~ contforce[i]=0.0;
+    m_dt_gap_min = 1.0;
+    
   double cfn[m_node_count];
   par_loop(i,m_node_count){
     m_mesh_in_contact[i]=-1;
@@ -135,6 +137,7 @@ void dev_t Domain_d::CalcContactForces(){
               //~ printf("ELNODES: %d %d %d \n", trimesh->elnode[3*j],trimesh->elnode[3*j+1],trimesh->elnode[3*j+2]);
               //~ printf("MESH POINT: %.4e %.4e %.4e\n",trimesh->node[j].x,trimesh->node[j].y,trimesh->node[j].z);
               //~ printf("BODY POINT : %.4e %.4e %.4e\n",getNodePos3(i).x,getNodePos3(i).y,getNodePos3(i).z);
+
                             
               double beta_d = 0.1;
               //printf("NODLEN %.4e\n", nodevol);
@@ -146,6 +149,21 @@ void dev_t Domain_d::CalcContactForces(){
               double3 v_rel = getVelVec(i); // master assumed static or you can use relative motion     
               double v_reln = dot(v_rel, trimesh->normal[j]);         
               //double F_damp = 0.0;
+
+              //time
+
+              // double delta = -d; // penetración
+              // double h_eff = pow(m_voln[n],1./3.); // o radio de contacto, o cbrt(nodevol)
+
+              // double delta_eff = max(delta, 0.2 * h_eff);
+
+              // double vn = fabs(v_reln);
+
+              // if (vn > 1e-8) {
+                // double dt_gap = 0.2 * delta_eff / vn;
+                // m_dt_gap_min = min(m_dt_gap_min, dt_gap);
+                 // printf("delta_eff %.3e, vn %.3e , dt gap %.3e\n", delta_eff, vn, dt_gap);
+              // }
 
               double kcont_geo = mat[0]->Elastic().E() * node_area[i] / nodlen;
               //double kcont_geo = mat[0]->Elastic().BulkMod()*nodevol;

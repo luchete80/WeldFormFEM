@@ -335,7 +335,7 @@ void host_ Domain_d::SolveChungHulbert(){
   }
   cout << "K_pen "<<K_pen<<"; Bulk Modulus: "<< mat[0]->Elastic().BulkMod()<<endl;
   
-
+  m_dt_gap_min = 1.0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,6 +443,10 @@ void host_ Domain_d::SolveChungHulbert(){
     
     double prev_dt = dt;
     dt = m_cfl_factor*minl/(mat_cs+max_vel);
+    // if (m_dt_gap_min<dt){
+      // cout << "Contact dt: " << m_dt_gap_min<< " is smaller than CFL dt: "<<dt<<endl;
+      // dt = m_dt_gap_min;
+    // }
     if (remesh_)
       initial_dt = dt;
     if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
