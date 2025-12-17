@@ -1684,9 +1684,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       if (sigma_y[e] < sig_trial) {
         double Ep = 0.0; //Hardening  
         
-        ////// ORIGINAL
-        //~ double scale_factor = sigma_y[e] / sig_trial;
-        //~ ShearStress = ShearStress * scale_factor;
+
 
           //~ // Update tangent modulus if needed
           if(mat[e]->Material_model == HOLLOMON) {
@@ -1696,7 +1694,10 @@ dev_t void Domain_d::CalcStressStrain(double dt){
           } else if (mat[e]->Material_model == _GMT_){
           Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
           }
-        
+          
+        ////// ORIGINAL
+        //~ double scale_factor = sigma_y[e] / sig_trial;
+        //~ ShearStress = ShearStress * scale_factor;        
         //~ Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
         
         //~ if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
