@@ -1808,8 +1808,8 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
         + 2.0*(Ddev.xy*Ddev.xy + Ddev.yz*Ddev.yz + Ddev.zx*Ddev.zx);
       
       double edot_eq = sqrt(2.0/3.0 * Ddev2);
-      double edot_max = 100.0;
-      edot_eq = min(edot_eq, edot_max);
+
+      edot_eq = min(edot_eq, m_max_edot);
       
       //~ // ---- flow stress
      
@@ -1819,8 +1819,8 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
         sigma_y[e] =  CalcNortonHoffEqStress(edot_eq, mat[e]);//Kedot^m
       
       // ---- viscosity (Norton / Perzyna rigid)
-      tensor3 s_dot = (2/3) * sigma_y[e] / edot_eq * Ddev;
       // ---- deviatoric stress (DIRECT)
+      tensor3 s_dot = (2/3) * sigma_y[e] / edot_eq * Ddev + SRT + RS;
       ShearStress = ShearStress + dt * s_dot;
       
       // ---- total stress
