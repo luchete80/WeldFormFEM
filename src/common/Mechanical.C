@@ -1812,13 +1812,14 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
       edot_eq = min(edot_eq, edot_max);
       
       //~ // ---- flow stress
-      //sigma_y[e] = CalcNortonHoffEqStress(edot_eq, mat[e]);
-      double sigma_eq =  CalcNortonHoffEqStress(edot_eq, mat[e]);//Kedot^m
-      // ---- viscosity (Norton / Perzyna rigid)
-      //double eta = (2.0/3.0)*sigma_y[e] / edot_eq;
+     
+      if(mat[e]->Material_model == HOLLOMON) 
+        sigma_y[e] = CalcHollomonYieldStress(pl_strain[e], mat[e]);
+      else if (mat[e]->Material_model == NORTON_HOFF)
+        sigma_y[e] =  CalcNortonHoffEqStress(edot_eq, mat[e]);//Kedot^m
       
-      //tensor3 s_dot = 2.0 * eta * Ddev + SRT + RS;
-      tensor3 s_dot = (2/3) * sigma_eq / edot_eq * Ddev;
+      // ---- viscosity (Norton / Perzyna rigid)
+      tensor3 s_dot = (2/3) * sigma_y[e] / edot_eq * Ddev;
       // ---- deviatoric stress (DIRECT)
       ShearStress = ShearStress + dt * s_dot;
       
