@@ -515,6 +515,7 @@ public:
   dev_t void smoothDevStrainRates(double beta);
   dev_t void CalcStressStrain(double dt);
   dev_t void CalcStressStrainRigidViscoPlastic(double dt);
+  dev_t void CalcStressStrainElastoViscoPlastic(double dt);
   
   dev_t Matrix CalcElementStressAndTangent(int e, double dt); ///// PER ELEMENT (FOR IMPLICIT)
   dev_t void Calc_Elastic_Stress (const double dt);

@@ -741,11 +741,13 @@ void host_ Domain_d::SolveChungHulbert(){
   
   //calcElemPressureFromJ();
   
-  if (m_plastType == PlasticityType::Hardening)
-  CalcStressStrain(dt);
-  else if (m_plastType == PlasticityType::Perzyna){
+  if (m_plastType == PlasticityType::Hardening){
+    CalcStressStrain(dt);
+  } else if (m_plastType == PlasticityType::Perzyna){
     if (!m_devElastic)
-        CalcStressStrainRigidViscoPlastic(dt);
+      CalcStressStrainRigidViscoPlastic(dt);
+    else 
+      CalcStressStrainElastoViscoPlastic(dt);
   }
   calcArtificialViscosity(); //Added to Sigma
 
