@@ -361,7 +361,7 @@ dev_t inline double CalcHollomonYieldStress(const double &strain, Material_ *mat
   
 }
 
-dev_t inline double CalcNortonHoffYieldStress(const double &edot_eq, Material_ *mat) {
+dev_t inline double CalcNortonHoffEqStress(const double &edot_eq, Material_ *mat) {
   double ed = edot_eq + mat->epsdot0;
   return mat->K_nh * pow(ed, mat->m_nh);
 }
