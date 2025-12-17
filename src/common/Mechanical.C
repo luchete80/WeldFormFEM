@@ -1680,6 +1680,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
             //printf("sy %.3f\n",sigma_y[e]);
       // Inside your plasticity block where (sigma_y[e] < sig_trial)
       
+      eff_strain_rate = min(eff_strain_rate,m_max_edot);
       if (sigma_y[e] < sig_trial) {
         double Ep = 0.0; //Hardening  
         
@@ -1906,14 +1907,11 @@ dev_t void Domain_d::CalcStressStrainElastoViscoPlastic(double dt){
         double m = 3.0;
         double G   = mat[e]->Elastic().G();
 
-    //double epdot_max = mat[e]->epdot_max; // s^-1 (50 – 200)
-        double epdot_max = 50.0;
-        
         // --- Perzyna ---
         double gamma_dot = pow(f / sigma_y[e], m) / eta;
 
         // --- CAP
-        gamma_dot = min(gamma_dot, epdot_max);
+        gamma_dot = min(gamma_dot, m_max_edot);
         double dgamma = gamma_dot * dt;
         tensor3 n_dir = (1.0/ (sig_trial + 1e-12)) * s_trial;        
         s_dot = s_dot - 3.0 * G * gamma_dot * n_dir;

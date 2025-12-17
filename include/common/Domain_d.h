@@ -724,6 +724,7 @@ public:
   bool m_devElastic = true;
   PlasticityType m_plastType = PlasticityType::Hardening; //PlasticityType::Perzyna //Norton
   
+  double m_max_edot = 1.0e6;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 protected:
   std::string     m_name;
