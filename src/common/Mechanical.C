@@ -1682,15 +1682,13 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       // Inside your plasticity block where (sigma_y[e] < sig_trial)
       
       if (sigma_y[e] < sig_trial) {
-        double Ep = 0.0; //Hardening
-          //printf("YIELD: %.5e\n", sigma_y[e]);
-          // Calculate scaling factor
-          double scale_factor = sigma_y[e] / sig_trial;
-          
-          // Scale the entire deviatoric stress tensor
-          ShearStress = ShearStress * scale_factor;
+        double Ep = 0.0; //Hardening  
+        
+        ////// ORIGINAL
+        //~ double scale_factor = sigma_y[e] / sig_trial;
+        //~ ShearStress = ShearStress * scale_factor;
 
-          // Update tangent modulus if needed
+          //~ // Update tangent modulus if needed
           if(mat[e]->Material_model == HOLLOMON) {
               Et = CalcHollomonTangentModulus(pl_strain[e], mat[e]);
           } else if (mat[e]->Material_model == JOHNSON_COOK) {
@@ -1699,14 +1697,20 @@ dev_t void Domain_d::CalcStressStrain(double dt){
           Et = CalcGMTTangentModulus(pl_strain[e],eff_strain_rate, T[e], mat[e]);
           }
         
-        Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
+        //~ Ep = mat[e]->Elastic().E()*Et/(mat[e]->Elastic().E()-Et);
         
-        if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
-        dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
-          // Update plastic strain
-        pl_strain[e] += dep;
-      
-        
+        //~ if (Ep<0) Ep = 1.*mat[e]->Elastic().E();
+        //~ dep = (sig_trial - sigma_y[e]) / (3.0 * mat[e]->Elastic().G()+Ep);//Fraser, Eq 3-49 TODO: MODIFY FOR TANGENT MODULUS = 0
+          //~ // Update plastic strain
+        //~ pl_strain[e] += dep;
+        //////////////////////////////////////////
+        double H = Et;  // dσy/dεp
+        double G = mat[e]->Elastic().G();
+        double dgamma = (sig_trial - sigma_y[e]) / (3.0*G + H);
+
+        double factor = 1.0 - (3.0*G*dgamma) / sig_trial;
+        ShearStress = s_trial * factor;
+        pl_strain[e] += dgamma;
 
       }//IF PLASTIC
   } else if (m_plastType == PlasticityType::Perzyna){// hardeing
@@ -1718,7 +1722,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   //////////////////////////////////////////////////////////////
 
   
-  double overstress = (sig_trial - sigma_y[e]);
+  double f = (sig_trial - sigma_y[e]);
 
   // // Viscoplastic flow = Perzyna
   double K_visco = 300.0e6;
@@ -1727,26 +1731,26 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   //double K_visco = mat[e]->K_visco;   // 
   //double n_visco = mat[e]->n_visco;   //
 
-  if (overstress > 0.0) {
-      dep = dt * pow(overstress / K_visco, n_visco);
-      
-      // // Plastic strain increment direction (flow rule J2)
-      tensor3 n_dir = 1.0/ sig_trial * s_trial ;
-      tensor3 Strain_pl_incr = (2.0/3.0) * dep * n_dir;
 
-      if (m_devElastic){
-      // // Update deviatoric stress: subtract viscous part
-        ShearStress = ShearStress - 2.0 * mat[e]->Elastic().G() * Strain_pl_incr;
-      } else {// m_devElastic == false -> RIGID (dev) case: radial return / viscoplastic handling
-        // En rigido-visco, no hay G, simplemente escalás el trial stress
-        double scale_factor = sigma_y[e] / sig_trial; // opción simple
-        ShearStress = s_trial * scale_factor;
-      }
-      // // Update eq. plastic strain
-      pl_strain[e] += dep;
-      
-    }
-    
+  if (f > 0.0) {
+      //~ double tau = mat[e]->visc_relax_time;   // ~1e-4
+      //~ double m   = mat[e]->perzyna_m;         // ~8
+
+      //~ double gamma_dot = pow(f / sigma_y[e], m) / tau;
+      //~ double dgamma = gamma_dot * dt;
+
+      //~ tensor3 n = s_trial / sig_trial;
+
+      //~ // Plastic strain rate
+      //~ tensor3 deps_p = (3.0/2.0) * dgamma * n;
+
+      //~ // Stress update (elastic predictor – plastic corrector)
+      //~ ShearStress = ShearStress - 2.0 * G * deps_p;
+
+      //~ // Update equivalent plastic strain
+      //~ pl_strain[e] += sqrt(2.0/3.0) * Norm(deps_p);
+  }
+
 
   
   }//PERZYNA
