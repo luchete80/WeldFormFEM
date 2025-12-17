@@ -1819,15 +1819,29 @@ dev_t void Domain_d::CalcStressStrain(double dt){
       //~ Strain_pl_incr = nullTensor3();
     //~ }    
 
-  
-  }//PERZYNA
+			//cout << "dep: "<<dep<<endl;
+			//pl_strain[e] += dep;
+			//delta_pl_strain = dep; // For heating work calculation
+			
+      //if (Material_model < JOHNSON_COOK ) //In johnson cook there are several fluences per T,eps,strain rate
+			//if (Material_model == BILINEAR )
+			//  Sigmay += dep*Ep;
 
-
-
+      ///// OUTPUT TO Flatten arrays
+      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      //ToFlatSymPtr(Strain, 	strain,6*i);		
+      ToFlatSymPtr(ShearStress, m_tau, offset_t);
+      ToFlatSymPtr(Strain,      m_eps, offset_t);
       
-      //printf("Shear Stress\n");
-      //print(ShearStress);
-      // elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
+      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+      
+    }//gp
+  }//el < elcount
+    // end do !gauss point
+  // end do
+  //printf("ELEMENT %d SIGMA\n");
+ 
+}// elem%shear_stress(e,gp,:,:)	= dt * (2.0 * mat_G *(elem%str_rate(e,gp,:,:) - 1.0/3.0 * &
                                    // (elem%str_rate(e,gp,1,1)+elem%str_rate(e,gp,2,2)+elem%str_rate(e,gp,3,3))*ident) &
                                    // +SRT+RS) + elem%shear_stress(e,gp,:,:)
                                    
@@ -1914,6 +1928,63 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   // end do
   //printf("ELEMENT %d SIGMA\n");
  
+}
+
+// 
+// !!!!!! IT ASSUMES PRESSURE AND STRAIN RATES ARE ALREADY CALCULATED
+// !!!!!! (AT t+1/2 to avoid stress at rigid rotations, see Benson 1992)
+dev_t void Domain_d::CalcStressStrain(double dt){
+  
+  par_loop(e,m_elem_count){
+      
+      tensor3 RotRate;
+      tensor3 StrRate;
+      tensor3 ShearStress;
+      tensor3 Sigma;
+      tensor3 Strain_pl_incr;
+      tensor3 Strain;
+
+      int offset_s = e;   //SCALAR
+      int offset_t = offset_s * 6 ; //SYM TENSOR
+      ShearStress = FromFlatSym(m_tau,          offset_t );
+      StrRate     = FromFlatSym(m_str_rate,     offset_t );
+      RotRate     = FromFlatAntiSym(m_rot_rate, offset_t );
+
+tensor3 D = StrRate;
+tensor3 Ddev = D - (1.0/3.0)*Trace(D)*Identity();
+
+double edot_eq = sqrt(2.0/3.0 * Inner(Ddev, Ddev));
+edot_eq = max(edot_eq, SMALL);
+
+// constitutive law
+double sigma_eq = CalcFlowStress(pl_strain[e], edot_eq, T[e], mat[e]);
+
+double eta = sigma_eq / (2.0 * edot_eq);
+
+// deviatoric stress
+ShearStress = 2.0 * eta * Ddev;
+
+// plastic strain rate
+double dep = edot_eq * dt;
+pl_strain[e] += dep;      Strain      = FromFlatSym(m_eps,          offset_t );
+
+
+
+// pressure (penalty)
+//double p = K * (1.0 - J);//external
+
+// total stress
+Sigma = s - p * Identity();
+
+      ToFlatSymPtr(Sigma, m_sigma,offset_t);  //TODO: CHECK IF RETURN VALUE IS SLOWER THAN PASS AS PARAM		
+      //ToFlatSymPtr(Strain, 	strain,6*i);		
+      ToFlatSymPtr(ShearStress, m_tau, offset_t);
+      ToFlatSymPtr(Strain,      m_eps, offset_t);
+      
+      ToFlatSymPtr(Strain_pl_incr, m_strain_pl_incr, offset_t);
+     
+
+  }
 }
 
 
