@@ -1725,31 +1725,38 @@ dev_t void Domain_d::CalcStressStrain(double dt){
   
   double f = (sig_trial - sigma_y[e]);
 
-  // // Viscoplastic flow = Perzyna
-  double K_visco = 300.0e6;
-  double n_visco = 1.0;
+
   
   //double K_visco = mat[e]->K_visco;   // 
   //double n_visco = mat[e]->n_visco;   //
 
 
   if (f > 0.0) {
-      //~ double tau = mat[e]->visc_relax_time;   // ~1e-4
-      //~ double m   = mat[e]->perzyna_m;         // ~8
+        //double eta = mat[e]->eta_visco;   // Pa·s
+        //double m   = mat[e]->m_visco;     // 1–3 recomendado
+  // // Viscoplastic flow = Perzyna
+        double eta = 1.0e6;
+        double m = 1.0;
+        double G   = mat[e]->Elastic().G();
 
-      //~ double gamma_dot = pow(f / sigma_y[e], m) / tau;
-      //~ double dgamma = gamma_dot * dt;
+    //double epdot_max = mat[e]->epdot_max; // s^-1 (50 – 200)
+        double epdot_max = 50.0;
+        
+        // --- Perzyna ---
+        double gamma_dot = pow(f / sigma_y[e], m) / eta;
 
-      //~ tensor3 n = s_trial / sig_trial;
+        // --- LIMITADOR CLAVE ---
+        gamma_dot = min(gamma_dot, epdot_max);
+    
+        double dgamma = gamma_dot * dt;
 
-      //~ // Plastic strain rate
-      //~ tensor3 deps_p = (3.0/2.0) * dgamma * n;
+        tensor3 n_dir = (1.0/ (sig_trial + 1e-12)) * s_trial;
 
-      //~ // Stress update (elastic predictor – plastic corrector)
-      //~ ShearStress = ShearStress - 2.0 * G * deps_p;
+        ShearStress = s_trial - 3.0 * G * dgamma * n_dir;
 
-      //~ // Update equivalent plastic strain
-      //~ pl_strain[e] += sqrt(2.0/3.0) * Norm(deps_p);
+        pl_strain[e] += dgamma;
+
+
   }
 
 
