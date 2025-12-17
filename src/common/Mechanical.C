@@ -1902,12 +1902,12 @@ dev_t void Domain_d::CalcStressStrainElastoViscoPlastic(double dt){
         //double eta = mat[e]->eta_visco;   // Pa·s
         //double m   = mat[e]->m_visco;     // 1–3 recomendado
   // // Viscoplastic flow = Perzyna
-        double eta = 1.0e4;
-        double m = 1.0;
+        double eta = 1.0e3;
+        double m = 3.0;
         double G   = mat[e]->Elastic().G();
 
     //double epdot_max = mat[e]->epdot_max; // s^-1 (50 – 200)
-        double epdot_max = 200.0;
+        double epdot_max = 500.0;
         
         // --- Perzyna ---
         double gamma_dot = pow(f / sigma_y[e], m) / eta;
