@@ -226,6 +226,10 @@ int main(int argc, char **argv) {
     
     readValue(config["maxStrRate"], dom_d->m_max_edot);
     readValue(config["minStrRate"], dom_d->m_min_edot);
+    
+
+
+        
     cout << "Max strain rate 'maxStrRate' in Stress Calc: "<<dom_d->m_max_edot<<endl;
     cout << "Min strain rate 'minStrRate' in Stress Calc: "<<dom_d->m_max_edot<<endl;
         
@@ -233,6 +237,12 @@ int main(int argc, char **argv) {
       dom_d->m_plastType = PlasticityType::Perzyna;
       dom_d->m_devElastic = devElastic;
       cout << "Plastic Type is set to Viscous PERZYNA"<<endl;
+      readValue(config["etaVisc"], dom_d->m_eta_visc);
+      readValue(config["mVisc"], dom_d->m_m_visc);
+
+      cout << "Perzyna eta: "<<dom_d->m_eta_visc<<endl;
+      cout << "Perzyna m: "<<dom_d->m_m_visc<<endl;
+    
     }
     else if (plType == "Hardening"){
       if (!devElastic) cout << "WARNING: DEVIATORIC CANNOT BE RIGID IN HARDENING PLASTIC MODEL"<<endl;      
