@@ -323,17 +323,17 @@ void host_ Domain_d::SolveChungHulbert(){
   int saved_idx = 0;
   bool need_remesh = false;
   
-  double f_pen = 50.0;
-  double K_pen;
+  double f_pen = 200.0;
+
     if(mat[0]->Material_model == HOLLOMON ){
-    K_pen = f_pen *CalcHollomonYieldStress(0.0,mat[0]); 
+    m_Kpen = f_pen *CalcHollomonYieldStress(0.0,mat[0]); 
   } else if (mat[0]->Material_model == JOHNSON_COOK){
-    K_pen = f_pen * CalcJohnsonCookYieldStress(0.0, 0.0, 0.0, mat[0]); 
+    m_Kpen = f_pen * CalcJohnsonCookYieldStress(0.0, 0.0, 0.0, mat[0]); 
     cout << "INITIAL YIELD STRESS: "<<CalcJohnsonCookYieldStress(0.0, 0.0, 0.0, mat[0])<<endl;
   } else if (mat[0]->Material_model == _GMT_){
-    K_pen = f_pen * CalcGMTYieldStress(0.0, 0.0, 0.0, mat[0]); 
+    m_Kpen = f_pen * CalcGMTYieldStress(0.0, 0.0, 0.0, mat[0]); 
   }
-  cout << "K_pen "<<K_pen<<"; Bulk Modulus: "<< mat[0]->Elastic().BulkMod()<<endl;
+  cout << "K_pen "<<m_Kpen<<"; Bulk Modulus: "<< mat[0]->Elastic().BulkMod()<<endl;
   
   m_dt_gap_min = 1.0;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,7 +729,7 @@ void host_ Domain_d::SolveChungHulbert(){
     if (m_devElastic)
       calcElemPressure();
     else 
-      calcElemPressureRigid(K_pen);
+      calcElemPressureRigid(m_Kpen);
     
   } else if (m_press_algorithm == 1)
     calcElemPressureANP();

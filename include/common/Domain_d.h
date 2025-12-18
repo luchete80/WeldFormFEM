@@ -928,6 +928,8 @@ protected:
   bool m_sym_axis[3]; //IN CASE OF PLANE SYMM, FOR REMESH.
   
   double m_dt_gap_min; //CONTACT
+  double m_Kpen;
+  bool m_autoKpen;
 
 
 };
