@@ -225,8 +225,10 @@ int main(int argc, char **argv) {
     readValue(config["devElastic"], devElastic);
     
     readValue(config["maxStrRate"], dom_d->m_max_edot);
+    readValue(config["minStrRate"], dom_d->m_min_edot);
     cout << "Max strain rate 'maxStrRate' in Stress Calc: "<<dom_d->m_max_edot<<endl;
-    
+    cout << "Min strain rate 'minStrRate' in Stress Calc: "<<dom_d->m_max_edot<<endl;
+        
     if (plType == "Perzyna"){
       dom_d->m_plastType = PlasticityType::Perzyna;
       dom_d->m_devElastic = devElastic;

@@ -725,6 +725,7 @@ public:
   PlasticityType m_plastType = PlasticityType::Hardening; //PlasticityType::Perzyna //Norton
   
   double m_max_edot = 1.0e6;
+  double m_min_edot = 1.0e-10;
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 protected:
   std::string     m_name;
@@ -930,6 +931,7 @@ protected:
   double m_dt_gap_min; //CONTACT
   double m_Kpen;
   bool m_autoKpen;
+
 
 
 };
