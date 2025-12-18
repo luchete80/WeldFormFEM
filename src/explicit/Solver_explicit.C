@@ -323,7 +323,7 @@ void host_ Domain_d::SolveChungHulbert(){
   int saved_idx = 0;
   bool need_remesh = false;
   
-  double f_pen = 200.0;
+  double f_pen = 50.0;
 
     if(mat[0]->Material_model == HOLLOMON ){
     m_Kpen = f_pen *CalcHollomonYieldStress(0.0,mat[0]); 
