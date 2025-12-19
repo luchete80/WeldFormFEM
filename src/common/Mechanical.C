@@ -1836,9 +1836,11 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
       } else {
         clear(s_new);
       }
-      ShearStress = s_new;
 
-
+      double alpha = 1./10.;
+      ShearStress = s_new*alpha + (ShearStress)*(1-alpha);
+      //ShearStress = s_new;
+      
       // ---- total stress
       tensor3 Sigma = -p[offset_s]*Identity() + ShearStress;
       
