@@ -590,8 +590,14 @@ void host_ Domain_d::SolveChungHulbert(){
     
     need_remesh = false;
     int bad_elem_count = 0;
-    if (m_min_Jnorm<0.001 ||m_min_angle<5.0 )
+    if (m_min_Jnorm<0.001){
       need_remesh=true;
+      cout << "WARNING, Min Jnorm < 0.001, remeshing "<<endl;
+    }
+    if (m_min_angle<5.0 ){
+      need_remesh=true;
+      cout << "WARNING, Min Angle < 15.0, remeshing "<<endl;      
+    }
     if(need_remesh){
       
       
