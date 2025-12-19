@@ -1756,7 +1756,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
             
             ); //Parallel
             //if (m_q_plheat[e]>1.0e-5)
-                  printf("m_q_plheat %.3e\n",m_q_plheat[e]);
+                  //printf("m_q_plheat %.3e\n",m_q_plheat[e]);
             
               
             //printf("plastic heat per element %.3e\n",m_q_plheat[e]*vol[e]);
