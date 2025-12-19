@@ -2290,39 +2290,8 @@ dev_t void Domain_d::printSymmTens(double *v){
     }
   }
 }
-/*
-//ATTENTION  WITH PARALELIZ
-//SHOULD BE ATOMIC
-dev_t void Domain_d::calcMinEdgeLength(){
-  double min_len = 1.0e6;
-  for (int e=0;e<m_elem_count;e++){
-    int off = m_nodxelem * e;
-    //printf("node %d \n",m_elnod[off+0]);
-    if (m_dim == 3){
-      //TETRA
-      for (int i = 0;i<3;i++){      
-        //TODO: CHANGE NON CONST ERROR
-        int j = i+1;
-        if (j==3) j = 0; 
-        double3 x1 = getPosVec3(m_elnod[off+j])-getPosVec3(m_elnod[off+i]);
-        double3 x2 = getPosVec3(m_elnod[off+i])-getPosVec3(m_elnod[off+3]);
-          
-          //double3 x1 = getPosVec3(getElemNode(e,i))-getPosVec3(getElemNode(e,0));+ //getElemNode CRASHES
-          //double3 x2 = getPosVec3(getElemNode(e,i))-getPosVec3(getElemNode(e,3));
-          double d = sqlength(x1);
-          double d2 = sqlength(x2);
-        //printf("Edge Length d %lf, d2 %lf \n", sqrt(d),sqrt(d2));
-        if ( d < min_len )  min_len= d;
-        if ( d2 < min_len ) min_len= d2;
-      }
-    }
-    
-  }
-  m_min_length = sqrt(min_len);
-  printf("Min Edge length %lf\n", m_min_length);
-}
 
-*/
+
 //// TODO: SOLVE THIS EITHER WITH DOUBLE2 include
 #ifndef CUDA_BUILD
 inline double length(const double2 &v) {
@@ -2330,94 +2299,13 @@ inline double length(const double2 &v) {
 }
 #endif
 
-//~ // Calculate min edge length and height
-//~ dev_t void Domain_d::calcMinEdgeLength() {
-    //~ double min_len = 1.0e6;
-    //~ double min_height = 1.0e6;
-    
-    //~ for (int e = 0; e < m_elem_count; e++) {
-        //~ double elem_min_height = 1.0e6;
-        //~ int off = m_nodxelem * e;
-
-        //~ if (m_dim == 3) {  // Tetrahedron case
-            //~ int a = m_elnod[off];
-            //~ int b = m_elnod[off + 1];
-            //~ int c = m_elnod[off + 2];
-            //~ int d = m_elnod[off + 3];
-            
-            //~ double3 A = getPosVec3(a);
-            //~ double3 B = getPosVec3(b);
-            //~ double3 C = getPosVec3(c);
-            //~ double3 D = getPosVec3(d);
-
-            //~ // Compute all 6 edges once
-            //~ double3 edges[6] = {B-A, C-A, D-A, C-B, D-B, D-C};
-            //~ for (int i = 0; i < 6; i++) {
-                //~ double len = length(edges[i]);
-                //~ if (len < min_len) min_len = len;
-            //~ }
-
-            //~ // Compute heights for all 4 faces
-            //~ double3 faces[4][3] = {
-                //~ {B, C, D}, {A, C, D}, {A, B, D}, {A, B, C}
-            //~ };
-            //~ for (int i = 0; i < 4; i++) {
-                //~ double3 x1 = faces[i][1] - faces[i][0];
-                //~ double3 x2 = faces[i][2] - faces[i][0];
-                //~ double3 normal = cross(x1, x2);
-                //~ double area = length(normal);
-                //~ if (area < 1e-12) continue;  // Skip degenerate faces
-                //~ normal = normal / area;
-                
-                //~ double3 vec = getPosVec3(m_elnod[off + i]) - faces[i][0];
-                //~ double height = fabs(dot(vec, normal));
-                //~ if (height < elem_min_height) elem_min_height = height;
-            //~ }
-            //~ m_elem_length[e] = elem_min_height;
-            //~ if (elem_min_height < min_height) min_height = elem_min_height;
-        
-        //~ } else if (m_dim == 2) {  // Triangle in 2D
-            //~ int a = m_elnod[off];
-            //~ int b = m_elnod[off + 1];
-            //~ int c = m_elnod[off + 2];
-
-            //~ double2 A = getPosVec2(a);
-            //~ double2 B = getPosVec2(b);
-            //~ double2 C = getPosVec2(c);
-
-            //~ // Edge lengths
-            //~ double2 edges[3] = {B - A, C - B, A - C};
-            //~ for (int i = 0; i < 3; i++) {
-                //~ double len = length(edges[i]);
-                //~ if (len < min_len) min_len = len;
-            //~ }
-
-            //~ // Compute triangle area and heights
-            //~ double area = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
-            //~ if (area > 1e-12) {
-                //~ double base = length(B - A);
-                //~ double height = 2.0 * area / base;
-                //~ elem_min_height = height;
-                //~ if (height < min_height) min_height = height;
-            //~ }
-
-            //~ m_elem_length[e] = elem_min_height;
-        //~ }
-
-        //~ // Optionally add: else if (m_domtype == _AxiSym_) → treat like 2D but radial weighting
-
-
-    //~ } // 
-    //~ m_min_length = min_len;  // Now stores actual length (not squared)
-    //~ m_min_height = min_height;
-//~ }
-
 ////// NEW INCLUDING ANGLES
 dev_t void Domain_d::calcMinEdgeLength() {
     double min_len = 1.0e6;
     double min_height = 1.0e6;
     double min_angle = 1.0e6;
     double max_angle = -1.0e6;
+    m_min_Jnorm = 1.0e6;
 
     for (int e = 0; e < m_elem_count; e++) {
         double elem_min_height = 1.0e6;
@@ -2431,7 +2319,7 @@ dev_t void Domain_d::calcMinEdgeLength() {
             int b = m_elnod[off + 1];
             int c = m_elnod[off + 2];
             int d = m_elnod[off + 3];
-            
+          
             double3 A = getPosVec3(a);
             double3 B = getPosVec3(b);
             double3 C = getPosVec3(c);
@@ -2475,15 +2363,87 @@ dev_t void Domain_d::calcMinEdgeLength() {
                 if (ln > 1e-16) n = n / ln;
                 normals[i] = n;
             }
+            // ANGLES OLD WAY
             // 6 dihedral angles between face pairs
-            int pairs[6][2] = {{0,1},{0,2},{0,3},{1,2},{1,3},{2,3}};
-            for (int p = 0; p < 6; p++) {
-                double cang = dot(normals[pairs[p][0]], normals[pairs[p][1]]);
+            // int pairs[6][2] = {{0,1},{0,2},{0,3},{1,2},{1,3},{2,3}};
+            // for (int p = 0; p < 6; p++) {
+                // double cang = dot(normals[pairs[p][0]], normals[pairs[p][1]]);
+                // cang = fmax(-1.0, fmin(1.0, cang));
+                // double ang_deg = acos(cang) * 180.0 / M_PI;
+                // if (ang_deg < elem_min_angle) elem_min_angle = ang_deg;
+                // if (ang_deg > elem_max_angle) elem_max_angle = ang_deg;
+            // }
+            
+            
+            
+            ////ANGLES; NEW WAY
+            //////////////////////--- dihedral angles per edge (robust) ---
+            // int edges[6][2] = {
+                // {a,b}, {a,c}, {a,d},
+                // {b,c}, {b,d}, {c,d}
+            // };
+
+            // For each edge, the two opposite faces
+            // Each face is given by the 3 nodes that define it
+            int faces_per_edge[6][2][3] = {
+                {{a,b,c},{a,b,d}}, // edge ab
+                {{a,c,b},{a,c,d}}, // edge ac
+                {{a,d,b},{a,d,c}}, // edge ad
+                {{b,c,a},{b,c,d}}, // edge bc
+                {{b,d,a},{b,d,c}}, // edge bd
+                {{c,d,a},{c,d,b}}  // edge cd
+            };
+
+            for (int e2 = 0; e2 < 6; e2++) {
+
+                // --- face 1 normal ---
+                double3 P1 = getPosVec3(faces_per_edge[e2][0][0]);
+                double3 P2 = getPosVec3(faces_per_edge[e2][0][1]);
+                double3 P3 = getPosVec3(faces_per_edge[e2][0][2]);
+                double3 n1 = cross(P2 - P1, P3 - P1);
+                double l1 = length(n1);
+                if (l1 < 1e-16) continue;
+                n1 = n1/l1;
+
+                // --- face 2 normal ---
+                P1 = getPosVec3(faces_per_edge[e2][1][0]);
+                P2 = getPosVec3(faces_per_edge[e2][1][1]);
+                P3 = getPosVec3(faces_per_edge[e2][1][2]);
+                double3 n2 = cross(P2 - P1, P3 - P1);
+                double l2 = length(n2);
+                if (l2 < 1e-16) continue;
+                n2 = n2/l2;
+
+                // --- interior dihedral angle ---
+                double cang = dot(n1, n2);
                 cang = fmax(-1.0, fmin(1.0, cang));
-                double ang_deg = acos(cang) * 180.0 / M_PI;
-                if (ang_deg < elem_min_angle) elem_min_angle = ang_deg;
-                if (ang_deg > elem_max_angle) elem_max_angle = ang_deg;
+                double ang = M_PI - acos(cang);   // interior angle
+
+                double ang_deg = ang * 180.0 / M_PI;
+
+                elem_min_angle = fmin(elem_min_angle, ang_deg);
+                elem_max_angle = fmax(elem_max_angle, ang_deg);
             }
+            
+            double3 BA = B - A;
+            double3 CA = C - A;
+            double3 DA = D - A;
+            
+            // --- edge lengths ---
+            double l2_sum = 0.0;
+            double3 E[6] = {B-A, C-A, D-A, C-B, D-B, D-C};
+            for (int i = 0; i < 6; i++) {
+                double l = length(E[i]);
+                l2_sum += l*l;
+            }
+            //isthe same that m_detJ but they are calculated after
+            double Jgeom = dot(BA, cross(CA, DA));  // = 6*V (signed)
+            //cout << "Jgeom "<<Jgeom<<", detJ "<<m_detJ[e]<<endl;
+
+            double V = fabs(Jgeom) / 6.0;
+            double Jnorm = (6.0 * V) / pow(l2_sum, 1.5);
+            
+            if (Jnorm<m_min_Jnorm) m_min_Jnorm = Jnorm;
 
         } else if (m_dim == 2) {  // --- Triangle case ---
             int a = m_elnod[off];
@@ -2537,7 +2497,11 @@ dev_t void Domain_d::calcMinEdgeLength() {
         if (elem_min_angle < min_angle) min_angle = elem_min_angle;
         if (elem_max_angle > max_angle) max_angle = elem_max_angle;
     }
-
+    
+    // cout <<"elem_min_angle"<<min_angle<<endl;
+    // cout <<"elem_max_angle"<<max_angle<<endl;
+    // cout <<"Min Jnorm "<<m_min_Jnorm<<endl;
+    
     // global min/max
     m_min_length = min_len;
     m_min_height = min_height;

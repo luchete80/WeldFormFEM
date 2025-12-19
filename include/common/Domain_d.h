@@ -768,6 +768,7 @@ protected:
   double *m_elem_length; //FOR CONTACT
   
   double *m_elem_min_angle,*m_elem_max_angle;
+  double m_min_Jnorm;
   
   double *p_node; //FOR CONTACT AND ANP (ANP will be overriden by HG later)
   double *m_elem_area;

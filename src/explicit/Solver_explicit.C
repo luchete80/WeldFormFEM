@@ -336,6 +336,7 @@ void host_ Domain_d::SolveChungHulbert(){
   cout << "K_pen "<<m_Kpen<<"; Bulk Modulus: "<< mat[0]->Elastic().BulkMod()<<endl;
   
   m_dt_gap_min = 1.0;
+  cout <<"Elem_min_angle"<<m_min_angle <<", Elem_max_angle"<<m_max_angle <<"Elem Min Jnorm "<<m_min_Jnorm<<endl;
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////// MAIN SOLVER LOOP /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,6 +353,7 @@ void host_ Domain_d::SolveChungHulbert(){
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     //std::cout << "CPU Overall elapsed time: " << timer.elapsed() << " seconds\n";  
+    cout <<"Elem_min_angle"<<m_min_angle <<", Elem_max_angle"<<m_max_angle <<"Elem Min Jnorm "<<m_min_Jnorm<<endl;
   }
   
 
@@ -431,48 +433,7 @@ void host_ Domain_d::SolveChungHulbert(){
     }
   }
 
-  max_vel=0.0;
-  if (!m_fixed_dt){
-    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
-    calcMinEdgeLength();
-    double minl = getMinLength();
-    for (int i=0;i<m_node_count;i++){
-      vector_t v = getVelVec(i);
-      if(norm(v)>max_vel)
-        max_vel = norm(v);
-    
-    double prev_dt = dt;
-    dt = m_cfl_factor*minl/(mat_cs+max_vel);
-    // if (m_dt_gap_min<dt){
-      // cout << "Contact dt: " << m_dt_gap_min<< " is smaller than CFL dt: "<<dt<<endl;
-      // dt = m_dt_gap_min;
-    // }
-    if (remesh_)
-      initial_dt = dt;
-    if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
-      
-    }
-    
-    need_remesh = false;
-    int bad_elem_count = 0;
-    //~ for (int e=0;e<m_elem_count;e++){
-      //~ if (m_elem_min_angle[e] < 15.0 || m_elem_max_angle[e] > 160.0)
-        //~ bad_elem_count++;
-    //~ }
-    double bad_frac = double(bad_elem_count) / double(m_elem_count);
-    if (bad_frac > 0.05){  // más del 5% de los elementos malos
-      need_remesh = true;
-      printf("Mesh quality: %.2f%% elements out of range [15°,160°]\n", bad_frac * 100.0);
 
-    }
-    // if (dt_new > 1.0e-20)
-      // dt = dt_new;
-    // else{
-      // ////DIVERGENCE
-      // cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
-      
-    // }
-  }
   
   
 
@@ -594,7 +555,69 @@ void host_ Domain_d::SolveChungHulbert(){
   cudaDeviceSynchronize();
   
   #else
+    
   calcElemJAndDerivatives();
+  
+  #ifdef BUILD_REMESH
+  for (int e=0;e<m_elem_count;e++){
+    if (m_detJ[e]<0.0){
+      need_remesh=true;
+      cout << "WARNING! INVERTER JACOBIAN in element "<<e<<endl;
+    }
+  }
+
+  max_vel=0.0;
+  if (!m_fixed_dt){
+    double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
+    calcMinEdgeLength();//AFTER JACOBIAN CALC
+    double minl = getMinLength();
+    for (int i=0;i<m_node_count;i++){
+      vector_t v = getVelVec(i);
+      if(norm(v)>max_vel)
+        max_vel = norm(v);
+    
+    double prev_dt = dt;
+    dt = m_cfl_factor*minl/(mat_cs+max_vel);
+    // if (m_dt_gap_min<dt){
+      // cout << "Contact dt: " << m_dt_gap_min<< " is smaller than CFL dt: "<<dt<<endl;
+      // dt = m_dt_gap_min;
+    // }
+    if (remesh_)
+      initial_dt = dt;
+    if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
+      
+    }
+    
+    need_remesh = false;
+    int bad_elem_count = 0;
+    if (m_min_Jnorm<0.001 ||m_min_angle<5.0 )
+      need_remesh=true;
+    if(need_remesh){
+      
+      
+    }
+   // if (J < 0.0)
+    // REMESH_NOW;
+  // if (theta_min < 8.0)
+    // REMESH_SOON;
+  // if (Jn < 0.05)
+    // REMESH_SOON;
+  
+    double bad_frac = double(bad_elem_count) / double(m_elem_count);
+    if (bad_frac > 0.05){  // más del 5% de los elementos malos
+      need_remesh = true;
+      printf("Mesh quality: %.2f%% elements out of range [15,160]\n", bad_frac * 100.0);
+    }
+    // if (dt_new > 1.0e-20)
+      // dt = dt_new;
+    // else{
+      // ////DIVERGENCE
+      // cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
+      
+    // }
+  }    
+    
+  #endif
   if (!remesh_) { //Already calculated previously to account for conservation.
     if (m_dim == 2 && m_domtype == _Axi_Symm_)
       Calc_Element_Radius();
