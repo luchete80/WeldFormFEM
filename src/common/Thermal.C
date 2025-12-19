@@ -142,6 +142,23 @@ void Domain_d::calcInelasticHeatFraction(){
   //~ #endif
 }//IHF
 
+////// Dtotal = Dmech + Dthermal
+///// This substract thermal to work Stress with Mechanical part
+dev_t void Domain_d::calcThermalExpansion(){
+  par_loop(e, m_elem_count) {
+    int offset_t = 6 *e;
+
+    double dTdt_gp = 0.0;
+    for (int i = 0; i < m_nodxelem; ++i) {
+        int node = m_elnod[e*m_nodxelem + i];
+        dTdt_gp += 1.0/m_nodxelem * m_dTedt[node];
+    }
+
+    tensor3 StrRate     = FromFlatSym(m_str_rate,     offset_t );
+    StrRate = StrRate - mat[e]->exp_T * dTdt_gp * dt * Identity();
+    ToFlatSymPtr(StrRate,m_str_rate,   offset_t);
+  }
+}
 
 
 /*

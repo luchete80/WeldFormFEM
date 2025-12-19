@@ -531,8 +531,9 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->rho,          rho,  sizeof(double) * m_dom->m_elem_count ); 
   
   if (m_dom->m_thermal){
-    memcpy_t(m_dom->T,        Tfield, sizeof(double) * m_dom->m_node_count);     
-    
+    memcpy_t(m_dom->T,        Tfield, sizeof(double) * m_dom->m_node_count);    
+    //THIS IS CRITIC 
+    for (int i = 0; i < m_dom->m_elem_count*m_dom->m_nodxelem; ++i)  m_dom->m_dTedt[i] = 0.0; //THERMAL EXPANSION IS BEFORE dTde calac
   }
   
   for (int i=0;i<m_dom->m_node_count*m_dom->m_dim;i++){

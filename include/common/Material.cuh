@@ -79,7 +79,9 @@ class Material_{
   
   //THERMAL
   double k_T, cp_T; ///MAYBE MOVE TO element or nodes
-
+  
+  double exp_T = 0.0; //thermal expansion
+  
   //Norton Hoff
     double K_nh;        // Consistencia
     double m_nh;        // Exponente de tasa

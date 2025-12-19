@@ -882,7 +882,7 @@ void Domain_d::Free(){
   free_t (m_mglob); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 
   free_t (T);
-  free_t( m_dTedt);
+  free_t(m_dTedt);
   free_t(m_q_plheat);
 
  

@@ -712,6 +712,8 @@ void host_ Domain_d::SolveChungHulbert(){
   //SECOND TIME
     //STRESSES CALC
   calcElemStrainRates();
+  calcThermalExpansion();
+  
   //smoothDevStrainRates(0.5);
   #ifdef BUILD_REMESH    
   if (s_wup < 1.0 ){  

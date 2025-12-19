@@ -568,7 +568,8 @@ int main(int argc, char **argv) {
     ////// THERMAL 
     material_h->cs0 = sqrt(material_h->Elastic().BulkMod()/rho); //TODO: INSIDE MATERIAL 
     readValue(material[0]["thermalCond"], 	  material_h->k_T);
-    readValue(material[0]["thermalHeatCap"], 	material_h->cp_T);    
+    readValue(material[0]["thermalHeatCap"], 	material_h->cp_T);   
+    readValue(material[0]["thermalExp"], 	material_h->exp_T); 
     readValue(Fy, 	material_h->sy0 );
     dom_d->AssignMaterial(material_h);
   }

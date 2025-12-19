@@ -433,3 +433,6 @@ F90 PREVIOUS VERSION
 20251217 - ADDED ELASTO & RIGID ViscoPlastic Stress Calc 
          - Added Contact dt
 20251219 - Fixed Thermal dep (Was disabled from hardening correction)
+         - Fixed thermal deletion of q_pl_heat at domain resize.
+         - Added Thermal expansion
+         - FIXED dTdt set to zero after remesh. 

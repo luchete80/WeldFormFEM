@@ -556,6 +556,7 @@ public:
   
   inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
   
+  dev_t void calcThermalExpansion();
   
 	void SolveChungHulbert();
   void setdtOut(const double &t){m_dtout=t;}
@@ -728,6 +729,7 @@ public:
   double m_min_edot = 1.0e-10;
   double m_eta_visc = 1.0e-3;
   double m_m_visc   = 1.0;
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 protected:
   std::string     m_name;
