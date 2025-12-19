@@ -209,6 +209,33 @@ std::array<double, 3> interpolate_vector(const std::array<double, 3>& p,
     };
 }
 
+//~ template <int dim>
+//~ std::array<double, dim>
+//~ interpolate_vector(
+    //~ const std::array<double, 3>& p,
+    //~ const std::array<double, 3>& p0,
+    //~ const std::array<double, 3>& p1,
+    //~ const std::array<double, 3>& p2,
+    //~ const std::array<double, 3>& p3,
+    //~ const std::array<double, dim>& v0,
+    //~ const std::array<double, dim>& v1,
+    //~ const std::array<double, dim>& v2,
+    //~ const std::array<double, dim>& v3)
+//~ {
+    //~ // Exactamente igual a la original:
+    //~ auto lambdas = barycentric_coordinates(p, p0, p1, p2, p3);
+
+    //~ std::array<double, dim> res{};
+    //~ for (int d = 0; d < dim; ++d) {
+        //~ res[d] = lambdas[0] * v0[d]
+               //~ + lambdas[1] * v1[d]
+               //~ + lambdas[2] * v2[d]
+               //~ + lambdas[3] * v3[d];
+    //~ }
+
+    //~ return res;
+//~ }
+
 void setVec (double *vec, int size, int dim, double val = 0.0){
 
 for (int v=0;v<size;v++)
