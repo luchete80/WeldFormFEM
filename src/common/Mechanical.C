@@ -1820,11 +1820,17 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
       
       // ---- viscosity (Norton / Perzyna rigid)
       // ---- deviatoric stress (DIRECT)
-      double s_factor = (edot_eq > m_min_edot) ? (2.0/3.0 * sigma_y[e] / edot_eq) : 0.0;
-      tensor3 s_dot = s_factor * Ddev + SRT + RS;
-
-      ShearStress = ShearStress + dt * s_dot;
       
+    tensor3 s_new;
+    if (edot_eq > m_min_edot) {
+    double factor = (2.0/3.0) * sigma_y[e] / edot_eq;
+    s_new = factor * Ddev;
+    } else {
+      s_new = Zero();
+    }
+
+     ShearStress = s_new;
+
       // ---- total stress
       tensor3 Sigma = -p[offset_s]*Identity() + ShearStress;
       
