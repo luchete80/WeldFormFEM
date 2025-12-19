@@ -732,7 +732,7 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   //////if thermal
   
   malloc_t (T,      double,node_count);
-  malloc_t(m_dTedt,    double, m_elem_count * m_dim * m_nodxelem);
+  malloc_t(m_dTedt,    double, m_elem_count * m_nodxelem);
 
   /// MATRICES ///
   /// dHxy_detJ: DIM X NODXELEM
@@ -975,6 +975,11 @@ void Domain_d::Free(){
   
   free_t (m_elem_neigh);
   free_t (m_elem_neigh_count);  
+  
+  free_t(m_elem_min_angle);
+  free_t(m_elem_max_angle);
+  free_t (m_mesh_in_contact);
+
 }
 
 
@@ -2523,7 +2528,7 @@ dev_t void Domain_d::calcMinEdgeLength() {
             elem_max_angle = fmax(angA, fmax(angB, angC));
         }
 
-
+        //cout << "angle element "<<e<<endl;
         //m_elem_min_angle[e] = elem_min_angle;
         //m_elem_max_angle[e] = elem_max_angle;
         
