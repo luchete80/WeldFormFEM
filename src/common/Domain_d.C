@@ -1747,7 +1747,7 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
     //cout <<endl;
   }
   memcpy_t(this->x,   x_H, m_dim*sizeof(double) * m_node_count);    
-  delete x_H;
+  delete[] x_H;
   
 
   int *elnod_h       = new int [m_elem_count * m_nodxelem]; //Flattened  
@@ -1773,6 +1773,8 @@ void Domain_d::CreateFromLSDyna(lsdynaReader &reader){
   
   cout << "Node Size: "<<m_node_count<<endl;  
   cout << "Element Size: "<<m_elem_count<<endl;  
+  
+  delete [] elnod_h;
   
 }
 
