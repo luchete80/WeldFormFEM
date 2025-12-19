@@ -430,6 +430,7 @@ int main(int argc, char **argv) {
   bool thermal = false;
   readValue(config["thermal"], thermal);
   if (thermal){
+    cout << "THERMAL COUPLING SET TO ON"<<endl;
     dom_d->setThermalOn();
     dom_d->setTemp(IniTemp);
   }

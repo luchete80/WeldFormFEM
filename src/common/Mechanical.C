@@ -1712,6 +1712,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
         double factor = 1.0 - (3.0*G*dgamma) / sig_trial;
         ShearStress = s_trial * factor;
         pl_strain[e] += dgamma;
+        dep = dgamma;
 
       }//IF PLASTIC
   }
@@ -1728,7 +1729,7 @@ dev_t void Domain_d::CalcStressStrain(double dt){
 
       if (m_thermal)
         m_q_plheat[e]  = 0.0;
-      
+
       if (dep > 0.0){
         ///////To calculate inelastic fraction and plastic work
         double f = dep/sigma_y[e];
@@ -1754,8 +1755,8 @@ dev_t void Domain_d::CalcStressStrain(double dt){
             Sigma.zz*depdt.zz
             
             ); //Parallel
-          //~ if (m_q_plheat[e]>1.0e-5)
-            //~ printf("m_q_plheat %.3e\n",m_q_plheat[e]);
+            //if (m_q_plheat[e]>1.0e-5)
+                  printf("m_q_plheat %.3e\n",m_q_plheat[e]);
             
               
             //printf("plastic heat per element %.3e\n",m_q_plheat[e]*vol[e]);
@@ -1813,23 +1814,30 @@ dev_t void Domain_d::CalcStressStrainRigidViscoPlastic(double dt)
       
       //~ // ---- flow stress
      
-      if(mat[e]->Material_model == HOLLOMON) 
+      if(mat[e]->Material_model == HOLLOMON) {
+        //double edot_eff = sqrt(edot_eq*edot_eq + mat[e]->epsdot0*mat[e]->epsdot0);
         sigma_y[e] = CalcHollomonYieldStress(pl_strain[e], mat[e]);
-      else if (mat[e]->Material_model == NORTON_HOFF)
+      } else if (mat[e]->Material_model == NORTON_HOFF)
         sigma_y[e] =  CalcNortonHoffEqStress(edot_eq, mat[e]);//Kedot^m
       
       // ---- viscosity (Norton / Perzyna rigid)
       // ---- deviatoric stress (DIRECT)
+      /// OLD
+      //double s_factor = (edot_eq > m_min_edot) ? (2.0/3.0 * sigma_y[e] / edot_eq) : 0.0;
+      //tensor3 s_ = s_factor * Ddev + (SRT + RS)*dt;
+      //ShearStress = ShearStress + s_;
       
-    tensor3 s_new;
-    if (edot_eq > m_min_edot) {
-    double factor = (2.0/3.0) * sigma_y[e] / edot_eq;
-    s_new = factor * Ddev;
-    } else {
-      s_new = Zero();
-    }
+      
+      tensor3 s_new;
+      double normD = sqrt(Ddev2 + m_min_edot*m_min_edot);
+      if (edot_eq > m_min_edot) {
+      double factor = (2.0/3.0) * sigma_y[e] / normD;
+      s_new = factor * Ddev;
+      } else {
+        clear(s_new);
+      }
+      ShearStress = s_new;
 
-     ShearStress = s_new;
 
       // ---- total stress
       tensor3 Sigma = -p[offset_s]*Identity() + ShearStress;

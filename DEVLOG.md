@@ -432,3 +432,4 @@ F90 PREVIOUS VERSION
 20251212 - FIXED IMPLICIT TANGENT CONSISTENT J2
 20251217 - ADDED ELASTO & RIGID ViscoPlastic Stress Calc 
          - Added Contact dt
+20251219 - Fixed Thermal dep (Was disabled from hardening correction)
