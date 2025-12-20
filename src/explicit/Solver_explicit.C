@@ -598,10 +598,10 @@ void host_ Domain_d::SolveChungHulbert(){
       // need_remesh=true;
       // cout << "WARNING, Min Angle < 15.0, remeshing "<<endl;      
     // }
-    if((double)m_bad_elem_count/(double)m_elem_count > 0.2){
-      cout <<"BAD ELEMENT COUNT > 20%"<<endl;
-      need_remesh=true;
-    }
+    // if((double)m_bad_elem_count/(double)m_elem_count > 0.2){
+      // cout <<"BAD ELEMENT COUNT > 20%"<<endl;
+      // need_remesh=true;
+    // }
    // if (J < 0.0)
     // REMESH_NOW;
   // if (theta_min < 8.0)
@@ -609,8 +609,8 @@ void host_ Domain_d::SolveChungHulbert(){
   // if (Jn < 0.05)
     // REMESH_SOON;
   
-    double bad_frac = double(bad_elem_count) / double(m_elem_count);
-    if (bad_frac > 0.05){  // más del 5% de los elementos malos
+    double bad_frac = double(m_bad_elem_count) / double(m_elem_count);
+    if (bad_frac > 0.20s){  // más del 5% de los elementos malos
       need_remesh = true;
       printf("Mesh quality: %.2f%% elements out of range [15,160]\n", bad_frac * 100.0);
     }
