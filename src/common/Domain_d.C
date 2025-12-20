@@ -2306,7 +2306,8 @@ dev_t void Domain_d::calcMinEdgeLength() {
     double min_angle = 1.0e6;
     double max_angle = -1.0e6;
     m_min_Jnorm = 1.0e6;
-
+    double Jnorm;
+    m_bad_elem_count = 0;
     for (int e = 0; e < m_elem_count; e++) {
         double elem_min_height = 1.0e6;
         double elem_min_angle = 1.0e6;
@@ -2441,9 +2442,10 @@ dev_t void Domain_d::calcMinEdgeLength() {
             //cout << "Jgeom "<<Jgeom<<", detJ "<<m_detJ[e]<<endl;
 
             double V = fabs(Jgeom) / 6.0;
-            double Jnorm = (6.0 * V) / pow(l2_sum, 1.5);
+            Jnorm = (6.0 * V) / pow(l2_sum, 1.5);
             
             if (Jnorm<m_min_Jnorm) m_min_Jnorm = Jnorm;
+            
 
         } else if (m_dim == 2) {  // --- Triangle case ---
             int a = m_elnod[off];
@@ -2496,7 +2498,12 @@ dev_t void Domain_d::calcMinEdgeLength() {
         
         if (elem_min_angle < min_angle) min_angle = elem_min_angle;
         if (elem_max_angle > max_angle) max_angle = elem_max_angle;
-    }
+    
+    
+      if (elem_min_angle<5.0 || Jnorm<0.001)
+        m_bad_elem_count++;
+      
+    }//elem e
     
     // cout <<"elem_min_angle"<<min_angle<<endl;
     // cout <<"elem_max_angle"<<max_angle<<endl;
