@@ -85,7 +85,7 @@ class TriMesh_d{
   
   int *ele_mesh_id;
   double *T;        //if constant
-  double T_const;   //FOR ALL MATS
+  double T_const = 0.0;   //FOR ALL MATS
   //int *nod_mesh_id;
 
   double3 *react_force;   //Per mesh
@@ -110,7 +110,7 @@ class TriMesh_d{
   int current_elem_capacity = 0;
 
   double *mu_sta, *mu_dyn;
-  double heat_cond;
+  double heat_cond = 0.0;
   
   ///////
 	
