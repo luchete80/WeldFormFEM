@@ -253,7 +253,8 @@ void ReMesher::MapNodal(double *vfield, double *o_field){
 }
 void ReMesher::MapNodalScalar(double *vfield, double *o_field){
   #ifndef REMESH_OMEGA_H
-  MapNodalVectorRaw<1>        (vfield, o_field);
+  //MapNodalVectorRaw<1>        (vfield, o_field);
+  MapNodalScalarRaw(vfield, o_field);
   #else              
 
   #endif
@@ -744,6 +745,7 @@ int ReMesher::find_closest_node(const std::array<double, 3>& x) {
 
 /////WITH THE RAW ELEM AND CONNECT
 //args: NEW (m_node_count), OLD(m_dom->m_elem_count)
+///TODO: NOT USAE WITH SCALARS
 template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // Loop over the target nodes in the new mesh
@@ -862,6 +864,50 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     
 }//MAP
 
+
+void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
+{
+    for (int vert = 0; vert < m_node_count; vert++) {
+
+        double x[3];
+        for (int d = 0; d < 3; d++)
+            x[d] = m_x[3*vert + d];
+
+        bool found = false;
+
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+
+            int n0 = m_dom->m_elnod[4*i+0];
+            int n1 = m_dom->m_elnod[4*i+1];
+            int n2 = m_dom->m_elnod[4*i+2];
+            int n3 = m_dom->m_elnod[4*i+3];
+
+            std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+            auto λ = stable_barycentric({x[0],x[1],x[2]}, p0,p1,p2,p3);
+
+            if (λ[0]>=-1e-10 && λ[1]>=-1e-10 && λ[2]>=-1e-10 && λ[3]>=-1e-10) {
+
+                sfield[vert] =
+                      λ[0]*o_field[n0]
+                    + λ[1]*o_field[n1]
+                    + λ[2]*o_field[n2]
+                    + λ[3]*o_field[n3];
+
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            int nn = find_closest_node({x[0],x[1],x[2]});
+            sfield[vert] = o_field[nn];
+        }
+    }
+}
 
 
 // void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {

@@ -87,6 +87,8 @@ class ReMesher{
   template <int dim>
   void MapNodalVectorRaw(double *vfield, double *o_field); //
   void MapElemVectorRaw  (double *vfield, double *o_field, int field_dim); ///
+  
+  void MapNodalScalarRaw(double* sfield, double* o_field);
 
   void MapElemVectorL2(double *vfield, double *o_field, int field_dim);
   
