@@ -817,6 +817,56 @@ dev_t void Domain_d::calcElemPressure() {
   delete[] voln;
 }
 
+//////// INDUSTRY STYLE.
+//~ dev_t void Domain_d::calcElemPressure()
+//~ {
+  //~ // --- 1. Nodal volume accumulation ---
+  //~ double *voln_0 = new double[m_node_count];
+  //~ double *voln   = new double[m_node_count];
+
+  //~ par_loop(n, m_node_count) {
+    //~ voln_0[n] = 0.0;
+    //~ voln[n]   = 0.0;
+    //~ for (int i = 0; i < m_nodel_count[n]; ++i) {
+      //~ int e = m_nodel[m_nodel_offset[n] + i];
+      //~ voln_0[n] += vol_0[e];
+      //~ voln[n]   += vol[e];
+    //~ }
+  //~ }
+
+  //~ // --- 2. Element loop ---
+  //~ par_loop(e, m_elem_count) {
+
+    //~ double K    = mat[e]->Elastic().BulkMod();
+    //~ double vol0 = vol_0[e];
+    //~ double vol1 = vol[e];
+
+    //~ // Local Jacobian
+    //~ double J_local = vol1 / vol0;
+
+    //~ // Patch / nodal averaged Jacobian
+    //~ double J_avg = 0.0;
+    //~ for (int a = 0; a < m_nodxelem; ++a) {
+      //~ int nid = m_elnod[e*m_nodxelem + a];
+      //~ J_avg += voln[nid] / voln_0[nid];
+    //~ }
+    //~ J_avg /= m_nodxelem;
+
+    //~ // --- Physical pressure (pure, local) ---
+    //~ double p_phys = -K * log(J_local);
+
+    //~ // --- Volumetric stabilization (checkerboard killer) ---
+    //~ const double eps = 0.02;   // 0.01–0.05 típico en TET reducido
+    //~ double p_stab = eps * K * (J_local - J_avg);
+
+    //~ // --- Final pressure ---
+    //~ p[e] = p_phys + p_stab;
+  //~ }
+
+  //~ delete[] voln_0;
+  //~ delete[] voln;
+//~ }
+
 
 dev_t void Domain_d::calcElemPressureRigid(const double &K) {
 
