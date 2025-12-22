@@ -379,9 +379,6 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
       //#########################################################
       cout << "REMESHING "<< " at step "<<step_count<<endl;
-      std::string ss = "in_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer(this, ss.c_str());
-      writer.writeFile();
       
       #ifdef BUILD_REMESH
       ReMesher remesh(this);
@@ -400,16 +397,9 @@ void host_ Domain_d::SolveChungHulbert(){
 
       //cout << "Searching ext nodes "<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
-      //cout << "Done "<<endl;
-      std::string s = "out_remesh_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();
+
       remesh_ = true; 
       
-      //smoothFieldLaplacian(v,3);
-      s = "out_remesh_smooth"+std::to_string(step_count)+".vtk";
-      VTKWriter writer4(this, s.c_str());
-      writer4.writeFile();
       Ekin_old = Ekin;
       #endif
       remesh_count++;
@@ -480,11 +470,7 @@ void host_ Domain_d::SolveChungHulbert(){
         cout << "Transition phase. Warmup completed in " << wup_step_count<<" steps."<<endl;
         trans_step_count = 0;
         end_wup_step = step_count;
-        //smoothFieldLaplacian(v,3);
-        string s = "out_remesh_wup_bef_trans"+std::to_string(step_count)+".vtk";
-        VTKWriter writer(this, s.c_str());
-        writer.writeFile();
-        
+
     }
     
     }
@@ -989,11 +975,6 @@ void host_ Domain_d::SolveChungHulbert(){
       wup_step_count = false; //To not reactivate 
       cout << "End transition "<<endl;
 
-      //smoothFieldLaplacian(v,3);
-      string s = "out_remesh_wup"+std::to_string(step_count)+".vtk";
-      VTKWriter writer(this, s.c_str());
-      writer.writeFile();
-
     }
   }
   //ApplyGlobalDamping(0.1);
@@ -1054,13 +1035,6 @@ void host_ Domain_d::SolveChungHulbert(){
     trimesh->UpdatePlaneCoeff();
   #endif
   }
-  if (remesh_){
-   //printf("DISPLACEMENTS\n");
-   //printVec(this->u);       
-       std::string s = "out_remesh_after1_"+std::to_string(step_count)+".vtk";
-      VTKWriter writer3(this, s.c_str());
-      writer3.writeFile();   
-    }
 
   ///// AFTER CONTACT (FOR THE cont_cond)
   if(m_thermal){

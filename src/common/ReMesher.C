@@ -907,6 +907,23 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
             sfield[vert] = o_field[nn];
         }
     }
+    
+    double vmax = 0.0;
+    double vmin = 1.0e6;
+    for (int vert=0;vert<m_node_count;vert++){
+      if (sfield[vert]>vmax) vmax = sfield[vert];
+      if (sfield[vert]<vmin) vmin = sfield[vert];
+    }
+    cout <<"MAX INTERPOLATED VALUE "<< vmax<<"; MIN "<<vmin<<endl;
+    
+     vmax = 0.0;
+     vmin = 1.0e6;
+    for (int vert=0;vert<m_node_count;vert++){
+      if (o_field[vert]>vmax) vmax = o_field[vert];
+      if (o_field[vert]<vmin) vmin = o_field[vert];
+    }
+    cout <<"MAX ORIGINAL VALUE "<< vmax<<"; MIN "<<vmin<<endl;    
+
 }
 
 
