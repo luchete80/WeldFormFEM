@@ -436,3 +436,4 @@ F90 PREVIOUS VERSION
          - Fixed thermal deletion of q_pl_heat at domain resize.
          - Added Thermal expansion
          - FIXED dTdt set to zero after remesh. 
+20251222 - FIXED Thermal Expansion!

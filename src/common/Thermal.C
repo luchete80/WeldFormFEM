@@ -155,7 +155,7 @@ dev_t void Domain_d::calcThermalExpansion(){
     }
 
     tensor3 StrRate     = FromFlatSym(m_str_rate,     offset_t );
-    StrRate = StrRate - mat[e]->exp_T * dTdt_gp * dt * Identity();
+    StrRate = StrRate - mat[e]->exp_T * dTdt_gp * Identity();
     ToFlatSymPtr(StrRate,m_str_rate,   offset_t);
   }
 }
