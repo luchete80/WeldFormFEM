@@ -918,7 +918,7 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
     
      vmax = 0.0;
      vmin = 1.0e6;
-    for (int vert=0;vert<m_node_count;vert++){
+    for (int vert=0;vert<m_dom->m_node_count;vert++){
       if (o_field[vert]>vmax) vmax = o_field[vert];
       if (o_field[vert]<vmin) vmin = o_field[vert];
     }
