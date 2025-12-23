@@ -437,3 +437,4 @@ F90 PREVIOUS VERSION
          - Added Thermal expansion
          - FIXED dTdt set to zero after remesh. 
 20251222 - FIXED Thermal Expansion!
+20251223 - FIXED bad interpolation in NodalRaw Field.

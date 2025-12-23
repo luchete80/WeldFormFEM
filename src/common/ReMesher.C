@@ -887,15 +887,33 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
             std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
             std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
 
-            auto λ = stable_barycentric({x[0],x[1],x[2]}, p0,p1,p2,p3);
+            auto lambda = stable_barycentric({x[0],x[1],x[2]}, p0,p1,p2,p3);
+            const double eps = 1e-10;
 
-            if (λ[0]>=-1e-10 && λ[1]>=-1e-10 && λ[2]>=-1e-10 && λ[3]>=-1e-10) {
+            double sum =
+                lambda[0] + lambda[1] + lambda[2] + lambda[3];
+
+            bool inside =
+                lambda[0] >= -eps && lambda[1] >= -eps &&
+                lambda[2] >= -eps && lambda[3] >= -eps &&
+                fabs(sum - 1.0) < 1e-8; //Critic, check for garbage
+            if (inside) {
 
                 sfield[vert] =
-                      λ[0]*o_field[n0]
-                    + λ[1]*o_field[n1]
-                    + λ[2]*o_field[n2]
-                    + λ[3]*o_field[n3];
+                      lambda[0]*o_field[n0]
+                    + lambda[1]*o_field[n1]
+                    + lambda[2]*o_field[n2]
+                    + lambda[3]*o_field[n3];
+
+                double omin = std::min({o_field[n0], o_field[n1],
+                                        o_field[n2], o_field[n3]});
+                double omax = std::max({o_field[n0], o_field[n1],
+                                        o_field[n2], o_field[n3]});
+
+                if (sfield[vert] < omin - 1e-8 || sfield[vert] > omax + 1e-8) {
+                    cout << "WARNING: non-monotone interp at vert "
+                         << vert << endl;
+                }
 
                 found = true;
                 break;
@@ -904,7 +922,17 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
 
         if (!found) {
             int nn = find_closest_node({x[0],x[1],x[2]});
-            sfield[vert] = o_field[nn];
+
+            if (nn < 0 || !std::isfinite(o_field[nn])) {
+                sfield[vert] = 0.0;
+                cout << "WARNING: fallback failed at vert "
+                     << vert << endl;
+            } else {
+                sfield[vert] = o_field[nn];
+            }
+            
+            //sfield[vert] = o_field[nn];
+
         }
     }
     
@@ -925,7 +953,6 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
     cout <<"MAX ORIGINAL VALUE "<< vmax<<"; MIN "<<vmin<<endl;    
 
 }
-
 
 // void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
     // const double EPS = 1.0e-4;
