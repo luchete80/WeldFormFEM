@@ -348,7 +348,16 @@ void host_ Domain_d::SolveChungHulbert(){
   if (step_count % 100 == 0){
     printf("Step %d, Time %f, End Time: %.4e, Step Time %.4e\n",step_count, Time, end_t, dt);  
     cout << "Ekin: "<<Ekin <<", Eint "<<Eint<<"Etot "<<Ekin+Eint<<endl; 
-    cout << "Max V"<<max_vel<<endl;
+    cout << "Max V"<<max_vel;
+    if (m_thermal){
+      double max_temp = 0.0;
+      for (int i=0;i<m_node_count;i++){
+        if (T[i]>max_temp) max_temp = T[i];
+      }
+      cout <<", Max Temp: "<<max_temp;
+    }
+  
+    cout << endl;
     timer.click();
     //std::cout << "Step Time" << timer.elapsedSinceLastClick() << " seconds\n";
     std::cout << "Overall Time" << timer.elapsedSinceStart() << " seconds\n";

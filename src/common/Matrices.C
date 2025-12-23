@@ -60,12 +60,7 @@ namespace MetFEM {
           //  printf("%6e %6e %6e\n",m_fi[n*m_dim],m_f_elem[n*m_dim+1],m_f_elem[n*m_dim+2]);
           m_fi[n*m_dim + d] += m_f_elem[offset + ne*m_dim + d];
         }
-          if(m_thermal){
-            T[n] += dt * m_dTedt[eglob*m_nodxelem+ne];
-            //~ if (n==0){
-              //~ printf("T %.4e , dTdt %.4e, nodel_id %d, nodel %d\n",T[n],m_dTedt[eglob*m_nodxelem+ne],e,eglob*m_nodxelem+ne);  
-            //~ }
-	  }
+
       }//Element loop
       if (m_gp_count == 1 ) {  
         for (int e=0; e<m_nodel_count[n];e++) {
