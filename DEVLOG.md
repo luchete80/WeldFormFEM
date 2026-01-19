@@ -438,3 +438,6 @@ F90 PREVIOUS VERSION
          - FIXED dTdt set to zero after remesh. 
 20251222 - FIXED Thermal Expansion!
 20251223 - FIXED bad interpolation in NodalRaw Field.
+----------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+20250114 - Fixed Pressure local in 2d Quads (Should not be applied F-Bar! which was used.)
