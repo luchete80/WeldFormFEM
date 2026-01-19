@@ -8,7 +8,7 @@
   "simTime": 1.0e-3,
   "artifViscAlpha": 1.0,
   "artifViscBeta": 0.0,
-  "outTime": 1.0e-5,
+  "outTime": 1.0e-4,
   "fixedTS":true,
   "domType": "AxiSymm",
   "solver": "Mech-LeapFrog"
@@ -33,7 +33,7 @@
 	"zoneId": 0,
   "elemLength": 0.0005,
 	"denseMode": 0,
-	"start": [ 0.0005, 0.0, 0.0],
+	"start": [ 0.0000, 0.0, 0.0],
 	"dim": [0.0127, 0.03, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
@@ -41,9 +41,14 @@
 
 "DomainZones": [
 {
-	"id": 5,
+	"id": 1,
 	"start":[-1.0, 0.0,0.0],
-	"end": 	[ 1.0, 0.02000,0.0]
+	"end": 	[ 1.0, 0.001,0.0]
+},
+{
+	"id": 2,
+	"start":[-1.0, 0.029,0.0],
+	"end": 	[ 1.0, 1.0,0.0]
 }
 ],
 
@@ -55,9 +60,10 @@
 	"value": 	[ 0.0, 10.0, 10.0]
 }
 ],
+
 "BoundaryConditions": [
 {
-  "id": 2,
+  "id": 1,
 	"start":[ 0.0,-1.0, 0.0000],
 	"end": 	[ 1.0, 1.0e-4, 0.0000],
 	"zoneId": 	5,
