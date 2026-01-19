@@ -753,8 +753,11 @@ void host_ Domain_d::SolveChungHulbert(){
   // }else
   //if (!remesh_){
   if      (m_press_algorithm == 0){
-    if (m_devElastic)
-      calcElemPressure();
+    if (m_devElastic){
+      if (m_dim == 3)
+        calcElemPressure();
+      calcElemPressureLocal();
+    }
     else 
       calcElemPressureRigid(m_Kpen);
     

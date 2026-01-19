@@ -1161,12 +1161,12 @@ dev_t void Domain_d::calcElemPressure_Hybrid_VolHG() {
 //Computational Methods in lagfangian & Eulerian Hydrocodes
 //From Benson 1992
 // Equation 1.3.12
-//~ dev_t void Domain_d::calcElemPressureLocal(){
+ dev_t void Domain_d::calcElemPressureLocal(){
 
-  //~ par_loop(e,m_elem_count){
-    //~ p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
-  //~ } // e< elem_count
-//~ }
+   par_loop(e,m_elem_count){
+     p[e] = mat[e]->Elastic().BulkMod() * ( 1.0 - vol[e]/vol_0[e] );
+   } // e< elem_count
+ }
 
 
 //~ dev_t void Domain_d::calcNodalPressureFromElemental() {
