@@ -213,10 +213,14 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
     normal_h[e].x = normal_h[e].y = normal_h[e].z = 0.0;
 		if (positaxisorent) f= 1.;
 		//element[e] -> normal (axis) = f;
+    if (dimension == 3){
 		if (axis == 0)			normal_h[e].x = f;
 		else if (axis == 1)	normal_h[e].y = f;
 		else 								normal_h[e].z = f;
-    
+    } else {
+      if (axis == 0)			normal_h[e].y = f;
+      else if (axis == 1)	normal_h[e].x = f;    
+    }
     // if (length(normal_h[e])<1.0e-3) printf( "ERROR. ZERO NORMAL"<<endl;
     // if (normal_h[e].y > 1.0e-10) printf( "ERROR. NORMAL Y NOT ZERO"<<endl;    
     
@@ -668,6 +672,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
       v1 = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
       v2 = node_h[nr.elcon[3*e+2]] - node_h[nr.elcon[3*e]];
       normal_h[e] = cross (v1,v2);
+      normal_h[e] = normal_h[e]/norm(normal_h[e]);
       normal_h[e] = normal_h[e]/norm(normal_h[e]);
       
     } else { //See calc normals
