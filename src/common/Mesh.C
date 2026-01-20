@@ -29,39 +29,7 @@
 
 #define PRINT_V(v) printf("%f %f %f\n",v.x,v.y,v.z);
 namespace MetFEM{
-// ORIGINAL CPU version
-// inline void TriMesh::Move(const double &dt){
-	// //Seems to be More accurate to do this by node vel
-	// //This is used by normals
-  // Vec3_t min = 1000.;
-  // Vec3_t max = -1000.;
-	// for (int n=0;n<node.Size();n++){
-    // Vec3_t vr 	= cross(m_w, *node[n]);
-    // *node_v[n] = m_v + vr;
-    // for (int i=0;i<3;i++) {
-      // if      ((*node[n])(i) < min(i)) min[i] = (*node[n])(i);
-      // else if ((*node[n])(i) > max(i)) max[i] = (*node[n])(i);
-    // } 
-		// *node[n] += (*node_v[n])*dt;
-	// }
-  
-  // //printf( "Min Max Node pos" << min<< "; " <<max<<endl;
-  
-  // CalcCentroids();
-  // CalcNormals();        //From node positions
-  // UpdatePlaneCoeff();   //pplane
-// }
 
-/*
-__global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
- 	mesh_d->Move(dt);
-  mesh_d->CalcCentroids();
-  mesh_d->CalcNormals();
-  mesh_d->UpdatePlaneCoeff(); 
-}
-
-
-*/
   TriMesh_d::TriMesh_d() : 
     node(nullptr), node_v(nullptr), elnode(nullptr),
     centroid(nullptr), normal(nullptr), pplane(nullptr),
@@ -73,6 +41,7 @@ __global__ inline void MeshUpdateKernel(TriMesh_d *mesh_d, double dt) {
     current_node_capacity(0), current_elem_capacity(0),
     allocated_meshes(0) {
     m_v = m_w = make_double3(0.,0.,0.);
+    dimension = 3;
 }
 
 //NOW THIS IS ZORIENTED, CHANGE TO EVERY PLANE
@@ -143,13 +112,15 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 	int n[4];
 	int el =0;
 	int i;
-	
-	elemcount = dens * dens * 2;
+	if (dimension == 3)  elemcount = dens * dens * 2;
+  else                 elemcount = dens * 2;
+  
   printf( "Element count: %d",elemcount );  
   printf( "done. Creating elements... ");
   malloc_t (centroid,      double3,elemcount);
   malloc_t (normal,        double3,elemcount);
-  malloc_t (elnode,        int, 3 * elemcount);
+  int nen = (dimension == 3) ? 3 : 2;
+  malloc_t(elnode, int, nen * elemcount);
   
   malloc_t (react_force,   	double3, 1);
   malloc_t (react_p_force,  double, 1);
@@ -157,7 +128,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 	//cudaMalloc((void **)&normal 	, 	elemcount * sizeof (double3));
 	//cudaMalloc((void **)&elnode 	, 	3 * elemcount * sizeof (int));	
   
-  int *elnode_h = new int[3*elemcount];
+  int *elnode_h = new int[nen*elemcount];
   double3 *centroid_h = new double3[elemcount];
   double3 *normal_h   = new double3[elemcount];
 	
@@ -167,45 +138,62 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   } else {
     printf("Allocation success.\n");
   }
-
-	for (size_t j = 0 ;j  < dens; j++ ) {
-				// printf("j, dens" <<j<<", "<<dens<<endl;
-				// printf("j<dens"<< (j  < dens)<<endl;
-		for ( i = 0; i < dens; i++ ){
-				// printf("i, dens" <<i<<", "<<dens<<endl;
-				// printf("i <dens"<< (i  < dens)<<endl;
-				n[0] = (dens + 1)* j + i; 		n[1] = n[0] + 1; 
-				n[2] = (dens + 1)* (j+1) + i; n[3] = n[2] + 1;
-			//printf(" jj" << jj<<endl;
-			int elcon[2][3];	// TODO: check x, y and z normals and node direction 
-												// For all plane orientations
-			//If connectivity  is anticlockwise normal is outwards
-			if (positaxisorent) {
-				elcon[0][0] = n[0];elcon[0][1] = n[1];elcon[0][2] = n[2];
-				elcon[1][0] = n[1];elcon[1][1] = n[3];elcon[1][2] = n[2];
-			} else {
-				elcon[0][0] = n[0];elcon[0][1] = n[2];elcon[0][2] = n[1];
-				elcon[1][0] = n[1];elcon[1][1] = n[2];elcon[1][2] = n[3];				
-			}
-			for ( int e= 0; e<2;e++) { // 2 triangles
-				int elnodeid = 3*el;
-				//element.Push(new Element(elcon[e][0],elcon[e][1],elcon[e][2]));		
-				elnode_h[elnodeid + 0] = elcon[e][0]; 
-				elnode_h[elnodeid + 1] = elcon[e][1]; 
-				elnode_h[elnodeid + 2] = elcon[e][2];
-				//printf( "Element "<< el <<": ";
-				// for (int en = 0 ; en<3; en++) printf( elcon[e][en]<<", ";
-				// printf(endl;
-				
-				double3 v = ( node_h[elcon[e][0]] + node_h[elcon[e][1]] + node_h[elcon[e][2]] ) / 3. ;
-				//element[el] -> centroid = v; 
-				centroid_h[el] = v;
-				//printf( "Centroid element %d = %f %f %f\n" ,el,v.x,v.y,v.z);
-				el++;
-			}
-		}// i for
-		
-	}
+  
+  ////////////////////////////////////////////////////////////////////
+  ///////////////////////// CONNECTIVITIES ///////////////////////////
+  
+  if (dimension == 3){
+    for (size_t j = 0 ;j  < dens; j++ ) {
+          // printf("j, dens" <<j<<", "<<dens<<endl;
+          // printf("j<dens"<< (j  < dens)<<endl;
+      for ( i = 0; i < dens; i++ ){
+          // printf("i, dens" <<i<<", "<<dens<<endl;
+          // printf("i <dens"<< (i  < dens)<<endl;
+          n[0] = (dens + 1)* j + i; 		n[1] = n[0] + 1; 
+          n[2] = (dens + 1)* (j+1) + i; n[3] = n[2] + 1;
+        //printf(" jj" << jj<<endl;
+        int elcon[2][3];	// TODO: check x, y and z normals and node direction 
+                          // For all plane orientations
+        //If connectivity  is anticlockwise normal is outwards
+        if (positaxisorent) {
+          elcon[0][0] = n[0];elcon[0][1] = n[1];elcon[0][2] = n[2];
+          elcon[1][0] = n[1];elcon[1][1] = n[3];elcon[1][2] = n[2];
+        } else {
+          elcon[0][0] = n[0];elcon[0][1] = n[2];elcon[0][2] = n[1];
+          elcon[1][0] = n[1];elcon[1][1] = n[2];elcon[1][2] = n[3];				
+        }
+        for ( int e= 0; e<2;e++) { // 2 triangles
+          int elnodeid = 3*el;
+          //element.Push(new Element(elcon[e][0],elcon[e][1],elcon[e][2]));		
+          elnode_h[elnodeid + 0] = elcon[e][0]; 
+          elnode_h[elnodeid + 1] = elcon[e][1]; 
+          elnode_h[elnodeid + 2] = elcon[e][2];
+          //printf( "Element "<< el <<": ";
+          // for (int en = 0 ; en<3; en++) printf( elcon[e][en]<<", ";
+          // printf(endl;
+          
+          double3 v = ( node_h[elcon[e][0]] + node_h[elcon[e][1]] + node_h[elcon[e][2]] ) / 3. ;
+          //element[el] -> centroid = v; 
+          centroid_h[el] = v;
+          //printf( "Centroid element %d = %f %f %f\n" ,el,v.x,v.y,v.z);
+          el++;
+        }
+      }// i for
+      
+    }// j for
+  } else { //Dimension = 2
+    for ( i = 0; i < dens; i++ ){
+        n[0] = i; 		n[1] = n[0] + 1;      
+        int elcon[2];
+        if (positaxisorent) {
+          elcon[0] = n[0];elcon[1] = n[1];
+        } else {
+          elcon[1] = n[1];elcon[1] = n[0];		
+        }
+        elnode_h[nen*i  ] = elcon[0];
+        elnode_h[nen*i+1] = elcon[1];       
+    }
+  }
 
 	///////////////////////////////////////////
 	//// MESH GENERATION END

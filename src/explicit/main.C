@@ -669,8 +669,15 @@ int main(int argc, char **argv) {
     if (rigbody_type == "Plane"){
       msh = new TriMesh_d();
       msh->AxisPlaneMesh(0,  2, !flipnormals, start , dim_,  partSide);
-    }
-    else if (rigbody_type == "File"){
+    } else if (rigbody_type == "Line"){
+      msh = new TriMesh_d();
+        if (dim_.x>0.0)
+          msh->AxisPlaneMesh(0, 1, !flipnormals, start, dim_,partSide);        
+        else if (dim_.y>0.0)
+          msh->AxisPlaneMesh(0, 0, !flipnormals, start, dim_,partSide); 
+        else 
+          cout << "ERROR. Line has null dimension."<<endl;      
+    }else if (rigbody_type == "File"){
       string filename = "";
       readValue(rigbodies[0]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());
@@ -763,8 +770,15 @@ int main(int argc, char **argv) {
       m = new TriMesh_d();
       m->AxisPlaneMesh(1,  2, !flipnormals, start , dim_,  partSide);
 
-    }
-    else if (rigbody_type == "File"){
+    }else if (rigbody_type == "Line"){
+      msh = new TriMesh_d();
+        if (dim_.x>0.0)
+          msh->AxisPlaneMesh(1, 1, !flipnormals, start, dim_,partSide);        
+        else if (dim_.y>0.0)
+          msh->AxisPlaneMesh(1, 0, !flipnormals, start, dim_,partSide); 
+        else 
+          cout << "ERROR. Line has null dimension."<<endl;     
+    } else if (rigbody_type == "File"){
       string filename = "";
       readValue(rigbodies[1]["fileName"], 	filename); 
       NastranReader reader(filename.c_str());

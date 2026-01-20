@@ -77,7 +77,9 @@ class TriMesh_d{
   //Element data, TODO: PASS TO ELEMDATA
   double3             *centroid,*normal;
   int                 *nfar;
-  
+
+  int                 dimension;
+    
   // TODO: CHANGE TO NEW TriMesh class
   double3             m_v,m_w;
   int nodecount, elemcount;

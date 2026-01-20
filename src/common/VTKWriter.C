@@ -173,7 +173,8 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   }
   if (dom->isContactOn()){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
-      m_oss <<  "5 ";
+      if (dom->getTriMesh()->dimension) m_oss <<  "5 ";
+      if (dom->getTriMesh()->dimension) m_oss <<  "3 ";
     }
   }
 
