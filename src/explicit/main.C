@@ -311,7 +311,7 @@ int main(int argc, char **argv) {
      
     if (dom_type == "AxiSymm" || dom_type == "AxiSym"){
       dom_d->setAxiSymm();
-      cout << "DOMAIN TYPE: AXIS SYMMETRIC"<<endl;
+      cout << "DOMAIN TYPE: AXISYMMETRIC"<<endl;
     } else if (dom_type == "plStrain"){
       cout << "DOMAIN TYPE: PLAIN STRAIN"<<endl;
     }
