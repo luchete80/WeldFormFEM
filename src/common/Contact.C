@@ -104,23 +104,36 @@ void dev_t Domain_d::CalcContactForces(){
             //~ printf("Element %d node 40 qj %f %f %f \n", j,Qj.x,Qj.y,Qj.z);
 
           bool inside = true;
-          int l=0,n;		   
-          //printf("Entering while \n");
-          while (l<3 && inside){
-            n = l+1;	if (n>2) n = 0;
-            //double crit;
-            double crit = dot (cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
-                                                                Qj  - trimesh->node[trimesh->elnode[nen*j+l]]),
-                               trimesh->normal[j]);
-            double3 test = cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
-                                                                Qj  - trimesh->node[trimesh->elnode[nen*j+l]]);
-                                      
-            if (crit < 0.0) inside = false;
-            l++;
+          if (trimesh->dimension == 3){
+            int l=0,n;		   
+            //printf("Entering while \n");
+            while (l<3 && inside){
+              n = l+1;	if (n>2) n = 0;
+              //double crit;
+              double crit = dot (cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
+                                                                  Qj  - trimesh->node[trimesh->elnode[nen*j+l]]),
+                                 trimesh->normal[j]);
+              double3 test = cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
+                                                                  Qj  - trimesh->node[trimesh->elnode[nen*j+l]]);
+                                        
+              if (crit < 0.0) inside = false;
+              l++;
+            }
+          } else { //dimension == 2
+            //~ i=0;
+            //~ while (i<2 && inside){
+              //~ j = i+1;	if (j>1) j = 0;
+              //~ crit = dot ( *trimesh[m]->node[e -> node[j]] 
+                                          //~ - *trimesh[m]->node[e -> node[i]],
+                                          //~ qj  - *trimesh[m]->node[e -> node[i]]);
+              //~ if (crit < 0.0) inside = false;
+              //~ i++;
+            //~ }
+                        
+            
           }
 
-
-  if (inside ){
+          if (inside ){
  
               double nodlen = 0.0;
               double nodevol = 0.0;
