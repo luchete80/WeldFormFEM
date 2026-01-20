@@ -86,6 +86,8 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 
 	int vi=0;
 	int test =dens+1;
+  if (dimension == 2) test = 1;
+  
 	for (int j=0; j<test; j++) {
 		//x1 = p1(dir[0]);
     x1 = p1.x;
