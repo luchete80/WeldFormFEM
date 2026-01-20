@@ -691,6 +691,10 @@ int main(int argc, char **argv) {
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
       
     }
+    if (msh->dimension == 2){
+      dom_d->set2DFacesValues();
+      
+    }
     dom_d->setTriMesh(msh);
     
   printf("Searching bcs for ZoneID %d..\n", id);

@@ -694,6 +694,14 @@ public:
   
   double m_plheatfraction;
   
+  void set2DFacesValues(){      
+    ELNOD   = 4;   //SAME AS 3D
+    FACENOD = 2;   //4 in 3D tetra
+    ELFAC   = 4;   //Quad faces
+      //dom_d->local_faces = tetra_faces; 
+    local_faces = quad_edges;
+  }
+  
   ///// REMESH
   dev_t void BlendStresses(const double &s, const double &pl_strain_max);
   dev_t void BlendField(const double &s, const int size, const int &d, double *prev, double *curr);
