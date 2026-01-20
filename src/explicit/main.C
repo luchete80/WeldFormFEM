@@ -773,6 +773,7 @@ int main(int argc, char **argv) {
 
     }else if (rigbody_type == "Line"){
       msh = new TriMesh_d();
+      msh->dimension = 2;
         if (dim_.x>0.0)
           msh->AxisPlaneMesh(1, 1, !flipnormals, start, dim_,partSide);        
         else if (dim_.y>0.0)
@@ -824,13 +825,14 @@ int main(int argc, char **argv) {
     cout << "MESH NODE COUNT "<<msh->nodecount<<endl;
   }//added another rigid body mesh
   cout <<"Setting contact..."<<endl;
+
   //ONCE ALL MESH ARE INITIALIZED
   if (contact){
     //cout <<"Calculating plane pos"<<endl;    
       #ifdef CUDA_BUILD
 
     #else
-      
+    cout << "Mesh Dimension "<<msh->dimension <<endl;      
     msh->CalcSpheres();  //NFAR Done Once if mesh is rigid
     #endif
     cout <<"Done."<<endl;

@@ -256,7 +256,7 @@ inline dev_t void  TriMesh_d::UpdatePlaneCoeff(){
   //if (i < elemcount) { //parallelize by element
   for (int e=0; e<elemcount;e++){
     //printf("elnode %f %f %f \n",elnode[3*i+nfar[i]].x,elnode[3*i+nfar[i]].y,elnode[3*i+nfar[i]].z);
-    pplane[e] = dot(node[elnode[3*e+nfar[e]] ],normal[e]);
+    pplane[e] = dot(node[elnode[dimension*e+nfar[e]] ],normal[e]);
     //printf("-------Element %d pplane %.8e, normalz %.4e, nfar %d\n",e, pplane[e],normal[e].z, nfar[e]);
   }
 }
@@ -294,8 +294,8 @@ inline  dev_t void   TriMesh_d::CalcSpheres(){
   for (int e=0; e<elemcount;e++){
     double max = 0.;
     double3 rv;
-    for (int n = 0 ;n < 3; n++){
-      rv = node[elnode[3*e+n]] - centroid[e];
+    for (int n = 0 ;n < dimension; n++){
+      rv = node[elnode[dimension*e+n]] - centroid[e];
       if (length(rv) > max) max = length(rv);
       nfar[e] = n;
     }

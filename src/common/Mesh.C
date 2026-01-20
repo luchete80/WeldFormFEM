@@ -66,8 +66,10 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   
 	//double dl = p(dir[0])/dens;	//Could be allowed 2 diff densities
   double dl = p.x/dens;
-  nodecount = (dens+1)*(dens+1);
-  
+  if (dimension == 3) nodecount = (dens+1)*(dens+1);
+  else                nodecount = (dens+1);
+
+  printf("Creating nodes.., nodecount %d: ", nodecount);    
   //Is it necessary to paralellize mesh nodes??
   //cudaMalloc((void **)&node   , 	nodecount * sizeof (double3));
   //cudaMalloc((void **)&node_v , 	nodecount * sizeof (double3));
@@ -81,7 +83,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   
 	//printf("dens: "<<dens<<endl;
 	//Plane is in 0 and 1 dirs
-  printf("Creating nodes..");
+
 	int vi=0;
 	int test =dens+1;
 	for (int j=0; j<test; j++) {
@@ -248,7 +250,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
   //cudaMemcpy(centroid, centroid_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
   //cudaMemcpy(normal, normal_h, elemcount * sizeof(double3), cudaMemcpyHostToDevice);
   
-  memcpy_t(elnode,    elnode_h, 3 * elemcount * sizeof(int));
+  memcpy_t(elnode,    elnode_h, nen * elemcount * sizeof(int));
   memcpy_t(centroid,  centroid_h,    elemcount * sizeof(double3));
   memcpy_t(normal,    normal_h,     elemcount * sizeof(double3));
 
@@ -375,8 +377,10 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
     double* new_pplane = nullptr;
     int* new_nfar = nullptr;
     int* new_ele_mesh_id = nullptr;
+    int nen = (dimension == 3) ? 3 : 2;
+
         
-    malloc_t(new_elnode, int, new_capacity * 3);
+    malloc_t(new_elnode, int, new_capacity * nen);
     malloc_t(new_centroid, double3, new_capacity);
     malloc_t(new_normal, double3, new_capacity);
     malloc_t(new_pplane, double, new_capacity);
@@ -396,7 +400,7 @@ int TriMesh_d::ResizeElementData(int new_capacity) {
 
     if(elnode) {
         // Copy existing data
-        memcpy_t(new_elnode, elnode, elemcount * 3 * sizeof(int));
+        memcpy_t(new_elnode, elnode, elemcount * nen * sizeof(int));
         memcpy_t(new_centroid, centroid, elemcount * sizeof(double3));
         memcpy_t(new_normal, normal, elemcount * sizeof(double3));
         memcpy_t(new_pplane, pplane, elemcount * sizeof(double));
@@ -469,16 +473,20 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
     if(new_mesh.elnode && new_mesh.elemcount > 0) {
         printf("Copying %d elements to offset %d\n", new_mesh.elemcount, elemcount);
         
+        int nen = (dimension == 3) ? 3 : 2;
+
         for(int e = 0; e < new_mesh.elemcount; e++) {
             // Calculate source and destination indices
-            int src_idx = 3 * e;
-            int dst_idx = 3 * (elemcount + e);
+            int src_idx = nen * e;
+            int dst_idx = nen * (elemcount + e);
             
             // Copy and offset node indices
-            elnode[dst_idx]     = new_mesh.elnode[src_idx]     + nodecount;
-            elnode[dst_idx + 1] = new_mesh.elnode[src_idx + 1] + nodecount;
-            elnode[dst_idx + 2] = new_mesh.elnode[src_idx + 2] + nodecount;
-            
+            //~ elnode[dst_idx]     = new_mesh.elnode[src_idx]     + nodecount;
+            //~ elnode[dst_idx + 1] = new_mesh.elnode[src_idx + 1] + nodecount;
+            //~ elnode[dst_idx + 2] = new_mesh.elnode[src_idx + 2] + nodecount;
+            for (int k = 0; k < nen; k++)
+              elnode[dst_idx + k] = new_mesh.elnode[src_idx + k] + nodecount;
+                
             // Copy other element data
             centroid[elemcount + e] = new_mesh.centroid[e];
             normal[elemcount + e] = new_mesh.normal[e];
@@ -544,7 +552,7 @@ void TriMesh_d::AddMesh(const TriMesh_d& new_mesh) {
   
 //TODO: CHANGE TRIMESH NAME
 TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, const double3 &orient_pt){
-  int dimension = nr.dim;
+  this->dimension = nr.dim;
   //Insert nodes
   
   nodecount = nr.node_count;
@@ -627,11 +635,11 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
     if (!flipnormals) {
       elnode_h[3*e  ] = nr.elcon[3*e];
       elnode_h[3*e+1] = nr.elcon[3*e+1];
-      elnode_h[3*e+2] = cz;		  
+      if (dimension == 3) elnode_h[3*e+2] = cz;		  
     }else{   
       elnode_h[3*e  ] = nr.elcon[3*e+1];
       elnode_h[3*e+1] = nr.elcon[3*e  ];
-      elnode_h[3*e+2] = cz;		                    
+      if (dimension == 3) elnode_h[3*e+2] = cz;		                    
       //element.Push(new Element(nr.elcon[3*e+1],nr.elcon[3*e],cz));		  
     }
     //~ Vec3_t v;
