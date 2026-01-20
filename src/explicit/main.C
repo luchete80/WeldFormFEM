@@ -671,6 +671,7 @@ int main(int argc, char **argv) {
       msh->AxisPlaneMesh(0,  2, !flipnormals, start , dim_,  partSide);
     } else if (rigbody_type == "Line"){
       msh = new TriMesh_d();
+      msh->dimension = 2;
         if (dim_.x>0.0)
           msh->AxisPlaneMesh(0, 1, !flipnormals, start, dim_,partSide);        
         else if (dim_.y>0.0)

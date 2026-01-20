@@ -35,6 +35,8 @@ void dev_t Domain_d::CalcContactForces(){
   double pxa[m_node_count];
 	double min_force_ts_=1000.;
 // https://stackoverflow.com/questions/10850155/whats-the-difference-between-static-and-dynamic-schedule-in-openmp
+
+  int nen = (trimesh->dimension == 3) ? 3 : 2;
 			
   //max_contact_force = 0.;
 	double min_contact_force = 1000.;
@@ -107,11 +109,11 @@ void dev_t Domain_d::CalcContactForces(){
           while (l<3 && inside){
             n = l+1;	if (n>2) n = 0;
             //double crit;
-            double crit = dot (cross ( trimesh->node[trimesh->elnode[3*j+n]] - trimesh->node[trimesh->elnode[3*j+l]],
-                                                                Qj  - trimesh->node[trimesh->elnode[3*j+l]]),
+            double crit = dot (cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[nen*j+l]]),
                                trimesh->normal[j]);
-            double3 test = cross ( trimesh->node[trimesh->elnode[3*j+n]] - trimesh->node[trimesh->elnode[3*j+l]],
-                                                                Qj  - trimesh->node[trimesh->elnode[3*j+l]]);
+            double3 test = cross ( trimesh->node[trimesh->elnode[nen*j+n]] - trimesh->node[trimesh->elnode[nen*j+l]],
+                                                                Qj  - trimesh->node[trimesh->elnode[nen*j+l]]);
                                       
             if (crit < 0.0) inside = false;
             l++;
