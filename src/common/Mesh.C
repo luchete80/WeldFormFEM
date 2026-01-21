@@ -117,7 +117,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 	int el =0;
 	int i;
 	if (dimension == 3)  elemcount = dens * dens * 2;
-  else                 elemcount = dens * 2;
+  else                 elemcount = dens;
   
   printf( "Element count: %d",elemcount );  
   printf( "done. Creating elements... ");
@@ -288,8 +288,7 @@ void TriMesh_d::ResizeStorage(int new_mesh_capacity) {
     double *new_react_p_force;
     // malloc_t(new_mesh_vel, double3, new_mesh_capacity);
     // malloc_t(new_mesh_rot, double3, new_mesh_capacity);
-    printf("Newmesh capacity: %d\n", new_mesh_capacity);
-    printf("NEW MESH CAPACIDY %d\n",new_mesh_capacity);
+    printf("New Mesh capacity: %d\n", new_mesh_capacity);
     malloc_t(new_react_force, 	double3, new_mesh_capacity);
     malloc_t(new_react_p_force, double, new_mesh_capacity);
 	

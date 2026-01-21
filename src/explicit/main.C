@@ -776,12 +776,12 @@ int main(int argc, char **argv) {
       m->AxisPlaneMesh(1,  2, !flipnormals, start , dim_,  partSide);
 
     }else if (rigbody_type == "Line"){
-      msh = new TriMesh_d();
-      msh->dimension = 2;
+      m = new TriMesh_d();
+      m->dimension = 2;
         if (dim_.x>0.0)
-          msh->AxisPlaneMesh(1, 1, !flipnormals, start, dim_,partSide);        
+          m->AxisPlaneMesh(1, 1, !flipnormals, start, dim_,partSide);        
         else if (dim_.y>0.0)
-          msh->AxisPlaneMesh(1, 0, !flipnormals, start, dim_,partSide); 
+          m->AxisPlaneMesh(1, 0, !flipnormals, start, dim_,partSide); 
         else 
           cout << "ERROR. Line has null dimension."<<endl;     
     } else if (rigbody_type == "File"){

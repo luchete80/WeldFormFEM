@@ -286,18 +286,14 @@ void dev_t Domain_d::CalcContactForces(){
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             
             } //INSIDE
-                    
-          
-          
-          
-          
-          
-        }
 
+          
+        } //if d< 0
+        //cout << "MESH ELEMENT "<<j <<endl;
         j++;
         if (j==trimesh->elemcount)
           end = true;
-      }
+      }//while !end
   
     }//external nodes
   } //i<first fem index
