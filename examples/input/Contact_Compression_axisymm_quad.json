@@ -1,7 +1,7 @@
 {
 "Configuration":
 {
-  "Nproc":4,
+  "Nproc":1,
   "cflFactor": 0.3,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
@@ -46,16 +46,16 @@
 	"start": [0.0, 0.03, 0.0],
   "flipnormals":true,
   "partSide": 20,
-	"dim":   [0.04, 0.0, 0.0],
+	"dim":   [0.02, 0.0, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
 },
 {
-	"type": "Plane",
+	"type": "Line",
 	"zoneId": 1,
 	"start": [0.00, 0, 0.0000],
   "partSide": 20,
-	"dim":   [0.04, 0.0, 0.0],
+	"dim":   [0.02, 0.0, 0.0],
 	"translation": [1.0, 0.0, 0.0],
 	"scale": [1, 1, 1]
 }
