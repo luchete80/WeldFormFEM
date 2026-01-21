@@ -799,6 +799,7 @@ void host_ Domain_d::SolveChungHulbert(){
 //    CalcContactForcesWang();
     CalcContactForces();
 
+
   //if (m_dim == 3 && m_nodxelem ==4){
   //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
     //THIS IS NOT WORKING
@@ -1035,7 +1036,7 @@ void host_ Domain_d::SolveChungHulbert(){
       //cout << "Node 0 v"<<(trimesh->node_v[0]).z<<endl;
     }
     
-  
+
   if (contact){
     //MeshUpdate(this->trimesh,dt);
   #ifdef CUDA_BUILD  
@@ -1043,7 +1044,6 @@ void host_ Domain_d::SolveChungHulbert(){
     trimesh->Move( dt);
     trimesh->CalcCentroids();
     trimesh->CalcNormals();
-
     trimesh->UpdatePlaneCoeff();
   #endif
   }

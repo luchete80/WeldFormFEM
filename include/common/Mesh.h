@@ -222,8 +222,14 @@ public:
 inline dev_t void   TriMesh_d::CalcCentroids(){
   //int e = threadIdx.x + blockDim.x*blockIdx.x;
   //if (e < elemcount)
-    for (int e=0; e<elemcount;e++)
-      centroid[e] = ( node[elnode[3*e]] + node[elnode[3*e+1]] + node[elnode[3*e+2]]) / 3.; 
+  int nen = (dimension == 3) ? 3 : 2;
+  for (int e=0; e<elemcount;e++){
+    double3 c = make_double3(0.0,0.0,0.0);
+    for (int ne=0;ne<nen;ne++ ) c = c + node[elnode[nen*e+ne]];
+    centroid[e] = c/nen;
+      //centroid[e] = ( node[elnode[nen*e]] + node[elnode[nen*e+1]] + node[elnode[nen*e+2]]) / 3.; 
+
+  }
 }
 
 
@@ -231,22 +237,37 @@ inline dev_t void   TriMesh_d::CalcNormals(){
 	double3 u, v, w;
   //int e = threadIdx.x + blockDim.x*blockIdx.x;
   //if (e < elemcount) {
-  for (int e=0; e<elemcount;e++){
-    u = node [elnode[3*e+1]] - node [elnode[3*e]];
-    v = node [elnode[3*e+2]] - node [elnode[3*e]];
-    w = cross(u,v);
-    normal[e] = w/length(w);
-    // if (length(normal[e])<1.0e-3)
-      // printf("ERROR: ZERO normal. Calc error in element %d\n",e);
-    // if (abs(normal[e].y) >1.0e-5 || abs(normal[e].x) > 1.0e-5)
-      // printf("CalcNormal %d %.6e %.6e %.6e\n u %.6e %.6e %.6e \n v %.6e %.6e %.6e\n",e, normal[e].x,normal[e].y,normal[e].z,u.x,u.y,u.z,v.x,v.y,v.z);
-    //~ normal[e].x = normal[e].y = 0.0;
-    //~ normal[e].z = -1.0;
-      // //printf("elnodes z coord %.6e %.6e %.6e\n", node[elnode[3*e]].z,node[elnode[3*e+1]].z,node[elnode[3*e+2]].z);
-    // }
-    //Fraser Eqn 3.34
-    //Uj x Vj / |UjxVj|
-	}
+  if (dimension == 3){
+    for (int e=0; e<elemcount;e++){
+      u = node [elnode[3*e+1]] - node [elnode[3*e]];
+      v = node [elnode[3*e+2]] - node [elnode[3*e]];
+      w = cross(u,v);
+      normal[e] = w/length(w);
+      // if (length(normal[e])<1.0e-3)
+        // printf("ERROR: ZERO normal. Calc error in element %d\n",e);
+      // if (abs(normal[e].y) >1.0e-5 || abs(normal[e].x) > 1.0e-5)
+        // printf("CalcNormal %d %.6e %.6e %.6e\n u %.6e %.6e %.6e \n v %.6e %.6e %.6e\n",e, normal[e].x,normal[e].y,normal[e].z,u.x,u.y,u.z,v.x,v.y,v.z);
+      //~ normal[e].x = normal[e].y = 0.0;
+      //~ normal[e].z = -1.0;
+        // //printf("elnodes z coord %.6e %.6e %.6e\n", node[elnode[3*e]].z,node[elnode[3*e+1]].z,node[elnode[3*e+2]].z);
+      // }
+      //Fraser Eqn 3.34
+      //Uj x Vj / |UjxVj|
+    }
+  } else {
+      //ROTATE COUNTERCLOCKWISE (SURFACE BOUNDARY IS SORROUNDED CLOCKWISE to outer normal)
+      /////// i.e. : x.positive line has y positive normal
+      for (int e = 0; e < elemcount; e++) {
+          u = node [elnode[2*e+1]] - node [elnode[2*e+0]];
+          //~ v[0] = -u[1];
+          //~ v[1] =  u[0];
+          //~ v[2] =  0.0;
+          v.x = -u.y;
+          v.y =  u.x;
+          v.z =  0.0;
+          normal[e] = v/length(v);  
+      }//for e
+  }
 }
 
 

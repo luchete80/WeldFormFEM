@@ -323,10 +323,8 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
       m_oss << nen <<" ";
       for (int en=0;en<nen;en++){
-        cout << dom->getTriMesh()->elnode[nen*e+en]<<" ";
         m_oss << dom->getTriMesh()->elnode[nen*e+en]+in<<" ";
       }      
-      cout <<endl;
       m_oss << endl;  
     }
   }
