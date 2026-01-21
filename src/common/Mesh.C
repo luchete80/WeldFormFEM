@@ -192,7 +192,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
         if (positaxisorent) {
           elcon[0] = n[0];elcon[1] = n[1];
         } else {
-          elcon[1] = n[1];elcon[1] = n[0];		
+          elcon[0] = n[1];elcon[1] = n[0];		
         }
         elnode_h[nen*i  ] = elcon[0];
         elnode_h[nen*i+1] = elcon[1];       
@@ -200,6 +200,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
         double3 v = ( node_h[elcon[0]] + node_h[elcon[1]] ) / 2. ;
         //element[el] -> centroid = v; 
         centroid_h[el] = v;
+        el++;
         
     }
   }

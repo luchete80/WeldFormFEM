@@ -316,14 +316,17 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     }
     m_oss << endl;
   }
+  const int nen = (dom->getTriMesh()->dimension == 3) ? 3 : 2;
   
   int in = dom->getNodeCount();
   if (dom->isContactOn()){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
-      m_oss << 3 <<" ";
-      for (int en=0;en<3;en++){
-        m_oss << dom->getTriMesh()->elnode[3*e+en]+in<<" ";
+      m_oss << nen <<" ";
+      for (int en=0;en<nen;en++){
+        cout << dom->getTriMesh()->elnode[nen*e+en]<<" ";
+        m_oss << dom->getTriMesh()->elnode[nen*e+en]+in<<" ";
       }      
+      cout <<endl;
       m_oss << endl;  
     }
   }
@@ -333,9 +336,9 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     //cout << "Element "<<e<<endl;
     if (dom->m_dim==2){ //TODO: CHANGE 
       if (dom->m_nodxelem == 4)
-        m_oss <<  "9 ";
+        m_oss <<  "9 "; // QUAD
       else
-        m_oss <<  "5 ";
+        m_oss <<  "5 "; //TETRA
     }else if (dom->m_dim==3){
       if (dom->m_nodxelem==8)
         m_oss <<  "12 ";
@@ -345,9 +348,11 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
     m_oss <<endl;
   }
+  //Contact Element Type
   if (dom->isContactOn()){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
-      m_oss <<  "5 "<<endl;
+      if (dom->getTriMesh()->dimension == 3) m_oss <<  "5 "<<endl;  //TRI
+      else                                   m_oss <<  "3 "<<endl;  //LINE
     }
   }
   
