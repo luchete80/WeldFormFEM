@@ -210,6 +210,10 @@ void dev_t Domain_d::CalcContactForces(){
               //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);
               cfn[i] = norm(cf);
               
+              if (norm(cf)>1.0e5){
+                cout << "Node "<<i<<", LARGE CF: "<<norm(cf)<<", delta "<<d<<", pplane "<<trimesh->pplane[j]<<endl;
+                }
+              
               //printf("MESHIN CONTACT %d\n",trimesh->ele_mesh_id[j]);
               m_mesh_in_contact[i]=trimesh->ele_mesh_id[j];
               //m_mesh_in_contact[i]=0;
