@@ -266,6 +266,7 @@ inline dev_t void   TriMesh_d::CalcNormals(){
           v.y =  u.x;
           v.z =  0.0;
           normal[e] = v/length(v);  
+          //cout << "Elem "<<e<< " normal "<< normal[e].x<<", "<< normal[e].y<<", "<< normal[e].z<<endl;
       }//for e
   }
 }

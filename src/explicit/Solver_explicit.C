@@ -868,10 +868,7 @@ void host_ Domain_d::SolveChungHulbert(){
         nc++;
 
       }
-      if(node_nan) {
-        nan_count++;
-        cout << "NODE MASS "<< m_mdiag[i]<<endl;
-       }
+      if(node_nan) nan_count++;
   }//NODE
 
   if(nan_count>0) 
