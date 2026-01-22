@@ -120,15 +120,19 @@ void dev_t Domain_d::CalcContactForces(){
               l++;
             }
           } else { //dimension == 2
-            //~ i=0;
-            //~ while (i<2 && inside){
-              //~ j = i+1;	if (j>1) j = 0;
-              //~ crit = dot ( *trimesh[m]->node[e -> node[j]] 
+            int l=0, n;
+            while (l<2 && inside){
+              n = l+1;	if (n>1) n = 0;
+              double crit = dot ( trimesh->node[trimesh->elnode[nen*j+n]] 
+                                          - trimesh->node[trimesh->elnode[nen*j+l]],
+                                          Qj  - trimesh->node[trimesh->elnode[nen*j+l]]);
+                                          
+              //double crit = dot ( *trimesh[m]->node[e -> node[j]] 
                                           //~ - *trimesh[m]->node[e -> node[i]],
                                           //~ qj  - *trimesh[m]->node[e -> node[i]]);
-              //~ if (crit < 0.0) inside = false;
-              //~ i++;
-            //~ }
+              if (crit < 0.0) inside = false;
+              l++;
+            }
                         
             
           }
