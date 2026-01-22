@@ -126,10 +126,7 @@ void dev_t Domain_d::CalcContactForces(){
               double crit = dot ( trimesh->node[trimesh->elnode[nen*j+n]] 
                                           - trimesh->node[trimesh->elnode[nen*j+l]],
                                           Qj  - trimesh->node[trimesh->elnode[nen*j+l]]);
-                                          
-              //double crit = dot ( *trimesh[m]->node[e -> node[j]] 
-                                          //~ - *trimesh[m]->node[e -> node[i]],
-                                          //~ qj  - *trimesh[m]->node[e -> node[i]]);
+
               if (crit < 0.0) inside = false;
               l++;
             }
