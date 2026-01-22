@@ -202,7 +202,9 @@ void dev_t Domain_d::CalcContactForces(){
               double3 cf =  - (F_normal  + F_damp) * trimesh->normal[j];
               //~ if (getPosVec3(i).z<0.0001)
                 //~ printf("Node %d CF %f %f %f, dist %f mass %f\n",i, cf.x,cf.y,cf.z, d,m_mdiag[i]);
-              contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;contforce[m_dim*i+2] = cf.z;
+              contforce[m_dim*i] = cf.x;contforce[m_dim*i+1] = cf.y;
+              if (m_dim == 3) 
+                contforce[m_dim*i+2] = cf.z;
               pxa[i] = p_node[i] * node_area[i];
               //printf("Nodal pressure %.4e\n",p_node[i]);
               //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);

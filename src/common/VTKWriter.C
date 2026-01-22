@@ -293,7 +293,10 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //cout << "items"<<items<<endl;
   if (dom->isContactOn()){
     //cout << "CONTACT "<<endl;
-    items += 4 * dom->getTriMesh()->elemcount;
+    if (dom->m_dim == 3)
+      items += 4 * dom->getTriMesh()->elemcount; // ELEMENT SIDES (3 IN TRI) + 1
+    else
+      items += 3 * dom->getTriMesh()->elemcount; // ELEMENT SIDES (2 IN LINE) + 1
   }
   m_oss << items << endl;
   
