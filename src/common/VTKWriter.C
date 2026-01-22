@@ -38,7 +38,7 @@ using namespace std;
 
 namespace MetFEM{
 
-void printDummyElem(Domain_d *dom, ostringstream &m_oss){
+void printDummyElem(Domain_d *dom, ostringstream &m_oss){ 
     if (dom->isContactOn())
     for (int n=0;n<dom->getTriMesh()->elemcount;n++)
         m_oss <<0.0 <<endl;       

@@ -148,13 +148,13 @@ dev_t void Domain_d::SearchExtNodes() {
     int ext_faces = 0;
     for (int i = 0; i < m_faceCount; i++) {
         if (faceList[i].count == 1) { // Cara externa
-            printf("External Face %d nodes: ", ext_faces);
+            //printf("External Face %d nodes: ", ext_faces);
             for (int j = 0; j < FACENOD; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
-                printf("%d ", faceList[i].nodes[j]); // LISTA DE NODOS//DEBUG
+                //printf("%d ", faceList[i].nodes[j]); // LISTA DE NODOS//DEBUG
             }
             ext_faces++;
-            printf("\n");//DEBUG
+            //printf("\n");//DEBUG
         }
         else if (faceList[i].count == 2) { // Cara interna
             int e1 = faceList[i].elem_id;
