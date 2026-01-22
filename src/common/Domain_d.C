@@ -50,10 +50,6 @@
 using namespace std;
 using namespace LS_Dyna;
 
-// #define ELNOD  4   //ORIGINALLY 8
-// #define FACENOD 3  //ORIGINALLY 4
-// #define ELFAC  4   //ORIGINALLY 6
-
 namespace MetFEM {
 
 dev_t bool areFacesEqual(const Face& f1, const Face& f2) {
@@ -113,6 +109,9 @@ dev_t void addElementFaces(Face faceList[], int& faceCount,
 
 dev_t void Domain_d::SearchExtNodes() {
     
+    if (m_dim == 2)
+      set2DFacesValues();
+    
     #ifndef CUDA_BUILD
     int elements[ELNOD]; 
     #else 
@@ -149,10 +148,13 @@ dev_t void Domain_d::SearchExtNodes() {
     int ext_faces = 0;
     for (int i = 0; i < m_faceCount; i++) {
         if (faceList[i].count == 1) { // Cara externa
+            printf("External Face %d nodes: ", ext_faces);
             for (int j = 0; j < FACENOD; j++) {
                 ext_nodes[faceList[i].nodes[j]] = true;
+                printf("%d ", faceList[i].nodes[j]); // LISTA DE NODOS//DEBUG
             }
             ext_faces++;
+            printf("\n");//DEBUG
         }
         else if (faceList[i].count == 2) { // Cara interna
             int e1 = faceList[i].elem_id;
@@ -184,7 +186,7 @@ dev_t void Domain_d::SearchExtNodes() {
             area += node_area[i];
         }
     }
-    printf("Total External Nodal Area: %.4e\n", area);
+    printf("Total External Nodal Area: %.4e, external nodes: %d\n", area,ext_nodes_count);
 }
 
 

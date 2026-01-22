@@ -641,7 +641,7 @@ int main(int argc, char **argv) {
   readValue(rigbodies[0]["flipnormals"],flipnormals);
   int partSide = 1;
   readValue(rigbodies[0]["partSide"],partSide);
-	
+
 	dom_d->SearchExtNodes();
 	////TODO: JOIN DIFFERENT MATRICES
   if (contact){
@@ -691,10 +691,7 @@ int main(int argc, char **argv) {
       //mesh.push_back (new SPH::TriMesh(reader,flipnormals ));  
       
     }
-    if (msh->dimension == 2){
-      dom_d->set2DFacesValues();
-      
-    }
+
     dom_d->setTriMesh(msh);
     
   printf("Searching bcs for ZoneID %d..\n", id);
