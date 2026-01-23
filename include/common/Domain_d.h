@@ -379,7 +379,10 @@ public:
   inline dev_t double2 getPosVec2(const int &n){
     return make_double2(x[m_dim*n], x[m_dim*n+1]);
     };
-  inline dev_t vector_t getPosVec3  (const int &n){return make_vector_t(x[m_dim*n], x[m_dim*n+1], x[m_dim*n+2]);}; //the same
+  inline dev_t vector_t getPosVec3  (const int &n){
+    double z = 0.0;
+    if (m_dim == 3) z = x[m_dim*n+2];
+    return make_vector_t(x[m_dim*n], x[m_dim*n+1], z);}; //the same
   
 
   #ifdef CUDA_BUILD

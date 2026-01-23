@@ -1163,7 +1163,7 @@ void Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double
         x_h[m_dim*p+1] = Xp.y;
         if (m_dim == 3) x_h[m_dim*p+2] = Xp.z;
         //nod%x(p,:) = Xp(:);
-        //cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
+        cout << "node " << p <<"X: "<<Xp.x<<"Y: "<<Xp.y<<"Z: "<<Xp.z<<endl;
         p++;
         Xp.x = Xp.x + 2.0 * r;
       }
