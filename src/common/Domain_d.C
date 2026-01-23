@@ -557,6 +557,16 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 
   
   if (m_dim == 2) local_faces = quad_edges; /////TODO: CHANGE TO DYNAMIC 
+  
+  if (m_dim==2){
+  cout << " ALLOCATING HOURGLASS "<< m_elem_count*m_nodxelem*m_dim<<endl;
+  malloc_t(m_hg_q, double, m_elem_count*m_nodxelem*m_dim); //m_hg_q[ m_elem_count ][ jmax ][ m_dim ]
+  
+  for (int i=0;i<m_elem_count*m_nodxelem*m_dim;i++)
+    m_hg_q[i] = 0.0;
+  }
+  
+  
 }
 
 void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count){

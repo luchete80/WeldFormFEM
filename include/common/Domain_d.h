@@ -138,6 +138,7 @@ struct StabilizationParams {
     double p_pspg_bulkfac;
     double J_min;
     double hg_forces;
+    double hg_elastic;
 };
 
 enum class PlasticityType {
@@ -279,8 +280,9 @@ public:
     m_stab.p_pspg_bulkfac   = 0.0;
     m_stab.J_min            = 0.0;
     m_stab.hg_forces        = 0.0;
+    m_stab.hg_elastic       = 0.1;
     
-    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.15;
+    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.3;
     
     abs_bc_initialized = false;
     
@@ -414,7 +416,12 @@ public:
   #else
   //inline vector_t getAccVec (const int &n){return make_vector_t(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};
   inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);};
-  inline vector_t getDispVec(const int &n){return make_vector_t(u[m_dim*n], u[m_dim*n+1], u[m_dim*n+2]);};
+  inline vector_t getDispVec(const int &n){
+    double z = 0.0;
+    if (m_dim == 3)
+      z = u[m_dim*n+2];
+    return make_vector_t(u[m_dim*n], u[m_dim*n+1], z);
+  }
   inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);};
   //inline vector_t getContForceVec(const int &n){return make_vector_t(contforce[m_dim*n], contforce[m_dim*n+1], contforce[m_dim*n+2]);}
   #endif
@@ -948,6 +955,8 @@ protected:
   double m_dt_gap_min; //CONTACT
   double m_Kpen;
   bool m_autoKpen;
+  
+  double*  m_hg_q;
 
 
 

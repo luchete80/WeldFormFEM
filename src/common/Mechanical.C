@@ -2226,167 +2226,378 @@ void Domain_d::CalcStressStrainQuasiStatic() {
     }
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////
+////////////////////////// ORIGINAL /////////////////////////////
+
+
 */
 
-dev_t void Domain_d:: calcElemHourglassForces()
-{
-  if (m_dim == 3 && m_nodxelem == 4){
-        // Tetrahedron hourglass control parameters
-        const double hourglass_coeff = 0.15; // Typical value for stabilization
-        const double small_volume = 1e-15;  // Threshold for degenerate elements
+//~ dev_t void Domain_d:: calcElemHourglassForces()
+//~ {
+  //~ if (m_dim == 3 && m_nodxelem == 4){
+        //~ // Tetrahedron hourglass control parameters
+        //~ const double hourglass_coeff = 0.15; // Typical value for stabilization
+        //~ const double small_volume = 1e-15;  // Threshold for degenerate elements
         
-        // Hourglass base vectors for tetrahedra (4 modes)
-        const double Sig[4][4] = {
-            { 1.0, -1.0,  1.0, -1.0},
-            { 1.0, -1.0, -1.0,  1.0},
-            { 1.0,  1.0, -1.0, -1.0},
-            {-1.0,  1.0, -1.0,  1.0}
-        };
+        //~ // Hourglass base vectors for tetrahedra (4 modes)
+        //~ const double Sig[4][4] = {
+            //~ { 1.0, -1.0,  1.0, -1.0},
+            //~ { 1.0, -1.0, -1.0,  1.0},
+            //~ { 1.0,  1.0, -1.0, -1.0},
+            //~ {-1.0,  1.0, -1.0,  1.0}
+        //~ };
 
-        par_loop(e, m_elem_count) {
-            if (m_gp_count == 1) { // Single integration point
-                int offset = e * m_nodxelem * m_dim;
+        //~ par_loop(e, m_elem_count) {
+            //~ if (m_gp_count == 1) { // Single integration point
+                //~ int offset = e * m_nodxelem * m_dim;
                 
-                // Skip degenerate elements
-                if (vol[e] < small_volume) {
-                    for (int n = 0; n < m_nodxelem; n++) {
-                        for (int d = 0; d < m_dim; d++) {
-                            m_f_elem_hg[offset + n * m_dim + d] = 0.0;
-                        }
-                    }
-                    continue;
-                }
+                //~ // Skip degenerate elements
+                //~ if (vol[e] < small_volume) {
+                    //~ for (int n = 0; n < m_nodxelem; n++) {
+                        //~ for (int d = 0; d < m_dim; d++) {
+                            //~ m_f_elem_hg[offset + n * m_dim + d] = 0.0;
+                        //~ }
+                    //~ }
+                    //~ continue;
+                //~ }
 
-                // Calculate characteristic element size
-                double elem_size = pow(vol[e], 1.0/3.0);
+                //~ // Calculate characteristic element size
+                //~ double elem_size = pow(vol[e], 1.0/3.0);
                 
-                // Compute stabilization coefficient
-                double c_h = m_stab.hg_forces * rho[e] * mat[e]->cs0 * elem_size * elem_size;
+                //~ // Compute stabilization coefficient
+                //~ double c_h = m_stab.hg_forces * rho[e] * mat[e]->cs0 * elem_size * elem_size;
                 
-                // Compute hourglass modes (4 modes for tetrahedra)
-                double hmod[3][4] = {0}; // [dim][mode]
+                //~ // Compute hourglass modes (4 modes for tetrahedra)
+                //~ double hmod[3][4] = {0}; // [dim][mode]
                 
-                for (int d = 0; d < m_dim; d++) {
-                    for (int j = 0; j < 4; j++) {
-                        for (int n = 0; n < 4; n++) {
-                            hmod[d][j] += getVElem(e, n, d) * Sig[j][n];
-                        }
-                    }
-                }
+                //~ for (int d = 0; d < m_dim; d++) {
+                    //~ for (int j = 0; j < 4; j++) {
+                        //~ for (int n = 0; n < 4; n++) {
+                            //~ hmod[d][j] += getVElem(e, n, d) * Sig[j][n];
+                        //~ }
+                    //~ }
+                //~ }
                 
-                // Apply hourglass forces
-                for (int n = 0; n < 4; n++) {
-                    for (int d = 0; d < m_dim; d++) {
-                        double force = 0.0;
-                        for (int j = 0; j < 4; j++) {
-                            force -= hmod[d][j] * Sig[j][n];
-                        }
-                        m_f_elem_hg[offset + n * m_dim + d] = c_h * force; //NEGATIVE T SOFTEN TETRA LOCKING
-                    }
-                }
-            }
-        }
-    }
+                //~ // Apply hourglass forces
+                //~ for (int n = 0; n < 4; n++) {
+                    //~ for (int d = 0; d < m_dim; d++) {
+                        //~ double force = 0.0;
+                        //~ for (int j = 0; j < 4; j++) {
+                            //~ force -= hmod[d][j] * Sig[j][n];
+                        //~ }
+                        //~ m_f_elem_hg[offset + n * m_dim + d] = c_h * force; //NEGATIVE T SOFTEN TETRA LOCKING
+                    //~ }
+                //~ }
+            //~ }
+        //~ }
+    //~ }
     
-  else {
+  //~ else {
     
-  int jmax;
-  if (m_dim==2) jmax = 1;
-  else          jmax = 4;
-  // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
-  // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
-  // real(fp_kind), dimension(dim,4) :: hmod
-  double hmod[3][4] ={{0.0,0.0,0.0,0.0},
-  {0.0,0.0,0.0,0.0},
-  {0.0,0.0,0.0,0.0}}; //m_dim,4
-  //Matrix hmod(m_dim,4);
-    Matrix Sig(4,m_nodxelem);
+  //~ int jmax;
+  //~ if (m_dim==2) jmax = 1;
+  //~ else          jmax = 4;
+  //~ // real(fp_kind), dimension(4, nodxelem) :: Sig !! 4 COLUMNVECTORS IN 2D ONLY first is used
+  //~ // real(fp_kind), dimension(nodxelem,dim):: vel!!!!DIFFERENT FROM vele which is an 8 x 1 vector
+  //~ // real(fp_kind), dimension(dim,4) :: hmod
+  //~ double hmod[3][4] ={{0.0,0.0,0.0,0.0},
+  //~ {0.0,0.0,0.0,0.0},
+  //~ {0.0,0.0,0.0,0.0}}; //m_dim,4
+  //~ //Matrix hmod(m_dim,4);
+    //~ Matrix Sig(4,m_nodxelem);
  
   
       
-  // //Sig nodxelem
-  if (m_dim==3){
+  //~ // //Sig nodxelem
+  //~ if (m_dim==3){
     
-    double sig_[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
-                          { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
-                          { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
-                          {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};  
+    //~ double sig_[4][8] = { { 0.125, 0.125,-0.125,-0.125,-0.125,-0.125, 0.125, 0.125},
+                          //~ { 0.125,-0.125,-0.125, 0.125,-0.125, 0.125, 0.125,-0.125},
+                          //~ { 0.125,-0.125, 0.125,-0.125, 0.125,-0.125, 0.125,-0.125},
+                          //~ {-0.125, 0.125,-0.125, 0.125, 0.125,-0.125, 0.125,-0.125}};  
     
-    for (int i=0;i<4;i++)
-      for (int n=0;n<m_nodxelem;n++)
-        Sig.Set(i,n,sig_[i][n]*8.0);
+    //~ for (int i=0;i<4;i++)
+      //~ for (int n=0;n<m_nodxelem;n++)
+        //~ Sig.Set(i,n,sig_[i][n]*8.0);
 
-  } else if (m_dim == 2){
-    double sig_[1][4] ={{0.25, -0.25, 0.25,-0.25}};    
+  //~ } else if (m_dim == 2){
+    //~ double sig_[1][4] ={{0.25, -0.25, 0.25,-0.25}};    
     
-    for (int n=0;n<m_nodxelem;n++)
-      Sig.Set(0,n,sig_[0][n]*4.0);
-      //Sig.Set(0,n,0.0);
-  }
+    //~ for (int n=0;n<m_nodxelem;n++)
+      //~ Sig.Set(0,n,sig_[0][n]*4.0);
+      //~ //Sig.Set(0,n,0.0);
+  //~ }
 
-  //double f = 1/8;
-  par_loop(e,m_elem_count){   
+  //~ //double f = 1/8;
+  //~ par_loop(e,m_elem_count){   
         
-  if (m_gp_count==1){
-      int offset = e * m_nodxelem*m_dim;   //SCALAR  
-      //double hmod[m_dim][4];
+  //~ if (m_gp_count==1){
+      //~ int offset = e * m_nodxelem*m_dim;   //SCALAR  
+      //~ //double hmod[m_dim][4];
 
-    for (int d=0;d<m_dim;d++)
-        for (int n=0;n<jmax;n++)
-          hmod[d][n] = 0.0;
+    //~ for (int d=0;d<m_dim;d++)
+        //~ for (int n=0;n<jmax;n++)
+          //~ hmod[d][n] = 0.0;
       
-    for (int d=0;d<m_dim;d++)
-        for (int n=0;n<m_nodxelem;n++)
-          m_f_elem_hg[offset + n*m_dim + d] = 0.0;
+    //~ for (int d=0;d<m_dim;d++)
+        //~ for (int n=0;n<m_nodxelem;n++)
+          //~ m_f_elem_hg[offset + n*m_dim + d] = 0.0;
 
 
 
-      //for (int n=0;n<m_nodxelem;n++)
-      //  printf("Elem %d Vel %.6e %.6e %.6e\n",e, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2)); ////DIM  
+      //~ //for (int n=0;n<m_nodxelem;n++)
+      //~ //  printf("Elem %d Vel %.6e %.6e %.6e\n",e, getVElem(e,n,0),getVElem(e,n,1),getVElem(e,n,2)); ////DIM  
 
-      for (int d=0;d<m_dim;d++)
-        for (int j=0;j<jmax;j++)
-          for (int n=0;n<m_nodxelem;n++){
-            hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
-          }
-
-      // !!!!!!!!! GOUDREAU 1982
-      for (int d=0;d<m_dim;d++)
-        for (int j=0;j<jmax;j++)
-          for (int n=0;n<m_nodxelem;n++)
-            //elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
-            m_f_elem_hg[offset + n*m_dim + d] -= hmod[d][j] * Sig.getVal(j,n);
-          // end do
-      // end do
-      // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
-      double c_h = m_stab.hg_forces * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
-      //printf("c_h %.6e\n", c_h);
-
-
-      for (int n=0;n<m_nodxelem;n++){      
-        for (int d=0;d<m_dim;d++){
-          m_f_elem_hg[offset + n*m_dim + d] *= c_h;
-        
-        //~ if (m_dim == 2 && m_domtype == _Axi_Symm_) {
-          //~ if (m_axisymm_vol_weight) {
-              //~ m_f_elem_hg[offset + n*m_dim + d] *= m_radius[e]; 
-          //~ } else {
-              //~ m_f_elem_hg[offset + n*m_dim + d] /= m_radius[e];
+      //~ for (int d=0;d<m_dim;d++)
+        //~ for (int j=0;j<jmax;j++)
+          //~ for (int n=0;n<m_nodxelem;n++){
+            //~ hmod[d][j] += getVElem(e,n,d) * Sig.getVal(j,n); ////DIM
           //~ }
+
+      //~ // !!!!!!!!! GOUDREAU 1982
+      //~ for (int d=0;d<m_dim;d++)
+        //~ for (int j=0;j<jmax;j++)
+          //~ for (int n=0;n<m_nodxelem;n++)
+            //~ //elem%hourg_nodf(e,n,:) = elem%hourg_nodf(e,n,:) - hmod(:,j)*Sig(j,n)
+            //~ m_f_elem_hg[offset + n*m_dim + d] -= hmod[d][j] * Sig.getVal(j,n);
+          //~ // end do
+      //~ // end do
+      //~ // c_h  = 0.06 * elem%vol(e)**(0.6666666) * elem%rho(e,1) * 0.25 * mat_cs0
+      //~ double c_h = m_stab.hg_forces * pow(vol[e], 0.6666666) * rho[e] * 0.2500 * mat[e]->cs0;
+      //~ //printf("c_h %.6e\n", c_h);
+
+
+      //~ for (int n=0;n<m_nodxelem;n++){      
+        //~ for (int d=0;d<m_dim;d++){
+          //~ m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+
         //~ }
+        //~ //printf("hg forces el %d node %d: %f %f %f\n",e, n,m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
+      //~ }
 
-        }
-        //printf("hg forces el %d node %d: %f %f %f\n",e, n,m_f_elem_hg[offset + n*m_dim],m_f_elem_hg[offset + n*m_dim + 1],m_f_elem_hg[offset + n*m_dim + 2]  );
-      }
-
-  } //gp ==1
-  }//ELEM
+  //~ } //gp ==1
+  //~ }//ELEM
   
-  } //non tetra
+  //~ } //non tetra
+//~ }
+
+//////////////////// NEW (STIFFNESS)
+////// VISCOUS STIFFNESS (NO FUNCIONA)
+//~ dev_t void Domain_d::calcElemHourglassForces()
+//~ {
+    //~ // ============================================================
+    //~ // NON-TETRA ELEMENTS (quads / hexas)
+    //~ // Reduced integration + viscous + ELASTIC hourglass
+    //~ // ============================================================
+
+    //~ int jmax;
+    //~ if (m_dim == 2) jmax = 1;
+    //~ else            jmax = 4;
+
+    //~ // Hourglass modes
+    //~ double hmod[3][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0}}; // viscous (velocity)
+    //~ double qmod[3][4] = {{0,0,0,0},{0,0,0,0},{0,0,0,0}}; // elastic (displacement)
+
+    //~ Matrix Sig(4, m_nodxelem);
+
+    //~ // ------------------------------------------------------------
+    //~ // Hourglass base vectors
+    //~ // ------------------------------------------------------------
+    //~ if (m_dim == 3) {
+
+        //~ double sig_[4][8] = {
+            //~ { 0.125,  0.125, -0.125, -0.125, -0.125, -0.125,  0.125,  0.125},
+            //~ { 0.125, -0.125, -0.125,  0.125, -0.125,  0.125,  0.125, -0.125},
+            //~ { 0.125, -0.125,  0.125, -0.125,  0.125, -0.125,  0.125, -0.125},
+            //~ {-0.125,  0.125, -0.125,  0.125,  0.125, -0.125,  0.125, -0.125}
+        //~ };
+
+        //~ for (int i = 0; i < 4; i++)
+            //~ for (int n = 0; n < m_nodxelem; n++)
+                //~ Sig.Set(i, n, sig_[i][n] * 8.0);
+
+    //~ } else if (m_dim == 2) {
+
+        //~ double sig_[1][4] = {{ 0.25, -0.25, 0.25, -0.25 }};
+        //~ for (int n = 0; n < m_nodxelem; n++)
+            //~ Sig.Set(0, n, sig_[0][n] * 4.0);
+    //~ }
+
+    //~ // ------------------------------------------------------------
+    //~ // Element loop
+    //~ // ------------------------------------------------------------
+    //~ par_loop(e, m_elem_count)
+    //~ {
+        //~ if (m_gp_count != 1) continue;
+
+        //~ int offset = e * m_nodxelem * m_dim;
+
+        //~ // Reset
+        //~ for (int d = 0; d < m_dim; d++)
+            //~ for (int j = 0; j < jmax; j++) {
+                //~ hmod[d][j] = 0.0;
+                //~ qmod[d][j] = 0.0;
+            //~ }
+
+        //~ for (int n = 0; n < m_nodxelem; n++)
+            //~ for (int d = 0; d < m_dim; d++)
+                //~ m_f_elem_hg[offset + n*m_dim + d] = 0.0;
+
+        //~ // --------------------------------------------------------
+        //~ // Compute hourglass modes
+        //~ // --------------------------------------------------------
+        //~ for (int d = 0; d < m_dim; d++)
+            //~ for (int j = 0; j < jmax; j++)
+                //~ for (int n = 0; n < m_nodxelem; n++) {
+
+                    //~ // viscous mode (velocity)
+                    //~ hmod[d][j] += getVElem(e, n, d) * Sig.getVal(j, n);
+
+                    //~ // elastic mode (displacement)
+                    //~ //double u = getXElem(e, n, d) - getX0Elem(e, n, d);
+                    //~ //double u = 0.0;
+                    //~ double ud = 0.;
+                    //~ ud = u[m_dim*m_elnod[e*m_nodxelem+n]+d];
+
+                    //~ qmod[d][j] += ud * Sig.getVal(j, n);
+                //~ }
+
+        //~ // --------------------------------------------------------
+        //~ // Hourglass stiffness (ELASTIC)
+        //~ // --------------------------------------------------------
+        //~ double k_h =
+            //~ m_stab.hg_elastic *
+            //~ mat[e]->Elastic().BulkMod() *
+            //~ vol[e];
+
+        //~ // --------------------------------------------------------
+        //~ // Assemble hourglass forces
+        //~ // --------------------------------------------------------
+        //~ for (int d = 0; d < m_dim; d++)
+            //~ for (int j = 0; j < jmax; j++)
+                //~ for (int n = 0; n < m_nodxelem; n++) {
+
+                    //~ // viscous contribution (UNSCALED yet)
+                    //~ m_f_elem_hg[offset + n*m_dim + d]
+                        //~ -= hmod[d][j] * Sig.getVal(j, n);
+
+                    //~ // elastic contribution (REAL stiffness)
+                    //~ m_f_elem_hg[offset + n*m_dim + d]
+                        //~ -= k_h * qmod[d][j] * Sig.getVal(j, n);
+                //~ }
+
+        //~ // --------------------------------------------------------
+        //~ // Viscous scaling (Belytschko)
+        //~ // --------------------------------------------------------
+        //~ double c_h =
+            //~ m_stab.hg_forces *
+            //~ pow(vol[e], 0.6666666) *
+            //~ rho[e] *
+            //~ 0.25 *
+            //~ mat[e]->cs0;
+
+        //~ for (int n = 0; n < m_nodxelem; n++)
+            //~ for (int d = 0; d < m_dim; d++)
+                //~ m_f_elem_hg[offset + n*m_dim + d] *= c_h;
+    //~ }
+//~ }
+dev_t void Domain_d::calcElemHourglassForces()
+{
+    int jmax = (m_dim == 2) ? 1 : 4;
+
+    double hmod[3][4] = {{0}}; // velocity modes
+
+    Matrix Sig(4, m_nodxelem);
+
+    // ------------------------------------------------------------
+    // Hourglass base vectors
+    // ------------------------------------------------------------
+    if (m_dim == 3) {
+
+        double sig_[4][8] = {
+            { 1,  1, -1, -1, -1, -1,  1,  1},
+            { 1, -1, -1,  1, -1,  1,  1, -1},
+            { 1, -1,  1, -1,  1, -1,  1, -1},
+            {-1,  1, -1,  1,  1, -1,  1, -1}
+        };
+
+        for (int j=0; j<jmax; j++)
+            for (int n=0; n<m_nodxelem; n++)
+                Sig.Set(j, n, 0.125 * sig_[j][n]);
+
+    } else {
+
+        double sig_[1][4] = {{ 1, -1, 1, -1 }};
+        for (int n=0; n<m_nodxelem; n++)
+            Sig.Set(0, n, 0.25 * sig_[0][n]);
+    }
+
+    // ------------------------------------------------------------
+    // Element loop
+    // ------------------------------------------------------------
+    par_loop(e, m_elem_count)
+    {
+        if (m_gp_count != 1) continue;
+
+        int offset = e * m_nodxelem * m_dim;
+
+        // Reset
+        for (int d=0; d<m_dim; d++)
+            for (int j=0; j<jmax; j++)
+                hmod[d][j] = 0.0;
+
+        for (int n=0; n<m_nodxelem; n++)
+            for (int d=0; d<m_dim; d++)
+                m_f_elem_hg[offset + n*m_dim + d] = 0.0;
+
+        // --------------------------------------------------------
+        // Velocity hourglass modes
+        // --------------------------------------------------------
+        for (int d=0; d<m_dim; d++)
+            for (int j=0; j<jmax; j++)
+                for (int n=0; n<m_nodxelem; n++)
+                    hmod[d][j] += getVElem(e, n, d) * Sig.getVal(j, n);
+
+        // --------------------------------------------------------
+        // Accumulate INTERNAL VARIABLE (LS-DYNA style)
+        // --------------------------------------------------------
+        for (int d=0; d<m_dim; d++)
+            for (int j=0; j<jmax; j++)
+                m_hg_q[(e*jmax + j)*m_dim + d] += dt * hmod[d][j];
+        
+        // --------------------------------------------------------
+        // Coefficients
+        // --------------------------------------------------------
+        double k_h =
+            m_stab.hg_elastic *
+            mat[e]->Elastic().BulkMod() *
+            vol[e];
+
+        double c_h =
+            m_stab.hg_forces *
+            rho[e] *
+            mat[e]->cs0 *
+            pow(vol[e], 1.0/3.0);
+
+        // --------------------------------------------------------
+        // Assemble forces
+        // --------------------------------------------------------
+        for (int d=0; d<m_dim; d++)
+            for (int j=0; j<jmax; j++)
+                for (int n=0; n<m_nodxelem; n++) {
+
+                    double sig = Sig.getVal(j, n);
+
+                    double f_visc = -c_h * hmod[d][j] * sig;
+                    double f_el   = -k_h *
+                        m_hg_q[(e*jmax + j)*m_dim + d] * sig;
+
+                    m_f_elem_hg[offset + n*m_dim + d] += f_visc + f_el;
+                }
+    }
 }
 
-
-  
 
 // // Alternative simplified version focusing only on volumetric stabilization
 // dev_t void Domain_d::calcElemHourglassForces_Simple()
