@@ -5,11 +5,11 @@
   "cflFactor": 0.3,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
-  "simTime": 1.0e-3,
+  "simTime": 1.0e-4,
   "artifViscAlpha": 1.0,
   "artifViscBeta": 0.0,
-  "outTime": 1.0e-4,
-  "fixedTS":true,
+  "outTime": 1.0e-6,
+  "fixedTS":false,
   "domType": "AxiSymm",
   "solver": "Mech-LeapFrog"
 }
@@ -60,34 +60,37 @@
 	"scale": [1, 1, 1]
 }
 ],
+"Contact":[ 
+{
+  "fricCoeffStatic": 0.3,
+  "fricCoeffDynamic": 0.3,
+  "penaltyFactor": 1.0,
+  "heatConductance": false,
+  "heatCondCoeff": 0.01
+  
+}],
 
 "Amplitudes": [
 {
 	"id": 		1,
 	"valueType": 1,
 	"time": 	[ 0.0, 5.0e-3, 1.0],
-	"value": 	[ 0.0, 10.0, 10.0]
+	"value": 	[ 0.0, 1.0, 1.0]
 }
 ],
-
 "BoundaryConditions": [
 {
-  "id": 1,
-	"start":[ 0.0,-1.0, 0.0000],
-	"end": 	[ 1.0, 1.0e-4, 0.0000],
-	"zoneId": 	5,
+	"zoneId": 	1,
 	"valueType": 0,
 	"value": 		[ 0.0, 0.0, 0.0],
 	"free": 		true
 },
 {
-  "id": 2,
-	"start":[ 0.0,0.0299, 0.0000],
-	"end": 	[ 1.0,0.05, 0.0000],
-	"zoneId": 	5,
-	"valueType": 0,
-	"value": 		[ 0.0, -1.0, 0.0],
-	"free": 		true
+	"zoneId": 	2,
+	"valueType": 	1,
+  "amplitudeId" : 1,
+  "amplitudeFactor": 1.0,
+	"value": 		[ 0.0, -1.2, 0.0]
 }
 ]
 

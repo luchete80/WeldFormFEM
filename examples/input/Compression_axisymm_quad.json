@@ -5,7 +5,7 @@
   "cflFactor": 0.3,
   "autoTS": [false,false,false],
   "kernelGradCorr": false,  
-  "simTime": 1.0e-3,
+  "simTime": 1.0e-2,
   "artifViscAlpha": 1.0,
   "artifViscBeta": 0.0,
   "outTime": 1.0e-4,
