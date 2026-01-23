@@ -207,16 +207,14 @@ void dev_t Domain_d::CalcContactForces(){
                 contforce[m_dim*i+2] = cf.z;
               pxa[i] = p_node[i] * node_area[i];
               //printf("Nodal pressure %.4e\n",p_node[i]);
-              //printf("Cont Force %f %f %f \n",cf.x,cf.y,cf.z);
+              //printf("Cont Force %e %e %e \n",cf.x,cf.y,cf.z);
               cfn[i] = norm(cf);
-
-              cout << "contforce node "<< i <<": "<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
                
-              if (norm(cf)>0.0){ /////DEBG
-                cout << "Node "<<i<<", LARGE CF: "<<norm(cf)<<", delta "<<d<<"trimesh node j "<<j<<", pplane "<<trimesh->pplane[j]<<endl;
-                cout << "Pos "<<getPosVec3(i).x<<", "<<getPosVec3(i).y <<", "<<getPosVec3(i).z<<endl;
-                cout << "Normal: x "<<trimesh->normal[j].x<<", y "<<trimesh->normal[j].y<<", z "<<trimesh->normal[j].z<<endl; 
-                }
+              //~ if (norm(cf)>0.0){ /////DEBG
+                //~ cout << "Node "<<i<<", LARGE CF: "<<norm(cf)<<", delta "<<d<<"trimesh node j "<<j<<", pplane "<<trimesh->pplane[j]<<endl;
+                //~ cout << "Pos "<<getPosVec3(i).x<<", "<<getPosVec3(i).y <<", "<<getPosVec3(i).z<<endl;
+                //~ cout << "Normal: x "<<trimesh->normal[j].x<<", y "<<trimesh->normal[j].y<<", z "<<trimesh->normal[j].z<<endl; 
+                //~ }
               
               //printf("MESHIN CONTACT %d\n",trimesh->ele_mesh_id[j]);
               m_mesh_in_contact[i]=trimesh->ele_mesh_id[j];
@@ -252,7 +250,7 @@ void dev_t Domain_d::CalcContactForces(){
               
               // 4. Trial tangential force from accumulated displacement
               double3 Ft_trial = -kcont * ut_acc;
-              cout << "Ftrial "<<Ft_trial.x<<", "<<Ft_trial.y<<", "<<Ft_trial.z<<endl;
+              //cout << "Ftrial "<<Ft_trial.x<<", "<<Ft_trial.y<<", "<<Ft_trial.z<<endl;
               // 5. Coulomb cap
 
               double Ft_mag = length(Ft_trial);
@@ -297,7 +295,7 @@ void dev_t Domain_d::CalcContactForces(){
               if (m_dim  == 3) 
                 contforce[m_dim * i + 2] += Ft.z;                     
               
-              cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
+              //cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
 
               q_cont_conv[i] = trimesh->heat_cond * node_area[i]*(trimesh->T_const - T[i]);
 

@@ -298,6 +298,8 @@ inline dev_t void  TriMesh_d::Move(double dt){
     // } 
 
     node[n] = node[n] + (node_v[n])*dt;
+    //cout <<"Mesh vel "<<node_v[n].x<<", "<<node_v[n].y<<", "<<node_v[n].z<<endl;
+    //cout << "MESH "<<node[n].x<<", "<<node[n].y<<"," <<node[n].z<<endl;
     //printf("after \n");
     //PRINT_V(node[n]); 
   }//n<nodecount
