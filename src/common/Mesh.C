@@ -219,8 +219,8 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
 		else if (axis == 1)	normal_h[e].y = f;
 		else 								normal_h[e].z = f;
     } else {
-      if (axis == 0)			normal_h[e].y = f;
-      else if (axis == 1)	normal_h[e].x = f;    
+      if (axis == 0)			normal_h[e].x = f;
+      else if (axis == 1)	normal_h[e].y = f;    
     }
     // if (length(normal_h[e])<1.0e-3) printf( "ERROR. ZERO NORMAL"<<endl;
     // if (normal_h[e].y > 1.0e-10) printf( "ERROR. NORMAL Y NOT ZERO"<<endl;    
@@ -677,7 +677,7 @@ TriMesh_d::TriMesh_d(NastranReader &nr, bool flipnormals, bool orientNormals, co
       
     } else { //See calc normals
         //~ Vec3_t u = *node [element[e]->node[1]] - *node [element[e]->node[0]];
-        double3 u = node_h[nr.elcon[3*e+1]] - node_h[nr.elcon[3*e]];
+        double3 u = node_h[nr.elcon[2*e+1]] - node_h[nr.elcon[2*e]];
         //~ v[0] = -u[1];
         //~ v[1] =  u[0];
         //~ v[2] =  0.0;
