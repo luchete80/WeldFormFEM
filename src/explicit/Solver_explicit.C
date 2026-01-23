@@ -756,7 +756,7 @@ void host_ Domain_d::SolveChungHulbert(){
     if (m_devElastic){
       if (m_dim == 3)
         calcElemPressure();
-      else
+      else 
         calcElemPressureLocal();
     }
     else 
