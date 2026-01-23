@@ -280,7 +280,7 @@ public:
     m_stab.J_min            = 0.0;
     m_stab.hg_forces        = 0.0;
     
-    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.1;
+    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.15;
     
     abs_bc_initialized = false;
     

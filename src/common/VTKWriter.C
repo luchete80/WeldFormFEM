@@ -491,15 +491,15 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     printDummyNod(dom,m_oss);
 
   ///////////////// DEBUG
-  //~ m_oss<<"SCALARS ext_nodes float 1"<<endl;
-  //~ m_oss<<"LOOKUP_TABLE default"<<endl;
-  //~ int count = 0;
-  //~ for (int n=0;n<dom->m_node_count;n++){
-    //~ double ext = 0.0;
-    //~ if (dom->ext_nodes[n]) {ext = 1.0;count ++;}
-     //~ m_oss << ext<<endl;
-  //~ }   
-  //~ printDummyNod(dom,m_oss);
+  m_oss<<"SCALARS ext_nodes float 1"<<endl;
+  m_oss<<"LOOKUP_TABLE default"<<endl;
+  int count = 0;
+  for (int n=0;n<dom->m_node_count;n++){
+    double ext = 0.0;
+    if (dom->ext_nodes[n]) {ext = 1.0;count ++;}
+     m_oss << ext<<endl;
+  }   
+  printDummyNod(dom,m_oss);
 
   
     m_oss<<"SCALARS nod_area float 1"<<endl;
