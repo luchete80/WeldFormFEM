@@ -225,7 +225,7 @@ void TriMesh_d::AxisPlaneMesh(const int &id, const int &axis, bool positaxisoren
     // if (length(normal_h[e])<1.0e-3) printf( "ERROR. ZERO NORMAL"<<endl;
     // if (normal_h[e].y > 1.0e-10) printf( "ERROR. NORMAL Y NOT ZERO"<<endl;    
     
-    //printf( "normal_h[e] "<<normal_h[e].x << ", " << normal_h[e].y << ", " <<normal_h[e].z<<endl;
+    //cout << "normal_h[e] "<<normal_h[e].x << ", " << normal_h[e].y << ", " <<normal_h[e].z<<endl;
 	}
   //printf("Done\n");
   m_v = m_w = make_double3(0.,0.,0.);

@@ -203,16 +203,53 @@ dev_t void Domain_d::CalcExtFaceAreas(){
   bool *elem_flags;
   malloc_t(elem_flags, bool, m_elem_count);
   #endif
-  
-    
+      
   for (int e=0;e<m_elem_count;e++)elem_flags[e]=false;
-  ////////////////////////////////////
-  //////// CALCULATE AREA (FOR CONTACT)
-  // Allocate and initialize nodal area array
+
   for (int i = 0; i < m_node_count; i++)
       node_area[i] = 0.0;
   for (int i = 0; i < m_elem_count; i++)
     m_elem_area[i] = 0.0;
+        
+  if (m_dim == 2 && FACENOD == 2) {
+
+    for (int i = 0; i < m_faceCount; i++) {
+
+        if (faceList[i].count == 1) {   // External edge (2D)
+
+            int n0 = faceList[i].nodes[0];
+            int n1 = faceList[i].nodes[1];
+
+            double2 p0 = getPosVec2(n0);
+            double2 p1 = getPosVec2(n1);
+
+            double dx = p1.x - p0.x;
+            double dy = p1.y - p0.y;
+            double length = sqrt(dx*dx + dy*dy);
+
+            // --- 2D PLANO ---
+            double edge_measure = length;
+
+            // --- 2D AXISIMÉTRICO (si aplica) ---
+            // double rmid = 0.5 * (p0.x + p1.x);
+            // double edge_measure = 2.0 * M_PI * rmid * length;
+
+            // Distribuir a nodos
+            double share = 0.5 * edge_measure;
+            node_area[n0] += share;
+            node_area[n1] += share;
+
+            // Acumular por elemento (SUMA, no max)
+            int elem_id = faceList[i].elem_id;
+            m_elem_area[elem_id] += edge_measure;
+        }
+    }
+  }  
+  else {
+  ////////////////////////////////////
+  //////// CALCULATE AREA (FOR CONTACT)
+  // Allocate and initialize nodal area array
+
   // Compute nodal areas from external triangular faces
   for (int i = 0; i < m_faceCount; i++) {
       if (faceList[i].count == 1) { // External face
@@ -256,7 +293,7 @@ dev_t void Domain_d::CalcExtFaceAreas(){
     }//Face Count
     //printf ("Top Faces: %d\n",top_faces);
     //printf("--------------------------TOP AREA %.4e\n",top_area);
-  
+  }
   #ifdef CUDA_BUILD
     free_t(elem_flags);
   #endif

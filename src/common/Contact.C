@@ -93,8 +93,14 @@ void dev_t Domain_d::CalcContactForces(){
         
         //ACCORDING TO WANG
 			//double3 vr = Particles[P1]->v - Particles[P2]->v;		//Fraser 3-137
-			//delta = - dot(trimesh->normal[j], vr);	//Penetration rate, Fraser 3-138        
-        //printf("Node %d d %f\n",i, d);
+			//delta = - dot(trimesh->normal[j], vr);	//Penetration rate, Fraser 3-138     
+        
+        //~ if (i==1){
+          //~ cout << " j "<<j<<endl;
+          //~ printf("Node %d d %f\n",i, d);
+          //~ cout << "Pos "<<getPosVec3(i).x<<", "<<getPosVec3(i).y <<", "<<getPosVec3(i).z<<endl;
+          //~ cout << "Node j "<<j<<", NORMAL "<<trimesh->normal[j].x<<", "<<trimesh->normal[j].y<<", "<<trimesh->normal[j].z<<endl;
+        //~ }
         if (d < 0 /*&& dist < CERTAIN ELEMENT DISTANCE*/){
           //printf ("NODE %d DELTA <0------, d %.4e Z POS %.4e , PPLANE %.4e \n", i, d, getNodePos3(i).z,trimesh->pplane[j]);
          
@@ -207,10 +213,13 @@ void dev_t Domain_d::CalcContactForces(){
                 contforce[m_dim*i+2] = cf.z;
               pxa[i] = p_node[i] * node_area[i];
               //printf("Nodal pressure %.4e\n",p_node[i]);
-              //printf("Cont Force %e %e %e \n",cf.x,cf.y,cf.z);
               cfn[i] = norm(cf);
                
-              //~ if (norm(cf)>0.0){ /////DEBG
+              //~ if (i == 1){ /////DEBG
+                //~ cout << "Node Area "<<node_area[i]<<", Node len "<<nodlen<<endl;
+                //~ printf("KGEO:%.4e KMASS: %.4e\n",kcont_geo,kcont_mass);
+                //~ cout << "m_contPF "<<m_contPF<<"kcont " <<kcont<<endl;
+                //~ printf("Cont Force %e %e %e \n",cf.x,cf.y,cf.z);
                 //~ cout << "Node "<<i<<", LARGE CF: "<<norm(cf)<<", delta "<<d<<"trimesh node j "<<j<<", pplane "<<trimesh->pplane[j]<<endl;
                 //~ cout << "Pos "<<getPosVec3(i).x<<", "<<getPosVec3(i).y <<", "<<getPosVec3(i).z<<endl;
                 //~ cout << "Normal: x "<<trimesh->normal[j].x<<", y "<<trimesh->normal[j].y<<", z "<<trimesh->normal[j].z<<endl; 
@@ -295,10 +304,9 @@ void dev_t Domain_d::CalcContactForces(){
               if (m_dim  == 3) 
                 contforce[m_dim * i + 2] += Ft.z;                     
               
-              //cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
+              cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
 
               q_cont_conv[i] = trimesh->heat_cond * node_area[i]*(trimesh->T_const - T[i]);
-
               
               end = true;//JUST ONE MASTER ELEMENT PER SLAVE NODE
             
