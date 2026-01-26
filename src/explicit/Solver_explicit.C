@@ -603,11 +603,13 @@ void host_ Domain_d::SolveChungHulbert(){
     // REMESH_SOON;
   // if (Jn < 0.05)
     // REMESH_SOON;
-  
-    double bad_frac = double(m_bad_elem_count) / double(m_elem_count);
-    if (bad_frac > 0.20){  // más del 5% de los elementos malos
-      need_remesh = true;
-      printf("Mesh quality: %.2f%% elements out of range [15,160]\n", bad_frac * 100.0);
+    
+    if (m_dim==3){
+      double bad_frac = double(m_bad_elem_count) / double(m_elem_count);
+      if (bad_frac > 0.20){  // más del 5% de los elementos malos
+        need_remesh = true;
+        printf("Mesh quality: %.2f%% elements out of range [15,160]\n", bad_frac * 100.0);
+      }
     }
     // if (dt_new > 1.0e-20)
       // dt = dt_new;

@@ -304,7 +304,7 @@ void dev_t Domain_d::CalcContactForces(){
               if (m_dim  == 3) 
                 contforce[m_dim * i + 2] += Ft.z;                     
               
-              cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
+              //cout << "contforce w/friction"<<contforce[m_dim * i + 0]<<", "<<contforce[m_dim * i + 1]<<", "<<contforce[m_dim * i + 2]<<endl;
 
               q_cont_conv[i] = trimesh->heat_cond * node_area[i]*(trimesh->T_const - T[i]);
               
