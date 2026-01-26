@@ -12,6 +12,9 @@
   "fixedTS":true,
   "domType": "AxiSymm",
   "solver": "Mech-LeapFrog"
+},
+"Stabilization":{
+"hg_forces":0.15
 }
 ,
 "Materials":[ 
