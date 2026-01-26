@@ -308,9 +308,11 @@ int main(int argc, char **argv) {
     for (int d=0;d<3;d++)
       if (xyzsym[d])
         cout << "SYMMETRY ON AXIS "<<symaxis[d]<<endl;
-     
+    
+    bool vol_weight = true;
     if (dom_type == "AxiSymm" || dom_type == "AxiSym"){
-      dom_d->setAxiSymm();
+      readValue(config["AxiSymmVol"], vol_weight);
+      dom_d->setAxiSymm(vol_weight);
       cout << "DOMAIN TYPE: AXISYMMETRIC"<<endl;
     } else if (dom_type == "plStrain"){
       cout << "DOMAIN TYPE: PLAIN STRAIN"<<endl;
