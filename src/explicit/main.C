@@ -98,7 +98,8 @@ StabilizationParams loadStabilizationParams(const nlohmann::json& j,Domain_d *do
     params.log_factor       = stab.value("log_factor", 0.0);        
     params.p_pspg_bulkfac   = stab.value("p_pspg_bulkfac", 0.0);     
     params.J_min            = stab.value("J_min", 0.0);    
-    params.hg_forces        = stab.value("hg_forces", 0.0);            
+    params.hg_visc          = stab.value("hg_visc", 0.0);    
+    params.hg_stiff         = stab.value("hg_stiff", 0.0);         
         //~ params.alpha_free       = stab.value("alpha_free", 0.0);         
     //~ params.alpha_contact    = stab.value("alpha_contact", 0.0);      
     //~ params.hg_coeff_free    = stab.value("hg_coeff_free", 0.05);     

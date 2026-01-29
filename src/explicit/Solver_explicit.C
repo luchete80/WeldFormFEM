@@ -213,8 +213,9 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "pspg_scale     "<<m_stab.pspg_scale <<endl;
     oss_out << "p_pspg_bulkfac "<<m_stab.p_pspg_bulkfac <<endl;
     oss_out << "J_min          "<<m_stab.J_min <<endl;
-    oss_out << "hg_forces      "<<m_stab.hg_forces <<endl;
-            
+    oss_out << "hg_visc        "<<m_stab.hg_visc <<endl;
+    oss_out << "hg_stiff       "<<m_stab.hg_stiff <<endl;
+                
     cout << oss_out.str();
     out_file << oss_out.str();
     out_file.flush();

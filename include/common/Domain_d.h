@@ -137,8 +137,8 @@ struct StabilizationParams {
     double pspg_scale;
     double p_pspg_bulkfac;
     double J_min;
-    double hg_forces;
-    double hg_elastic;
+    double hg_visc;
+    double hg_stiff;
 };
 
 enum class PlasticityType {
@@ -279,10 +279,10 @@ public:
     m_stab.pspg_scale       = 0.0;
     m_stab.p_pspg_bulkfac   = 0.0;
     m_stab.J_min            = 0.0;
-    m_stab.hg_forces        = 0.0;
-    m_stab.hg_elastic       = 0.1;
+    m_stab.hg_visc        = 0.0;
+    m_stab.hg_stiff       = 0.1;
     
-    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_forces = 0.1;
+    if (m_dim == 2 && m_nodxelem == 4) m_stab.hg_visc = 0.1;
     
     abs_bc_initialized = false;
     
