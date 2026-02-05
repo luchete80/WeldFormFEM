@@ -77,6 +77,7 @@ class ReMesher{
   
   void Generate_omegah();
   void Generate_mmg();
+  void Generate_remesh2D();
   
   //dest,origin,switches between mesher
   void MapNodal(double *vfield, double *o_field); //VECTORIAL @TODO: ADD TEMPLATE

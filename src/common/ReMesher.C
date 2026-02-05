@@ -782,7 +782,7 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
       for (int v = 0; v < m_dom->m_node_count; v++){
         //If new node dist <tol, map new node = old node
         std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
-        double distance = 0.0;
+        double distance = 0.0;https://chatgpt.com/g/g-p-697fa8009c788191800147bece47e73b/c/698463ec-8578-8332-be88-9ce5e402787e
         for (int i = 0; i < 3; ++i) {
             distance += (x[i] - p0[i]) * (x[i] - p0[i]);
         }
