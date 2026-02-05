@@ -4,3 +4,6 @@
 [submodule "lib/Math"]
     path = lib/Math
     url = https://github.com/luchete80/Math.git
+[submodule "lib/mesh-adapt"]
+	path = lib/mesh-adapt
+	url = git@github.com:luchete80/mesh-adapt.git
