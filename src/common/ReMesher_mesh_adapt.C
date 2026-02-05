@@ -26,7 +26,24 @@
 #include <array>
 #include <Vec3D.h>
 
-#include "mesh-adapt/"
+#include <iostream>
+#include <iomanip>
+#include <string>
+
+#include "mesh_adapt/core/Mesh2D.hpp"
+#include "mesh_adapt/core/Mesh2DUtils.hpp"
+#include "mesh_adapt/geometry/Polyline2D.hpp"
+#include "mesh_adapt/boundary/Boundary2D.hpp"
+#include "mesh_adapt/boundary/TransitionPatch2D.hpp"
+#include "mesh_adapt/boundary/Delaunay2D.hpp"
+#include "mesh_adapt/geometry/PolylineUtils.hpp"
+#include "mesh_adapt/geometry/ContourUtils.hpp"
+#include "mesh_adapt/geometry/PolygonUtils.hpp"
+#include "mesh_adapt/io/VTKReader2D.hpp"
+#include "mesh_adapt/io/VTKWriter2D.hpp"
+#include "mesh_adapt/subdivision/MeshToSub.hpp" 
+#include "mesh_adapt/subdivision/QuadRefiner.hpp"
+#include "mesh_adapt/smoothing/LaplacianSmoother2D.hpp"
 
 #include "ReMesher.h"
 #include "Domain_d.h"
