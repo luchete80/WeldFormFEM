@@ -297,8 +297,10 @@ void ReMesher::Generate_remesh2D() {
     //~ // ------------------------------------------------------------
     //~ // 13. Quad refinement
     //~ // ------------------------------------------------------------
-    QuadRefiner quad_refiner(mesh2sub.mesh.quads, edge_map, 
-                             mesh2sub.subdivided_edge_to_global);
+
+    QuadRefiner quad_refiner(mesh2sub, mesh2sub.mesh.quads, edge_map, 
+                            mesh2sub.subdivided_edge_to_global);
+
     quad_refiner.refine_to_conform();
 
     SubdivisionResult result = quad_refiner.subdivide_quads_with_nodes(

@@ -17,6 +17,7 @@ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --fmad=false --prec-sqrt=true --ftz=fa
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C PROPERTIES LANGUAGE CUDA)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 ELSE ()
+set(CMAKE_CXX_STANDARD 17) ### MESH ADAPT, ONLY FOR STD::CLAMP, BUT FOR NEW STANDARD
 # if (MSVC)
     # # MSVC equivalent optimizations
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /O2 /std:c++17 /fp:precise")
