@@ -452,7 +452,7 @@ void ReMesher::WriteDomain(){
   
   ///// IF MAP MOMENTUM FOM ELEMENT
   cout << "Map eleme "<<endl;
-    double* p_elem_new = new double[m_elem_count * 3];
+    double* p_elem_new = new double[m_elem_count * dim];
     //MapElem(p_elem_new, p_elem_old, 3);  // 3 componentes
 
 
@@ -690,11 +690,12 @@ void ReMesher::WriteDomain(){
     for (int i = 0; i < m_node_count; i++) {
         final_momentum.x += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i];
         final_momentum.y += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 1];
+        if (dim == 3)
         final_momentum.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
     }
 
-    memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * 3); 
-    memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * 3); 
+    memcpy_t(m_dom->m_vprev,  vfield, sizeof(double) * m_dom->m_node_count * dim); 
+    memcpy_t(m_dom->v,        vfield, sizeof(double) * m_dom->m_node_count * dim); 
         
     cout << "Momentum:\n";
     cout << " - Before:  (" << total_momentum_old.x << ", " << total_momentum_old.y << ", " << total_momentum_old.z << ")\n";
