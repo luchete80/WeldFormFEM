@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
       if (xyzsym[d])
         cout << "SYMMETRY ON AXIS "<<symaxis[d]<<endl;
     
-    bool vol_weight = true;
+    bool vol_weight = false;
     if (dom_type == "AxiSymm" || dom_type == "AxiSym"){
       readValue(config["AxiSymmVol"], vol_weight);
       dom_d->setAxiSymm(vol_weight);
