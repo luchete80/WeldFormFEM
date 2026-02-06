@@ -264,8 +264,8 @@ void ReMesher::MapNodal(double *vfield, double *o_field){
   #else              
   MapNodalVector<3> (m_mesh, vfield, o_field); 
   #endif
-  
 }
+
 void ReMesher::MapNodalScalar(double *vfield, double *o_field){
   #ifndef REMESH_OMEGA_H
   //MapNodalVectorRaw<1>        (vfield, o_field);
@@ -384,7 +384,7 @@ void ReMesher::WriteDomain(){
   // }
 
   
-  for (int i=0;i<3*m_node_count;i++){
+  for (int i=0;i<dim*m_node_count;i++){
     afield[i]=0.0;
     pafield[i]=0.0;
     vfield[i]=0.0;
@@ -738,7 +738,7 @@ void ReMesher::WriteDomain(){
 
   //delete[] p_elem_old;
   delete[] p_elem_new;
-  
+  delete[] volumes;
   //AFTER MAP
   //THIS CRASHES
   //free_t(m_closest_elem);
