@@ -1,0 +1,9 @@
+{
+  "vtk_files": [
+    { "file": "Contact_Compression_axisymm_quad_rmsh_00000.vtk", "time": 0 },
+    { "file": "Contact_Compression_axisymm_quad_rmsh_00001.vtk", "time": 0.000100004 },
+    { "file": "Contact_Compression_axisymm_quad_rmsh_00002.vtk", "time": 0.000200043 },
+    { "file": "Contact_Compression_axisymm_quad_rmsh_00003.vtk", "time": 0.000300061 },
+    { "file": "Contact_Compression_axisymm_quad_rmsh_00004.vtk", "time": 0.000400089 }
+  ]
+}
