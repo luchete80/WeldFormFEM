@@ -101,6 +101,7 @@ if (BUILD_REMESH)
     MESSAGE ("ADDING MESH-ADAPT")
     add_subdirectory("lib/mesh-adapt")    
   endif()
+    include_directories("lib/mesh-adapt/include")
     
 #  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
 #                  POST_BUILD
