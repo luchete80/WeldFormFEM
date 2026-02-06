@@ -601,7 +601,7 @@ void ReMesher::WriteDomain(){
   
   ////// AFTER ALL COPIES //////
   cout << "copying"<<endl;
-  memcpy_t(m_dom->x,      m_x, 3*sizeof(double) * m_dom->m_node_count);       
+  memcpy_t(m_dom->x,      m_x, m_dom->m_dim*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
     cout << "Setting conn"<<endl;
   m_dom->setNodElem(m_elnod);     
