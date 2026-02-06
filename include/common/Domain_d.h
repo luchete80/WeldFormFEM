@@ -813,6 +813,7 @@ protected:
   double          *vol_0, *vol;  //Element initial and current volume
   
   double          *m_voln,*m_vol_0n; //Nodal values, useful for TETRA nodal Average Nodal Pressure
+  double          m_vol_tot;
   
   //TO NOT OCCUPY SO MUCH MEMORY
   int             *bcx_nod, *bcy_nod, *bcz_nod;

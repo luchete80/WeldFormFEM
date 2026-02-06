@@ -87,6 +87,22 @@ namespace MetFEM{
 #include <array>
 #include <iostream>
 
+double tri_area(const double p0[2], const double p1[2], const double p2[2]) {
+    return 0.5 * std::abs(
+        (p1[0] - p0[0]) * (p2[1] - p0[1]) -
+        (p1[1] - p0[1]) * (p2[0] - p0[0])
+    );
+}
+
+double quad_area(const double p0[2],
+                 const double p1[2],
+                 const double p2[2],
+                 const double p3[2]) {
+    // Split: (0,1,2) + (0,2,3)
+    return tri_area(p0, p1, p2) + tri_area(p0, p2, p3);
+}
+
+
 // Function to compute barycentric coordinates for a 3D tetrahedron
 std::array<double, 4> barycentric_coordinates(const std::array<double, 3>& p,
                                               const std::array<double, 3>& p0,
@@ -406,14 +422,26 @@ void ReMesher::WriteDomain(){
       int n1 = m_elnod[4 * i + 1];
       int n2 = m_elnod[4 * i + 2];
       int n3 = m_elnod[4 * i + 3];
-      double p0 []= {m_x[3*n0], m_x[3*n0+1], m_x[3*n0+2]};
-      double p1 [] = {m_x[3*n1], m_x[3*n1+1], m_x[3*n1+2]};
-      double p2 []= {m_x[3*n2], m_x[3*n2+1], m_x[3*n2+2]};
-      double p3 [] = {m_x[3*n3], m_x[3*n3+1], m_x[3*n3+2]};
-      volumes[i]=tet_volume(p0,p1,p2,p3);
+      int dim = m_dom->m_dim;
+      
+      if (dim == 3 ){
+        double p0 []= {m_x[3*n0], m_x[3*n0+1], m_x[3*n0+2]};
+        double p1 [] = {m_x[3*n1], m_x[3*n1+1], m_x[3*n1+2]};
+        double p2 []= {m_x[3*n2], m_x[3*n2+1], m_x[3*n2+2]};
+        double p3 [] = {m_x[3*n3], m_x[3*n3+1], m_x[3*n3+2]};
+        volumes[i]=tet_volume(p0,p1,p2,p3);
+      } else { /////// AREA WEIGHT
+        double p0[] = {m_x[2*n0], m_x[2*n0+1]};
+        double p1[] = {m_x[2*n1], m_x[2*n1+1]};
+        double p2[] = {m_x[2*n2], m_x[2*n2+1]};
+        double p3[] = {m_x[2*n3], m_x[2*n3+1]};
+
+        volumes[i] = quad_area(p0, p1, p2, p3);        
+        
+      }
       vol+=volumes[i];
   }
-  cout << "New Volume: "<<vol<<endl;
+  cout << "New Element Volume: "<<vol<<endl;
   
   FindMapElemClosest();
   cout << "foundelem closrsrt"<<endl;
@@ -579,8 +607,10 @@ void ReMesher::WriteDomain(){
   m_dom->setNodElem(m_elnod);     
 
   //Now calculate new mass, after mapping volume
-  cout << "Calculating masses"<<endl;
+  cout << "Calculating Volumes"<<endl;
   m_dom->CalcNodalVol();
+  cout << "Total Volume "<<m_dom->m_vol_tot<<endl;
+  cout << "Calculating mass from Vols"<<endl;
   m_dom->CalcNodalMassFromVol();
   for (int i=0;i<m_node_count;i++){ //Or already dom_d->m_node_count since domain changed
     if (m_dom->m_mdiag[i]<1.0e-10)

@@ -16,6 +16,7 @@
 
 
 
+
 #include "Domain_d.h"
 #include <iostream>
 #include <vector>
@@ -1552,8 +1553,10 @@ dev_t void Domain_d::calcElemPressureElementBased(){
 
 ///// ASSUMING CONSTANT element node count
 dev_t void Domain_d::CalcNodalVol(){
+  m_vol_tot =0.0;
   double tot_vol = 0.0; //Only for verif
-  par_loop(n, m_node_count){
+  //par_loop(n, m_node_count){
+  for (int n=0;n<m_node_count;n++){
     m_voln[n]=0.0;
     for (int e=0; e<m_nodel_count[n];e++) {    
       int eglob   = m_nodel     [m_nodel_offset[n]+e]; //Element
@@ -1564,6 +1567,7 @@ dev_t void Domain_d::CalcNodalVol(){
     //printf("Node %d vol %f ne count %d\n",n,m_voln[n],m_nodel_count[n]);
     tot_vol+=m_voln[n];
   } //NODE LOOP
+  m_vol_tot =tot_vol;
   // printf("Total vol %f\n",tot_vol);
 }
 
