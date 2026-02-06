@@ -371,6 +371,8 @@ void host_ Domain_d::SolveChungHulbert(){
   //~ if (step_count % 50 == 0)
     //~ SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
 
+
+  
   double initial_dt;
   /////AFTER J AND DERIVATIVES
   if ( (step_count - last_step_remesh) % m_remesh_interval == 0 && step_count  >0 && remesh_count < m_remesh_max_count || need_remesh)
@@ -389,15 +391,18 @@ void host_ Domain_d::SolveChungHulbert(){
   //////////////////////////// IF REMESH
       //#########################################################
       cout << "REMESHING "<< " at step "<<step_count<<endl;
-      
+      cout << "MDIM"<<m_dim<<endl;      
       #ifdef BUILD_REMESH
+
       ReMesher remesh(this);
       remesh.m_type = MMG;
+
       //remesh.Generate_omegah();
-      if (m_dim == 3)
+      if (m_dim == 3){
         remesh.Generate_mmg();
-      else
+       }else{
         remesh.Generate_remesh2D();
+      }
       remesh.WriteDomain(); 
       cout <<"Checking BCs"<<endl;
       setFixSymm();

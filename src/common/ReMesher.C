@@ -37,7 +37,6 @@ namespace MetFEM{
   {
 
     m_dom = d;
-    m_dom->m_dim = 3;
 
 #ifdef REMESH_OMEGA_H 
     Omega_h::Library lib;
