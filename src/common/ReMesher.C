@@ -329,13 +329,14 @@ void ReMesher::WriteDomain(){
   #endif
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
-  double *ufield  = new double [3*m_node_count];   
+  int dim = m_dom->m_dim;
+  double *ufield  = new double [dim*m_node_count];   
   //std::vector<double> ufield(3*m_node_count, 0.0);  
-  double *vfield   = new double [3*m_node_count]; 
-  double *afield   = new double [3*m_node_count]; 
-  double *pafield   = new double [3*m_node_count];  //prev_a
+  double *vfield   = new double [dim*m_node_count]; 
+  double *afield   = new double [dim*m_node_count]; 
+  double *pafield   = new double [dim*m_node_count];  //prev_a
   
-  double *cforce   = new double [3*m_node_count];   
+  double *cforce   = new double [dim*m_node_count];   
   
   double *esfield  = new double [m_elem_count]; 
   double *pfield   = new double [m_elem_count]; 
