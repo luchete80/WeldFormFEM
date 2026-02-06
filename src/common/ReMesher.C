@@ -453,7 +453,6 @@ void ReMesher::WriteDomain(){
   cout << "Map eleme "<<endl;
     double* p_elem_new = new double[m_elem_count * 3];
     //MapElem(p_elem_new, p_elem_old, 3);  // 3 componentes
-    double* p_node_new ;
 
 
 
@@ -715,7 +714,7 @@ void ReMesher::WriteDomain(){
 
   
   cout << "deleting "<<endl;
-  delete[] ufield, 
+  delete[] ufield; 
   delete[] vfield;
   delete[] afield;
   delete[] pafield;
@@ -737,7 +736,6 @@ void ReMesher::WriteDomain(){
 
   //delete[] p_elem_old;
   delete[] p_elem_new;
-  delete[] p_node_new;
   
   //AFTER MAP
   //THIS CRASHES
