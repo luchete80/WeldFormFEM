@@ -394,7 +394,10 @@ void host_ Domain_d::SolveChungHulbert(){
       ReMesher remesh(this);
       remesh.m_type = MMG;
       //remesh.Generate_omegah();
-      remesh.Generate_mmg();
+      if (m_dim == 3)
+        remesh.Generate_mmg();
+      else
+        remesh.Generate_remesh2D();
       remesh.WriteDomain(); 
       cout <<"Checking BCs"<<endl;
       setFixSymm();

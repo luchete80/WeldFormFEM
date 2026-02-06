@@ -64,7 +64,7 @@ ELSE ()
   endif()
 set_source_files_properties(Domain_d.C Matrices.C Mechanical.C Solver.C Tensor.C main.C  main_1_elem_3d.C
 
-                            ReMesher.C ReMesher_mmg.C
+                            ReMesher.C ReMesher_mmg.C ReMesher_mesh_adapt.C
                             WeldFormFEM.C include/*.h src/include/defs.h src/include/utils.h
                             ${PROJECT_SOURCE_DIR}/src/include/*.cuh
                             main_4_elem_3d.C
@@ -92,7 +92,8 @@ if (BUILD_REMESH)
 #message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
  set (SOURCES "${SOURCES}" ReMesher.C
-                           ReMesher_mmg.C)
+                           ReMesher_mmg.C
+                           ReMesher_mesh_adapt.C)
 endif()
 
                    
@@ -137,7 +138,7 @@ else() #BUILD CPU
     if (REMESH_OMEGA_H)
     TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE omega_h ${MMG3D_LIB}  OpenMP::OpenMP_CXX)
     else() #ONLY MMG (default)
-    TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE ${MMG3D_LIB} OpenMP::OpenMP_CXX)
+    TARGET_LINK_LIBRARIES (WeldFormFEM PRIVATE ${MMG3D_LIB} mesh_adapt OpenMP::OpenMP_CXX)
     endif()
   endif()
 

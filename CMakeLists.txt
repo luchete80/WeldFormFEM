@@ -96,6 +96,12 @@ if (BUILD_REMESH)
     MESSAGE ("ADDING MMG")
     add_subdirectory("lib/mmg-5.8.0")    
   endif()
+
+  if (BUILD_MESH_ADAPT)
+    MESSAGE ("ADDING MESH-ADAPT")
+    add_subdirectory("lib/mesh-adapt")    
+  endif()
+    
 #  ADD_CUSTOM_COMMAND(#TARGET _dnlPython 
 #                  POST_BUILD
 #                  COMMAND ${CMAKE_COMMAND} -E copy_if_different
