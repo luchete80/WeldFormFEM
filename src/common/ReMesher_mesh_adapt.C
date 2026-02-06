@@ -77,15 +77,19 @@ void ReMesher::Generate_remesh2D() {
     Mesh2D in_msh;
     double SL = m_dom->getMinLength(); //TODO: CHANGE FOR INITIAL dx
     
+    cout << "Generating Nodes ..."<<endl;
     for (int n=0;n<m_node_count;n++){
         in_msh.add_node(m_dom->x[2*n+0],m_dom->x[2*n+1]);
     }
+    cout << "Generating Quads"<<endl;
     if (m_dom->m_dim == 2)
     for (int e=0;e<m_elem_count;e++){
         in_msh.add_quad(m_dom->m_elnod[4*e],     m_dom->m_elnod[4*e + 1],   
                         m_dom->m_elnod[4*e + 2], m_dom->m_elnod[4*e + 3]);
     }
-        
+      
+    export_mesh_to_vtk(in_msh, "_in_msh.vtk");
+    
     /////////////////////////////////// INPUT PHASE //////////////////////////
     // ------------------------------------------------------------
     // 1. Extract contour from VTK file
@@ -103,7 +107,7 @@ void ReMesher::Generate_remesh2D() {
     std::cout << "   Contour points extracted: " << contour_pts.size() << "\n";
     
     // Export the extracted contour for verification
-    //export_polyline_to_vtk(contour, output_prefix + "_extracted_contour.vtk");
+    export_polyline_to_vtk(contour, "_extracted_contour.vtk");
 
     // ------------------------------------------------------------
     // 2. Compute bounding box
