@@ -78,12 +78,12 @@ void ReMesher::Generate_remesh2D() {
     double SL = m_dom->getMinLength(); //TODO: CHANGE FOR INITIAL dx
     
     cout << "Generating Nodes ..."<<endl;
-    for (int n=0;n<m_node_count;n++){
+    for (int n=0;n<m_dom->m_node_count;n++){
         in_msh.add_node(m_dom->x[2*n+0],m_dom->x[2*n+1]);
     }
     cout << "Generating Quads"<<endl;
     if (m_dom->m_dim == 2)
-    for (int e=0;e<m_elem_count;e++){
+    for (int e=0;e<m_dom->m_elem_count;e++){
         in_msh.add_quad(m_dom->m_elnod[4*e],     m_dom->m_elnod[4*e + 1],   
                         m_dom->m_elnod[4*e + 2], m_dom->m_elnod[4*e + 3]);
     }
