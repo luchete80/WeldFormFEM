@@ -334,11 +334,11 @@ void ReMesher::Generate_remesh2D() {
     );
     smoother.smooth();
 
-    //~ export_nodes_and_quads_to_vtk(
-        //~ smoother.nodes_,
-        //~ smoother.quads_,
-        //~ output_prefix + "_smoothed.vtk"
-    //~ ); 
+    export_nodes_and_quads_to_vtk(
+        smoother.nodes_,
+        smoother.quads_,
+        "_smoothed.vtk"
+    ); 
     
     //~ std::cout << "\n========================================\n";
     //~ std::cout << "   PROCESS COMPLETED SUCCESSFULLY!\n";
