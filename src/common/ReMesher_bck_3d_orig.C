@@ -258,27 +258,13 @@ for (int v=0;v<size;v++)
   
 }
 
-// void ReMesher::MapNodal(double *vfield, double *o_field){
-  // #ifndef REMESH_OMEGA_H
-  // MapNodalVectorRaw<3>        (vfield, o_field);
-  // #else              
-  // MapNodalVector<3> (m_mesh, vfield, o_field); 
-  // #endif
-// }
-
-
 void ReMesher::MapNodal(double *vfield, double *o_field){
-  const int dim = m_dom->m_dim;
-#ifndef REMESH_OMEGA_H
-  MapNodalVectorRaw<3>(vfield, o_field);
-#else
-  if(dim==2)
-  MapNodalVector<2>(m_mesh, vfield, o_field);
-  else
-  MapNodalVector<3>(m_mesh, vfield, o_field);    
-#endif
+  #ifndef REMESH_OMEGA_H
+  MapNodalVectorRaw<3>        (vfield, o_field);
+  #else              
+  MapNodalVector<3> (m_mesh, vfield, o_field); 
+  #endif
 }
-
 
 void ReMesher::MapNodalScalar(double *vfield, double *o_field){
   #ifndef REMESH_OMEGA_H
@@ -294,13 +280,9 @@ void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
   #ifndef REMESH_OMEGA_H ////MMG
   MapElemVectorRaw        (vfield, o_field,field_dim);
   //MapElemVectorL2(vfield, o_field,field_dim);
-  const int dim = m_dom->m_dim;
   
-  #else     
-  if (dim ==2)
-    MapElemVector<2> (m_mesh, vfield, o_field,field_dim); 
-  else
-    MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
+  #else              
+  MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
  #endif
   
 }
@@ -348,7 +330,6 @@ void ReMesher::WriteDomain(){
 
   //memcpy_t(m_->m_elnod, elnod_h, sizeof(int) * dom->m_elem_count * m_dom->m_nodxelem); 
   int dim = m_dom->m_dim;
-  
   double *ufield  = new double [dim*m_node_count];   
   //std::vector<double> ufield(3*m_node_count, 0.0);  
   double *vfield   = new double [dim*m_node_count]; 
@@ -409,19 +390,23 @@ void ReMesher::WriteDomain(){
     vfield[i]=0.0;
     cforce[i] = 0.0;
   }
-
+//  cout << "MAPPING"<<endl;
+  ///// BEFORE REDIMENSION!
+  //MapNodalVector<3>(m_mesh, ufield,  m_dom->u);
   cout <<"MAP NODAL"<<endl;
-
+  //MapNodal(ufield,  m_dom->u);
   MapNodal(ufield,   m_dom->u); //new , old
-
   /////// IF MAP VEL DIRECTLY
   
-  if (!m_map_momentum){
+  //if (m_dom->m_remesh_map_vel)
+  ///// ATTENTION, MAP VELOCITY IS MANDATORY; IS BETTER TO MAP IT
+  ///// THE PROBLEM IS THAT IS BENEFIT A LITTLE DAMPING
+  if (!m_map_momentum)
     MapNodal(vfield,   m_dom->v); //DOES NOT CONS MOMENTUM
-  }
+  
   if (m_dom->m_remesh_map_acc){
-      MapNodal(afield,   m_dom->a);
-      MapNodal(pafield,  m_dom->prev_a);
+    MapNodal(afield,   m_dom->a);
+    MapNodal(pafield,  m_dom->prev_a);
   }
   
   if (m_dom->m_thermal){
@@ -506,6 +491,24 @@ void ReMesher::WriteDomain(){
   m_dom->bcx_nod_h.clear();  m_dom->bcy_nod_h.clear();  m_dom->bcz_nod_h.clear();
   m_dom->bcx_val_h.clear();  m_dom->bcy_val_h.clear();  m_dom->bcz_val_h.clear();
 
+
+    
+  //~ free_t(m_dom->bcx_nod);  free_t(m_dom->bcy_nod);  free_t(m_dom->bcz_nod);
+  //~ free_t(m_dom->bcx_val);  free_t(m_dom->bcy_val);  free_t(m_dom->bcz_val);
+  //~ int bccount[3];
+  //~ int    *bcx_nod,*bcy_nod,*bcz_nod;
+  //~ double *bcx_val,*bcy_val,*bcz_val;
+  //~ for (int d=0;d<3;d++) bccount[d]=m_dom->bc_count[d];
+    
+  //~ bcx_nod =new int[bccount[0]];bcx_val =new double[bccount[0]];
+  //~ bcy_nod =new int[bccount[1]];bcy_val =new double[bccount[0]]; 
+  //~ bcz_nod =new int[bccount[2]];bcz_val =new double[bccount[0]];
+  
+  
+    
+  //~ for (int b=0;b<bccount[0];b++){bcx_nod[b]=m_dom->bcx_nod[b];bcx_val[b]=m_dom->bcx_val[b];}
+  //~ for (int b=0;b<bccount[0];b++){bcy_nod[b]=m_dom->bcy_nod[b];bcy_val[b]=m_dom->bcy_val[b];}
+  //~ for (int b=0;b<bccount[0];b++){bcz_nod[b]=m_dom->bcz_nod[b];bcz_val[b]=m_dom->bcz_val[b];}
   
   /// BEFORE DELETE, SAVE MASS FOR CONSERVATION
   if (m_map_momentum){
@@ -550,6 +553,8 @@ void ReMesher::WriteDomain(){
   
   ///// TO MOMENTUM CONSERVATION
     
+
+  // //cout << "COPYING "<<m_dom->m_elem_count * m_dom->m_nodxelem<< " element nodes "<<endl;
 
   memcpy_t(m_dom->u,        ufield, sizeof(double) * m_dom->m_node_count * dim);  
   
@@ -620,6 +625,45 @@ void ReMesher::WriteDomain(){
     }
 
 
+    // cout << "WRITING MOMENTUM "<<endl;
+    // double3 pelemnew_sum= make_double3(0, 0, 0);
+    // // 3. Redistribuir a nodos nuevos (conservando volumen)
+    // p_node_new = new double[m_node_count * 3]();  // Inicializado a cero
+    // //double frac = 1.0/ (double)m_dom->m_nodxelem;
+    // double vol_frac = 0.25;
+    // for (int e = 0; e < m_dom->m_elem_count; ++e) {
+        // //double vol_frac = m_dom->vol[e] * frac;
+        // for (int a = 0; a < m_dom->m_nodxelem; ++a) {
+            // int n = m_elnod[e * m_dom->m_nodxelem + a];
+            // for (int d = 0; d < 3; ++d) {
+                // p_node_new[3*n + d] += p_elem_new[3*e + d] * vol_frac;
+            // }
+        // //cout << "pelem new "<<p_elem_new[3*e + 2]<<endl;
+        // }
+        // pelemnew_sum.x += p_elem_new[3*e  ];
+        // pelemnew_sum.y += p_elem_new[3*e+1];
+        // pelemnew_sum.z += p_elem_new[3*e+2];
+
+    // }//e
+
+  // cout << "Old Momentum per Element "<<pelemold_sum.x<<","<<pelemold_sum.y<<","<<pelemold_sum.z<<endl;
+  // cout << "New Momentum per Element "<<pelemnew_sum.x<<","<<pelemnew_sum.y<<","<<pelemnew_sum.z<<endl;
+  
+    // //~ // 4. Calcular velocidades nuevas
+    // for (int n = 0; n < m_dom->m_node_count; ++n) {
+        // double m_new = m_dom->m_mdiag[n];
+        // if (m_new > 1e-20) {  // Tol. física
+            // for (int d = 0; d < 3; ++d) {
+                // //m_dom->v[3*n + d] = p_node_new[3*n + d] / m_new;
+                // //m_dom->m_vprev[3*n + d] = p_node_new[3*n + d] / m_new;
+            // }
+        // } else {
+          // for (int d = 0; d < 3; ++d) m_dom->v[3*n + d] = 0.0;
+        // }
+    // }
+    
+
+
     /// --- 3. Calcular momento DESPUÉS del mapeo ---
     double3 total_momentum_new = make_double3(0.0, 0.0, 0.0);
     for (int i = 0; i < m_node_count; i++) {
@@ -632,10 +676,15 @@ void ReMesher::WriteDomain(){
     double3 correction_factor = make_double3(1.0, 1.0, 1.0);
     if (fabs(total_momentum_old.x) > 1e-10) correction_factor.x = total_momentum_old.x / total_momentum_new.x;
     if (fabs(total_momentum_old.y) > 1e-10) correction_factor.y = total_momentum_old.y / total_momentum_new.y;
-    if (dim == 3)
-      if (fabs(total_momentum_old.z) > 1e-10) correction_factor.z = total_momentum_old.z / total_momentum_new.z;
+    if (fabs(total_momentum_old.z) > 1e-10) correction_factor.z = total_momentum_old.z / total_momentum_new.z;
 
-    
+    //~ // Aplicar corrección componente por componente
+    //~ for (int i = 0; i < m_node_count; i++) {
+        //~ vfield[m_dom->m_dim * i]     *= correction_factor.x;
+        //~ vfield[m_dom->m_dim * i + 1] *= correction_factor.y;
+        //~ vfield[m_dom->m_dim * i + 2] *= correction_factor.z;
+    //~ }
+
     // --- 5. Verificación final (opcional, para debug) ---
     double3 final_momentum = make_double3(0.0, 0.0, 0.0);
     for (int i = 0; i < m_node_count; i++) {
@@ -717,263 +766,144 @@ int ReMesher::find_closest_node(const double x[3]) {
     return closest;
 }
 
-// int ReMesher::find_closest_node(const std::array<double, 3>& x) {
-    // int closest = -1;
-    // double min_dist_sq = 1.0e20;
-
-    // for (int i = 0; i < m_dom->m_node_count; ++i) {
-        // double dx = x[0] - m_dom->x[3 * i];
-        // double dy = x[1] - m_dom->x[3 * i + 1];
-        // double dz = x[2] - m_dom->x[3 * i + 2];
-        // double dist_sq = dx * dx + dy * dy + dz * dz;
-
-        // if (dist_sq < min_dist_sq) {
-            // min_dist_sq = dist_sq;
-            // closest = i;
-        // }
-    // }
-    // return closest;
-// }
-
-template<int dim>
-int ReMesher::find_closest_node(const std::array<double, dim>& x)
-{
-    static_assert(dim == 2 || dim == 3, "dim must be 2 or 3");
-
+int ReMesher::find_closest_node(const std::array<double, 3>& x) {
     int closest = -1;
     double min_dist_sq = 1.0e20;
 
     for (int i = 0; i < m_dom->m_node_count; ++i) {
-        double dist_sq = 0.0;
-
-        #pragma unroll
-        for (int d = 0; d < dim; ++d) {
-            double dx = x[d] - m_dom->x[dim * i + d];
-            dist_sq += dx * dx;
-        }
+        double dx = x[0] - m_dom->x[3 * i];
+        double dy = x[1] - m_dom->x[3 * i + 1];
+        double dz = x[2] - m_dom->x[3 * i + 2];
+        double dist_sq = dx * dx + dy * dy + dz * dz;
 
         if (dist_sq < min_dist_sq) {
             min_dist_sq = dist_sq;
             closest = i;
         }
     }
-
     return closest;
 }
 
-
-
-////////////////// ORIGINAL 3D
-// template <int dim>
-// void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
-    // // Loop over the target nodes in the new mesh
-    // int notfound = 0;
-    // int notsame = 0;
-    // cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
-
-    // for (int vert=0;vert<m_node_count;vert++){      
-        // for (int d=0;d<dim;d++) vfield [dim*vert+d] = 0.0;
-
-   // //auto coords = mesh.coords();
-
-    
-    // //auto f = OMEGA_H_LAMBDA(LO vert) {
-      // //auto x = get_vector<3>(coords, vert);
-      // double x[3];
-      // for (int d=0;d<3;d++) x[d]=m_x[3*vert+d];
-      
-      // bool found_samenode = false;
-      // double tol = 1.0e-6;
-      // //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
-      // for (int v = 0; v < m_dom->m_node_count; v++){
-        // //If new node dist <tol, map new node = old node
-        // std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
-        // double distance = 0.0;https://chatgpt.com/g/g-p-697fa8009c788191800147bece47e73b/c/698463ec-8578-8332-be88-9ce5e402787e
-        // for (int i = 0; i < 3; ++i) {
-            // distance += (x[i] - p0[i]) * (x[i] - p0[i]);
-        // }
-        // if (distance<tol){
-          // found_samenode = true;
-          // //cout << "FOUND " << vert << " SAME NODE "<<endl;
-          // if (vert == 0)
-            // std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
-          
-          // for (int d=0;d<dim;d++) vfield[dim*vert+d] = o_field[dim*v+d];
-        // }                
-      // }//node
-      
-      // if (!found_samenode){
-        // notsame++;
-    // //for (int n = 0; n < mesh.nverts(); n++) {
-        // bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
-        // //std::cout << mesh.coords()[n]<<std::endl;
-        
-        // // Get coordinates for the node in the new mesh
-        // std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
-        
-        // // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
-        // for (int i = 0; i < m_dom->m_elem_count; i++) {
-            // // Connectivity for the tetrahedral element (assumed to have 4 nodes per element in the old mesh)
-            // int n0 = m_dom->m_elnod[4*i];   // Node 0 in the element
-            // int n1 = m_dom->m_elnod[4*i+1]; // Node 1 in the element
-            // int n2 = m_dom->m_elnod[4*i+2]; // Node 2 in the element
-            // int n3 = m_dom->m_elnod[4*i+3]; // Node 3 in the element
-
-            // std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
-            // std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
-            // std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
-            // std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
-
-            // std::array<double, 4> lambdas = stable_barycentric(target_node, p0, p1, p2, p3);
-
-            // if (lambdas[0] >= -1.0e-10 && lambdas[1] >= -1.0e-10 && lambdas[2] >= -1.0e-10 && lambdas[3] >= -1.0e-10) { 
-
-                // //double scalar[4];
-                // //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
-
-                // //double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
-
-
-                // // Interpolate vector values for displacement (if needed)
-                // std::array<double, 3> disp[4];
-                // for (int n=0;n<4;n++)
-                  // for (int d=0;d<dim;d++)
-                    // disp[n][d] = o_field[dim*m_dom->m_elnod[4*i+n]+d];
-                
-                // //cout << "Interp disp"<<endl;
-                // std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
-                // for (int d=0;d<dim;d++) vfield[dim*vert+d] = interpolated_disp[d];
-                // // Optionally, interpolate other scalar/vector fields for the new mesh node here
-                // if (vert == 0)  {
-                // std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
-                // //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
-                  // //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
-                  // std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
-                // }
-                // found = true;
-                // break;  // Exit the element loop once the element is found
-            // }//lambdas
-          // }//elem
-          // if (!found) {
-              // //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
-              
-              // //
-              // // 1. Encuentra el nodo más cercano en la malla old
-              // int closest_old_node = find_closest_node(target_node); 
-              
-              // for (int d = 0; d < dim; d++) {
-                  // vfield[dim * vert + d] = o_field[dim * closest_old_node + d];
-              // }
-
-              // if (vert == 0) {
-                  // std::cout << "USING NEAREST NODE " << closest_old_node 
-                            // << " for node " << vert << std::endl;
-              // }
-              
-              // notfound++;
-              
-          // }
-        // }//found same node
-
-      // //n++;
-    // }//Node Loop
-    // cout << "Not Inside   Node Count: " << notfound<<"( "<< notfound/m_node_count*100.0<<"%)"<<endl;
-    // cout << "Not Same Old Node Count: " << notsame<<"( "<< (float)notsame/float(m_node_count)*100.0<<"%)"<<endl;
-    
-// }//MAP
-
-
-///////////////NEW, BOTH 2D and 3D
+/////WITH THE RAW ELEM AND CONNECT
+//args: NEW (m_node_count), OLD(m_dom->m_elem_count)
+///TODO: NOT USAE WITH SCALARS
 template <int dim>
-void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
-{
+void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+    // Loop over the target nodes in the new mesh
     int notfound = 0;
-    int notsame  = 0;
+    int notsame = 0;
+    cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
 
-    cout << "MAP NODAL VECTOR RAW (MMG), dim=" << dim << endl;
+    for (int vert=0;vert<m_node_count;vert++){      
+        for (int d=0;d<dim;d++) vfield [dim*vert+d] = 0.0;
 
-    for (int vert = 0; vert < m_node_count; vert++) {
+   //auto coords = mesh.coords();
 
-        for (int d = 0; d < dim; d++)
-            vfield[dim * vert + d] = 0.0;
-
-        std::array<double, dim> x;
-        for (int d = 0; d < dim; d++)
-            x[d] = m_x[dim * vert + d];
-
-        bool found_samenode = false;
-        const double tol = 1e-6;
-
-        // ---- SAME NODE ----
-        for (int v = 0; v < m_dom->m_node_count; v++) {
-
-            double dist = 0.0;
-            for (int d = 0; d < dim; d++) {
-                double dx = x[d] - m_dom->x[dim * v + d];
-                dist += dx * dx;
-            }
-
-            if (dist < tol) {
-                for (int d = 0; d < dim; d++)
-                    vfield[dim * vert + d] = o_field[dim * v + d];
-                found_samenode = true;
-                break;
-            }
+    
+    //auto f = OMEGA_H_LAMBDA(LO vert) {
+      //auto x = get_vector<3>(coords, vert);
+      double x[3];
+      for (int d=0;d<3;d++) x[d]=m_x[3*vert+d];
+      
+      bool found_samenode = false;
+      double tol = 1.0e-6;
+      //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
+      for (int v = 0; v < m_dom->m_node_count; v++){
+        //If new node dist <tol, map new node = old node
+        std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
+        double distance = 0.0;https://chatgpt.com/g/g-p-697fa8009c788191800147bece47e73b/c/698463ec-8578-8332-be88-9ce5e402787e
+        for (int i = 0; i < 3; ++i) {
+            distance += (x[i] - p0[i]) * (x[i] - p0[i]);
         }
-
-        if (found_samenode) continue;
-
+        if (distance<tol){
+          found_samenode = true;
+          //cout << "FOUND " << vert << " SAME NODE "<<endl;
+          if (vert == 0)
+            std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
+          
+          for (int d=0;d<dim;d++) vfield[dim*vert+d] = o_field[dim*v+d];
+        }                
+      }//node
+      
+      if (!found_samenode){
         notsame++;
-        bool found = false;
+    //for (int n = 0; n < mesh.nverts(); n++) {
+        bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+        //std::cout << mesh.coords()[n]<<std::endl;
+        
+        // Get coordinates for the node in the new mesh
+        std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+        
+        // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
+        for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // Connectivity for the tetrahedral element (assumed to have 4 nodes per element in the old mesh)
+            int n0 = m_dom->m_elnod[4*i];   // Node 0 in the element
+            int n1 = m_dom->m_elnod[4*i+1]; // Node 1 in the element
+            int n2 = m_dom->m_elnod[4*i+2]; // Node 2 in the element
+            int n3 = m_dom->m_elnod[4*i+3]; // Node 3 in the element
 
-        // ---- ELEMENT SEARCH ----
-        for (int e = 0; e < m_dom->m_elem_count; e++) {
+            std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
 
-            int n[4];
-            for (int i = 0; i < 4; i++)
-                n[i] = m_dom->m_elnod[4 * e + i];
+            std::array<double, 4> lambdas = stable_barycentric(target_node, p0, p1, p2, p3);
 
-            std::array<double, dim> p[4];
-            for (int i = 0; i < 4; i++)
-                for (int d = 0; d < dim; d++)
-                    p[i][d] = m_dom->x[dim * n[i] + d];
+            if (lambdas[0] >= -1.0e-10 && lambdas[1] >= -1.0e-10 && lambdas[2] >= -1.0e-10 && lambdas[3] >= -1.0e-10) { 
 
-            std::array<double, 4> w;
+                //double scalar[4];
+                //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
 
-            if constexpr (dim == 2) {
-                if (!quad_bilinear_coords(x, p[0], p[1], p[2], p[3], w))
-                    continue;
-            } else {
-                w = stable_barycentric(x, p[0], p[1], p[2], p[3]);
-            }
+                //double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
 
-            std::array<double, dim> interp{};
-            for (int i = 0; i < 4; i++)
-                for (int d = 0; d < dim; d++)
-                    interp[d] += w[i] * o_field[dim * n[i] + d];
 
-            for (int d = 0; d < dim; d++)
-                vfield[dim * vert + d] = interp[d];
+                // Interpolate vector values for displacement (if needed)
+                std::array<double, 3> disp[4];
+                for (int n=0;n<4;n++)
+                  for (int d=0;d<dim;d++)
+                    disp[n][d] = o_field[dim*m_dom->m_elnod[4*i+n]+d];
+                
+                //cout << "Interp disp"<<endl;
+                std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
+                for (int d=0;d<dim;d++) vfield[dim*vert+d] = interpolated_disp[d];
+                // Optionally, interpolate other scalar/vector fields for the new mesh node here
+                if (vert == 0)  {
+                std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+                //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
+                  //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                  std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+                }
+                found = true;
+                break;  // Exit the element loop once the element is found
+            }//lambdas
+          }//elem
+          if (!found) {
+              //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+              
+              //
+              // 1. Encuentra el nodo más cercano en la malla old
+              int closest_old_node = find_closest_node(target_node); 
+              
+              for (int d = 0; d < dim; d++) {
+                  vfield[dim * vert + d] = o_field[dim * closest_old_node + d];
+              }
 
-            found = true;
-            break;
-        }
+              if (vert == 0) {
+                  std::cout << "USING NEAREST NODE " << closest_old_node 
+                            << " for node " << vert << std::endl;
+              }
+              
+              notfound++;
+              
+          }
+        }//found same node
 
-        // ---- FALLBACK ----
-        if (!found) {
-            int closest = find_closest_node<dim>(x);
-            for (int d = 0; d < dim; d++)
-                vfield[dim * vert + d] = o_field[dim * closest + d];
-            notfound++;
-        }
-    }
-
-    cout << "Not inside element: " << notfound
-         << " (" << 100.0 * notfound / m_node_count << "%)\n";
-    cout << "Not same node: " << notsame
-         << " (" << 100.0 * notsame / m_node_count << "%)\n";
-}
-
+      //n++;
+    }//Node Loop
+    cout << "Not Inside   Node Count: " << notfound<<"( "<< notfound/m_node_count*100.0<<"%)"<<endl;
+    cout << "Not Same Old Node Count: " << notsame<<"( "<< (float)notsame/float(m_node_count)*100.0<<"%)"<<endl;
+    
+}//MAP
 
 
 void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
@@ -1032,7 +962,7 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
         }
 
         if (!found) {
-            int nn = find_closest_node<3>({x[0],x[1],x[2]});
+            int nn = find_closest_node({x[0],x[1],x[2]});
 
             if (nn < 0 || !std::isfinite(o_field[nn])) {
                 sfield[vert] = 0.0;
@@ -1065,6 +995,149 @@ void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
 
 }
 
+// void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+    // const double EPS = 1.0e-4;
+    // const double SAME_NODE_TOL = 1.0e-6;
+
+    // // double avg_element_size = ...; // estimate from mesh, e.g., average edge length or cube root of average element volume
+    // // double tolerance = avg_element_size * 1e-3; // e.g. 0.001 times element size
+
+    // int fallback_node = 16;
+    // double xx[3] = {m_x[3*fallback_node], m_x[3*fallback_node+1], m_x[3*fallback_node+2]};
+    // bool found = false;
+
+    // for (int i = 0; i < m_dom->m_elem_count; ++i) {
+        // int n0 = m_dom->m_elnod[4*i];
+        // int n1 = m_dom->m_elnod[4*i+1];
+        // int n2 = m_dom->m_elnod[4*i+2];
+        // int n3 = m_dom->m_elnod[4*i+3];
+
+        // std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+        // std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+        // std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+        // std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+        // auto lambdas = stable_barycentric({xx[0], xx[1], xx[2]}, p0, p1, p2, p3);
+        // if (lambdas[0] >= -1e-5 && lambdas[1] >= -1e-5 &&
+            // lambdas[2] >= -1e-5 && lambdas[3] >= -1e-5) {
+            // std::cout << "✅ Node " << fallback_node << " lies inside element " << i << std::endl;
+            // found = true;
+            // break;
+        // }
+    // }
+    // if (!found){
+      // cout <<"Node 16 not found inside elements!!"<<endl;
+      
+    // }
+    
+    // // Pre-compute element centers for faster searching
+    // std::vector<std::array< double, 3> > elem_centers(m_dom->m_elem_count);
+    // for (int i = 0; i < m_dom->m_elem_count; i++) {
+        // elem_centers[i] = {0,0,0};
+        // for (int n = 0; n < 4; n++) {
+            // int node_idx = m_dom->m_elnod[4*i + n];
+            // elem_centers[i][0] += m_dom->x[3*node_idx];
+            // elem_centers[i][1] += m_dom->x[3*node_idx + 1];
+            // elem_centers[i][2] += m_dom->x[3*node_idx + 2];
+        // }
+        // for (int d = 0; d < 3; d++) elem_centers[i][d] /= 4.0;
+    // }
+
+    // for (int vert = 0; vert < m_dom->m_node_count; vert++) {
+        // double x[3] = {m_x[3*vert], m_x[3*vert+1], m_x[3*vert+2]};
+        
+        // // 1. Check for exact node matches first
+        // bool found_samenode = false;
+        // for (int v = 0; v < m_dom->m_node_count; v++) {
+            // double dist_sq = 0.0;
+            // for (int d = 0; d < 3; d++) {
+                // double diff = x[d] - m_dom->x[3*v+d];
+                // dist_sq += diff*diff;
+            // }
+            // if (dist_sq < SAME_NODE_TOL*SAME_NODE_TOL) {
+                // for (int d = 0; d < 3; d++) 
+                    // vfield[3*vert+d] = o_field[3*v+d];
+                // found_samenode = true;
+                // break;
+            // }
+        // }
+        // if (found_samenode) continue;
+
+        // // 2. Find closest elements (for smoother transitions)
+        // const int NUM_CANDIDATES = 20;
+        // std::vector<std::pair<double, int>> candidate_elements;
+        
+        // for (int i = 0; i < m_dom->m_elem_count; i++) {
+            // double dist_sq = 0.0;
+            // for (int d = 0; d < 3; d++) {
+                // double diff = x[d] - elem_centers[i][d];
+                // dist_sq += diff*diff;
+            // }
+            // candidate_elements.emplace_back(dist_sq, i);
+        // }
+        
+        // // Sort by distance and take top candidates
+        // std::sort(candidate_elements.begin(), candidate_elements.end());
+        // candidate_elements.resize(std::min(NUM_CANDIDATES, (int)candidate_elements.size()));
+
+        // // 3. Try each candidate element for valid interpolation
+        // bool found = false;
+        // int found_el;
+        // std::array<double, 3> interpolated_disp = {0,0,0};
+        
+        // for (const auto& [dist, i] : candidate_elements) {
+            // int n0 = m_dom->m_elnod[4*i];
+            // int n1 = m_dom->m_elnod[4*i+1];
+            // int n2 = m_dom->m_elnod[4*i+2];
+            // int n3 = m_dom->m_elnod[4*i+3];
+
+            // std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            // std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            // std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            // std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+        
+            // auto lambdas = stable_barycentric({x[0],x[1],x[2]}, p0, p1, p2, p3);
+
+        
+            // if (lambdas[0] >= -EPS && lambdas[1] >= -EPS && 
+                // lambdas[2] >= -EPS && lambdas[3] >= -EPS) {
+                
+                // std::array<double, 3> disp[4];
+                // for (int n = 0; n < 4; n++) {
+                    // int node_idx = m_dom->m_elnod[4*i+n];
+                    // disp[n] = {o_field[3*node_idx], o_field[3*node_idx+1], o_field[3*node_idx+2]};
+                // }
+                
+                // // Weighted average that preserves constant Z-values
+                // interpolated_disp = {0,0,0};
+                // for (int n = 0; n < 4; n++) {
+                    // double w = lambdas[n];
+                    // if (w < 0) w = 0; // Clip negative weights
+                    // interpolated_disp[0] += w * disp[n][0];
+                    // interpolated_disp[1] += w * disp[n][1];
+                    // interpolated_disp[2] += w * disp[n][2];
+                // }
+                
+                // found = true;
+                // found_el = i;
+                // break;
+            // }
+        // }
+
+        // if (found) {
+            // for (int d = 0; d < 3; d++) 
+                // vfield[3*vert+d] = interpolated_disp[d];
+            // //cout << "Node "<<vert <<"inside element "<<found_el<<endl;
+        // } else {
+            // // Fallback: Use nearest node value
+            // int closest_node = find_closest_node(x);
+            // for (int d = 0; d < 3; d++)
+                // vfield[3*vert+d] = o_field[3*closest_node+d];
+            // std::cout << "Warning: Using fallback for node " << vert << std::endl;
+        // }
+    // }
+// }
+
 // THIS NOT USES MESH AS OUTPUT; USES 
 ////DO THIS AFTER SERACH CLOSEST
 void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) {
@@ -1079,6 +1152,83 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
 }
 
 
+/////////////////////////////
+////// OLD FUNCTION /////////
+//// FIND CLOSEST ////
+
+//~ void ReMesher::FindMapElemClosest() {
+
+
+    //~ for (int elem=0;elem<m_elem_count;elem++){ ///LOOP THROUGH NEW MESH  CELLS
+    //~ std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+
+    //~ std::array<double, 3> barycenter_old_clos = {0.0, 0.0, 0.0};
+    //~ bool found = false;
+        //~ // Calculate barycenter of the current new element
+        //~ for (int en = 0; en < 4; en++) {
+            //~ //auto v = elems2verts.ab2b[elem * 4 + en];
+            //~ //auto x = get_vector<3>(coords, v);
+            //~ int v = m_elnod[elem * 4 + en];
+
+            //~ double x[3];
+            //~ for (int d=0;d<3;d++)x[d]=m_x[3*v+d]; //X: NEW MESH NODE COORDS
+
+            //~ barycenter[0] += x[0];
+            //~ barycenter[1] += x[1];
+            //~ barycenter[2] += x[2];
+        //~ }
+        //~ barycenter[0] /= 4.0;
+        //~ barycenter[1] /= 4.0;
+        //~ barycenter[2] /= 4.0;
+
+        //~ // Search for the closest old element by distance
+        //~ double min_distance = std::numeric_limits<double>::max();
+        //~ int closest_elem = -1;
+
+        //~ for (int i = 0; i < m_dom->m_elem_count; i++) {
+            //~ int n0 = m_dom->m_elnod[4 * i];
+            //~ int n1 = m_dom->m_elnod[4 * i + 1];
+            //~ int n2 = m_dom->m_elnod[4 * i + 2];
+            //~ int n3 = m_dom->m_elnod[4 * i + 3];
+
+            //~ std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            //~ std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            //~ std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            //~ std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            //~ // Calculate the barycenter of the old element
+            //~ std::array<double, 3> old_barycenter = {
+                //~ (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                //~ (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                //~ (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            //~ };
+
+            //~ double distance = 
+            //~ //std::sqrt(
+                //~ std::pow(barycenter[0] - old_barycenter[0], 2) +
+                //~ std::pow(barycenter[1] - old_barycenter[1], 2) +
+                //~ std::pow(barycenter[2] - old_barycenter[2], 2)
+            //~ ;
+            //~ //);
+
+            //~ if (distance < min_distance) {
+                //~ min_distance = distance;
+                //~ m_closest_elem[elem] = i;
+                //~ found = true;
+                //~ barycenter_old_clos = old_barycenter;
+            //~ }
+        //~ }//elem
+
+        //~ if (found) {
+            //~ //std::cout << "Mapped element " << elem << " to old element " << closest_elem << std::endl;
+        //~ } else {
+            //~ std::cout << "ERROR: No matching element found for element " << elem << std::endl;
+        //~ }
+
+    //~ }//elem
+//~ }
+
+/////////////////////NEW 
 
 void ReMesher::FindMapElemClosest() {
   int notinside = 0;
@@ -1172,13 +1322,92 @@ void ReMesher::FindMapElemClosest() {
 
 }
 
+
+// 1. Using the keep_classification Option
+// The simplest way to preserve certain entities is during adaptation setup:
+
+// cpp
+// Copy
+// Omega_h::AdaptOpts opts(&mesh);
+// opts.keep_classification = true; // Preserves classification tags
+// opts.verbosity = Omega_h::EXTRA_STATS;
+// Omega_h::adapt(&mesh, opts);
+// 2. Explicit Mapping with TransferPair
+// For precise tracking of unchanged entities:
+
+// cpp
+// Copy
+// // Before adaptation
+// Omega_h::LOs old_verts = mesh.ask_verts_of_dim(mesh.dim());
+// Omega_h::LOs old_elems = mesh.ask_elements_of_dim(mesh.dim());
+
+// // Perform adaptation
+// Omega_h::adapt(&mesh, opts);
+
+// // Get mapping after adaptation
+// auto verts_transfer = mesh.get_transfer_map(Omega_h::VERT);
+// auto elems_transfer = mesh.get_transfer_map(Omega_h::REGION);
+
+// // Identify unchanged vertices
+// Omega_h::Write<Omega_h::LO> unchanged_verts(old_verts.size(), 0);
+// Omega_h::parallel_for(old_verts.size(), OMEGA_H_LAMBDA(Omega_h::LO v) {
+    // if (verts_transfer[v] != Omega_h::LO(-1)) {
+        // unchanged_verts[v] = 1; // Mark as unchanged
+    // }
+// });
+
 void ReMesher::ReMapBCs(int  *old_bc_nod,
                       double *old_bc_val,
 
                     int  *new_bc_nod,
                     double *new_bc_val,
                     int bc_count) {
+    
+  // //cout << "MAPPING BCs"<<endl;
 
+  // //cout << "coords"<<endl;
+  // auto new_coords = m_mesh.coords();
+  // //cout << "OLDCOORDS"<<endl;
+  // auto old_coords = m_old_mesh.coords();
+  // //int dim = m_old_mesh.dim();
+  
+  // int new_count = 0;
+  // for (std::size_t i = 0; i < bc_count; ++i) {
+    // //cout << "vert "<<i<<endl;
+    // I64 old_id = old_bc_nod[i];
+    // Real val = old_bc_val[i];
+
+    // Vector<3> p_old;
+    // for (int d = 0; d < 3; ++d) {
+      // p_old[d] = old_coords[old_id * 3 + d];
+    // }
+
+    // Real min_dist2 = std::numeric_limits<Real>::max();
+    // I64 closest_id = -1;
+
+    // for (I64 new_id = 0; new_id < m_mesh.nverts(); ++new_id) {
+      // Vector<3> p_new;
+      // for (int d = 0; d < 3; ++d) {
+        // p_new[d] = new_coords[new_id * 3 + d];
+      // }
+
+      // Real dist2 = norm_squared(p_new - p_old);
+      // if (dist2 < min_dist2) {
+        // min_dist2 = dist2;
+        // closest_id = new_id;
+      // }
+    // }
+
+    // if (closest_id >= 0) {
+      // if (closest_id != i)
+        // //cout << "Different Node id found ,old "<<i<<", New "<< closest_id <<endl;
+      // new_bc_nod[i]=closest_id;
+      // new_bc_val[i]=val;
+      // //cout << "val "<<val<<endl;
+    // } else {
+      // std::cerr << "Warning: Could not find nearest node for BC node " << old_id << std::endl;
+    // }
+  // }//bc_count
 }
 
 
@@ -1189,6 +1418,101 @@ void ReMesher::ReMapBCsByFace(int* old_bc_nod,
                         int* new_bc_nod,
                         double* new_bc_val,
                         int bc_count) {
+  
+  // auto new_coords = m_mesh.coords();
+  // auto old_coords = m_old_mesh.coords();
+  // auto elems2verts = m_mesh.ask_down(3, 0);
+  // int nelems = m_mesh.nelems();
+
+  // // Step 1: Build surface triangle list (triangles with only one adjacent tet)
+  // std::map<std::array<int, 3>, int> face_count;
+  // for (int e = 0; e < nelems; ++e) {
+    // int n0 = elems2verts.ab[4 * e + i]
+    // int n1 = elems2verts.ab[4 * e + 1];
+    // int n2 = elems2verts.ab[4 * e + 2];
+    // int n3 = elems2verts.ab[4 * e + 3];
+    
+    // int faces[4][3] = {
+      // {n0, n1, n2}, {n0, n1, n3},
+      // {n0, n2, n3}, {n1, n2, n3}
+    // };
+    
+    // for (int f = 0; f < 4; ++f) {
+      // std::array<int, 3> tri = {faces[f][0], faces[f][1], faces[f][2]};
+      // std::sort(tri.begin(), tri.end());
+      // face_count[tri]++;
+    // }
+  // }
+
+  // std::vector<std::array<int, 3>> boundary_faces;
+  // for (auto& [face, count] : face_count) {
+    // if (count == 1) boundary_faces.push_back(face);
+  // }
+
+  // // Step 2: Map each BC point onto boundary faces
+  // for (int i = 0; i < bc_count; ++i) {
+    // int old_id = old_bc_nod[i];
+    // Real val = old_bc_val[i];
+
+    // Vector<3> p_old;
+    // for (int d = 0; d < 3; ++d) {
+      // p_old[d] = old_coords[old_id * 3 + d];
+    // }
+
+    // Real min_dist2 = std::numeric_limits<Real>::max();
+    // std::array<int, 3> best_face = {-1, -1, -1};
+    // Vector<3> best_bary = {0, 0, 0};
+
+    // for (const auto& face : boundary_faces) {
+      // Vector<3> a, b, c;
+      // for (int d = 0; d < 3; ++d) {
+        // a[d] = new_coords[face[0] * 3 + d];
+        // b[d] = new_coords[face[1] * 3 + d];
+        // c[d] = new_coords[face[2] * 3 + d];
+      // }
+
+      // // Compute normal and barycentric coordinates
+      // Vector<3> v0 = b - a;
+      // Vector<3> v1 = c - a;
+      // Vector<3> v2 = p_old - a;
+
+      // Real d00 = dot(v0, v0);
+      // Real d01 = dot(v0, v1);
+      // Real d11 = dot(v1, v1);
+      // Real d20 = dot(v2, v0);
+      // Real d21 = dot(v2, v1);
+      // Real denom = d00 * d11 - d01 * d01;
+
+      // if (std::abs(denom) < 1e-12) continue;
+
+      // Real v = (d11 * d20 - d01 * d21) / denom;
+      // Real w = (d00 * d21 - d01 * d20) / denom;
+      // Real u = 1.0 - v - w;
+
+      // if (u >= -1e-4 && v >= -1e-4 && w >= -1e-4) {
+        // Vector<3> proj = u * a + v * b + w * c;
+        // Real dist2 = norm_squared(p_old - proj);
+        // if (dist2 < min_dist2) {
+          // min_dist2 = dist2;
+          // best_face = face;
+          // best_bary = {u, v, w};
+        // }
+      // }
+    // }
+
+    // if (best_face[0] != -1) {
+      // // Here: assign value to node with max barycentric weight
+      // int max_idx = 0;
+      // if (best_bary[1] > best_bary[max_idx]) max_idx = 1;
+      // if (best_bary[2] > best_bary[max_idx]) max_idx = 2;
+
+      // int best_node = best_face[max_idx];
+      // new_bc_nod[i] = best_node;
+      // new_bc_val[i] = val;
+    // } else {
+      // std::cerr << "Warning: No triangle match found for BC node " << old_id << std::endl;
+    // }
+  // }
   
   
 }

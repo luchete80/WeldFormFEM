@@ -112,12 +112,7 @@ class ReMesher{
     
     // Función de búsqueda de K vecinos más cercanos
     std::vector<int> find_k_closest_nodes(const std::array<double, 3>& point, int k);
-    //ORIGINAL
-    //int find_closest_node(const std::array<double, 3>& point); // Sobrecarga para array
-  
-  
-  template<int dim> 
-    int find_closest_node(const std::array<double, dim>& point);
+    int find_closest_node(const std::array<double, 3>& point); // Sobrecarga para array
   //////////////////////////////////////////
   
   void FindMapElemClosest();
