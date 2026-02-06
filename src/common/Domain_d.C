@@ -1590,8 +1590,11 @@ void Domain_d::setNodElem(int *elnod_h){
   
   cout << "Node Elemets set. "<<endl;
 
-  
-  delete [] /*elnod_h, */nodel_count_h, nodel_h, nodel_loc_h,nodel_offset_h;
+    
+  delete [] nodel_count_h;
+  delete [] nodel_h;
+  delete [] nodel_loc_h;
+  delete [] nodel_offset_h;
 
 }
 
