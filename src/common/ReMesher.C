@@ -270,7 +270,10 @@ for (int v=0;v<size;v++)
 void ReMesher::MapNodal(double *vfield, double *o_field){
   const int dim = m_dom->m_dim;
 #ifndef REMESH_OMEGA_H
-  MapNodalVectorRaw<3>(vfield, o_field);
+  if(dim==2)
+    MapNodalVectorRaw<2>(vfield, o_field);
+  else
+    MapNodalVectorRaw<3>(vfield, o_field);
 #else
   if(dim==2)
   MapNodalVector<2>(m_mesh, vfield, o_field);
@@ -784,7 +787,6 @@ int ReMesher::find_closest_node(const std::array<double, dim>& x)
     return closest;
 }
 
-
 ///////////////NEW, BOTH 2D and 3D
 template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
@@ -796,9 +798,11 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
 
     for (int vert = 0; vert < m_node_count; vert++) {
 
+        // Inicializo el vector de destino
         for (int d = 0; d < dim; d++)
             vfield[dim * vert + d] = 0.0;
 
+        // Coordenadas del nodo actual
         std::array<double, dim> x;
         for (int d = 0; d < dim; d++)
             x[d] = m_x[dim * vert + d];
@@ -835,20 +839,20 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
             for (int i = 0; i < 4; i++)
                 n[i] = m_dom->m_elnod[4 * e + i];
 
-            std::array<double, dim> p[4];
-            for (int i = 0; i < 4; i++)
-                for (int d = 0; d < dim; d++)
-                    p[i][d] = m_dom->x[dim * n[i] + d];
-
-            std::array<double, 4> w;
-
-            if constexpr (dim == 2) {
-                if (!quad_bilinear_coords(x, p[0], p[1], p[2], p[3], w))
-                    continue;
-            } else {
-                w = stable_barycentric(x, p[0], p[1], p[2], p[3]);
+            // Creo puntos en 3D siempre, z=0 si es 2D
+            std::array<double, 3> p3[4];
+            for (int i = 0; i < 4; i++) {
+                p3[i][0] = m_dom->x[dim * n[i] + 0];
+                p3[i][1] = m_dom->x[dim * n[i] + 1];
+                p3[i][2] = (dim == 2 ? 0.0 : m_dom->x[dim * n[i] + 2]);
             }
 
+            std::array<double, 3> x3 = {x[0], x[1], (dim == 2 ? 0.0 : x[2])};
+
+            // Calcula lambdas en 3D
+            std::array<double, 4> w = stable_barycentric(x3, p3[0], p3[1], p3[2], p3[3]);
+
+            // Interpolación vectorial
             std::array<double, dim> interp{};
             for (int i = 0; i < 4; i++)
                 for (int d = 0; d < dim; d++)
@@ -875,8 +879,6 @@ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
     cout << "Not same node: " << notsame
          << " (" << 100.0 * notsame / m_node_count << "%)\n";
 }
-
- 
 
 void ReMesher::MapNodalScalarRaw(double* sfield, double* o_field)
 {
