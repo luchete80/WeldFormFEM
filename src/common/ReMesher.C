@@ -648,7 +648,7 @@ void ReMesher::WriteDomain(){
     for (int i = 0; i < m_node_count; i++) {
         total_momentum_new.x += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i];
         total_momentum_new.y += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 1];
-        total_momentum_new.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
+        if (dim == 3)total_momentum_new.z += m_dom->m_mdiag[i] * vfield[m_dom->m_dim * i + 2];
     }
 
     // --- 4. Aplicar corrección si hay discrepancia (>1% error) ---
