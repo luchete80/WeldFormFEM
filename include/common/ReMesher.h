@@ -120,7 +120,8 @@ class ReMesher{
     int find_closest_node(const std::array<double, dim>& point);
   //////////////////////////////////////////
   
-  void FindMapElemClosest();
+  //void FindMapElemClosest();
+  template <int dim> void FindMapElemClosest();
   
   #ifdef REMESH_OMEGA_H
   template <int dim>

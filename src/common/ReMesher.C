@@ -459,7 +459,11 @@ void ReMesher::WriteDomain(){
   }
   cout << "New Element Volume: "<<vol<<endl;
   
-  FindMapElemClosest();
+  //FindMapElemClosest();
+  if (dim == 2)
+    FindMapElemClosest<2>();
+  else if (dim == 3)
+    FindMapElemClosest<3>();
   cout << "foundelem closrsrt"<<endl;
   MapElem(esfield,   m_dom->pl_strain);
   cout << "map pressure"<<endl;
@@ -1080,67 +1084,166 @@ void ReMesher::MapElemVectorRaw(double *vfield, double *o_field, int field_dim) 
 
 
 
-void ReMesher::FindMapElemClosest() {
-  int notinside = 0;
-    for (int elem = 0; elem < m_elem_count; elem++) {
-        std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+//~ void ReMesher::FindMapElemClosest() {
+  //~ int notinside = 0;
+    //~ for (int elem = 0; elem < m_elem_count; elem++) {
+        //~ std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
         
-        //////Calculate barycenter of current new element
-        for (int en = 0; en < 4; en++) {
-            int v = m_elnod[elem * 4 + en];
-            barycenter[0] += m_x[3 * v];
-            barycenter[1] += m_x[3 * v + 1];
-            barycenter[2] += m_x[3 * v + 2];
+        //~ //////Calculate barycenter of current new element
+        //~ for (int en = 0; en < 4; en++) {
+            //~ int v = m_elnod[elem * 4 + en];
+            //~ barycenter[0] += m_x[3 * v];
+            //~ barycenter[1] += m_x[3 * v + 1];
+            //~ barycenter[2] += m_x[3 * v + 2];
+        //~ }
+        //~ barycenter[0] /= 4.0;
+        //~ barycenter[1] /= 4.0;
+        //~ barycenter[2] /= 4.0;
+
+        //~ bool found_containing = false;
+        //~ int closest_elem = -1;
+        //~ double min_distance = std::numeric_limits<double>::max();
+        //~ std::array<double, 3> closest_barycenter;
+
+        //~ ////////First pass: Try to find an element that contains the barycenter
+        //~ for (int i = 0; i < m_dom->m_elem_count; i++) {
+            //~ int n0 = m_dom->m_elnod[4 * i];
+            //~ int n1 = m_dom->m_elnod[4 * i + 1];
+            //~ int n2 = m_dom->m_elnod[4 * i + 2];
+            //~ int n3 = m_dom->m_elnod[4 * i + 3];
+
+            //~ std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
+            //~ std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
+            //~ std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
+            //~ std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+
+            //~ ////////Reuse your existing barycentric coordinate function
+            //~ std::array<double, 4> lambdas = stable_barycentric(barycenter, p0, p1, p2, p3);
+
+            //~ if (lambdas[0] >= -1.0e-8 && lambdas[1] >= -1.0e-8 && 
+                //~ lambdas[2] >= -1.0e-8 && lambdas[3] >= -1.0e-8) {
+                //~ m_closest_elem[elem] = i;
+                //~ found_containing = true;
+                
+                //~ ////////Diagnostic output
+                //~ if (elem < 5) { ////////Print first few elements for verification
+                    //~ std::cout << "Element " << elem << " barycenter INSIDE old element " << i 
+                              //~ << " with barycentric coords: (" 
+                              //~ << lambdas[0] << ", " << lambdas[1] << ", " 
+                              //~ << lambdas[2] << ", " << lambdas[3] << ")\n";
+                //~ }
+                //~ break;
+            //~ }
+
+            //~ /////////////////If not inside, compute distance for fallback
+            //~ std::array<double, 3> old_barycenter = {
+                //~ (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
+                //~ (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
+                //~ (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
+            //~ };
+
+            //~ double distance = std::pow(barycenter[0] - old_barycenter[0], 2) +
+                             //~ std::pow(barycenter[1] - old_barycenter[1], 2) +
+                             //~ std::pow(barycenter[2] - old_barycenter[2], 2);
+
+            //~ if (distance < min_distance) {
+                //~ min_distance = distance;
+                //~ closest_elem = i;
+                //~ closest_barycenter = old_barycenter;
+            //~ }
+        //~ }
+
+        //~ ///////////////Fallback to closest element if no containing element found
+        //~ if (!found_containing) {
+            //~ m_closest_elem[elem] = closest_elem;
+            
+            //~ ////////////////Diagnostic output
+            //~ if (elem < 5) {
+                //~ std::cout << "Element " << elem << " barycenter NOT INSIDE any element. "
+                          //~ << "Using closest element " << closest_elem 
+                          //~ << " with distance " << std::sqrt(min_distance) << "\n";
+                //~ std::cout << "New barycenter: (" << barycenter[0] << ", " 
+                          //~ << barycenter[1] << ", " << barycenter[2] << ")\n";
+                //~ std::cout << "Old barycenter: (" << closest_barycenter[0] << ", " 
+                          //~ << closest_barycenter[1] << ", " << closest_barycenter[2] << ")\n";
+            //~ }
+        //~ } else {
+          
+          //~ notinside++;
+        //~ }
+    //~ }//ELEM
+    //~ cout << "Not Inside  Elements : " << notinside<<"( "<< notinside/m_elem_count*100.0<<"%)"<<endl;
+
+//~ }
+
+template <int dim>
+void ReMesher::FindMapElemClosest() {
+    int notinside = 0;
+
+    constexpr int nodes_per_elem = 4; // siempre 4 nodos (quads en 2D, tetras en 3D)
+
+    for (int elem = 0; elem < m_elem_count; elem++) {
+
+        /////////// Calcular barycenter del elemento actual
+        std::array<double, 3> barycenter = {0.0, 0.0, 0.0};
+        for (int en = 0; en < nodes_per_elem; en++) {
+            int v = m_elnod[elem * nodes_per_elem + en];
+            barycenter[0] += m_x[dim * v + 0];
+            barycenter[1] += m_x[dim * v + 1];
+            barycenter[2] += (dim == 3) ? m_x[dim * v + 2] : 0.0;
         }
-        barycenter[0] /= 4.0;
-        barycenter[1] /= 4.0;
-        barycenter[2] /= 4.0;
+        for (int d = 0; d < 3; d++)
+            barycenter[d] /= static_cast<double>(nodes_per_elem);
 
         bool found_containing = false;
         int closest_elem = -1;
         double min_distance = std::numeric_limits<double>::max();
-        std::array<double, 3> closest_barycenter;
+        std::array<double, 3> closest_barycenter{};
 
-        ////////First pass: Try to find an element that contains the barycenter
+        /////////// Primer pase: buscar elemento que contenga el barycenter
         for (int i = 0; i < m_dom->m_elem_count; i++) {
-            int n0 = m_dom->m_elnod[4 * i];
-            int n1 = m_dom->m_elnod[4 * i + 1];
-            int n2 = m_dom->m_elnod[4 * i + 2];
-            int n3 = m_dom->m_elnod[4 * i + 3];
 
-            std::array<double, 3> p0 = {m_dom->x[3 * n0], m_dom->x[3 * n0 + 1], m_dom->x[3 * n0 + 2]};
-            std::array<double, 3> p1 = {m_dom->x[3 * n1], m_dom->x[3 * n1 + 1], m_dom->x[3 * n1 + 2]};
-            std::array<double, 3> p2 = {m_dom->x[3 * n2], m_dom->x[3 * n2 + 1], m_dom->x[3 * n2 + 2]};
-            std::array<double, 3> p3 = {m_dom->x[3 * n3], m_dom->x[3 * n3 + 1], m_dom->x[3 * n3 + 2]};
+            // Preparar nodos para stable_barycentric
+            std::array<double, 3> p0, p1, p2, p3;
+            int n0 = m_dom->m_elnod[4*i + 0];
+            int n1 = m_dom->m_elnod[4*i + 1];
+            int n2 = m_dom->m_elnod[4*i + 2];
+            int n3 = m_dom->m_elnod[4*i + 3];
 
-            ////////Reuse your existing barycentric coordinate function
-            std::array<double, 4> lambdas = stable_barycentric(barycenter, p0, p1, p2, p3);
+            p0[0] = m_dom->x[dim*n0 + 0]; p0[1] = m_dom->x[dim*n0 + 1]; p0[2] = (dim==3) ? m_dom->x[dim*n0 + 2] : 0.0;
+            p1[0] = m_dom->x[dim*n1 + 0]; p1[1] = m_dom->x[dim*n1 + 1]; p1[2] = (dim==3) ? m_dom->x[dim*n1 + 2] : 0.0;
+            p2[0] = m_dom->x[dim*n2 + 0]; p2[1] = m_dom->x[dim*n2 + 1]; p2[2] = (dim==3) ? m_dom->x[dim*n2 + 2] : 0.0;
+            p3[0] = m_dom->x[dim*n3 + 0]; p3[1] = m_dom->x[dim*n3 + 1]; p3[2] = (dim==3) ? m_dom->x[dim*n3 + 2] : 0.0;
 
-            if (lambdas[0] >= -1.0e-8 && lambdas[1] >= -1.0e-8 && 
-                lambdas[2] >= -1.0e-8 && lambdas[3] >= -1.0e-8) {
+            // Llamada a la función original
+            std::array<double,4> lambdas = stable_barycentric(barycenter, p0, p1, p2, p3);
+
+            bool inside = true;
+            for (int n = 0; n < nodes_per_elem; n++)
+                if (lambdas[n] < -1.0e-8) inside = false;
+
+            if (inside) {
                 m_closest_elem[elem] = i;
                 found_containing = true;
-                
-                ////////Diagnostic output
-                if (elem < 5) { ////////Print first few elements for verification
+
+                if (elem < 5) {
                     std::cout << "Element " << elem << " barycenter INSIDE old element " << i 
-                              << " with barycentric coords: (" 
-                              << lambdas[0] << ", " << lambdas[1] << ", " 
-                              << lambdas[2] << ", " << lambdas[3] << ")\n";
+                              << " with barycentric coords: ";
+                    for (int n = 0; n < nodes_per_elem; n++)
+                        std::cout << lambdas[n] << " ";
+                    std::cout << "\n";
                 }
                 break;
             }
 
-            /////////////////If not inside, compute distance for fallback
-            std::array<double, 3> old_barycenter = {
-                (p0[0] + p1[0] + p2[0] + p3[0]) / 4.0,
-                (p0[1] + p1[1] + p2[1] + p3[1]) / 4.0,
-                (p0[2] + p1[2] + p2[2] + p3[2]) / 4.0
-            };
+            ////////// Si no está dentro, calcular distancia para fallback
+            std::array<double, 3> old_barycenter = {0.0, 0.0, 0.0};
+            for (int d = 0; d < 3; d++)
+                old_barycenter[d] = (p0[d] + p1[d] + p2[d] + p3[d]) / 4.0;
 
-            double distance = std::pow(barycenter[0] - old_barycenter[0], 2) +
-                             std::pow(barycenter[1] - old_barycenter[1], 2) +
-                             std::pow(barycenter[2] - old_barycenter[2], 2);
+            double distance = 0.0;
+            for (int d = 0; d < dim; d++)
+                distance += (barycenter[d] - old_barycenter[d]) * (barycenter[d] - old_barycenter[d]);
 
             if (distance < min_distance) {
                 min_distance = distance;
@@ -1149,28 +1252,30 @@ void ReMesher::FindMapElemClosest() {
             }
         }
 
-        ///////////////Fallback to closest element if no containing element found
+        /////////// Fallback si no encuentra elemento contenedor
         if (!found_containing) {
             m_closest_elem[elem] = closest_elem;
-            
-            ////////////////Diagnostic output
+
             if (elem < 5) {
                 std::cout << "Element " << elem << " barycenter NOT INSIDE any element. "
-                          << "Using closest element " << closest_elem 
+                          << "Using closest element " << closest_elem
                           << " with distance " << std::sqrt(min_distance) << "\n";
-                std::cout << "New barycenter: (" << barycenter[0] << ", " 
-                          << barycenter[1] << ", " << barycenter[2] << ")\n";
-                std::cout << "Old barycenter: (" << closest_barycenter[0] << ", " 
-                          << closest_barycenter[1] << ", " << closest_barycenter[2] << ")\n";
+                std::cout << "New barycenter: ";
+                for (int d = 0; d < dim; d++) std::cout << barycenter[d] << " ";
+                std::cout << "\nOld barycenter: ";
+                for (int d = 0; d < dim; d++) std::cout << closest_barycenter[d] << " ";
+                std::cout << "\n";
             }
         } else {
-          
-          notinside++;
+            notinside++;
         }
-    }//ELEM
-    cout << "Not Inside  Elements : " << notinside<<"( "<< notinside/m_elem_count*100.0<<"%)"<<endl;
 
+    } // elem
+
+    std::cout << "Not Inside Elements : " << notinside
+              << " ( " << notinside * 100.0 / m_elem_count << "%)\n";
 }
+
 
 void ReMesher::ReMapBCs(int  *old_bc_nod,
                       double *old_bc_val,
