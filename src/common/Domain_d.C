@@ -174,6 +174,7 @@ dev_t void Domain_d::SearchExtNodes() {
     for (int i = 0; i < m_node_count; i++) {
         if (ext_nodes[i]) {
             ext_nodes_count++;
+            cout << "EXT NODE "<<i<<endl;
         }
     }
 
@@ -187,6 +188,19 @@ dev_t void Domain_d::SearchExtNodes() {
         }
     }
     printf("Total External Nodal Area: %.4e, external nodes: %d\n", area,ext_nodes_count);
+
+    //~ printf("External faces (first 20) after remesh:\n");
+    //~ int count_printed = 0;
+    //~ for (int i = 0; i < m_faceCount && count_printed < 20; i++) {
+        //~ if (faceList[i].count == 1) { // externa
+            //~ printf("Face %d nodes: ", i);
+            //~ for (int j = 0; j < FACENOD; j++)
+                //~ printf("%d ", faceList[i].nodes[j]);
+            //~ printf("\n");
+            //~ count_printed++;
+        //~ }
+    //~ }
+
 }
 
 

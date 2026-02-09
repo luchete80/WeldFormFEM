@@ -775,6 +775,129 @@ int ReMesher::find_closest_node(const std::array<double, dim>& x)
     return closest;
 }
 
+
+////// OLD
+
+//~ template <int dim>
+//~ void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field) {
+    //~ // Loop over the target nodes in the new mesh
+    //~ int notfound = 0;
+    //~ int notsame = 0;
+    //~ cout << "MAP NODAL VECTOR RAW (MMMG)"<<endl;
+
+    //~ for (int vert=0;vert<m_node_count;vert++){      
+        //~ for (int d=0;d<dim;d++) vfield [dim*vert+d] = 0.0;
+
+   //~ //auto coords = mesh.coords();
+
+    
+    //~ //auto f = OMEGA_H_LAMBDA(LO vert) {
+      //~ //auto x = get_vector<3>(coords, vert);
+      //~ double x[3];
+      //~ for (int d=0;d<3;d++) x[d]=m_x[3*vert+d];
+      
+      //~ bool found_samenode = false;
+      //~ double tol = 1.0e-6;
+      //~ //SEARCH OVERALL NEW MESH NODES IF NOT A NEW NODE NEAR THE OLD NODE  
+      //~ for (int v = 0; v < m_dom->m_node_count; v++){
+        //~ //If new node dist <tol, map new node = old node
+        //~ std::array<double, 3> p0 = {m_dom->x[3 * v], m_dom->x[3 * v + 1], m_dom->x[3 * v + 2]};
+        //~ double distance = 0.0;
+        //~ for (int i = 0; i < 3; ++i) {
+            //~ distance += (x[i] - p0[i]) * (x[i] - p0[i]);
+        //~ }
+        //~ if (distance<tol){
+          //~ found_samenode = true;
+          //~ //cout << "FOUND " << vert << " SAME NODE "<<endl;
+          //~ if (vert == 0)
+            //~ std::cout << "FOUND new node "<<v << " For node "<<vert<<std::endl;
+          
+          //~ for (int d=0;d<dim;d++) vfield[dim*vert+d] = o_field[dim*v+d];
+        //~ }                
+      //~ }//node
+      
+      //~ if (!found_samenode){
+        //~ notsame++;
+    //~ //for (int n = 0; n < mesh.nverts(); n++) {
+        //~ bool found = false;  // Flag to indicate whether the node is inside an element in the old mesh
+        //~ //std::cout << mesh.coords()[n]<<std::endl;
+        
+        //~ // Get coordinates for the node in the new mesh
+        //~ std::array<double, 3> target_node = {x[0], x[1], x[2]}; // Now using 3D coordinates
+        
+        //~ // Loop over the elements in the old mesh (using *elnod to access connectivity and *node for coordinates)
+        //~ for (int i = 0; i < m_dom->m_elem_count; i++) {
+            //~ // Connectivity for the tetrahedral element (assumed to have 4 nodes per element in the old mesh)
+            //~ int n0 = m_dom->m_elnod[4*i];   // Node 0 in the element
+            //~ int n1 = m_dom->m_elnod[4*i+1]; // Node 1 in the element
+            //~ int n2 = m_dom->m_elnod[4*i+2]; // Node 2 in the element
+            //~ int n3 = m_dom->m_elnod[4*i+3]; // Node 3 in the element
+
+            //~ std::array<double, 3> p0 = {m_dom->x[3*n0], m_dom->x[3*n0+1], m_dom->x[3*n0+2]};
+            //~ std::array<double, 3> p1 = {m_dom->x[3*n1], m_dom->x[3*n1+1], m_dom->x[3*n1+2]};
+            //~ std::array<double, 3> p2 = {m_dom->x[3*n2], m_dom->x[3*n2+1], m_dom->x[3*n2+2]};
+            //~ std::array<double, 3> p3 = {m_dom->x[3*n3], m_dom->x[3*n3+1], m_dom->x[3*n3+2]};
+
+            //~ std::array<double, 4> lambdas = stable_barycentric(target_node, p0, p1, p2, p3);
+
+            //~ if (lambdas[0] >= -1.0e-10 && lambdas[1] >= -1.0e-10 && lambdas[2] >= -1.0e-10 && lambdas[3] >= -1.0e-10) { 
+
+                //~ //double scalar[4];
+                //~ //for (int n=0;n<4;n++) scalar[n] = m_dom->pl_strain[i];
+
+                //~ //double interpolated_scalar = interpolate_scalar(target_node, p0, p1, p2, p3, scalar[0], scalar[1], scalar[2], scalar[3]);
+
+
+                //~ // Interpolate vector values for displacement (if needed)
+                //~ std::array<double, 3> disp[4];
+                //~ for (int n=0;n<4;n++)
+                  //~ for (int d=0;d<dim;d++)
+                    //~ disp[n][d] = o_field[dim*m_dom->m_elnod[4*i+n]+d];
+                
+                //~ //cout << "Interp disp"<<endl;
+                //~ std::array<double, 3> interpolated_disp = interpolate_vector(target_node, p0, p1, p2, p3, disp[0], disp[1], disp[2],disp[3]);
+                //~ for (int d=0;d<dim;d++) vfield[dim*vert+d] = interpolated_disp[d];
+                //~ // Optionally, interpolate other scalar/vector fields for the new mesh node here
+                //~ if (vert == 0)  {
+                //~ std::cout << "FOUND ELEMENT "<<i << " For node "<<vert<<std::endl;
+                //~ //std::cout << "Node " << vert << " is inside element " << i << " of the old mesh." << std::endl;
+                  //~ //std::cout << "Interpolated scalar: " << interpolated_scalar << std::endl;
+                  //~ std::cout << "Interpolated displacement: (" << interpolated_disp[0] << ", " << interpolated_disp[1] << ", " << interpolated_disp[2] << ")\n";
+                //~ }
+                //~ found = true;
+                //~ break;  // Exit the element loop once the element is found
+            //~ }//lambdas
+          //~ }//elem
+          //~ if (!found) {
+              //~ std::cout << "Node " << vert << " is not inside any element of the old mesh." << std::endl;
+              
+              //~ //
+              //~ // 1. Encuentra el nodo más cercano en la malla old
+              //~ int closest_old_node = find_closest_node(target_node); 
+              
+              //~ for (int d = 0; d < dim; d++) {
+                  //~ vfield[dim * vert + d] = o_field[dim * closest_old_node + d];
+              //~ }
+
+              //~ if (vert == 0) {
+                  //~ std::cout << "USING NEAREST NODE " << closest_old_node 
+                            //~ << " for node " << vert << std::endl;
+              //~ }
+              
+              //~ notfound++;
+              
+          //~ }
+        //~ }//found same node
+
+      //~ //n++;
+    //~ }//Node Loop
+    //~ cout << "Not Inside   Node Count: " << notfound<<"( "<< notfound/m_node_count*100.0<<"%)"<<endl;
+    //~ cout << "Not Same Old Node Count: " << notsame<<"( "<< (float)notsame/float(m_node_count)*100.0<<"%)"<<endl;
+    
+//~ }//MAP
+
+
+
 ///////////////NEW, BOTH 2D and 3D
 template <int dim>
 void ReMesher::MapNodalVectorRaw(double *vfield, double *o_field)
