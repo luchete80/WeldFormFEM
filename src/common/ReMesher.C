@@ -378,6 +378,8 @@ void ReMesher::WriteDomain(){
   for (int i = 0; i < m_dom->m_node_count; i++) {
       total_momentum_old.x += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i];
       total_momentum_old.y += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i + 1];
+      
+      if (dim == 3)
       total_momentum_old.z += m_dom->m_mdiag[i] * m_dom->v[m_dom->m_dim * i + 2];
   }
 

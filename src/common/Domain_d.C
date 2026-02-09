@@ -446,7 +446,7 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   m_elem_count = elem_count;
   
   // NODAL VARIABLES
-  cout << "Setting explicit dimensions"<<endl;
+  cout << "Setting explicit dimensions for "<< node_count<<"nodes and "<< m_dim<<"dim"<<endl;
   malloc_t (x,      double,node_count*m_dim);
   malloc_t (v,      double,node_count*m_dim);
   malloc_t (a,      double,node_count*m_dim);
@@ -457,12 +457,13 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
 	//cudaMalloc((void **)&m_f, node_count * sizeof (double) * 3);
   malloc_t (m_fi,double,node_count*m_dim); //Internal forces
   malloc_t (m_fe,double,node_count*m_dim);
-  
+
+  //cout << "mdiag "<<endl;  
   malloc_t (m_mdiag, double,node_count);
-  malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+  //malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 
   //////if thermal
-  
+
   malloc_t (T,                double, node_count);
   malloc_t(m_dTedt,           double, m_elem_count * m_nodxelem);
   malloc_t(ps_energy,         double, m_elem_count);
@@ -632,7 +633,7 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (m_fe,double,node_count*m_dim);
   
   malloc_t (m_mdiag, double,node_count);
-  malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+  //malloc_t (m_mglob, double,node_count*node_count); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 
   //////if thermal
   
@@ -784,7 +785,7 @@ void Domain_d::Free(){
   free_t (m_fe);
   
   free_t (m_mdiag);
-  free_t (m_mglob); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
+  //free_t (m_mglob); //TODO: MAKE SPARSE. DEALLOCATED AFER DIAG CALCULATION
 
   free_t (T);
   free_t(m_dTedt);
