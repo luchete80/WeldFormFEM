@@ -1073,7 +1073,9 @@ void host_ Domain_d::SolveChungHulbert(){
 
     double Ekin_mapped = 0.0;
     for (int n=0; n<m_node_count; ++n){
-        double vx = v[3*n+0], vy = v[3*n+1], vz = v[3*n+2];
+        double vx = v[m_dim*n+0], vy = v[m_dim*n+1];
+        double vz = 0;
+        if (m_dim == 3) vz = v[3*n+2];
         double k = 0.5 * m_mdiag[n] * (vx*vx + vy*vy + vz*vz);
         Ekin_mapped += k;
     }
