@@ -1196,7 +1196,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double max[]={0.0,0.0,0.0};
 
      for (int e=0;e<m_node_count;e++)
-        for (int d=0;d<3;d++)
+        for (int d=0;d<m_dim;d++)
               if (this->u[e*m_dim+d]*this->u[e*m_dim+d]>max[d]){
           max[d] = this->u[e*m_dim+d];
 
@@ -1275,7 +1275,7 @@ void host_ Domain_d::SolveChungHulbert(){
   double max[]={0.0,0.0,0.0};
 
      for (int e=0;e<m_node_count;e++)
-        for (int d=0;d<3;d++)
+        for (int d=0;d<m_dim;d++)
               if (this->u[e*m_dim+d]>max[d]){
           max[d] = this->u[e*m_dim+d];
 
