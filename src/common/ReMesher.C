@@ -465,16 +465,7 @@ void ReMesher::WriteDomain(){
                     << n0 << ", " << n1 << ", " << n2 << ", " << n3
                     << " (m_node_count=" << m_node_count << ")\n";
       }
-      
-        // Print the points for debug
-        cout << "Quad " << i << " nodes: " << endl;
-        
-        cout << "p0: (" << p0[0] << ", " << p0[1] << ")" << endl;
-        cout << "p1: (" << p1[0] << ", " << p1[1] << ")" << endl;
-        cout << "p2: (" << p2[0] << ", " << p2[1] << ")" << endl;
-        cout << "p3: (" << p3[0] << ", " << p3[1] << ")" << endl;
         volumes[i] = quad_area(p0, p1, p2, p3);        
-        cout << "AREA "<<quad_area(p0, p1, p2, p3)<<endl;    
         
       }
       vol+=volumes[i];

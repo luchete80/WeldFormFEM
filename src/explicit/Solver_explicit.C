@@ -685,7 +685,7 @@ void host_ Domain_d::SolveChungHulbert(){
     // small mass floor
     double mass_floor = 1e-8 * meanMass;
     for (int n=0;n<m_node_count;++n) if (m_mdiag[n] < mass_floor) m_mdiag[n] = mass_floor;
-      
+    cout << "DONE "<<endl;
   }
 
   #endif
