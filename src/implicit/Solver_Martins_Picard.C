@@ -154,7 +154,8 @@ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<doubl
     // Implementar con tu solver preferido
     // Este es un placeholder simple usando eliminación gaussiana
     
-    int n = K.getRows();
+    //int n = K.getRows();
+    int n = K.m_row;
     std::vector<double> solution(n, 0.0);
     
     // Hacer una copia para no modificar la original
@@ -307,7 +308,7 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         // Posiciones de los nodos del elemento
         std::vector<Point2D> pos(4);
         for(int i = 0; i < 4; i++) {
-            pos[i] = coords[conn[i]];
+            pos[i] = coordscoords[conn[i]];
         }
         
         // DOFs de velocidades del elemento
@@ -517,6 +518,10 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             max_div_v = max(max_div_v, std::abs(div_v));
         }
         
+        // assert(dofs_v[i] < vel_vec.size());
+        // assert(e_idx < press_vec.size());
+        // assert(dof_p < K_glob.nRows());
+
         // ENSAMBLAJE GLOBAL DEL ELEMENTO
         // 1. Bloque P (parte de velocidades)
         for(int i_local = 0; i_local < 8; i_local++) {
@@ -625,9 +630,11 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
     for(int iter = 0; iter < max_iter; iter++) {
         // Ensamblar sistema según Martins
         double max_mu, incompress_error, max_div;
+        cout << "Assemblying"<<endl;
         assemble_martins_system(vel_guess, press_guess, K_temp, F_temp, 
                                max_mu, incompress_error, max_div);
         
+        cout << "Applying bcs"<<endl;
         // Aplicar condiciones de contorno
         apply_boundary_conditions(K_temp, F_temp, fixed_dofs);
         
@@ -1039,7 +1046,7 @@ void perform_physical_checks(const std::vector<double>& vel,
     std::cout << std::string(70, '=') << std::endl;
 }
 
-}
+
 
 // ================================
 // FUNCIÓN PRINCIPAL
