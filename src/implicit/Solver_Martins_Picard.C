@@ -859,10 +859,73 @@ void perform_physical_checks(const std::vector<double>& vel,
     std::cout << "Fuerza total estimada: " << force_top_est/1e3 << " kN" << std::endl;
 }
 
+
+// ================================
+// FUNCIÓN DE RESOLUCIÓN LINEAL (necesita ser implementada)
+// ================================
+std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
+    // Implementar con tu solver preferido
+    // Este es un placeholder simple usando eliminación gaussiana
+    
+    int n = K.getRows();
+    std::vector<double> solution(n, 0.0);
+    
+    // Hacer una copia para no modificar la original
+    Matrix A = K;
+    std::vector<double> b = F;
+    
+    // Eliminación gaussiana
+    for(int i = 0; i < n; i++) {
+        // Pivoteo
+        int max_row = i;
+        double max_val = fabs(A.getVal(i, i));
+        for(int k = i+1; k < n; k++) {
+            if(fabs(A.getVal(k, i)) > max_val) {
+                max_val = fabs(A.getVal(k, i));
+                max_row = k;
+            }
+        }
+        
+        if(max_row != i) {
+            // Intercambiar filas
+            for(int j = i; j < n; j++) {
+                double temp = A.getVal(i, j);
+                A.Set(i, j, A.getVal(max_row, j));
+                A.Set(max_row, j, temp);
+            }
+            double temp = b[i];
+            b[i] = b[max_row];
+            b[max_row] = temp;
+        }
+        
+        // Hacer ceros debajo de la diagonal
+        for(int k = i+1; k < n; k++) {
+            double factor = A.getVal(k, i) / A.getVal(i, i);
+            for(int j = i; j < n; j++) {
+                A.Set(k, j, A.getVal(k, j) - factor * A.getVal(i, j));
+            }
+            b[k] -= factor * b[i];
+        }
+    }
+    
+    // Sustitución hacia atrás
+    for(int i = n-1; i >= 0; i--) {
+        solution[i] = b[i];
+        for(int j = i+1; j < n; j++) {
+            solution[i] -= A.getVal(i, j) * solution[j];
+        }
+        solution[i] /= A.getVal(i, i);
+    }
+    
+    return solution;
+}
+
+
+
 // ================================
 // SIMULACIÓN PRINCIPAL (MARTINS)
 // ================================
-void run_simulation_martins() {
+void Domain_d::Solve_Martins_Picard(){ {
     std::cout << std::string(70, '=') << std::endl;
     std::cout << "SIMULACIÓN AXISIMÉTRICA DE FORJA - ESQUEMA MARTINS" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
@@ -878,6 +941,11 @@ void run_simulation_martins() {
     // Inicialización
     initialize_mesh();
     auto fixed_dofs = setup_boundary_conditions();
+
+    Solver_Eigen *solver = new Solver_Eigen();
+    m_solver = solver;
+    m_solver->setDomain(this);   // Le pasás la malla, DOFs, etc.
+    m_solver->Allocate();         // Reserva memoria
     
     // Matrices temporales para reuso
     Matrix K_temp(ndof_total, ndof_total);
@@ -973,64 +1041,3 @@ int main() {
     run_simulation_martins();
     return 0;
 }
-
-// ================================
-// FUNCIÓN DE RESOLUCIÓN LINEAL (necesita ser implementada)
-// ================================
-std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
-    // Implementar con tu solver preferido
-    // Este es un placeholder simple usando eliminación gaussiana
-    
-    int n = K.getRows();
-    std::vector<double> solution(n, 0.0);
-    
-    // Hacer una copia para no modificar la original
-    Matrix A = K;
-    std::vector<double> b = F;
-    
-    // Eliminación gaussiana
-    for(int i = 0; i < n; i++) {
-        // Pivoteo
-        int max_row = i;
-        double max_val = fabs(A.getVal(i, i));
-        for(int k = i+1; k < n; k++) {
-            if(fabs(A.getVal(k, i)) > max_val) {
-                max_val = fabs(A.getVal(k, i));
-                max_row = k;
-            }
-        }
-        
-        if(max_row != i) {
-            // Intercambiar filas
-            for(int j = i; j < n; j++) {
-                double temp = A.getVal(i, j);
-                A.Set(i, j, A.getVal(max_row, j));
-                A.Set(max_row, j, temp);
-            }
-            double temp = b[i];
-            b[i] = b[max_row];
-            b[max_row] = temp;
-        }
-        
-        // Hacer ceros debajo de la diagonal
-        for(int k = i+1; k < n; k++) {
-            double factor = A.getVal(k, i) / A.getVal(i, i);
-            for(int j = i; j < n; j++) {
-                A.Set(k, j, A.getVal(k, j) - factor * A.getVal(i, j));
-            }
-            b[k] -= factor * b[i];
-        }
-    }
-    
-    // Sustitución hacia atrás
-    for(int i = n-1; i >= 0; i--) {
-        solution[i] = b[i];
-        for(int j = i+1; j < n; j++) {
-            solution[i] -= A.getVal(i, j) * solution[j];
-        }
-        solution[i] /= A.getVal(i, i);
-    }
-    
-    return solution;
-}
-

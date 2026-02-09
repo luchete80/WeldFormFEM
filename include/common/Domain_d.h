@@ -645,6 +645,9 @@ public:
   void SolveStaticQS_UP();
   void SolveStaticQS_V();
   
+  void Solve_Martins_Picard();
+  
+  
   void SolveElastic(); //SIMPLE 
   
   ///// SIMILAR, INCREMENTAL BCs which Correct prescribed BCs for incremental solver.
