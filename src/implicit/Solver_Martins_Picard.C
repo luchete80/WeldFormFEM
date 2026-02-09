@@ -308,7 +308,7 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         // Posiciones de los nodos del elemento
         std::vector<Point2D> pos(4);
         for(int i = 0; i < 4; i++) {
-            pos[i] = coordscoords[conn[i]];
+            pos[i] = coords[conn[i]];
         }
         
         // DOFs de velocidades del elemento
@@ -546,7 +546,10 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         
         // 4. Bloque cero para presiones (esquema de punto de silla)
         K_glob.Set(dof_p, dof_p, K_glob.getVal(dof_p, dof_p) + 0.0);
-    }
+    }//Element
+    for(int i = ndof_v; i < ndof_total; ++i)
+      K_glob(i, i) += 1e-12;  // epsilon pequeño
+  
 }
 
 // ================================
