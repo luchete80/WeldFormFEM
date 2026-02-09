@@ -405,6 +405,8 @@ void host_ Domain_d::SolveChungHulbert(){
       }
       remesh.WriteDomain(); 
       cout <<"Checking BCs"<<endl;
+      VTKWriter writer3(this, "out_remesh.vtk");
+      writer3.writeFile();
       setFixSymm();
       AllocateBCs();
       //cout << "Step "<<step_count<<endl;
