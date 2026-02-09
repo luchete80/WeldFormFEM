@@ -389,7 +389,7 @@ void ReMesher::Generate_remesh2D() {
         for (int i = 0; i < 4; ++i) {
             m_elnod[4*e + i] = smoother.quads_[e][i]; // ya deberían ser índices 0-based
         }
-        cout << "Elem nodes: "<<m_elnod[4*e]<<", "<<m_elnod[4*e+1]<<", "<<m_elnod[4*e+2]<<", "<<m_elnod[4*e+3]<<endl;
+        //cout << "Elem nodes: "<<m_elnod[4*e]<<", "<<m_elnod[4*e+1]<<", "<<m_elnod[4*e+2]<<", "<<m_elnod[4*e+3]<<endl;
         // Inicializar closest_elem a -1 (o a algún valor por defecto)
         m_closest_elem[e] = -1;
     }
