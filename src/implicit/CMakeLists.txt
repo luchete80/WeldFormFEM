@@ -117,6 +117,7 @@ set (SOURCES
                         Solver_GlobalMatrix_EPHV.C
                         Solver_GlobalMatrix_QS_martins.C
                         Solver_Eigen.C
+                        Solver_Martins_Picard.C
                         
                           
                    )
