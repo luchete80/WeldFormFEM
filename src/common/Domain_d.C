@@ -174,7 +174,7 @@ dev_t void Domain_d::SearchExtNodes() {
     for (int i = 0; i < m_node_count; i++) {
         if (ext_nodes[i]) {
             ext_nodes_count++;
-            cout << "EXT NODE "<<i<<endl;
+            //cout << "EXT NODE "<<i<<endl;
         }
     }
 
@@ -2445,7 +2445,7 @@ void Domain_d::setNode(const int &i, const double &_x, const double &_y, const d
   if (i<m_node_count){
   x[i*m_dim  ]=_x;
   x[i*m_dim+1]=_y;
-  x[i*m_dim+2]=_z;
+  if (m_dim ==3) x[i*m_dim+2]=_z;
   //return 1;
   }
 else{cout << "Node allocation error, node pos larger than node count."<<endl;}

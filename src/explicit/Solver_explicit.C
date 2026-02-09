@@ -658,6 +658,7 @@ void host_ Domain_d::SolveChungHulbert(){
     }
     for (int n=0;n<m_node_count;++n){
         double m = m_mdiag[n]; // masa nodal
+        //cout << "NODAL MASS "<<m_mdiag[n]<<endl;
         minMass = std::min(minMass, m);
         maxMass = std::max(maxMass, m);
         sumMass += m;
