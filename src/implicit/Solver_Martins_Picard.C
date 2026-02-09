@@ -10,6 +10,11 @@
 #include <algorithm>
 #include <unordered_map>
 #include <memory>
+#include "Solver_Eigen.h"
+#include "Mesh.h"
+#include "WallTimer.h"
+#include "Matrix.h"
+#include "Domain_d.h"
 
 // ================================
 // PARÁMETROS FÍSICAMENTE CORRECTOS
@@ -155,7 +160,7 @@ struct StrainRateResult {
     std::vector<double> C_vec;       // Vector C de Martins para presión hidrostática
 };
 
-StrainRateResult calculate_strain_rate_martins(const Matrix& dNdX,
+StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
                                               const std::vector<double>& vel_elem,
                                               double r_gp,
                                               const std::vector<double>& N) {
