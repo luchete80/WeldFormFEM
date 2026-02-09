@@ -1172,24 +1172,28 @@ void host_ Domain_d::SolveChungHulbert(){
    
          for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
       double cfsum = 0.0;
-      for (int i=0;i<m_node_count;i++){
-        if ((getNodePos3(i).z-zmax)*(getNodePos3(i).z-zmax)<1.0e-5){
-          for (int ne=0; ne<m_nodel_count[i];ne++) {
-            int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
-            if (!is_elem_sum[e]){
-              //pxa_el[e]+=p[e]*m_elem_area[e];
-              is_elem_sum[e]=true;
-              cfsum += p[e]*m_elem_area[e];
-              area+=m_elem_area[e];
-              ecount++;
-            }
+      
+      //~ for (int i=0;i<m_node_count;i++){
+        //~ if ((getNodePos3(i).z-zmax)*(getNodePos3(i).z-zmax)<1.0e-5){
+          //~ for (int ne=0; ne<m_nodel_count[i];ne++) {
+            //~ int e   = m_nodel     [m_nodel_offset[i]+ne]; //Element
+            //~ if (!is_elem_sum[e]){
+              //~ //pxa_el[e]+=p[e]*m_elem_area[e];
+              //~ is_elem_sum[e]=true;
+              //~ cfsum += p[e]*m_elem_area[e];
+              //~ area+=m_elem_area[e];
+              //~ ecount++;
+            //~ }
               //~ if (!is_node_sum[i]){
                 //~ area+=node_area[i];
                 //~ }
-          }//nodel
-        }//mesh in contact
+          //~ }//nodel
+        //~ }//mesh in contact
         
-      }//Node count    
+      //~ }//Node count    
+      
+      
+      
       //cout << "Cont Elements"<<ecount<<endl;
       //of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
     } //NOT CONTACT, TO DELETE
