@@ -298,12 +298,9 @@ void ReMesher::MapElem(double *vfield, double *o_field, int field_dim){
   MapElemVectorRaw        (vfield, o_field,field_dim);
   //MapElemVectorL2(vfield, o_field,field_dim);
   const int dim = m_dom->m_dim;
-  
+ 
   #else     
-  if (dim ==2)
-    MapElemVector<2> (m_mesh, vfield, o_field,field_dim); 
-  else
-    MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
+  MapElemVector<3> (m_mesh, vfield, o_field,field_dim); 
  #endif
   
 }
