@@ -2165,7 +2165,8 @@ dev_t void Domain_d::Calc_Element_Radius() //For axisymm
     m_radius[e] = 0.0;
     int offset = m_nodxelem * e;
     for (int ne=0; ne<m_nodxelem;ne++){
-       int n = elnod_h[offset+ne];
+       //int n = elnod_h[offset+ne];
+       int n = m_elnod[offset+ne];
     //for (int gp=0;gp<m_gp_count;gp++){    
       
       //!if (bind_dom_type .eq. 3) then 

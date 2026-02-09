@@ -430,7 +430,11 @@ void host_ Domain_d::SolveChungHulbert(){
       need_remesh = false;
       VTKWriter writer3(this, "out_remesh.vtk");
       writer3.writeFile();
+      if (m_dim == 2 && m_domtype == _Axi_Symm_)
+        Calc_Element_Radius();
+        
       }
+      
       //#########################################################
   //////////////////////////// IF REMESH
 
@@ -833,6 +837,19 @@ void host_ Domain_d::SolveChungHulbert(){
   
   assemblyForces(); 
   //ApplyGlobalSprings();
+
+  //~ if (remesh_){
+  //~ cout << "·FORCES "<<endl;
+    //~ for (int e=0;e<m_elem_count;e++)
+    //~ for (int n=0; n<m_nodxelem;n++) {
+      //~ for (int d=0;d<m_dim;d++){
+        
+        //~ cout <<m_radius[e]/*m_f_elem[e + n*m_dim + d] */<<" ";
+      //~ }
+    //~ }
+    //~ cout << endl;  
+    
+  //~ }
   
   #ifndef CUDA_BUILD
   // --- 3) Check internal forces (m_fi) and prevent NaN propagation ---
