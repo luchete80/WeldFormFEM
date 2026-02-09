@@ -430,7 +430,7 @@ void ReMesher::WriteDomain(){
 
   //MapNodal(pafield,  m_dom->prev_a);
       
-  cout <<"DONE"<<endl;
+  cout <<"DONE. Setting Volumes for "<<m_elem_count<<" elements"<<endl;
   double *volumes=new double[m_elem_count];
   double vol = 0.0;
   for (int i=0;i<m_elem_count;i++){
@@ -451,8 +451,25 @@ void ReMesher::WriteDomain(){
         double p1[] = {m_x[2*n1], m_x[2*n1+1]};
         double p2[] = {m_x[2*n2], m_x[2*n2+1]};
         double p3[] = {m_x[2*n3], m_x[2*n3+1]};
-
+      // Chequeo de índices de nodos
+      if (n0 < 0 || n0 >= m_node_count ||
+          n1 < 0 || n1 >= m_node_count ||
+          n2 < 0 || n2 >= m_node_count ||
+          n3 < 0 || n3 >= m_node_count) {
+          std::cerr << "WARNING: Element " << i << " has invalid node indices: "
+                    << n0 << ", " << n1 << ", " << n2 << ", " << n3
+                    << " (m_node_count=" << m_node_count << ")\n";
+      }
+      
+        // Print the points for debug
+        cout << "Quad " << i << " nodes: " << endl;
+        
+        cout << "p0: (" << p0[0] << ", " << p0[1] << ")" << endl;
+        cout << "p1: (" << p1[0] << ", " << p1[1] << ")" << endl;
+        cout << "p2: (" << p2[0] << ", " << p2[1] << ")" << endl;
+        cout << "p3: (" << p3[0] << ", " << p3[1] << ")" << endl;
         volumes[i] = quad_area(p0, p1, p2, p3);        
+        cout << "AREA "<<quad_area(p0, p1, p2, p3)<<endl;    
         
       }
       vol+=volumes[i];
