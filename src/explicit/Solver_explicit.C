@@ -1162,10 +1162,10 @@ void host_ Domain_d::SolveChungHulbert(){
    bool is_elem_sum[m_elem_count];
 
    //double pxa_el[m_elem_count];
-  double zmax = 0.0;
-      for (int i=0;i<m_node_count;i++)
-        if (getNodePos3(i).z>zmax)
-          zmax = getNodePos3(i).z;
+  //~ double zmax = 0.0;
+      //~ for (int i=0;i<m_node_count;i++)
+        //~ if (getNodePos3(i).z>zmax)
+          //~ zmax = getNodePos3(i).z;
         
     int ecount = 0;
    double area = 0.0;
