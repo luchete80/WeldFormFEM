@@ -751,6 +751,9 @@ public:
   double m_eta_visc = 1.0e-3;
   double m_m_visc   = 1.0;
   
+  
+  void setTargetElemSize(const double &e){m_tgt_elsize = e;}
+  
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 protected:
   std::string     m_name;
@@ -961,7 +964,8 @@ protected:
   bool m_autoKpen;
   
   double*  m_hg_q;
-
+  
+  double m_tgt_elsize; //FOR REMESHING
 
 
 };

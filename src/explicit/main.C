@@ -411,13 +411,15 @@ int main(int argc, char **argv) {
       cout << "Box Start: "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
       cout << "Box Length : "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
 
-    // Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra)
-    #ifdef CUDA_BUILD
-      cout << "STILL NOT AVAIABLE"<<endl;
-    #else
-      dom_d->AddBoxLength(start, make_double3(L.x,L.y,0.0), dx/2.,true,tritet);	
-    #endif
+      // Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra)
+      #ifdef CUDA_BUILD
+        cout << "STILL NOT AVAIABLE"<<endl;
+      #else
+        dom_d->AddBoxLength(start, make_double3(L.x,L.y,0.0), dx/2.,true,tritet);	
+      #endif
+      dom_d->setTargetElemSize(std::min(L.x,L.y));
     }
+
 
 		double IniTemp = 20.;
     int ics_count = 0;
