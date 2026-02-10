@@ -508,13 +508,6 @@ void ReMesher::WriteDomain(){
 
   cout << "Map done"<<endl;  
   // /////////////////////// BOUNDARY CONDITIONS
-  cout <<"Deleting BCs"<<endl;
-  if (m_dom->bc_count[0]>0){free_t(m_dom->bcx_nod);  free_t(m_dom->bcx_val); }
-  if (m_dom->bc_count[1]>0){free_t(m_dom->bcy_nod);  free_t(m_dom->bcy_val);  }
-  if (m_dom->bc_count[2]>0){free_t(m_dom->bcz_nod);   free_t(m_dom->bcz_val);}
-  //~ free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
-  //~ free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);      
-  cout << "Done"<<endl;
   
   m_dom->bc_count[0]=m_dom->bc_count[1]=m_dom->bc_count[2]=0;
   m_dom->bcx_nod_h.clear();  m_dom->bcy_nod_h.clear();  m_dom->bcz_nod_h.clear();
