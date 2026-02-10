@@ -231,8 +231,8 @@ void ReMesher::Generate_remesh2D() {
     
     //~ // Export polylines
     //~ export_polyline_to_vtk(contour, output_prefix + "_original_contour.vtk");
-    //~ export_polyline_to_vtk(ring_polyline, output_prefix + "_ring_polyline.vtk");
-    //~ export_polyline_to_vtk(proj_polyline, output_prefix + "_proj_polyline.vtk");
+    export_polyline_to_vtk(ring_polyline, "_ring_polyline.vtk");
+    export_polyline_to_vtk(proj_polyline, "_proj_polyline.vtk");
 
     //~ // ------------------------------------------------------------
     //~ // 9. Delaunay triangulation
