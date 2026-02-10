@@ -29,7 +29,7 @@
 
 
 using namespace std;
-
+ 
 
 namespace MetFEM{
   ReMesher::ReMesher(Domain_d *d)
@@ -534,7 +534,9 @@ void ReMesher::WriteDomain(){
   
   ////BEFORE REWRITE
   //// WRITE
+  cout << "Clearing Domain"<<endl;
   m_dom->Free();
+  cout << "Done "<<endl;
   
    #ifdef REMESH_OMEGA_H
     m_dom->m_node_count = m_mesh.nverts();

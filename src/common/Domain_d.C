@@ -805,7 +805,8 @@ void Domain_d::Free(){
   free_t(m_dTedt);
   free_t(m_q_plheat);
 
- 
+
+  cout << "Deleting Derivs"<<endl; 
   free_t (m_H);
 
   free_t (m_dH_detJ_dx);
@@ -817,12 +818,12 @@ void Domain_d::Free(){
   // free_t (m_dHrs);     //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
   // free_t (x2);         //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
   // free_t (dH_dxyz); 
-  
-  free_t(elnod_h); ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
+  cout << "Deleting Conn"<<endl;   
+  //////free_t(elnod_h); ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
   free_t(dHxy_detJ ); ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
 
   
-
+  cout << "Deleting elemental fields"<<endl;
   free_t(m_detJ );    
   
   free_t(m_nodxelem_e);

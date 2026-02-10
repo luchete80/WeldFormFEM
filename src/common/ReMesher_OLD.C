@@ -1742,7 +1742,7 @@ bool ReMesher::solve_4x4_system(double A[4][4], double b[4], double x[4]) {
     
     return true;
 }
-
+ 
 // Función de distancia euclidiana
 double ReMesher::distance(const std::array<double, 3>& a, const std::array<double, 3>& b) {
     double dist_sq = 0.0;
