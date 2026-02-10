@@ -77,6 +77,7 @@ void ReMesher::Generate_remesh2D() {
     Mesh2D in_msh;
     //double SL = m_dom->getMinLength(); //TODO: CHANGE FOR INITIAL dx
     double SL = m_dom->m_tgt_elsize;
+    cout << "Element Size: "<<SL <<endl;
     
     cout << "Generating Nodes ..."<<endl;
     for (int n=0;n<m_dom->m_node_count;n++){
