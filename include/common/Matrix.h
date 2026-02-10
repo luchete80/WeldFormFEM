@@ -276,9 +276,8 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
   }
 
   __spec void Matrix::SetZero(){
-      for (int i=0;i<m_row;i++)
-        for (int j=i;j<m_col;j++)
-          m_data[m_col*j+i] = 0.0;
+    for (int i=0;i<m_row*m_col;i++)
+      m_data[i] = 0.0;
   }
   
   __spec Matrix & Matrix::Transpose(){

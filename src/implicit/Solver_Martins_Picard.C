@@ -941,6 +941,11 @@ void perform_physical_checks(const std::vector<double>& vel,
 
 //void Domain_d::Solve_Martins_Picard(){ {
   void run_simulation_martins(){
+
+    // Inicialización
+    initialize_mesh();
+    auto fixed_dofs = setup_boundary_conditions();
+    
     std::cout << std::string(70, '=') << std::endl;
     std::cout << "SIMULACIÓN AXISIMÉTRICA DE FORJA - ESQUEMA MARTINS" << std::endl;
     std::cout << std::string(70, '=') << std::endl;
@@ -953,9 +958,7 @@ void perform_physical_checks(const std::vector<double>& vel,
     std::cout << "Integración: P(4 puntos) + Q(1 punto reducido)" << std::endl;
     std::cout << "Relajación: ω=" << relax_factor << std::endl;
     
-    // Inicialización
-    initialize_mesh();
-    auto fixed_dofs = setup_boundary_conditions();
+
 
     // Solver_Eigen *solver = new Solver_Eigen();
     // m_solver = solver;
