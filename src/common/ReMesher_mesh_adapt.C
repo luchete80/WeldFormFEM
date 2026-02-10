@@ -176,9 +176,9 @@ void ReMesher::Generate_remesh2D() {
     //~ // ------------------------------------------------------------
     //~ // 6. Export intermediate meshes
     //~ // ------------------------------------------------------------
-    //~ export_mesh_to_vtk(mesh_bg, output_prefix + "_background.vtk");
-    //~ export_mesh_to_vtk(inside_mesh, output_prefix + "_inside.vtk");
-    //~ export_mesh_to_vtk(band_mesh, output_prefix + "_band.vtk");
+    //~ export_mesh_to_vtk(mesh_bg,  "_background.vtk");
+    //~ export_mesh_to_vtk(inside_mesh,  "_inside.vtk");
+    //~ export_mesh_to_vtk(band_mesh,  "_band.vtk");
     
     //~ // ------------------------------------------------------------
     //~ // 7. Generate projected nodes (Martins projection)
@@ -256,8 +256,7 @@ void ReMesher::Generate_remesh2D() {
     }
 
     patch.triangles = filtered;
-    //~ export_triangles_to_vtk(dt.get_points(), patch.triangles,
-                            //~ output_prefix + "_patch_tris.vtk");
+    export_triangles_to_vtk(dt.get_points(), patch.triangles,"_patch_tris.vtk");
     
     //~ debug_print_patch_nodes(patch);
 
