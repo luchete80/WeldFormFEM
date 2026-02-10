@@ -900,14 +900,6 @@ void Domain_d::Free(){
   free_t(m_elem_max_angle);
   free_t (m_mesh_in_contact);
 
-  cout <<"Deleting BCs"<<endl;
-  if (bc_count[0]>0){free_t(bcx_nod);  free_t(bcx_val); }
-  if (bc_count[1]>0){free_t(bcy_nod);  free_t(bcy_val);  }
-  if (bc_count[2]>0){free_t(bcz_nod);   free_t(bcz_val);}
-  //~ free_t(bcx_nod);  free_t(bcy_nod);  free_t(bcz_nod);
-  //~ free_t(bcx_val);  free_t(bcy_val);  free_t(bcz_val);      
-  cout << "Done"<<endl;
-
 }
 
 
