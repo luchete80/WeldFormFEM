@@ -331,6 +331,12 @@ void ReMesher::Generate_remesh2D() {
         fixed[i] = 1;
     }
 
+    export_nodes_and_quads_to_vtk(
+        resmesh.nodes,
+        resmesh.quads,
+        "_prev_smoothed.vtk"
+    ); 
+    
     LaplacianSmoother2D smoother(
         resmesh.nodes,
         resmesh.quads,
@@ -379,22 +385,38 @@ void ReMesher::Generate_remesh2D() {
     //~ // -----------------------------------------------------------------
     //~ // 4) Copy nodos
     //~ // -----------------------------------------------------------------
+
     for (int n = 0; n < m_node_count; ++n) {
-        m_x[2*n  ] = smoother.nodes_[n].x.x;  // x
-        m_x[2*n+1] = smoother.nodes_[n].x.y;  // y
+        m_x[2*n  ] = resmesh.nodes[n].x.x;  // x
+        m_x[2*n+1] = resmesh.nodes[n].x.y;  // y
     }
+    
+    //~ for (int n = 0; n < m_node_count; ++n) {
+        //~ m_x[2*n  ] = smoother.nodes_[n].x.x;  // x
+        //~ m_x[2*n+1] = smoother.nodes_[n].x.y;  // y
+    //~ }
 
     //~ // -----------------------------------------------------------------
     //~ // 5) Copiar conectividad de quads
     //~ // -----------------------------------------------------------------
+    //~ for (int e = 0; e < m_elem_count; ++e) {
+        //~ for (int i = 0; i < 4; ++i) {
+            //~ m_elnod[4*e + i] = smoother.quads_[e][i]; // ya deberían ser índices 0-based
+        //~ }
+        //~ //cout << "Elem nodes: "<<m_elnod[4*e]<<", "<<m_elnod[4*e+1]<<", "<<m_elnod[4*e+2]<<", "<<m_elnod[4*e+3]<<endl;
+        //~ // Inicializar closest_elem a -1 (o a algún valor por defecto)
+        //~ m_closest_elem[e] = -1;
+    //~ }
+
     for (int e = 0; e < m_elem_count; ++e) {
         for (int i = 0; i < 4; ++i) {
-            m_elnod[4*e + i] = smoother.quads_[e][i]; // ya deberían ser índices 0-based
+            m_elnod[4*e + i] = resmesh.quads[e][i]; // ya deberían ser índices 0-based
         }
         //cout << "Elem nodes: "<<m_elnod[4*e]<<", "<<m_elnod[4*e+1]<<", "<<m_elnod[4*e+2]<<", "<<m_elnod[4*e+3]<<endl;
         // Inicializar closest_elem a -1 (o a algún valor por defecto)
         m_closest_elem[e] = -1;
     }
+
 
     //~ cout << "Mesh copied to ReMesher arrays." << endl;
 

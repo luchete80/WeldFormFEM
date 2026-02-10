@@ -417,7 +417,7 @@ int main(int argc, char **argv) {
       #else
         dom_d->AddBoxLength(start, make_double3(L.x,L.y,0.0), dx/2.,true,tritet);	
       #endif
-      dom_d->setTargetElemSize(dx);
+      dom_d->setTargetElemSize(dx); //FOR REMESHING (2D)
     }
 
 
