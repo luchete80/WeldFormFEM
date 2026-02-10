@@ -117,11 +117,16 @@ set (SOURCES
                         Solver_GlobalMatrix_EPHV.C
                         Solver_GlobalMatrix_QS_martins.C
                         Solver_Eigen.C
+                        #Solver_Martins_Picard.C
                         
                           
                    )
 add_library (implicit STATIC "${SOURCES}")                   
 add_executable(weldform_imp main.C
+                         
+               )
+
+add_executable(example_martins Solver_Martins_Picard.C
                          
                )
                

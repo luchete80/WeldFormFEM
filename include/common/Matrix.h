@@ -124,6 +124,9 @@ public:
     }
 
   __spec static Matrix SolveLU(Matrix& A, Matrix& b);
+  __spec static Matrix SolveLUCompletePivot(Matrix& A, Matrix& b);
+  
+  
 
   // Move Constructor
   __spec Matrix(Matrix&& other) noexcept
@@ -326,82 +329,220 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
 
 }
 
-__spec Matrix Matrix::SolveLU(Matrix& A, Matrix& b) {
-    // Validación de dimensiones básica
+Matrix Matrix::SolveLU(Matrix& A, Matrix& b) {
     if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
-        // Alternativa a std::invalid_argument: devolver matriz vacía o setear flag de error
         Matrix empty;
-        //empty.setErrorFlag(1); // Suponiendo que tengas un método para manejar errores
-        return empty;
+        return empty; // Error de dimensiones
     }
 
     const int n = A.m_row;
-    Matrix LU = A;  // Copia de A para la factorización
+    Matrix LU = A;  // Se sobrescribirá con L y U
     Matrix x(n, 1);
     int* pivot = new int[n];
-//    int pivot[n];    // Arreglo nativo en lugar de std::vector
+    // Vector para b permutado
+    Matrix pb = b;  // Copia de b que se irá permutando
 
     // --- Factorización LU con pivoteo parcial ---
+    for (int i = 0; i < n; ++i) {
+        pivot[i] = i;  // Inicializar pivotes
+    }
+
     for (int i = 0; i < n; ++i) {
         // Pivoteo parcial
         int max_row = i;
         double max_val = fabs(LU(i, i));
         for (int k = i + 1; k < n; ++k) {
-            double current_val = fabs(LU(k, i));
-            if (current_val > max_val) {
-                max_val = current_val;
+            if (fabs(LU(k, i)) > max_val) {
+                max_val = fabs(LU(k, i));
                 max_row = k;
             }
         }
-        pivot[i] = max_row;
-
-        // Intercambio de filas (sin std::swap)
+        
+        // Intercambiar filas si es necesario
         if (max_row != i) {
+            // Intercambiar filas en LU
             for (int j = 0; j < n; ++j) {
                 double temp = LU(i, j);
                 LU(i, j) = LU(max_row, j);
                 LU(max_row, j) = temp;
             }
-            double temp_b = b(i, 0);
-            b(i, 0) = b(max_row, 0);
-            b(max_row, 0) = temp_b;
+            // Intercambiar en el vector de pivotes
+            int temp_pivot = pivot[i];
+            pivot[i] = pivot[max_row];
+            pivot[max_row] = temp_pivot;
         }
 
-        // Verificar singularidad (sin excepciones)
         if (fabs(LU(i, i)) < 1e-12) {
+            delete[] pivot;
             Matrix empty;
-            //empty.setErrorFlag(2); // Código de error para matriz singular
-            return empty;
+            return empty; // Matriz singular
         }
 
-        // Eliminación gaussiana
+        // Eliminación
         for (int k = i + 1; k < n; ++k) {
-            LU(k, i) /= LU(i, i);
+            double factor = LU(k, i) / LU(i, i);
+            LU(k, i) = factor;  // Guardar multiplicador en L
             for (int j = i + 1; j < n; ++j) {
-                LU(k, j) -= LU(k, i) * LU(i, j);
+                LU(k, j) -= factor * LU(i, j);
             }
         }
     }
 
-    // --- Sustitución hacia adelante (Ly = Pb) ---
+    // --- Aplicar permutaciones a b ---
+    Matrix b_permuted = b;
     for (int i = 0; i < n; ++i) {
-        x(i, 0) = b(pivot[i], 0);
-        for (int j = 0; j < i; ++j) {
-            x(i, 0) -= LU(i, j) * x(j, 0);
-        }
+        b_permuted(i, 0) = b(pivot[i], 0);
     }
 
-    // --- Sustitución hacia atrás (Ux = y) ---
+    // --- Sustitución hacia adelante: L*y = Pb ---
+    Matrix y(n, 1);
+    for (int i = 0; i < n; ++i) {
+        y(i, 0) = b_permuted(i, 0);
+        for (int j = 0; j < i; ++j) {
+            y(i, 0) -= LU(i, j) * y(j, 0);  // LU(i,j) = L[i][j]
+        }
+        // L[i][i] = 1 (implícito)
+    }
+
+    // --- Sustitución hacia atrás: U*x = y ---
     for (int i = n - 1; i >= 0; --i) {
+        x(i, 0) = y(i, 0);
         for (int j = i + 1; j < n; ++j) {
-            x(i, 0) -= LU(i, j) * x(j, 0);
+            x(i, 0) -= LU(i, j) * x(j, 0);  // LU(i,j) = U[i][j]
         }
         x(i, 0) /= LU(i, i);
     }
-    delete pivot;
+
+    delete[] pivot;
     return x;
 }
 
+Matrix Matrix::SolveLUCompletePivot(Matrix& A, Matrix& b) {
+    if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
+        Matrix empty;
+        return empty;
+    }
+
+    const int n = A.m_row;
+    Matrix LU = A;
+    Matrix x(n, 1);
+    
+    // Vectores de permutación
+    int* row_perm = new int[n];
+    int* col_perm = new int[n];
+    int* col_perm_inv = new int[n]; // Para permutación inversa
+    
+    // Inicializar permutaciones como identidad
+    for (int i = 0; i < n; ++i) {
+        row_perm[i] = i;
+        col_perm[i] = i;
+        col_perm_inv[i] = i;
+    }
+
+    // --- Factorización LU con pivoteo completo ---
+    for (int k = 0; k < n; ++k) {
+        // Buscar el elemento máximo en la submatriz (k:n, k:n)
+        int max_row = k;
+        int max_col = k;
+        double max_val = fabs(LU(k, k));
+        
+        for (int i = k; i < n; ++i) {
+            for (int j = k; j < n; ++j) {
+                double current_val = fabs(LU(i, j));
+                if (current_val > max_val) {
+                    max_val = current_val;
+                    max_row = i;
+                    max_col = j;
+                }
+            }
+        }
+        
+        // Verificar si la matriz es singular
+        if (max_val < 1e-12) {
+            delete[] row_perm;
+            delete[] col_perm;
+            delete[] col_perm_inv;
+            Matrix empty;
+            return empty;
+        }
+        
+        // Intercambiar filas si es necesario
+        if (max_row != k) {
+            for (int j = 0; j < n; ++j) {
+                double temp = LU(k, j);
+                LU(k, j) = LU(max_row, j);
+                LU(max_row, j) = temp;
+            }
+            // Actualizar permutación de filas
+            int temp_row = row_perm[k];
+            row_perm[k] = row_perm[max_row];
+            row_perm[max_row] = temp_row;
+        }
+        
+        // Intercambiar columnas si es necesario
+        if (max_col != k) {
+            for (int i = 0; i < n; ++i) {
+                double temp = LU(i, k);
+                LU(i, k) = LU(i, max_col);
+                LU(i, max_col) = temp;
+            }
+            // Actualizar permutación de columnas
+            int temp_col = col_perm[k];
+            col_perm[k] = col_perm[max_col];
+            col_perm[max_col] = temp_col;
+        }
+        
+        // Actualizar permutación inversa de columnas
+        for (int i = 0; i < n; ++i) {
+            col_perm_inv[col_perm[i]] = i;
+        }
+        
+        // Eliminación gaussiana (igual que antes)
+        for (int i = k + 1; i < n; ++i) {
+            LU(i, k) /= LU(k, k);
+            for (int j = k + 1; j < n; ++j) {
+                LU(i, j) -= LU(i, k) * LU(k, j);
+            }
+        }
+    }
+    
+    // --- Aplicar permutación de filas a b ---
+    Matrix b_permuted(n, 1);
+    for (int i = 0; i < n; ++i) {
+        b_permuted(i, 0) = b(row_perm[i], 0);
+    }
+    
+    // --- Sustitución hacia adelante: L*y = Pb ---
+    Matrix y(n, 1);
+    for (int i = 0; i < n; ++i) {
+        y(i, 0) = b_permuted(i, 0);
+        for (int j = 0; j < i; ++j) {
+            y(i, 0) -= LU(i, j) * y(j, 0);
+        }
+    }
+    
+    // --- Sustitución hacia atrás: U*z = y ---
+    Matrix z(n, 1);
+    for (int i = n - 1; i >= 0; --i) {
+        z(i, 0) = y(i, 0);
+        for (int j = i + 1; j < n; ++j) {
+            z(i, 0) -= LU(i, j) * z(j, 0);
+        }
+        z(i, 0) /= LU(i, i);
+    }
+    
+    // --- Aplicar permutación inversa de columnas: x = Q*z ---
+    for (int i = 0; i < n; ++i) {
+        x(col_perm_inv[i], 0) = z(i, 0);
+    }
+    
+    // Limpiar memoria
+    delete[] row_perm;
+    delete[] col_perm;
+    delete[] col_perm_inv;
+    
+    return x;
+}
 
 // subroutine M33INV (A, AINV, OK_FLAG)
 
