@@ -502,7 +502,7 @@ public:
     #ifdef CUDA_BUILD
     return make_vector_t (x_h[m_dim*n],x_h[m_dim*n+1],x_h[m_dim*n+2]);
     #else
-    return make_vector_t (x  [m_dim*n],x  [m_dim*n+1],x  [m_dim*n+2]);      
+    return make_vector_t (x  [m_dim*n],x  [m_dim*n+1],m_dim==3?x  [m_dim*n+2]:0.0);      
     #endif
   
   }
@@ -564,7 +564,7 @@ public:
   //__device__ vector_t & getVElem(const int &e, const int &n){return v[m_elnod[e*m_nodxelem+n]];}
   inline dev_t double  getVElem(const int &e, const int &n,const int &d){return v[m_dim*m_elnod[m_nodxelem*e+n]+d];}  
   
-  inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);}  
+  inline dev_t vector_t getV(const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], m_dim==3?v[m_dim*n+2]:0.0);}  
   
   dev_t void calcThermalExpansion();
   

@@ -525,7 +525,7 @@ void host_ Domain_d::SolveChungHulbert(){
   #ifdef BUILD_REMESH    
   if (remesh_){
   //Maintain mapped v if were mapped with momentum conservation!
-    memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * 3); 
+    memcpy_t(v,  m_vprev, sizeof(double) * m_node_count * m_dim); 
   }
   #endif
 
