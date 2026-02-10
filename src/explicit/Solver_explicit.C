@@ -495,7 +495,9 @@ void host_ Domain_d::SolveChungHulbert(){
         cout << "Transition phase. Warmup completed in " << wup_step_count<<" steps."<<endl;
         trans_step_count = 0;
         end_wup_step = step_count;
-
+        VTKWriter writer3(this, "out_warmup.vtk");
+        writer3.writeFile();
+      
     }
     
     }

@@ -120,8 +120,10 @@ VTUWriter::VTUWriter(Domain_d *dom, const char* fname){
   if (dom->isContactOn()){
     for (int e=0;e<dom->getTriMesh()->elemcount;e++){
     m_oss << "         ";
-      for (int en=0;en<3;en++){
-        m_oss << dom->getTriMesh()->elnode[3*e+en]<<" ";
+    int enmax = 3;
+    if (dom->m_dim == 2) enmax = 2;
+      for (int en=0;en<enmax;en++){
+        m_oss << dom->getTriMesh()->elnode[enmax*e+en]<<" ";
       }      
       m_oss << endl;  
     }
@@ -260,7 +262,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
     ne += dom->getTriMesh()->elemcount;
   } 
   
-  //cout << "Writing nodes "<<endl;
+  cout << "Writing nodes "<<endl;
   for (int i=0;i<dom->m_node_count;i++){
     if (dom->m_dim == 3){
       vector_t x = dom->getPosVec3_h(i);
@@ -306,7 +308,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   //dom->elnod_h = new int[sizeof(int) * dom->m_nodxelem * dom->m_elem_count];
   //memcpy_t(dom->elnod_h, dom->m_elnod, sizeof(int) * dom->m_nodxelem * dom->m_elem_count);   
   
-  //cout << "cell loop"<<endl;
+  cout << "cell loop"<<endl;
   for (int e=0;e<dom->m_elem_count;e++){
     //    cout << "Element "<<e<<endl;
     m_oss << dom->m_nodxelem<<" ";
@@ -471,7 +473,7 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
   avgScalar(dom->m_sigma,a,6)
   
   double seq;
-  //cout <<  "Averaging node count "<<endl;
+
   //Only of relevance if parts do not flow
   for (int n=0;n<dom->m_node_count;n++){
 
@@ -519,8 +521,6 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
         
     printDummyNod(dom,m_oss);
 
-  
-  //cout << "done"<<endl;
   m_oss<<"TENSORS SIGMAT float"<<endl;
   for (int n=0;n<dom->m_node_count;n++){
     tensor3 sig = FromFlatSym(a,n*6);

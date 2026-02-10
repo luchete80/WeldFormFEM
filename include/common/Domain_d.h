@@ -404,7 +404,7 @@ public:
   
   dev_t void SearchExtNodes();
 
-  inline vector_t getAccVec (const int &n){return make_double3(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};  
+  inline vector_t getAccVec (const int &n){ return make_double3(a[m_dim*n], a[m_dim*n+1], m_dim==3?a[m_dim*n+2]:0.0);}  
   inline vector_t getContForceVec(const int &n){return make_vector_t(contforce[m_dim*n], contforce[m_dim*n+1], contforce[m_dim*n+2]);}
 
   void setContForceVec(const int &n, const int &d, const double &v){contforce[m_dim*n+d]=v;}
@@ -415,14 +415,14 @@ public:
   inline vector_t getIntForceVec(const int &n){/*return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);*/};
   #else
   //inline vector_t getAccVec (const int &n){return make_vector_t(a[m_dim*n], a[m_dim*n+1], a[m_dim*n+2]);};
-  inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], v[m_dim*n+2]);};
+  inline vector_t getVelVec (const int &n){return make_vector_t(v[m_dim*n], v[m_dim*n+1], m_dim==3?v[m_dim*n+2]:0.0);};
   inline vector_t getDispVec(const int &n){
     double z = 0.0;
     if (m_dim == 3)
       z = u[m_dim*n+2];
     return make_vector_t(u[m_dim*n], u[m_dim*n+1], z);
   }
-  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_fi[m_dim*n+2]);};
+  inline vector_t getIntForceVec(const int &n){return make_vector_t(m_fi[m_dim*n], m_fi[m_dim*n+1], m_dim==3?m_fi[m_dim*n+2]:0.0);};
   //inline vector_t getContForceVec(const int &n){return make_vector_t(contforce[m_dim*n], contforce[m_dim*n+1], contforce[m_dim*n+2]);}
   #endif
   
