@@ -740,10 +740,10 @@ void apply_boundary_conditions(Matrix& K_glob,
     static bool first_call = true;
     if(first_call) {
         std::cout << "\n🔧 APLICANDO CONDICIONES:" << std::endl;
-        std::cout << "  ✅ " << count_vz_top << " vz = " << v_z_top << " (COMPRESIÓN)" << std::endl;
-        std::cout << "  ✅ " << count_vz_base << " vz = 0 (BASE)" << std::endl;
-        std::cout << "  ✅ " << count_vr << " vr = 0" << std::endl;
-        std::cout << "  📊 TOTAL: " << fixed_dofs.size() << " condiciones" << std::endl;
+        std::cout << "   " << count_vz_top << " vz = " << v_z_top << " (COMPRESIÓN)" << std::endl;
+        std::cout << "   " << count_vz_base << " vz = 0 (BASE)" << std::endl;
+        std::cout << "   " << count_vr << " vr = 0" << std::endl;
+        std::cout << "   TOTAL: " << fixed_dofs.size() << " condiciones" << std::endl;
         first_call = false;
     }
 }
@@ -804,11 +804,11 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
 
 
           //~ std::cout << "\n" << std::string(70, '=') << std::endl;
-          //~ std::cout << "🔍 DEBUG - MATRIZ GLOBAL C++ (primeros 10x10)" << std::endl;
+          //~ std::cout << " DEBUG - MATRIZ GLOBAL C++ (primeros 10x10)" << std::endl;
           //~ std::cout << std::string(70, '=') << std::endl;
           
           //~ // Bloque velocidad-velocidad
-          //~ std::cout << "\n📊 BLOQUE V-V (P_glob) - 5x5 superior izquierda:" << std::endl;
+          //~ std::cout << "\n BLOQUE V-V (P_glob) - 5x5 superior izquierda:" << std::endl;
           //~ for(int i = 0; i < std::min(5, ndof_v); i++) {
               //~ for(int j = 0; j < std::min(5, ndof_v); j++) {
                   //~ printf("%12.6e ", K_temp.getVal(i, j));
@@ -817,7 +817,7 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
           //~ }
           
           //~ // Bloque velocidad-presión
-          //~ std::cout << "\n📊 BLOQUE V-P (Q_glob) - 5x5:" << std::endl;
+          //~ std::cout << "\n BLOQUE V-P (Q_glob) - 5x5:" << std::endl;
           //~ for(int i = 0; i < std::min(5, ndof_v); i++) {
               //~ for(int j = 0; j < std::min(5, ndof_p); j++) {
                   //~ printf("%12.6e ", K_temp.getVal(i, ndof_v + j));
@@ -826,7 +826,7 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
           //~ }
           
           //~ // Bloque presión-velocidad (Q^T)
-          //~ std::cout << "\n📊 BLOQUE P-V (Q^T) - 5x5:" << std::endl;
+          //~ std::cout << "\n BLOQUE P-V (Q^T) - 5x5:" << std::endl;
           //~ for(int i = 0; i < std::min(5, ndof_p); i++) {
               //~ for(int j = 0; j < std::min(5, ndof_v); j++) {
                   //~ printf("%12.6e ", K_temp.getVal(ndof_v + i, j));
@@ -835,7 +835,7 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
           //~ }
           
           //~ // Bloque presión-presión (K_pp)
-          //~ std::cout << "\n📊 BLOQUE P-P (K_pp) - primeros 5 diag:" << std::endl;
+          //~ std::cout << "\n BLOQUE P-P (K_pp) - primeros 5 diag:" << std::endl;
           //~ for(int i = 0; i < std::min(5, ndof_p); i++) {
               //~ double val = K_temp.getVal(ndof_v + i, ndof_v + i);
               //~ printf("  K_pp[%d,%d] = %12.6e\n", i, i, val);
