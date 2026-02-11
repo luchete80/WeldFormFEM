@@ -561,7 +561,6 @@ void Domain_d::SetDimension(const int &node_count, const int &elem_count){
   malloc_t (m_radius, double, m_elem_count * m_gp_count);
   
   
-  malloc_t(m_jacob, Matrix, m_elem_count );
     
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
@@ -718,7 +717,6 @@ void Domain_d::SetDimensionImplicit(const int &node_count, const int &elem_count
   malloc_t (m_radius, double, m_elem_count * m_gp_count);
   
   
-  malloc_t(m_jacob, Matrix, m_elem_count );
     
   #ifdef CUDA_BUILD
 	report_gpu_mem_();
@@ -854,7 +852,7 @@ void Domain_d::Free(){
   // AXISYMM
   free_t (m_radius);
 
-  free_t(m_jacob);
+
     
 
   free_t(ext_nodes);
@@ -867,7 +865,6 @@ void Domain_d::Free(){
   free_t(m_nodel_loc);        //
   free_t(m_nodel_offset);    //OFFSET OF THE
   free_t(m_nodel_count);    
-  free_t(m_elnod_count);   /// FOR CONTACT, TO REPLACE FOR m_node_count
   
   // unsigned int    *m_contsurf_count;
   // unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  

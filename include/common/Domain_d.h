@@ -287,7 +287,59 @@ public:
     abs_bc_initialized = false;
     
     m_symm[0]=m_symm[1]=m_symm[2]=false;
-        
+
+    x = nullptr;
+    v = nullptr;
+    a = nullptr;
+    u = nullptr;
+    u_dt = nullptr;
+    prev_a = nullptr;
+    m_fi = nullptr;
+    m_fe = nullptr;
+    m_mdiag = nullptr;
+    T = nullptr;
+    m_dTedt = nullptr;
+    m_q_plheat = nullptr;
+    m_H = nullptr;
+    m_dH_detJ_dx = nullptr;
+    m_dH_detJ_dy = nullptr;
+    m_dH_detJ_dz = nullptr;
+    m_detJ = nullptr;
+    m_nodxelem_e = nullptr;
+    m_ematm = nullptr;
+    m_str_rate = nullptr;
+    m_rot_rate = nullptr;
+    m_sigma = nullptr;
+    m_tau = nullptr;
+    m_eps = nullptr;
+    p = nullptr;
+    rho = nullptr;
+    rho_0 = nullptr;
+    vol = nullptr;
+    vol_0 = nullptr;
+    m_voln = nullptr;
+    m_vol_0n = nullptr;
+    m_f_elem = nullptr;
+    m_f_elem_hg = nullptr;
+    mat = nullptr;
+    m_radius = nullptr;
+    ext_nodes = nullptr;
+    contforce = nullptr;
+    pl_strain = nullptr;
+    sigma_y = nullptr;
+    m_nodel = nullptr;
+    m_nodel_loc = nullptr;
+    m_nodel_offset = nullptr;
+    m_nodel_count = nullptr;
+    m_elem_area = nullptr;
+    faceList = nullptr;
+    node_area = nullptr;
+    m_elem_neigh = nullptr;
+    m_elem_neigh_count = nullptr;
+    m_elem_min_angle = nullptr;
+    m_elem_max_angle = nullptr;
+    m_mesh_in_contact = nullptr;
+            
   }
 
     // ==================== REMESH ====================
@@ -850,7 +902,6 @@ protected:
   Matrix          **x2;         //LOW ACCESS SPEED; BUT NOT DYNAMIC CREATION
   Matrix          **dH_dxyz; 
   
-  Matrix          *m_jacob;
   int             *elnod_h; ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
   double          *m_str_rate, *m_rot_rate;
   double          *m_f_elem, *m_f_elem_hg;    //ELEMENT
@@ -891,7 +942,6 @@ protected:
   int            *m_nodel_count;    
 
   //////////////////////////// USED FOR CONTACT
-  unsigned int    *m_elnod_count;   /// FOR CONTACT, TO REPLACE FOR m_node_count
   unsigned int    *m_contsurf_count;
   unsigned int    *m_contsurf_elemcount;   //FOR EACH OF THE ABOVE  
   unsigned int    *m_contsurf_elem;        //ELEMENT POS OF THE CONTACT ELEMENT 
