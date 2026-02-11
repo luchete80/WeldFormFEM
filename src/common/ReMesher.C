@@ -615,7 +615,7 @@ void ReMesher::WriteDomain(){
   memcpy_t(m_dom->x,      m_x, m_dom->m_dim*sizeof(double) * m_dom->m_node_count);       
   memcpy_t(m_dom->m_elnod,  m_elnod, 4*sizeof(int) * m_dom->m_elem_count);  
     cout << "Setting conn"<<endl;
-  m_dom->setNodElem(m_elnod);     
+  m_dom->setNodElem(m_elnod);   //m_elnod is the Remesher member 
 
   //Now calculate new mass, after mapping volume
   cout << "Calculating Volumes"<<endl;

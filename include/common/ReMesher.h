@@ -163,7 +163,9 @@ class ReMesher{
                     int bc_count);
                     
   ~ReMesher(){
-    delete[] m_x,m_elnod;//CONVERT TO free to use in CUDA
+    delete[] m_x;
+    delete[] m_elnod;//CONVERT TO free to use in CUDA
+    delete[] m_closest_elem;
     free_t(m_closest_elem);
   }
   
