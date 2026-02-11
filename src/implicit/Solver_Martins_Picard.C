@@ -285,6 +285,8 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
     return result;
 }
 
+#include "VTKWriter_tiny.hpp"
+
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA
 // ================================
@@ -1263,7 +1265,12 @@ void perform_physical_checks(const std::vector<double>& vel,
         std::cout << "  Presión: [" << p_min/1e6 << ", " << p_max/1e6 << "] MPa" << std::endl;
         std::cout << "  Presión media: " << (p_min + p_max)/(2.0*1e6) << " MPa" << std::endl;
     }
-    
+
+        // ESCRIBIR VTK DESPUÉS DE CADA PASO
+        VTKWriter::writeVtkFile("forja", 1, coords, elements, 
+                               velocity, pressure, eps_bar, 
+                               nnodes, nelem);
+                                   
     // Verificaciones físicas finales
     perform_physical_checks(velocity, pressure, eps_bar);
     
