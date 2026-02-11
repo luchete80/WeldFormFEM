@@ -820,7 +820,6 @@ void Domain_d::Free(){
   // free_t (dH_dxyz); 
   cout << "Deleting Conn"<<endl;   
   //////free_t(elnod_h); ////// USED TO COMPUTE GLOBAL M MATRIX WHICH IS COMPUTED IN CPU (TODO: CHANGE)       
-  free_t(dHxy_detJ ); ////NOT USE DIRECTLY VOLUME SINCE STRAINS ARE CALC WITH THIS MATRIX
 
   
   cout << "Deleting elemental fields"<<endl;

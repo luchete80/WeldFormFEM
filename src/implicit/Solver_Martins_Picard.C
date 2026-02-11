@@ -633,11 +633,11 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
     for(int iter = 0; iter < max_iter; iter++) {
         // Ensamblar sistema según Martins
         double max_mu, incompress_error, max_div;
-        cout << "Assemblying"<<endl;
+
         assemble_martins_system(vel_guess, press_guess, K_temp, F_temp, 
                                max_mu, incompress_error, max_div);
         
-        cout << "Applying bcs"<<endl;
+
         // Aplicar condiciones de contorno
         apply_boundary_conditions(K_temp, F_temp, fixed_dofs);
         
