@@ -491,7 +491,7 @@ void ReMesher::WriteDomain(){
 
    MapElem(rho,    m_dom->rho);
    
-  for (int e=0;e<m_dom->m_elem_count;e++)
+  for (int e=0;e<m_elem_count;e++)
     idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
   MapElem(vol_0,    idetF);
   
