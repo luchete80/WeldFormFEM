@@ -2229,6 +2229,10 @@ dev_t void Domain_d::calcMinEdgeLength() {
     m_min_Jnorm = 1.0e6;
     double Jnorm;
     m_bad_elem_count = 0;
+    
+    int eid_min_angle = 1.0e10;
+    int eid_max_angle = 0.0;
+    
     for (int e = 0; e < m_elem_count; e++) {
         double elem_min_height = 1.0e6;
         double elem_min_angle = 1.0e6;
@@ -2372,53 +2376,80 @@ dev_t void Domain_d::calcMinEdgeLength() {
             int a = m_elnod[off];
             int b = m_elnod[off + 1];
             int c = m_elnod[off + 2];
-
+            int d = m_elnod[off + 3];
+    
             double2 A = getPosVec2(a);
             double2 B = getPosVec2(b);
             double2 C = getPosVec2(c);
+            double2 D = getPosVec2(d);
 
-            // --- edges ---
             double2 AB = B - A;
             double2 BC = C - B;
-            double2 CA = A - C;
+            double2 CD = D - C;
+            double2 DA = A - D;
 
             double lenAB = length(AB);
             double lenBC = length(BC);
-            double lenCA = length(CA);
-            if (lenAB < min_len) min_len = lenAB;
-            if (lenBC < min_len) min_len = lenBC;
-            if (lenCA < min_len) min_len = lenCA;
+            double lenCD = length(CD);
+            double lenDA = length(DA);
 
-            // --- area/height (igual que antes) ---
-            double area = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
-            if (area > 1e-12) {
-                double base = lenAB;
-                double height = 2.0 * area / base;
-                elem_min_height = height;
-                if (height < min_height) min_height = height;
+            min_len = fmin(min_len, fmin(fmin(lenAB, lenBC), fmin(lenCD, lenDA)));
+
+            // ---- area (split in two triangles) ----
+            double area1 = 0.5 * fabs((B.x - A.x)*(C.y - A.y) - (C.x - A.x)*(B.y - A.y));
+            double area2 = 0.5 * fabs((C.x - A.x)*(D.y - A.y) - (D.x - A.x)*(C.y - A.y));
+            double area = area1 + area2;
+
+            if (area > 1e-14) {
+                double h1 = 2.0 * area / lenAB;
+                double h2 = 2.0 * area / lenBC;
+                double h3 = 2.0 * area / lenCD;
+                double h4 = 2.0 * area / lenDA;
+
+                elem_min_height = fmin(fmin(h1, h2), fmin(h3, h4));
+                min_height = fmin(min_height, elem_min_height);
             }
+
             m_elem_length[e] = elem_min_height;
 
-            // --- internal angles (ley de cosenos) ---
-            double cosA = (lenAB*lenAB + lenCA*lenCA - lenBC*lenBC) / (2.0 * lenAB * lenCA);
-            double cosB = (lenAB*lenAB + lenBC*lenBC - lenCA*lenCA) / (2.0 * lenAB * lenBC);
-            double cosC = (lenBC*lenBC + lenCA*lenCA - lenAB*lenAB) / (2.0 * lenBC * lenCA);
-            cosA = fmax(-1.0, fmin(1.0, cosA));
-            cosB = fmax(-1.0, fmin(1.0, cosB));
-            cosC = fmax(-1.0, fmin(1.0, cosC));
-            double angA = acos(cosA) * 180.0 / M_PI;
-            double angB = acos(cosB) * 180.0 / M_PI;
-            double angC = acos(cosC) * 180.0 / M_PI;
-            elem_min_angle = fmin(angA, fmin(angB, angC));
-            elem_max_angle = fmax(angA, fmax(angB, angC));
-        }
+            // ---- angles (vector method, más robusto que ley de cosenos) ----
+            auto angle_between = [](double2 u, double2 v) {
+                double lu = length(u);
+                double lv = length(v);
+                if (lu < 1e-14 || lv < 1e-14) return 0.0;
+                double c = dot(u,v) / (lu*lv);
+                c = fmax(-1.0, fmin(1.0, c));
+                return acos(c) * 180.0 / M_PI;
+            };
+
+            double angA = angle_between(AB, -DA);
+            double angB = angle_between(BC, -AB);
+            double angC = angle_between(CD, -BC);
+            double angD = angle_between(DA, -CD);
+
+            elem_min_angle = fmin(fmin(angA, angB), fmin(angC, angD));
+            elem_max_angle = fmax(fmax(angA, angB), fmax(angC, angD));
+
+            // ---- opcional: detectar quad invertido ----
+            double signed_area = 0.5 * (
+                A.x*B.y - A.y*B.x +
+                B.x*C.y - B.y*C.x +
+                C.x*D.y - C.y*D.x +
+                D.x*A.y - D.y*A.x
+            );
+
+            if (signed_area < 0.0) {
+                m_bad_elem_count++;  // quad invertido
+            }
+        }//DIM 2 (QUADS)
+
 
         //cout << "angle element "<<e<<endl;
         //m_elem_min_angle[e] = elem_min_angle;
         //m_elem_max_angle[e] = elem_max_angle;
         
-        if (elem_min_angle < min_angle) min_angle = elem_min_angle;
-        if (elem_max_angle > max_angle) max_angle = elem_max_angle;
+        if (elem_min_angle < min_angle) {min_angle = elem_min_angle; eid_min_angle = e;}
+        if (elem_max_angle > max_angle) {max_angle = elem_max_angle; eid_max_angle = e;}
     
     
       if (elem_min_angle<5.0 || Jnorm<0.001)
@@ -2426,8 +2457,8 @@ dev_t void Domain_d::calcMinEdgeLength() {
       
     }//elem e
     
-    // cout <<"elem_min_angle"<<min_angle<<endl;
-    // cout <<"elem_max_angle"<<max_angle<<endl;
+    //cout <<"elem_min_angle"<<min_angle<<" on element "<<eid_min_angle<<endl;
+    //cout <<"elem_max_angle"<<max_angle<<" on element "<<eid_max_angle<<endl;
     // cout <<"Min Jnorm "<<m_min_Jnorm<<endl;
     
     // global min/max

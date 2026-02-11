@@ -607,10 +607,14 @@ void host_ Domain_d::SolveChungHulbert(){
       // need_remesh=true;
       // cout << "WARNING, Min Jnorm < 0.001, remeshing "<<endl;
     // }
-    // if (m_min_angle<5.0 ){
-      // need_remesh=true;
-      // cout << "WARNING, Min Angle < 15.0, remeshing "<<endl;      
-    // }
+    if (m_min_angle<15.0 ){
+      need_remesh=true;
+      cout << "WARNING, Min Angle < 15.0, remeshing "<<endl;      
+    }
+    if (m_max_angle>165.0 ){
+      need_remesh=true;
+      cout << "WARNING, Max Angle > 155.0, remeshing "<<endl;      
+    }
     // if((double)m_bad_elem_count/(double)m_elem_count > 0.2){
       // cout <<"BAD ELEMENT COUNT > 20%"<<endl;
       // need_remesh=true;
