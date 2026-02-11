@@ -30,6 +30,10 @@ double mu_ref = Kmat / 3.0;    // Viscosidad de referencia
 
 // Parámetros numéricos
 double relax_factor = 0.4;     // Reducido para mayor estabilidad
+double omega_v = 0.4;          // Relajación para velocidades
+double omega_p = 0.1;          // Relajación para presiones (MUY importante)
+double kappa_factor = 100.0;   // Factor de penalización volumétrica (× mu_ref)
+
 double tol = 1e-3;             // Tolerancia relajada para simulación práctica
 int max_iter = 50;
 double dt = 0.001;
@@ -270,12 +274,22 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
     result.strain_vec[1] = ezz;
     result.strain_vec[2] = ett;
     result.strain_vec[3] = erz;
+
+    // En calculate_strain_rate_martins, AGREGA:
+    std::cout << "DEBUG strain: err=" << err 
+              << " ezz=" << ezz 
+              << " ett=" << ett 
+              << " erz=" << erz << std::endl;
+    std::cout << "eps_dot_eq = " << result.eps_dot_eq << std::endl;
     
     return result;
 }
 
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA
+// ================================
+// ================================
+// ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA Y PENALIZACIÓN
 // ================================
 void assemble_martins_system(const std::vector<double>& vel_vec,
                             const std::vector<double>& press_vec,
@@ -291,6 +305,9 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
     max_mu_eff = 0.0;
     incompressibility_error = 0.0;
     max_div_v = 0.0;
+    
+    // Penalización volumétrica (como en Python)
+    double kappa = kappa_factor * mu_ref;  // κ = 100 * μ_ref
     
     // Puntos de Gauss: 4 puntos completos para P, 1 punto reducido para Q
     const double a = 1.0 / sqrt(3.0);
@@ -432,7 +449,7 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         }
         
         // ===========================================
-        // 2. INTEGRACIÓN REDUCIDA PARA Q (1 punto)
+        // 2. INTEGRACIÓN REDUCIDA PARA Q Y PENALIZACIÓN (1 punto)
         // ===========================================
         for(int gp = 0; gp < 1; gp++) {
             double xi = gp_reduced[gp].first;
@@ -451,53 +468,26 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             // Factor axisimétrico
             double dOmega = 2.0 * M_PI * r_gp * jac_result.detJ * w;
             
-            // Matriz B en el punto reducido
-            Matrix B(4, 8);
-            B.SetZero();
-            
-            // ε_rr = ∂vr/∂r
+            // ----- Punto 1: Matriz Q (acoplamiento) -----
+            // Construir Q según Martins: ∫ (∇·v) dΩ
             for(int a = 0; a < 4; a++) {
-                B.Set(0, 2*a, jac_result.dNdX.getVal(0, a));
-            }
-            
-            // ε_zz = ∂vz/∂z
-            for(int a = 0; a < 4; a++) {
-                B.Set(1, 2*a + 1, jac_result.dNdX.getVal(1, a));
-            }
-            
-            // ε_θθ = vr/r (o tratamiento especial para eje)
-            if(r_gp < 1e-8) {
-                for(int a = 0; a < 4; a++) {
-                    B.Set(2, 2*a, jac_result.dNdX.getVal(0, a));
+                // vr DOF
+                if(r_gp < 1e-8) {
+                    // Límite en el eje: div = 2*dvr/dr + dvz/dz
+                    Q_e.Set(2*a, 0, Q_e.getVal(2*a, 0) + (2.0 * jac_result.dNdX.getVal(0, a)) * dOmega);
+                } else {
+                    Q_e.Set(2*a, 0, Q_e.getVal(2*a, 0) + 
+                           (jac_result.dNdX.getVal(0, a) + jac_result.N[a] / r_gp) * dOmega);
                 }
-            } else {
-                for(int a = 0; a < 4; a++) {
-                    B.Set(2, 2*a, jac_result.N[a] / r_gp);
-                }
+                
+                // vz DOF
+                Q_e.Set(2*a + 1, 0, Q_e.getVal(2*a + 1, 0) + 
+                       jac_result.dNdX.getVal(1, a) * dOmega);
             }
             
-            // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r)
-            for(int a = 0; a < 4; a++) {
-                B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));
-                B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a));
-            }
-            
-            // Vector C de Martins para presión hidrostática
-            Matrix C(4, 1);
-            C.Set(0, 0, 1.0);  // err
-            C.Set(1, 0, 1.0);  // ezz
-            C.Set(2, 0, 1.0);  // ett
-            C.Set(3, 0, 0.0);  // erz
-            
-            // Contribución a Q: B^T * C
-            Matrix Bt = B.getTranspose();
-            for(int i = 0; i < 8; i++) {
-                double sum = 0.0;
-                for(int k = 0; k < 4; k++) {
-                    sum += Bt.getVal(i, k) * C.getVal(k, 0);
-                }
-                Q_e.Set(i, 0, Q_e.getVal(i, 0) + sum * dOmega);
-            }
+            // ----- Punto 2: Penalización volumétrica K_pp -----
+            // Término: ∫ (1/κ) dΩ  →  K_pp[e_idx, e_idx] += dOmega / kappa
+            // Esto NO se ensambla ahora, se agregará directamente en K_glob[dof_p, dof_p]
             
             // DIAGNÓSTICO: calcular divergencia para verificar incompresibilidad
             double dvr_dr = 0.0, dvz_dz = 0.0, vr_interp = 0.0;
@@ -518,11 +508,10 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             max_div_v = max(max_div_v, std::abs(div_v));
         }
         
-        // assert(dofs_v[i] < vel_vec.size());
-        // assert(e_idx < press_vec.size());
-        // assert(dof_p < K_glob.nRows());
-
-        // ENSAMBLAJE GLOBAL DEL ELEMENTO
+        // ===========================================
+        // ENSAMBLAJE GLOBAL CON PENALIZACIÓN VOLUMÉTRICA
+        // ===========================================
+        
         // 1. Bloque P (parte de velocidades)
         for(int i_local = 0; i_local < 8; i_local++) {
             int i_global = dofs_v[i_local];
@@ -539,57 +528,182 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             K_glob.Set(i_global, dof_p, 
                       K_glob.getVal(i_global, dof_p) + Q_e.getVal(i_local, 0));
             
-            // 3. Bloque Q^T (transpuesta)
+            // 3. Bloque Q^T (transpuesta) 
             K_glob.Set(dof_p, i_global,
                       K_glob.getVal(dof_p, i_global) + Q_e.getVal(i_local, 0));
         }
         
-        // 4. Bloque cero para presiones (esquema de punto de silla)
-        K_glob.Set(dof_p, dof_p, K_glob.getVal(dof_p, dof_p) + 0.0);
-    }//Element
-    for(int i = ndof_v; i < ndof_total; ++i)
-      K_glob(i, i) += 1e-12;  // epsilon pequeño
-  
+        // 4. BLOQUE DE PENALIZACIÓN VOLUMÉTRICA K_pp (¡NUEVO!)
+        // Agregar el término dΩ/κ en la diagonal de presión
+        double dOmega_penalty = 0.0;
+        
+        // Calcular dΩ para la penalización (usando el punto reducido)
+        auto jac_penalty = jacobian_and_gradients(pos, 0.0, 0.0);
+        double r_penalty = 0.0;
+        for(int i = 0; i < 4; i++) {
+            r_penalty += jac_penalty.N[i] * pos[i].x;
+        }
+        r_penalty = max(r_penalty, 1e-12);
+        dOmega_penalty = 2.0 * M_PI * r_penalty * jac_penalty.detJ * 4.0; // w_reduced[0] = 4.0
+        
+        // Agregar penalización volumétrica: ∫ (1/κ) dΩ
+        double current_val = K_glob.getVal(dof_p, dof_p);
+        K_glob.Set(dof_p, dof_p, current_val + dOmega_penalty / kappa);
+        
+    } // Fin del bucle de elementos
+    
+    // Pequeña regularización por si acaso (mejor estabilidad numérica)
+    for(int i = ndof_v; i < ndof_total; ++i) {
+        double diag = K_glob.getVal(i, i);
+        if(std::abs(diag) < 1e-12) {
+            K_glob.Set(i, i, diag + 1e-12);
+        }
+    }
 }
 
 // ================================
 // CONDICIONES DE CONTORNO (AXISIMÉTRICO)
 // ================================
+//~ std::unordered_map<int, double> setup_boundary_conditions() {
+    //~ std::unordered_map<int, double> fixed_dofs;
+    
+    //~ // Base inferior fija (z = 0)
+    //~ for(int i = 0; i < nx_nodes; i++) {
+        //~ int node_id = i;  // Primera fila
+        //~ fixed_dofs[2*node_id] = 0.0;      // vr = 0
+        //~ fixed_dofs[2*node_id + 1] = 0.0;  // vz = 0
+    //~ }
+    
+    //~ // Tapa superior: velocidad impuesta (z = Lz)
+    //~ for(int i = 0; i < nx_nodes; i++) {
+        //~ int node_id = (ny_nodes - 1) * nx_nodes + i;
+        //~ fixed_dofs[2*node_id] = 0.0;           // vr = 0 (stick condition)
+        //~ fixed_dofs[2*node_id + 1] = v_z_top;   // vz = velocidad impuesta
+    //~ }
+    
+    //~ // Eje de simetría (r = 0)
+    //~ for(int j = 0; j < ny_nodes; j++) {
+        //~ int node_id = j * nx_nodes;
+        //~ fixed_dofs[2*node_id] = 0.0;  // vr = 0 (condición de simetría)
+        //~ // vz libre
+    //~ }
+    
+    //~ // Lado exterior (r = Lr): libre para expansión radial
+    //~ // No se fija para permitir flujo libre hacia afuera
+    
+    //~ return fixed_dofs;
+//~ }
+
+// ================================
+// CONDICIONES DE CONTORNO - VERSIÓN CORREGIDA
+// ================================
 std::unordered_map<int, double> setup_boundary_conditions() {
     std::unordered_map<int, double> fixed_dofs;
     
-    // Base inferior fija (z = 0)
+    std::cout << "\n🔧 CONFIGURANDO CONDICIONES DE CONTORNO:" << std::endl;
+    
+    // 1. BASE INFERIOR (z = 0) - TODOS los nodos
     for(int i = 0; i < nx_nodes; i++) {
-        int node_id = i;  // Primera fila
+        int node_id = i;
         fixed_dofs[2*node_id] = 0.0;      // vr = 0
         fixed_dofs[2*node_id + 1] = 0.0;  // vz = 0
     }
+    std::cout << "  Base inferior: " << nx_nodes << " nodos (vr=0, vz=0)" << std::endl;
     
-    // Tapa superior: velocidad impuesta (z = Lz)
+    // 2. TAPA SUPERIOR (z = Lz) - TODOS los nodos
     for(int i = 0; i < nx_nodes; i++) {
         int node_id = (ny_nodes - 1) * nx_nodes + i;
-        fixed_dofs[2*node_id] = 0.0;           // vr = 0 (stick condition)
-        fixed_dofs[2*node_id + 1] = v_z_top;   // vz = velocidad impuesta
+        fixed_dofs[2*node_id] = 0.0;           // vr = 0
+        fixed_dofs[2*node_id + 1] = v_z_top;   // vz = -1.0 (COMPRESIÓN)
     }
+    std::cout << "  Tapa superior: " << nx_nodes << " nodos (vr=0, vz=" << v_z_top << ")" << std::endl;
     
-    // Eje de simetría (r = 0)
-    for(int j = 0; j < ny_nodes; j++) {
+    // 3. EJE DE SIMETRÍA (r = 0) - SOLO nodos que NO son base NI tapa
+    int axis_count = 0;
+    int skipped = 0;
+    
+    for(int j = 1; j < ny_nodes - 1; j++) {  // j=1 hasta j=ny_nodes-2
         int node_id = j * nx_nodes;
-        fixed_dofs[2*node_id] = 0.0;  // vr = 0 (condición de simetría)
-        // vz libre
+        
+        // Verificar si YA existe (no debería, pero por las dudas)
+        if(fixed_dofs.find(2*node_id) == fixed_dofs.end()) {
+            fixed_dofs[2*node_id] = 0.0;  // SOLO vr = 0
+            axis_count++;
+        } else {
+            skipped++;
+        }
+        // NUNCA fijamos vz en el eje
+    }
+    std::cout << "  Eje simetría: " << axis_count << " nodos (vr=0)" << std::endl;
+    if(skipped > 0) {
+        std::cout << "  ⚠  Eje: " << skipped << " nodos ya fijados (base/tapa)" << std::endl;
     }
     
-    // Lado exterior (r = Lr): libre para expansión radial
-    // No se fija para permitir flujo libre hacia afuera
+    // 4. VERIFICACIÓN
+    int count_vz_top = 0;
+    for(const auto& [dof, val] : fixed_dofs) {
+        if(dof % 2 == 1 && std::abs(val - v_z_top) < 1e-6) {
+            count_vz_top++;
+        }
+    }
+    
+    std::cout << "  VERIFICACIÓN: " << count_vz_top << "/" << nx_nodes 
+              << " nodos con vz=" << v_z_top << std::endl;
+    
+    if(count_vz_top != nx_nodes) {
+        std::cout << "  ERROR CRÍTICO: Faltan condiciones de tapa superior!" << std::endl;
+    }
     
     return fixed_dofs;
 }
+// MODIFICA apply_boundary_conditions para DEBUG:
+//~ void apply_boundary_conditions(Matrix& K_glob,
+                              //~ std::vector<double>& F_glob,
+                              //~ const std::unordered_map<int, double>& fixed_dofs) {
+    
+    //~ std::cout << "Aplicando " << fixed_dofs.size() << " condiciones:" << std::endl;
+    //~ int count = 0;
+    //~ for(const auto& [dof, value] : fixed_dofs) {
+        //~ if(count < 5) {  // Mostrar primeras 5
+            //~ std::cout << "  dof " << dof << " = " << value << std::endl;
+            //~ count++;
+        //~ }
+        
+        //~ // Restar contribución de la columna
+        //~ for(int i = 0; i < ndof_total; i++) {
+            //~ F_glob[i] -= K_glob.getVal(i, dof) * value;
+        //~ }
+        
+        //~ // Poner fila y columna en cero
+        //~ for(int i = 0; i < ndof_total; i++) {
+            //~ K_glob.Set(dof, i, 0.0);
+            //~ K_glob.Set(i, dof, 0.0);
+        //~ }
+        
+        //~ // Poner 1 en la diagonal
+        //~ K_glob.Set(dof, dof, 1.0);
+        //~ F_glob[dof] = value;
+    //~ }
+//~ }
 
 void apply_boundary_conditions(Matrix& K_glob,
                               std::vector<double>& F_glob,
                               const std::unordered_map<int, double>& fixed_dofs) {
     
+    // Contadores para verificación
+    int count_vz_top = 0;
+    int count_vz_base = 0;
+    int count_vr = 0;
+    
     for(const auto& [dof, value] : fixed_dofs) {
+        // Estadísticas
+        if(dof % 2 == 1) {  // DOF de vz
+            if(std::abs(value - v_z_top) < 1e-6) count_vz_top++;
+            else if(std::abs(value) < 1e-6) count_vz_base++;
+        } else {
+            count_vr++;
+        }
+        
         // Restar contribución de la columna
         for(int i = 0; i < ndof_total; i++) {
             F_glob[i] -= K_glob.getVal(i, dof) * value;
@@ -601,9 +715,44 @@ void apply_boundary_conditions(Matrix& K_glob,
             K_glob.Set(i, dof, 0.0);
         }
         
-        // Poner 1 en la diagonal
+        // Poner 1 en la diagonal y asignar valor
         K_glob.Set(dof, dof, 1.0);
         F_glob[dof] = value;
+    }
+    
+    // Mostrar resumen UNA SOLA VEZ
+    static bool first_call = true;
+    if(first_call) {
+        std::cout << "\n🔧 APLICANDO CONDICIONES:" << std::endl;
+        std::cout << "  ✅ " << count_vz_top << " vz = " << v_z_top << " (COMPRESIÓN)" << std::endl;
+        std::cout << "  ✅ " << count_vz_base << " vz = 0 (BASE)" << std::endl;
+        std::cout << "  ✅ " << count_vr << " vr = 0" << std::endl;
+        std::cout << "  📊 TOTAL: " << fixed_dofs.size() << " condiciones" << std::endl;
+        first_call = false;
+    }
+}
+
+// Agrega esto DESPUÉS de initialize_mesh() en run_simulation_martins():
+void verify_top_bc() {
+    std::cout << "\n🔍 VERIFICANDO CONDICIÓN DE TAPA:" << std::endl;
+    
+    // Buscar un nodo de la tapa superior
+    int top_node = (ny_nodes - 1) * nx_nodes;  // Esquina superior izquierda
+    int top_dof_vz = 2 * top_node + 1;
+    
+    auto bcs = setup_boundary_conditions();
+    
+    if(bcs.find(top_dof_vz) != bcs.end()) {
+        double val = bcs.at(top_dof_vz);
+        std::cout << "  Nodo tapa (" << top_node << "): dof=" << top_dof_vz 
+                  << ", valor=" << val << std::endl;
+        if(std::abs(val - v_z_top) < 1e-6) {
+            std::cout << "  ✅ CORRECTO: vz = " << val << " (compresión)" << std::endl;
+        } else {
+            std::cout << "  ❌ ERROR: Debería ser " << v_z_top << std::endl;
+        }
+    } else {
+        std::cout << "  ❌ ERROR: No se encontró condición para tapa superior!" << std::endl;
     }
 }
 
@@ -657,13 +806,12 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
             std::vector<double> press_new_relax(ndof_p);
             
             for(int i = 0; i < ndof_v; i++) {
-                vel_new_relax[i] = (1.0 - relax_factor) * vel_guess[i] 
-                                 + relax_factor * vel_new[i];
+                vel_new_relax[i] = (1.0 - omega_v) * vel_guess[i] 
+                                 + omega_v * vel_new[i];
             }
-            
             for(int i = 0; i < ndof_p; i++) {
-                press_new_relax[i] = (1.0 - relax_factor) * press_guess[i] 
-                                   + relax_factor * press_new[i];
+                press_new_relax[i] = (1.0 - omega_p) * press_guess[i] 
+                                   + omega_p * press_new[i];
             }
             
             // Verificar convergencia
@@ -690,8 +838,23 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
             double dp_rel = dp_norm / (press_norm + 1e-12);
             
             // Calcular error de incompresibilidad promedio
-            double domain_volume = M_PI * Lr * Lr * Lz;
-            double avg_div = incompress_error / (domain_volume + 1e-12);
+            //~ double domain_volume = M_PI * Lr * Lr * Lz;
+            //~ double avg_div = incompress_error / (domain_volume + 1e-12);
+
+            double current_volume = 0.0;
+            for(int e_idx = 0; e_idx < nelem; e_idx++) {
+                const auto& conn = elements[e_idx];
+                std::vector<Point2D> pos(4);
+                for(int i = 0; i < 4; i++) pos[i] = coords[conn[i]];
+                
+                auto jac = jacobian_and_gradients(pos, 0.0, 0.0);
+                double r = 0.0;
+                for(int i = 0; i < 4; i++) r += jac.N[i] * pos[i].x;
+                current_volume += 2.0 * M_PI * max(r, 1e-12) * jac.detJ * 4.0;
+            }
+
+            // Normalizar con volumen actual
+            double avg_div = incompress_error / (current_volume + 1e-12);
             
             std::cout << "    Iter " << iter+1 
                       << ": Δv=" << dv_rel 
@@ -945,6 +1108,8 @@ void perform_physical_checks(const std::vector<double>& vel,
     // Inicialización
     initialize_mesh();
     auto fixed_dofs = setup_boundary_conditions();
+       verify_top_bc();
+       
     
     std::cout << std::string(70, '=') << std::endl;
     std::cout << "SIMULACIÓN AXISIMÉTRICA DE FORJA - ESQUEMA MARTINS" << std::endl;
