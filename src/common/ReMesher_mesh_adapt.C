@@ -422,7 +422,7 @@ void ReMesher::Generate_remesh2D() {
     //~ // -----------------------------------------------------------------
     //~ // 6) Opcional: calcular m_closest_elem si tu remesher lo necesita
     //~ // -----------------------------------------------------------------
-
+    
 }
 
 

@@ -740,7 +740,7 @@ void ReMesher::Generate_mmg(){
   m_elem_count = nt;
   cout << "MESH CREATED."<<endl;
  
-  malloc_t(m_closest_elem, int,m_elem_count);
+  m_closest_elem = new int [m_elem_count];
 
   free(corner);
   free(required);

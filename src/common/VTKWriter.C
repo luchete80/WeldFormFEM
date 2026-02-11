@@ -650,6 +650,8 @@ VTKWriter::VTKWriter(Domain_d *dom, const char* fname){
 
   printDummyElem(dom,m_oss);
   
+  cout << "DONE writing VTK."<<endl;
+  
 }
 
 
