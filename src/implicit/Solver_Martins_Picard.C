@@ -26,13 +26,12 @@ double Lr = 0.0127, Lz = 0.03;  // Radio 12.7mm, altura 30mm
 // MATERIAL: Acero caliente tipo Norton-Hoff
 double Kmat = 50.0e6;          // Coeficiente de consistencia [Pa·s^n]
 double nexp = 0.2;             // Exponente strain-rate sensitivity
-double mu_ref = Kmat / 3.0;    // Viscosidad de referencia
+
 
 // Parámetros numéricos
-double relax_factor = 0.4;     // Reducido para mayor estabilidad
 double omega_v = 0.4;          // Relajación para velocidades
 double omega_p = 0.1;          // Relajación para presiones (MUY importante)
-double kappa_factor = 100.0;   // Factor de penalización volumétrica (× mu_ref)
+
 
 double tol = 1e-3;             // Tolerancia relajada para simulación práctica
 int max_iter = 50;
@@ -257,38 +256,27 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
         dvz_dz += dNdX.getVal(1, a) * vz;
         vr_interp += N[a] * vr;
     }
-    
-    // Tensor de deformación axisimétrico según Martins (ecuación 4.55)
-    double err = dvr_dr;                     // ε_rr
-    double ezz = dvz_dz;                     // ε_zz
-    double erz = 0.5 * (dvr_dz + dvz_dr);    // ε_rz
-    
-    // Tratamiento especial para el eje r=0 según Martins
-    double ett;
-    if(r_gp < 1e-8) {
-        ett = dvr_dr;  // Límite en el eje: ε_θθ = dvr/dr
-    } else {
-        ett = vr_interp / r_gp;  // ε_θθ = vr/r
-    }
-    
-    // Strain-rate invariante según Martins
-    // ε̇_eq = √(2/3 * ε̇:ε̇) = √(2/3 * (err² + ezz² + ett² + 2*erz²))
-    double trace_term = err*err + ezz*ezz + ett*ett + 2.0*erz*erz;
-    result.eps_dot_eq = sqrt((2.0/3.0) * trace_term);
-    
-    result.strain_vec[0] = err;
-    result.strain_vec[1] = ezz;
-    result.strain_vec[2] = ett;
-    result.strain_vec[3] = erz;
-
-    // En calculate_strain_rate_martins, AGREGA:
-    //~ std::cout << "DEBUG strain: err=" << err 
-              //~ << " ezz=" << ezz 
-              //~ << " ett=" << ett 
-              //~ << " erz=" << erz << std::endl;
-    //~ std::cout << "eps_dot_eq = " << result.eps_dot_eq << std::endl;
-    
-    return result;
+      
+   // Tensor de deformación (COMPONENTES COMPLETAS, NO multiplicadas)
+      double err = dvr_dr;                          // ε_rr
+      double ezz = dvz_dz;                          // ε_zz
+      double ett = (r_gp < 1e-8) ? dvr_dr : vr_interp / r_gp;  // ε_θθ
+      double erz = 0.5 * (dvr_dz + dvz_dr);         // ε_rz (¡CON 0.5!)
+      
+      result.strain_vec[0] = err;
+      result.strain_vec[1] = ezz;
+      result.strain_vec[2] = ett;
+      result.strain_vec[3] = erz;
+      
+      // --- CORREGIDO: Cálculo exacto de ε̇_eq según d_martins ---
+      // d_martins = diag([2/3, 2/3, 2/3, 1/3])
+      double eps_dot_eq_sq = (2.0/3.0) * (err*err + ezz*ezz + ett*ett) 
+                           + (1.0/3.0) * (2.0*erz*erz);  // Nota: 2*erz² porque es cortante
+      
+      result.eps_dot_eq = sqrt(eps_dot_eq_sq);
+      if(result.eps_dot_eq < 1e-12) result.eps_dot_eq = 1e-12;
+      
+      return result;
 }
 
 #include "VTKWriter_tiny.hpp"
@@ -313,10 +301,7 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
     max_mu_eff = 0.0;
     incompressibility_error = 0.0;
     max_div_v = 0.0;
-    
-    // Penalización volumétrica (como en Python)
-    double kappa = kappa_factor * mu_ref;  // κ = 100 * μ_ref
-    
+        
     // Puntos de Gauss: 4 puntos completos para P, 1 punto reducido para Q
     const double a = 1.0 / sqrt(3.0);
     std::vector<std::pair<double, double>> gp_full = {
@@ -420,9 +405,11 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             }
             
             // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r)
+            // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r) - EL TENSOR DE DEFORMACIÓN
+            // La matriz B debe dar DIRECTO las componentes del tensor
             for(int a = 0; a < 4; a++) {
-                B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
-                B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a));  // ∂vz/∂r
+                B.Set(3, 2*a, 0.5 * jac_result.dNdX.getVal(1, a));      // 0.5*∂vr/∂z
+                B.Set(3, 2*a + 1, 0.5 * jac_result.dNdX.getVal(0, a)); // 0.5*∂vz/∂r
             }
                         
             // --- NUEVO: Matriz k = B^T * d * B (ecuación 4.56) ---
@@ -518,12 +505,13 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
               }
           }
           
-          // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r)
+          // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r) - EL TENSOR DE DEFORMACIÓN
+          // La matriz B debe dar DIRECTO las componentes del tensor
           for(int a = 0; a < 4; a++) {
-              B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
-              B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a)); // ∂vz/∂r
+              B.Set(3, 2*a, 0.5 * jac_result.dNdX.getVal(1, a));      // 0.5*∂vr/∂z
+              B.Set(3, 2*a + 1, 0.5 * jac_result.dNdX.getVal(0, a)); // 0.5*∂vz/∂r
           }
-          
+                    
           // --- VECTOR C DE MARTINS (ECUACIÓN 4.49) ---
           // C = [1, 1, 1, 0]^T  (rr, zz, θθ, rz)
           std::vector<double> C_vec = {1.0, 1.0, 1.0, 0.0};
@@ -1236,7 +1224,7 @@ void perform_physical_checks(const std::vector<double>& vel,
               << " velocidades + " << ndof_p << " presiones P0)" << std::endl;
     std::cout << "Esquema: Martins (4.55-4.56)" << std::endl;
     std::cout << "Integración: P(4 puntos) + Q(1 punto reducido)" << std::endl;
-    std::cout << "Relajación: ω=" << relax_factor << std::endl;
+
     
 
 
@@ -1323,12 +1311,13 @@ void perform_physical_checks(const std::vector<double>& vel,
         std::cout << "  Presión: [" << p_min/1e6 << ", " << p_max/1e6 << "] MPa" << std::endl;
         std::cout << "  Presión media: " << (p_min + p_max)/(2.0*1e6) << " MPa" << std::endl;
     }
-
+    
+    cout << "Writing VTK"<<endl;
         // ESCRIBIR VTK DESPUÉS DE CADA PASO
         VTKWriter::writeVtkFile("forja", 1, coords, elements, 
                                velocity, pressure, eps_bar, 
                                nnodes, nelem);
-                                   
+    cout << "DONE."<<endl;
     // Verificaciones físicas finales
     perform_physical_checks(velocity, pressure, eps_bar);
     
