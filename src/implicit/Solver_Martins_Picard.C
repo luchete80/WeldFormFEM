@@ -304,34 +304,30 @@ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<doubl
     //~ int n = K.m_row;
     //~ std::vector<double> solution(n, 0.0);
     
-    //~ // Convertir vector F a Matrix b (n x 1)
+    //~ // Convertir vector F a Matrix b
     //~ Matrix b(n, 1);
-    //~ for(int i = 0; i < n; i++) {
-        //~ b.Set(i, 0, F[i]);
-    //~ }
+    //~ for(int i = 0; i < n; i++) b.Set(i, 0, F[i]);
     
-    //~ // Hacer una copia de K (porque SolveLU modifica la matriz)
+    //~ // Hacer copia de K
     //~ Matrix A = K;
     
-    //~ // Llamar a SolveLU (función independiente)
+    //~ // Regularizar diagonal por si acaso
+    //~ for(int i = 0; i < n; i++) {
+        //~ double diag = A.getVal(i, i);
+        //~ if(fabs(diag) < 1e-12) A.Set(i, i, 1e-8);
+    //~ }
+    
+    //~ // Resolver
     //~ Matrix x = SolveLU_(A, b);
     
-    // Verificar si la solución es válida
+    //~ // Verificar
     //~ if(x.m_row != n || x.m_col != 1) {
-        //~ std::cerr << "Error: SolveLU falló (matriz singular)" << std::endl;
-        //~ // Fallback: intentar con pivoteo completo
-        //~ Matrix x2 = SolveLUCompletePivot(A, b);
-        //~ if(x2.m_row == n && x2.m_col == 1) {
-            //~ x = x2;
-        //~ } else {
-            //~ return std::vector<double>(n, 0.0);
-        //~ }
+        //~ std::cerr << "⚠ SolveLU falló" << std::endl;
+        //~ return std::vector<double>(n, 0.0);
     //~ }
     
-    //~ // Convertir Matrix x a vector
-    //~ for(int i = 0; i < n; i++) {
-        //~ solution[i] = x.getVal(i, 0);
-    //~ }
+    //~ // Convertir resultado
+    //~ for(int i = 0; i < n; i++) solution[i] = x.getVal(i, 0);
     
     //~ return solution;
 //~ }
@@ -734,6 +730,13 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
 
         
     } // Fin del bucle de elementos
+
+    //~ for(int i = ndof_v; i < ndof_total; i++) {
+        //~ double diag = K_glob.getVal(i, i);
+        //~ if(fabs(diag) < 1e-12) {
+            //~ K_glob.Set(i, i, 1e-8);  // Regularización
+        //~ }
+    //~ }
     
     //~ // Pequeña regularización por si acaso (mejor estabilidad numérica)
     //~ for(int i = ndof_v; i < ndof_total; ++i) {
