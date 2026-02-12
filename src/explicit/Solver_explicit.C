@@ -1131,22 +1131,22 @@ void host_ Domain_d::SolveChungHulbert(){
     oss_out << "CPU Overall Time" << timer.elapsedSinceStart() << " seconds\n";
     oss_out << "Plastic Strain energy "<<m_pl_energy<<endl;
     //printf("Reaction Forces\n");
-    of <<std::scientific<<std::setprecision(6)<< Time ;
+    //of <<std::scientific<<std::setprecision(6)<< Time ;
     //for (int m=0;m<trimesh->mesh_count;m++){
       //printf("Surf Id %d %.4e\n",m, norm(trimesh->react_force[m]));
     //printf("Surf Id %d %.4e\n",m, trimesh->react_p_force[m]);
 
 
 
-    if (contact){
-    calcContactForceFromPressure();
+    //if (contact){
+    //calcContactForceFromPressure();
     
-    of <<std::scientific<<std::setprecision(6)<<", "<<
-                                                    //trimesh->react_p_force[m]<<
-                                                    trimesh->react_p_force[0]<<", "<<
-                                                    trimesh->react_force[0].z<<","<<
-                                                    trimesh->cont_area;
-    } else{
+    //~ of <<std::scientific<<std::setprecision(6)<<", "<<
+                                                    //~ //trimesh->react_p_force[m]<<
+                                                    //~ trimesh->react_p_force[0]<<", "<<
+                                                    //~ trimesh->react_force[0].z<<","<<
+                                                    //~ trimesh->cont_area;
+    //~ } else{
 
 
     //~ /////////////// TEST NO CONTACT
@@ -1165,7 +1165,7 @@ void host_ Domain_d::SolveChungHulbert(){
     //~ //// TEST
     //~ of << ", "<<cfs<<","<<cfa;
     
-   bool is_elem_sum[m_elem_count];
+   //~ bool is_elem_sum[m_elem_count];
 
    //double pxa_el[m_elem_count];
   //~ double zmax = 0.0;
@@ -1173,11 +1173,11 @@ void host_ Domain_d::SolveChungHulbert(){
         //~ if (getNodePos3(i).z>zmax)
           //~ zmax = getNodePos3(i).z;
         
-    int ecount = 0;
-   double area = 0.0;
+    //~ int ecount = 0;
+   //~ double area = 0.0;
    
-         for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
-      double cfsum = 0.0;
+         //~ for (int e=0;e<m_elem_count;e++)is_elem_sum[e]=false;
+      //~ double cfsum = 0.0;
       
       //~ for (int i=0;i<m_node_count;i++){
         //~ if ((getNodePos3(i).z-zmax)*(getNodePos3(i).z-zmax)<1.0e-5){
@@ -1202,8 +1202,12 @@ void host_ Domain_d::SolveChungHulbert(){
       
       //cout << "Cont Elements"<<ecount<<endl;
       //of <<std::scientific<<std::setprecision(6)<<", "<<cfsum;
-    } //NOT CONTACT, TO DELETE
+    
+    //} //NOT CONTACT, TO DELETE
+    
+    
   double max[]={0.0,0.0,0.0};
+  cout << "WRITING "<<endl;
 
      for (int e=0;e<m_node_count;e++)
         for (int d=0;d<m_dim;d++)
@@ -1232,7 +1236,8 @@ void host_ Domain_d::SolveChungHulbert(){
     writer2.writeFile();
     #endif
     tout +=m_dtout;
-  }
+  } // Time=TOUT
+  
       ///////DEBGUG
       //std::string s = "out_step_"+std::to_string(step_count)+".vtk";
       //VTKWriter writer3(this, s.c_str());
