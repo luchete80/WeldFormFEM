@@ -1175,15 +1175,11 @@ void perform_physical_checks(const std::vector<double>& vel,
     
     double mu_min = *std::min_element(mu_values.begin(), mu_values.end());
     double mu_max = *std::max_element(mu_values.begin(), mu_values.end());
-    double mu_mean = 0.0;
-    for(double val : mu_values) mu_mean += val;
-    mu_mean /= mu_values.size();
+
     
     std::cout << "\nPROPIEDADES DEL MATERIAL:" << std::endl;
     std::cout << "ε̇_eq: min=" << eps_min << ", max=" << eps_max 
               << ", mean=" << eps_mean << " 1/s" << std::endl;
-    std::cout << "μ_eff: min=" << mu_min/1e6 << ", max=" << mu_max/1e6 
-              << ", mean=" << mu_mean/1e6 << " MPa·s" << std::endl;
     
     // 4. Fuerzas estimadas
     double area_top = M_PI * final_radius * final_radius;
