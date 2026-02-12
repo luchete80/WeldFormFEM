@@ -414,7 +414,7 @@ void host_ Domain_d::SolveChungHulbert(){
       //TO MODIFY
       double mat_cs = sqrt(mat[0]->Elastic().BulkMod()/rho[0]);
 
-      //cout << "Searching ext nodes "<<endl;
+      cout << "Searching ext nodes & Faces..."<<endl;
       SearchExtNodes(); //TODO: CALCULATE ONLY AREA, NOT SEARCH AGAIN AREAS
 
       remesh_ = true; 
