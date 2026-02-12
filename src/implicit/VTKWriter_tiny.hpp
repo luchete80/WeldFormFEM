@@ -151,37 +151,37 @@ public:
             vtk << strain_result.eps_dot_eq << "\n";
         }
         
-        // ---- VISCOSIDAD EFECTIVA ----
-        vtk << "SCALARS effective_viscosity float 1\n";
-        vtk << "LOOKUP_TABLE default\n";
-        for(int e = 0; e < nelem; e++) {
-            const auto& conn = elements[e];
-            std::vector<Point2D> pos(4);
-            for(int i = 0; i < 4; i++) {
-                pos[i] = coords[conn[i]];
-            }
+        //~ // ---- VISCOSIDAD EFECTIVA ----
+        //~ vtk << "SCALARS effective_viscosity float 1\n";
+        //~ vtk << "LOOKUP_TABLE default\n";
+        //~ for(int e = 0; e < nelem; e++) {
+            //~ const auto& conn = elements[e];
+            //~ std::vector<Point2D> pos(4);
+            //~ for(int i = 0; i < 4; i++) {
+                //~ pos[i] = coords[conn[i]];
+            //~ }
             
-            std::vector<double> vel_elem(8);
-            for(int i = 0; i < 4; i++) {
-                int node = conn[i];
-                vel_elem[2*i] = velocity[2*node];
-                vel_elem[2*i + 1] = velocity[2*node + 1];
-            }
+            //~ std::vector<double> vel_elem(8);
+            //~ for(int i = 0; i < 4; i++) {
+                //~ int node = conn[i];
+                //~ vel_elem[2*i] = velocity[2*node];
+                //~ vel_elem[2*i + 1] = velocity[2*node + 1];
+            //~ }
             
-            auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
-            double r_center = 0.0;
-            for(int i = 0; i < 4; i++) {
-                r_center += jac_result.N[i] * pos[i].x;
-            }
-            r_center = max(r_center, 1e-12);
+            //~ auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
+            //~ double r_center = 0.0;
+            //~ for(int i = 0; i < 4; i++) {
+                //~ r_center += jac_result.N[i] * pos[i].x;
+            //~ }
+            //~ r_center = max(r_center, 1e-12);
             
-            auto strain_result = calculate_strain_rate_martins(
-                jac_result.dNdX, vel_elem, r_center, jac_result.N
-            );
+            //~ auto strain_result = calculate_strain_rate_martins(
+                //~ jac_result.dNdX, vel_elem, r_center, jac_result.N
+            //~ );
             
-            double mu = effective_viscosity_norton(strain_result.eps_dot_eq);
-            vtk << mu / 1e6 << "\n";  // Convertir a MPa·s
-        }
+            //~ //double mu = effective_viscosity_norton(strain_result.eps_dot_eq);
+            //~ //vtk << mu / 1e6 << "\n";  // Convertir a MPa·s
+        //~ }
         
         // ---- DIVERGENCIA (incompresibilidad) ----
         vtk << "SCALARS divergence float 1\n";
