@@ -17,6 +17,95 @@
 #include "Domain_d.h"
 
 
+
+Matrix SolveLU(Matrix& A, Matrix& b) {
+    if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
+        Matrix empty;
+        return empty; // Error de dimensiones
+    }
+
+    const int n = A.m_row;
+    Matrix LU = A;  // Se sobrescribirá con L y U
+    Matrix x(n, 1);
+    int* pivot = new int[n];
+    // Vector para b permutado
+    Matrix pb = b;  // Copia de b que se irá permutando
+
+    // --- Factorización LU con pivoteo parcial ---
+    for (int i = 0; i < n; ++i) {
+        pivot[i] = i;  // Inicializar pivotes
+    }
+
+    for (int i = 0; i < n; ++i) {
+        // Pivoteo parcial
+        int max_row = i;
+        double max_val = fabs(LU(i, i));
+        for (int k = i + 1; k < n; ++k) {
+            if (fabs(LU(k, i)) > max_val) {
+                max_val = fabs(LU(k, i));
+                max_row = k;
+            }
+        }
+        
+        // Intercambiar filas si es necesario
+        if (max_row != i) {
+            // Intercambiar filas en LU
+            for (int j = 0; j < n; ++j) {
+                double temp = LU(i, j);
+                LU(i, j) = LU(max_row, j);
+                LU(max_row, j) = temp;
+            }
+            // Intercambiar en el vector de pivotes
+            int temp_pivot = pivot[i];
+            pivot[i] = pivot[max_row];
+            pivot[max_row] = temp_pivot;
+        }
+
+        if (fabs(LU(i, i)) < 1e-12) {
+            delete[] pivot;
+            Matrix empty;
+            return empty; // Matriz singular
+        }
+
+        // Eliminación
+        for (int k = i + 1; k < n; ++k) {
+            double factor = LU(k, i) / LU(i, i);
+            LU(k, i) = factor;  // Guardar multiplicador en L
+            for (int j = i + 1; j < n; ++j) {
+                LU(k, j) -= factor * LU(i, j);
+            }
+        }
+    }
+
+    // --- Aplicar permutaciones a b ---
+    Matrix b_permuted = b;
+    for (int i = 0; i < n; ++i) {
+        b_permuted(i, 0) = b(pivot[i], 0);
+    }
+
+    // --- Sustitución hacia adelante: L*y = Pb ---
+    Matrix y(n, 1);
+    for (int i = 0; i < n; ++i) {
+        y(i, 0) = b_permuted(i, 0);
+        for (int j = 0; j < i; ++j) {
+            y(i, 0) -= LU(i, j) * y(j, 0);  // LU(i,j) = L[i][j]
+        }
+        // L[i][i] = 1 (implícito)
+    }
+
+    // --- Sustitución hacia atrás: U*x = y ---
+    for (int i = n - 1; i >= 0; --i) {
+        x(i, 0) = y(i, 0);
+        for (int j = i + 1; j < n; ++j) {
+            x(i, 0) -= LU(i, j) * x(j, 0);  // LU(i,j) = U[i][j]
+        }
+        x(i, 0) /= LU(i, i);
+    }
+
+    delete[] pivot;
+    return x;
+}
+
 // ================================
 // PARÁMETROS FÍSICAMENTE CORRECTOS
 // ================================
@@ -153,64 +242,102 @@ JacobianResult jacobian_and_gradients(const std::vector<Point2D>& pos,
 // ================================
 // FUNCIÓN DE RESOLUCIÓN LINEAL (necesita ser implementada)
 // ================================
-std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
-    // Implementar con tu solver preferido
-    // Este es un placeholder simple usando eliminación gaussiana
+//~ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
+    //~ // Implementar con tu solver preferido
+    //~ // Este es un placeholder simple usando eliminación gaussiana
     
-    //int n = K.getRows();
+    //~ //int n = K.getRows();
+    //~ int n = K.m_row;
+    //~ std::vector<double> solution(n, 0.0);
+    
+    //~ // Hacer una copia para no modificar la original
+    //~ Matrix A = K;
+    //~ std::vector<double> b = F;
+    
+    //~ // Eliminación gaussiana
+    //~ for(int i = 0; i < n; i++) {
+        //~ // Pivoteo
+        //~ int max_row = i;
+        //~ double max_val = fabs(A.getVal(i, i));
+        //~ for(int k = i+1; k < n; k++) {
+            //~ if(fabs(A.getVal(k, i)) > max_val) {
+                //~ max_val = fabs(A.getVal(k, i));
+                //~ max_row = k;
+            //~ }
+        //~ }
+        
+        //~ if(max_row != i) {
+            //~ // Intercambiar filas
+            //~ for(int j = i; j < n; j++) {
+                //~ double temp = A.getVal(i, j);
+                //~ A.Set(i, j, A.getVal(max_row, j));
+                //~ A.Set(max_row, j, temp);
+            //~ }
+            //~ double temp = b[i];
+            //~ b[i] = b[max_row];
+            //~ b[max_row] = temp;
+        //~ }
+        
+        //~ // Hacer ceros debajo de la diagonal
+        //~ for(int k = i+1; k < n; k++) {
+            //~ double factor = A.getVal(k, i) / A.getVal(i, i);
+            //~ for(int j = i; j < n; j++) {
+                //~ A.Set(k, j, A.getVal(k, j) - factor * A.getVal(i, j));
+            //~ }
+            //~ b[k] -= factor * b[i];
+        //~ }
+    //~ }
+    
+    //~ // Sustitución hacia atrás
+    //~ for(int i = n-1; i >= 0; i--) {
+        //~ solution[i] = b[i];
+        //~ for(int j = i+1; j < n; j++) {
+            //~ solution[i] -= A.getVal(i, j) * solution[j];
+        //~ }
+        //~ solution[i] /= A.getVal(i, i);
+    //~ }
+    
+    //~ return solution;
+//~ }
+
+// ================================
+// FUNCIÓN DE RESOLUCIÓN LINEAL CON LU (PIVOTEO PARCIAL)
+// ================================
+std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
     int n = K.m_row;
     std::vector<double> solution(n, 0.0);
     
-    // Hacer una copia para no modificar la original
-    Matrix A = K;
-    std::vector<double> b = F;
-    
-    // Eliminación gaussiana
+    // Convertir vector F a Matrix b (n x 1)
+    Matrix b(n, 1);
     for(int i = 0; i < n; i++) {
-        // Pivoteo
-        int max_row = i;
-        double max_val = fabs(A.getVal(i, i));
-        for(int k = i+1; k < n; k++) {
-            if(fabs(A.getVal(k, i)) > max_val) {
-                max_val = fabs(A.getVal(k, i));
-                max_row = k;
-            }
-        }
-        
-        if(max_row != i) {
-            // Intercambiar filas
-            for(int j = i; j < n; j++) {
-                double temp = A.getVal(i, j);
-                A.Set(i, j, A.getVal(max_row, j));
-                A.Set(max_row, j, temp);
-            }
-            double temp = b[i];
-            b[i] = b[max_row];
-            b[max_row] = temp;
-        }
-        
-        // Hacer ceros debajo de la diagonal
-        for(int k = i+1; k < n; k++) {
-            double factor = A.getVal(k, i) / A.getVal(i, i);
-            for(int j = i; j < n; j++) {
-                A.Set(k, j, A.getVal(k, j) - factor * A.getVal(i, j));
-            }
-            b[k] -= factor * b[i];
-        }
+        b.Set(i, 0, F[i]);
     }
     
-    // Sustitución hacia atrás
-    for(int i = n-1; i >= 0; i--) {
-        solution[i] = b[i];
-        for(int j = i+1; j < n; j++) {
-            solution[i] -= A.getVal(i, j) * solution[j];
-        }
-        solution[i] /= A.getVal(i, i);
+    // Hacer una copia de K (porque SolveLU modifica la matriz)
+    Matrix A = K;
+    
+    // Llamar a SolveLU (función independiente)
+    Matrix x = SolveLU_(A, b);
+    
+    //~ // Verificar si la solución es válida
+    //~ if(x.m_row != n || x.m_col != 1) {
+        //~ std::cerr << "Error: SolveLU falló (matriz singular)" << std::endl;
+        //~ // Fallback: intentar con pivoteo completo
+        //~ Matrix x2 = SolveLUCompletePivot(A, b);
+        //~ if(x2.m_row == n && x2.m_col == 1) {
+            //~ x = x2;
+        //~ } else {
+            //~ return std::vector<double>(n, 0.0);
+        //~ }
+    //~ }
+    
+    // Convertir Matrix x a vector
+    for(int i = 0; i < n; i++) {
+        solution[i] = x.getVal(i, 0);
     }
     
     return solution;
 }
-
 
 // ================================
 // VISCOPLASTICIDAD NORTON-HOFF (AXISIMÉTRICO - MARTINS)
