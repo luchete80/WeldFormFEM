@@ -367,7 +367,7 @@ void ReMesher::WriteDomain(){
   double *tau      = new double [6*m_elem_count];   
   double *rho   = new double [m_elem_count];   
   double *vol_0 = new double [m_elem_count];    
-  double *idetF   = new double [m_elem_count];  //Inverse Deformation gradient
+  double *idetF   = new double [m_dom->m_elem_count];  //Inverse Deformation gradient
   
   double *Tfield  = new double [m_node_count];
   
@@ -491,9 +491,9 @@ void ReMesher::WriteDomain(){
 
    MapElem(rho,    m_dom->rho);
    
-  for (int e=0;e<m_elem_count;e++)
+  for (int e=0;e<m_dom->m_elem_count;e++)
     idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
-  MapElem(vol_0,    idetF);
+  MapElem(vol_0,    idetF); // NEW FIELD, OLD FIELD
   
   
   // cout << "New mesh volume "<<total_volume<<endl;

@@ -443,4 +443,6 @@ F90 PREVIOUS VERSION
 20250114 - Fixed Pressure local in 2d Quads (Should not be applied F-Bar! which was used.)
 20260126 - Fixed Node Area Calc in 2D
 -------------------------------------------------------------------
-20260212 - FIXED nan when closest element.
+20260211 - FIXED a LOT of memory things on 2D, at Free() and SetDimension.
+20260212 - FIXED nan when closest element Mapping.
+        -  FIXED for (int e=0;e<m_elem_count;e++) idetF[e] = m_dom->vol_0[e]/m_dom->vol[e];
