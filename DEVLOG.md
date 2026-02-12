@@ -443,3 +443,4 @@ F90 PREVIOUS VERSION
 20250114 - Fixed Pressure local in 2d Quads (Should not be applied F-Bar! which was used.)
 20260126 - Fixed Node Area Calc in 2D
 -------------------------------------------------------------------
+20260212 - FIXED nan when closest element.
