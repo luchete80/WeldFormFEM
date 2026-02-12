@@ -425,7 +425,8 @@ void host_ Domain_d::SolveChungHulbert(){
       wup_step_count = 0;
       transition = false;
       need_remesh = false;
-      VTKWriter writer3(this, "out_remesh.vtk");
+      std::string sout = "out_remesh" + step_count + ".vtk";
+      VTKWriter writer3(this, sout.c_str());
       writer3.writeFile();
       if (m_dim == 2 && m_domtype == _Axi_Symm_)
         Calc_Element_Radius();
