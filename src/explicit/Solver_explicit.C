@@ -425,7 +425,7 @@ void host_ Domain_d::SolveChungHulbert(){
       wup_step_count = 0;
       transition = false;
       need_remesh = false;
-      std::string sout = "out_remesh" + step_count + ".vtk";
+      std::string sout = "out_remesh" + std::to_string(step_count) + ".vtk";
       VTKWriter writer3(this, sout.c_str());
       writer3.writeFile();
       if (m_dim == 2 && m_domtype == _Axi_Symm_)
