@@ -569,11 +569,17 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemJAndDerivatives();
   
   #ifdef BUILD_REMESH
+  bool bad = false;
   for (int e=0;e<m_elem_count;e++){
     if (m_detJ[e]<0.0){
       need_remesh=true;
-      cout << "WARNING! INVERTER JACOBIAN in element "<<e<<endl;
+      bad = true;
+      cout << "WARNING! INVERTED JACOBIAN in element "<<e<<endl;
     }
+  }
+  if (bad){
+    VTKWriter writer3(this, "out_remesh_bad_J.vtk");
+    writer3.writeFile();  
   }
 
   max_vel=0.0;
