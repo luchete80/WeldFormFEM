@@ -407,7 +407,9 @@ void host_ Domain_d::SolveChungHulbert(){
       cout <<"Checking BCs"<<endl;
 
       setFixSymm();
+      cout << "Allocating BCs"<<endl;
       AllocateBCs();
+      cout << "Done."<<endl;
       //cout << "Step "<<step_count<<endl;
       //parallel_for ()
 
