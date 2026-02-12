@@ -404,14 +404,12 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
                 }
             }
             
-            // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r)
-            // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r) - EL TENSOR DE DEFORMACIÓN
-            // La matriz B debe dar DIRECTO las componentes del tensor
+            // ε_rz = ∂vr/∂z + ∂vz/∂r (SIN 0.5 - el tensor ya tiene 0.5 en la definición)
             for(int a = 0; a < 4; a++) {
-                B.Set(3, 2*a, 0.5 * jac_result.dNdX.getVal(1, a));      // 0.5*∂vr/∂z
-                B.Set(3, 2*a + 1, 0.5 * jac_result.dNdX.getVal(0, a)); // 0.5*∂vz/∂r
+                B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
+                B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a)); // ∂vz/∂r
             }
-                        
+     
             // --- NUEVO: Matriz k = B^T * d * B (ecuación 4.56) ---
             Matrix Bt = B.getTranspose();
             Matrix dB = Matrix(4, 8);
@@ -504,14 +502,12 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
                   B.Set(2, 2*a, jac_result.N[a] / r_gp);
               }
           }
-          
-          // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r) - EL TENSOR DE DEFORMACIÓN
-          // La matriz B debe dar DIRECTO las componentes del tensor
-          for(int a = 0; a < 4; a++) {
-              B.Set(3, 2*a, 0.5 * jac_result.dNdX.getVal(1, a));      // 0.5*∂vr/∂z
-              B.Set(3, 2*a + 1, 0.5 * jac_result.dNdX.getVal(0, a)); // 0.5*∂vz/∂r
-          }
                     
+          // ε_rz = ∂vr/∂z + ∂vz/∂r (SIN 0.5 - el tensor ya tiene 0.5 en la definición)
+          for(int a = 0; a < 4; a++) {
+              B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
+              B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a)); // ∂vz/∂r
+          }    
           // --- VECTOR C DE MARTINS (ECUACIÓN 4.49) ---
           // C = [1, 1, 1, 0]^T  (rr, zz, θθ, rz)
           std::vector<double> C_vec = {1.0, 1.0, 1.0, 0.0};
