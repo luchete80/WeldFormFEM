@@ -158,7 +158,31 @@ int main(int argc, char **argv) {
   
       
     }//File
+    else if (domtype == "Box"){
+           cout << "Adding Box ..."<<endl;  
+           double3 start,L;
+           double dx = 0.06;
+          readVector(domblock[0]["dim"], 		L);
+          readVector(domblock[0]["start"], 	start);
+          readValue(domblock[0]["elemLength"], 	dx);
+          bool tritet = false;
+          string eltype = "";
+          readValue(domblock[0]["elemType"], 	eltype);
+          if (eltype == "TriTet"){
+            tritet = true;
+            cout << "Element type set to TRI/TET"<<endl;
+          }
+          cout << "Box Start: "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
+          cout << "Box Length : "<<start.x<< ", "<<start.y<< ", "<<start.z<<endl;
 
+          // Domain_d::AddBoxLength(vector_t const & V, vector_t const & L, const double &r,const bool &red_int, const bool &tritetra)
+          #ifdef CUDA_BUILD
+            cout << "STILL NOT AVAIABLE"<<endl;
+          #else
+            dom_d->AddBoxLength(start, make_double3(L.x,L.y,0.0), dx/2.,true,tritet);	
+          #endif
+          dom_d->setTargetElemSize(dx); //FOR REMESHING (2D)
+        }
 
 
   int dim = 3;
