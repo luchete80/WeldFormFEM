@@ -111,6 +111,27 @@ int main(int argc, char **argv) {
   /////////////-/////////////////////////////////////////////////////////////////////////////////
   // DOMAIN //
   ////////////
+    string dom_type = "3D";
+    readValue(config["domType"], 	dom_type); 
+    bool xyzsym[] = {false,false,false};
+    double symtol = 1.0e-4;
+    readValue(config["symtol"],symtol);
+    readValue(config["xSymm"], 	xyzsym[0]);
+    readValue(config["ySymm"], 	xyzsym[1]); 
+    readValue(config["zSymm"], 	xyzsym[2]); 
+    string symaxis[]={"X","Y","Z"};
+    for (int d=0;d<3;d++)
+      if (xyzsym[d])
+        cout << "SYMMETRY ON AXIS "<<symaxis[d]<<endl;
+    bool vol_weight = false;
+    if (dom_type == "AxiSymm" || dom_type == "AxiSym"){
+      readValue(config["AxiSymmVol"], vol_weight);
+      dom_d->setAxiSymm(vol_weight);
+      cout << "DOMAIN TYPE: AXISYMMETRIC"<<endl;
+    } else if (dom_type == "plStrain"){
+      cout << "DOMAIN TYPE: PLAIN STRAIN"<<endl;
+    }
+    
 		string domtype = "Box";
   //Vec3_t start,L;    
   //TriMesh_d *mesh_d;
