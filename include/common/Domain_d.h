@@ -234,6 +234,7 @@ class Domain_d {
   friend class ReMesher;
   friend class Solver;
   friend class Solver_Eigen;
+  friend class Solver_Eigen_UP;
 public:
   Domain_d (std::string);
   Domain_d (){
