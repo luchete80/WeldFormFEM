@@ -720,7 +720,6 @@ public:
 
   SolveResult solve_step_martins(std::vector<double>& vel_guess,
                                 std::vector<double>& press_guess,
-                                const std::unordered_map<int, double>& fixed_dofs,
                                 Matrix& K_temp,
                                 std::vector<double>& F_temp);  
   
