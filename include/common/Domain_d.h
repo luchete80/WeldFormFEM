@@ -709,20 +709,20 @@ public:
   void Solve_Martins_Picard();
   void Solve_Martins_NR(); 
   
-  ////// AUXILIAR IMPLICIT SYSTEM
-  void assemble_martins_system(const std::vector<double>& vel_vec,
-                            const std::vector<double>& press_vec,
-                            Matrix& K_glob,
-                            std::vector<double>& F_glob,
-                            double& incompressibility_error,
-                            double& max_div_v);
+  //~ ////// AUXILIAR IMPLICIT SYSTEM
+  //~ void assemble_martins_system(const std::vector<double>& vel_vec,
+                            //~ const std::vector<double>& press_vec,
+                            //~ Matrix& K_glob,
+                            //~ std::vector<double>& F_glob,
+                            //~ double& incompressibility_error,
+                            //~ double& max_div_v);
 
 
-  SolveResult solve_step_martins(std::vector<double>& vel_guess,
-                                std::vector<double>& press_guess,
-                                const std::unordered_map<int, double>& fixed_dofs,
-                                Matrix& K_temp,
-                                std::vector<double>& F_temp);  
+  //~ SolveResult solve_step_martins(std::vector<double>& vel_guess,
+                                //~ std::vector<double>& press_guess,
+                                //~ const std::unordered_map<int, double>& fixed_dofs,
+                                //~ Matrix& K_temp,
+                                //~ std::vector<double>& F_temp);  
   
   void SolveElastic(); //SIMPLE 
   

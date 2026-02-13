@@ -122,7 +122,6 @@ double omega_p = 0.1;          // Relajación para presiones (MUY importante)
 
 double tol = 1e-3;             // Tolerancia relajada para simulación práctica
 int max_iter = 50;
-double dt = 0.001;
 int nsteps = 5;
 double v_z_top = -1.0;         // Compresión en dirección Z
 
@@ -402,13 +401,14 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
 
 #include "VTKWriter_tiny.hpp"
 
+
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA
 // ================================
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA Y PENALIZACIÓN
 // ================================
-  void Domain_d::assemble_martins_system(const std::vector<double>& vel_vec,
+  void assemble_martins_system(const std::vector<double>& vel_vec,
                             const std::vector<double>& press_vec,
                             Matrix& K_glob,
                             std::vector<double>& F_glob,
@@ -437,10 +437,10 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
         // Posiciones de los nodos del elemento
         std::vector<Point2D> pos(4);
         for(int i = 0; i < 4; i++) {//node
-            //pos[i] = coords[conn[i]];
-            int n =  getElemNode(e_idx,i);
-            pos[i].x = x[m_dim*n];
-            pos[i].y = x[m_dim*n+1];
+            pos[i] = coords[conn[i]];
+            //int n =  getElemNode(e_idx,i);
+            //pos[i].x = x[m_dim*n];
+            //pos[i].y = x[m_dim*n+1];
         }
         
         // DOFs de velocidades del elemento
@@ -751,39 +751,6 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
 }
 
 // ================================
-// CONDICIONES DE CONTORNO (AXISIMÉTRICO)
-// ================================
-//~ std::unordered_map<int, double> setup_boundary_conditions() {
-    //~ std::unordered_map<int, double> fixed_dofs;
-    
-    //~ // Base inferior fija (z = 0)
-    //~ for(int i = 0; i < nx_nodes; i++) {
-        //~ int node_id = i;  // Primera fila
-        //~ fixed_dofs[2*node_id] = 0.0;      // vr = 0
-        //~ fixed_dofs[2*node_id + 1] = 0.0;  // vz = 0
-    //~ }
-    
-    //~ // Tapa superior: velocidad impuesta (z = Lz)
-    //~ for(int i = 0; i < nx_nodes; i++) {
-        //~ int node_id = (ny_nodes - 1) * nx_nodes + i;
-        //~ fixed_dofs[2*node_id] = 0.0;           // vr = 0 (stick condition)
-        //~ fixed_dofs[2*node_id + 1] = v_z_top;   // vz = velocidad impuesta
-    //~ }
-    
-    //~ // Eje de simetría (r = 0)
-    //~ for(int j = 0; j < ny_nodes; j++) {
-        //~ int node_id = j * nx_nodes;
-        //~ fixed_dofs[2*node_id] = 0.0;  // vr = 0 (condición de simetría)
-        //~ // vz libre
-    //~ }
-    
-    //~ // Lado exterior (r = Lr): libre para expansión radial
-    //~ // No se fija para permitir flujo libre hacia afuera
-    
-    //~ return fixed_dofs;
-//~ }
-
-// ================================
 // CONDICIONES DE CONTORNO - VERSIÓN CORREGIDA
 // ================================
 std::unordered_map<int, double> setup_boundary_conditions() {
@@ -845,35 +812,6 @@ std::unordered_map<int, double> setup_boundary_conditions() {
     
     return fixed_dofs;
 }
-// MODIFICA apply_boundary_conditions para DEBUG:
-//~ void apply_boundary_conditions(Matrix& K_glob,
-                              //~ std::vector<double>& F_glob,
-                              //~ const std::unordered_map<int, double>& fixed_dofs) {
-    
-    //~ std::cout << "Aplicando " << fixed_dofs.size() << " condiciones:" << std::endl;
-    //~ int count = 0;
-    //~ for(const auto& [dof, value] : fixed_dofs) {
-        //~ if(count < 5) {  // Mostrar primeras 5
-            //~ std::cout << "  dof " << dof << " = " << value << std::endl;
-            //~ count++;
-        //~ }
-        
-        //~ // Restar contribución de la columna
-        //~ for(int i = 0; i < ndof_total; i++) {
-            //~ F_glob[i] -= K_glob.getVal(i, dof) * value;
-        //~ }
-        
-        //~ // Poner fila y columna en cero
-        //~ for(int i = 0; i < ndof_total; i++) {
-            //~ K_glob.Set(dof, i, 0.0);
-            //~ K_glob.Set(i, dof, 0.0);
-        //~ }
-        
-        //~ // Poner 1 en la diagonal
-        //~ K_glob.Set(dof, dof, 1.0);
-        //~ F_glob[dof] = value;
-    //~ }
-//~ }
 
 void apply_boundary_conditions(Matrix& K_glob,
                               std::vector<double>& F_glob,
@@ -921,6 +859,91 @@ void apply_boundary_conditions(Matrix& K_glob,
     }
 }
 
+
+// ================================
+// APLICAR CONDICIONES DE CONTORNO AXISIMÉTRICAS (FUNCIÓN LIBRE)
+// ================================
+void apply_boundary_conditions_axisym(Matrix& K_glob,
+                                     std::vector<double>& F_glob,
+                                     int ndof_v, 
+                                     int ndof_total,
+                                     int* bcx_nod, double* bcx_val, int n_bcx,
+                                     int* bcy_nod, double* bcy_val, int n_bcy) {
+    
+    std::cout << "\n🔧 APLICANDO CONDICIONES AXISIMÉTRICAS:" << std::endl;
+    std::cout << "   vr (X): " << n_bcx << " condiciones" << std::endl;
+    std::cout << "   vz (Y): " << n_bcy << " condiciones" << std::endl;
+    
+    int count_applied = 0;
+    double v_z_top_expected = -1.0; // De tu código original
+    
+    // Aplicar vr (dof = 2*nodo)
+    for(int i = 0; i < n_bcx; i++) {
+        int node = bcx_nod[i];
+        double value = bcx_val[i];
+        int dof = 2 * node;  // DOF de vr
+        
+        // Mostrar primeras 5 condiciones para debug
+        if(i < 5) {
+            std::cout << "   vr: nodo " << node << " -> dof " << dof 
+                      << " = " << value << std::endl;
+        }
+        
+        // Restar contribución de la columna
+        for(int j = 0; j < ndof_total; j++) {
+            F_glob[j] -= K_glob.getVal(j, dof) * value;
+        }
+        
+        // Poner fila y columna en cero
+        for(int j = 0; j < ndof_total; j++) {
+            K_glob.Set(dof, j, 0.0);
+            K_glob.Set(j, dof, 0.0);
+        }
+        
+        // Poner 1 en la diagonal y asignar valor
+        K_glob.Set(dof, dof, 1.0);
+        F_glob[dof] = value;
+        count_applied++;
+    }
+    
+    // Aplicar vz (dof = 2*nodo + 1)
+    int vz_top_count = 0;
+    for(int i = 0; i < n_bcy; i++) {
+        int node = bcy_nod[i];
+        double value = bcy_val[i];
+        int dof = 2 * node + 1;  // DOF de vz
+        
+        if(i < 5) {
+            std::cout << "   vz: nodo " << node << " -> dof " << dof 
+                      << " = " << value << std::endl;
+        }
+        
+        if(std::abs(value - v_z_top_expected) < 1e-6) {
+            vz_top_count++;
+        }
+        
+        // Restar contribución de la columna
+        for(int j = 0; j < ndof_total; j++) {
+            F_glob[j] -= K_glob.getVal(j, dof) * value;
+        }
+        
+        // Poner fila y columna en cero
+        for(int j = 0; j < ndof_total; j++) {
+            K_glob.Set(dof, j, 0.0);
+            K_glob.Set(j, dof, 0.0);
+        }
+        
+        // Poner 1 en la diagonal y asignar valor
+        K_glob.Set(dof, dof, 1.0);
+        F_glob[dof] = value;
+        count_applied++;
+    }
+    
+    std::cout << "   " << vz_top_count << " vz = " << v_z_top_expected 
+              << " (COMPRESIÓN)" << std::endl;
+    std::cout << "   TOTAL: " << count_applied << " condiciones aplicadas" << std::endl;
+}
+
 // Agrega esto DESPUÉS de initialize_mesh() en run_simulation_martins():
 void verify_top_bc() {
     std::cout << "\n🔍 VERIFICANDO CONDICIÓN DE TAPA:" << std::endl;
@@ -959,7 +982,7 @@ void verify_top_bc() {
 
 
 
-    SolveResult Domain_d::solve_step_martins(std::vector<double>& vel_guess,
+    SolveResult solve_step_martins(std::vector<double>& vel_guess,
                                   std::vector<double>& press_guess,
                                   const std::unordered_map<int, double>& fixed_dofs,
                                   Matrix& K_temp,
@@ -1018,6 +1041,12 @@ void verify_top_bc() {
 
         // Aplicar condiciones de contorno
         apply_boundary_conditions(K_temp, F_temp, fixed_dofs);
+        
+        // APLICAR CONDICIONES USANDO LOS MIEMBROS DE LA CLASE
+        //~ apply_boundary_conditions_axisym(K_temp, F_temp, 
+                                        //~ ndof_v, ndof_total,
+                                        //~ this->bcx_nod, this->bcx_val, this->bc_count[0],
+                                        //~ this->bcy_nod, this->bcy_val, this->bc_count[1]);
         
         try {
             // Resolver sistema de punto de silla
@@ -1328,7 +1357,8 @@ void perform_physical_checks(const std::vector<double>& vel,
 // ================================
 
   void Domain_d::Solve_Martins_Picard(){
-
+    
+    dt = 0.001;
     // Inicialización
     initialize_mesh();
     auto fixed_dofs = setup_boundary_conditions();
