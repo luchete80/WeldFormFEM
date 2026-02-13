@@ -274,10 +274,9 @@ int main(int argc, char **argv) {
 
   //////////////////////////////////////////////////////
   //////////////////// BOUNDARY CONDITIONS
-  cout << "Setting Boundary Conditions "<<endl;
   std::vector<boundaryCondition> bConds;
   
-  
+  cout << "Reading Boundary Conditions ..."<<endl;
     int bc_count = 0;
     //std::vector<boundaryCondition> bcondvec;
 		for (auto& bc : bcs) { //TODO: CHECK IF DIFFERENTS ZONES OVERLAP
@@ -285,30 +284,31 @@ int main(int argc, char **argv) {
 			int zoneid,valuetype,var,ampid;
  
 
-	////// BOUNDARY CONDITIONS
-	double ampfactor = 1.0;
-	
-	bool free=true;
-	boundaryCondition bcon;
-	//bcon.type = 0;        //DEFAULT: VELOCITY
-	//bcon.valueType = 0;   //DEFAULT: CONSTANT
-	//bcon.value_ang = 0.0;
-	readValue(bc["zoneId"], 	bcon.zoneId);
-	readValue(bc["type"], 		bcon.type);
-	//type 0 means velocity vc
-	readValue(bc["valueType"], 	bcon.valueType);
-	readVector(bc["value"], 	      bcon.value);      //Or value linear
-	readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
+      ////// BOUNDARY CONDITIONS
+      double ampfactor = 1.0;
+      
+      bool free=true;
+      boundaryCondition bcon;
+      //bcon.type = 0;        //DEFAULT: VELOCITY
+      //bcon.valueType = 0;   //DEFAULT: CONSTANT
+      //bcon.value_ang = 0.0;
+      readValue(bc["zoneId"], 	bcon.zoneId);
+      readValue(bc["type"], 		bcon.type);
+      //type 0 means velocity vc
+      readValue(bc["valueType"], 	bcon.valueType);
+      readVector(bc["value"], 	      bcon.value);      //Or value linear
+      readVector(bc["valueAng"], 	    bcon.value_ang);  //Or Angular value
 
-  double3 start,end;
-  readValue(bc["id"], 		zoneid);
-  readVector(bc["start"], 	start);
-  readVector(bc["end"], 	end);
-
-  //int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
-  //cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
-
-
+      double3 start,end;
+      readValue(bc["id"], 		zoneid);
+      readVector(bc["start"], 	start);
+      readVector(bc["end"], 	end);
+      bcon.start=start;
+      bcon.end = end;
+      
+      //~ int bcn= dom_d->AddBCVelZone(start, end,bcon.value);
+      //~ cout << bcn << " Nodes with Velocity " << bcon.value.x<<", "<<bcon.value.y<<", "<<bcon.value.z<<endl; 
+  
 	if (bcon.valueType == 0){//Constant
 
 	} else {
@@ -320,8 +320,8 @@ int main(int argc, char **argv) {
 	bConds.push_back(bcon);
 
   } //BCs
-  //dom_d->AllocateBCs();
-  cout << "Done "<<endl;
+  
+  cout << "Done"<<endl;
       
   // //////////////////////////////////////////////////////////
   // ////////////////// RIGID BODIES //////////////////////////
@@ -421,6 +421,7 @@ int main(int argc, char **argv) {
 		
 		}
 	}
+  
 	//m->SetMeshVel(make_double3(-10.,0.0,0.0));
     //THIS MESH AHOULD NOT BE DELETED 
 	printf("-------------------\n");
@@ -449,6 +450,20 @@ int main(int argc, char **argv) {
   cout << "Calulating min element size ..."<<endl;
 
 
+  if (!contact){
+    //printf("Searching bcs for ZoneID %d..\n", id);
+    for (int bc=0;bc<bConds.size();bc++){
+      //~ if (bConds[bc].zoneId==id){
+      //~ printf("BC Found for Zone ID: %d\n", id);
+      //~ printf("Applying Velocity %.3e %.3e %.3e\n", bConds[bc].value.x, bConds[bc].value.y, bConds[bc].value.z);
+
+      int bcn= dom_d->AddBCVelZone(bConds[bc].start, bConds[bc].end,bConds[bc].value);
+      cout << bcn << " Nodes with Velocity " << bConds[bc].value.x<<", "<<bConds[bc].value.y<<", "<<bConds[bc].value.z<<endl; 
+
+      //~ }
+    }
+  }
+
   //dom_d->calcMinEdgeLength();
   //dx = dom_d->getMinLength();
   
@@ -466,45 +481,45 @@ int main(int argc, char **argv) {
   if (remesh_interval != -1)
     dom_d->setRemeshInterval(remesh_interval); 
   //dom_d->SetEndTime (10.0*dt);
-    
+
+
+
   
   int fixcount =0;
   int velcount =0;
+  int xyzfixcount[] = {0,0,0};
+
   for (int i=0;i<dom_d->getNodeCount();i++){
-
-    // if (dom_d->getPosVec3(i).z <0.0002) {
-      // for (int d=0;d<3;d++)dom_d->AddBCVelNode(i,d,0);
-      // fixcount++;
-      // //cout << "node "<< i<<" fixed "<<endl;
-    // }
-
     
+    for (int d=0;d<3;d++){
+      if (xyzsym[d]){
+        #ifdef CUDA_BUILD
+        #else
+          double coord;
+          if      (d==0)  coord = dom_d->getPosVec3(i).x;
+          else if (d==1)  coord = dom_d->getPosVec3(i).y;
+          else            coord = dom_d->getPosVec3(i).z;
+          if (coord < symtol ) {
+          dom_d->AddBCVelNode(i,d,0);
+          xyzfixcount[d]++;
+          dom_d->setSymm(d);      
+               
+          }
+        #endif
+      }
+    }
 
-    // //#ifdef CUDA_BUILD
-    // //#else    
-    // if (dom_d->getPosVec3_h(i).z > 0.03-0.0003 ) {
-    // //if (dom_d->getNodePos3(i).z > 0.616-0.025 ) {
-      // //dom_d->AddBCVelNode(i,0,-0.0);
-      // //dom_d->AddBCVelNode(i,1,-0.0);
-      // //dom_d->AddBCVelNode(i,2,-1.0e-3);
-      // //cout << "Node "<<i <<" vel "<<endl;
-      // velcount++;
-    // }     
-    // //#endif
     
   }
   //initElemArrayCPU (this,sigma_y,1,300.0e6)  
 
-  // //AddBCVelNode(Node,axis,val)
-  // for (int i=0;i<3;i++)dom_d->AddBCVelNode(0,i,0);
-  // dom_d->
-  // AddBCVelNode(1,1,0);dom_d->AddBCVelNode(1,2,0);
-  // dom_d->AddBCVelNode(2,2,0);
+
   
-  // dom_d->AddBCVelNode(3,2,-3.0e-8);
+  cout << "FIXED "<<fixcount<< " NODES"<<endl;  
+  cout << "VEL  "<<velcount<< " NODES"<<endl;  
   
-  // //AFTER THIS CALL
-  // dom_d->AllocateBCs();
+  //AFTER THIS CALL
+  dom_d->AllocateBCs();    
   
  
     
