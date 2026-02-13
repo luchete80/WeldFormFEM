@@ -1,0 +1,107 @@
+{
+"Configuration":
+{
+  "Nproc":1,
+  "cflFactor": 0.3,
+  "autoTS": [false,false,false],
+  "kernelGradCorr": false,  
+  "simTime": 5.0e-2,
+  "artifViscAlpha": 1.0,
+  "artifViscBeta": 0.0,
+  "outTime": 1.0e-4,
+  "fixedTS":false,
+  "domType": "AxiSymm",
+  "AxiSymmVol": false,
+  "solver": "Mech-LeapFrog"
+},
+"Meshing":{
+ "minStrain": -1.0,
+  "stepInterval": 20000
+},
+"Stabilization":{
+"hg_stiff":0.1,
+"hg_visc":0.1
+}
+,
+"Materials":[ 
+{
+	"id": "Solid",
+	"type": "Hollomon",
+  "const": [386.796e6,0.154],
+	"density0": 27000.0, 
+  "thermalHeatCap": 87.50,
+  "thermalCond": 190.0,
+	"youngsModulus": 68.9E9, 
+	"poissonsRatio": 0.3,
+	"yieldStress0": 190.4E6
+}],
+
+"DomainBlocks": 
+[{
+	"type": "Box",
+	"zoneId": 0,
+  "elemLength": 0.0005,
+	"denseMode": 0,
+	"start": [ 0.0000, 0.0, 0.0],
+	"dim": [0.0127, 0.03, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}],
+
+"RigidBodies": 
+[{
+	"type": "Line",
+	"zoneId": 2,
+	"start": [0.0, 0.03, 0.0],
+  "flipnormals":true,
+  "partSide": 20,
+	"dim":   [0.02, 0.0, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+},
+{
+	"type": "Line",
+	"zoneId": 1,
+	"start": [0.00, 0, 0.0000],
+  "partSide": 20,
+	"dim":   [0.02, 0.0, 0.0],
+	"translation": [1.0, 0.0, 0.0],
+	"scale": [1, 1, 1]
+}
+],
+"Contact":[ 
+{
+  "fricCoeffStatic": 0.3,
+  "fricCoeffDynamic": 0.3,
+  "penaltyFactor": 0.8,
+  "heatConductance": false,
+  "heatCondCoeff": 0.01
+  
+}],
+
+"Amplitudes": [
+{
+	"id": 		1,
+	"valueType": 1,
+	"time": 	[ 0.0, 5.0e-3, 1.0],
+	"value": 	[ 0.0, 1.0, 1.0]
+}
+],
+"BoundaryConditions": [
+{
+	"zoneId": 	1,
+	"valueType": 0,
+	"value": 		[ 0.0, 0.0, 0.0],
+	"free": 		true
+},
+{
+	"zoneId": 	2,
+	"valueType": 	1,
+  "amplitudeId" : 1,
+  "amplitudeFactor": 1.0,
+	"value": 		[ 0.0, -1.2, 0.0]
+}
+]
+
+}
+

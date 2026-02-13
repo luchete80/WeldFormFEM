@@ -1324,7 +1324,6 @@ void perform_physical_checks(const std::vector<double>& vel,
 // SIMULACIÓN PRINCIPAL (MARTINS)
 // ================================
 
-//void Domain_d::Solve_Martins_Picard(){ {
   void Domain_d::Solve_Martins_Picard(){
 
     // Inicialización
