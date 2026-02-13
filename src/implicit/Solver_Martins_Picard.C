@@ -16,6 +16,7 @@
 #include "Matrix.h"
 #include "Domain_d.h"
 
+namespace MetFEM{
 
 Matrix SolveLU_(Matrix& A, Matrix& b) {
     if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
@@ -1011,7 +1012,6 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
               //~ double val = K_temp.getVal(ndof_v + i, ndof_v + i);
               //~ printf("  K_pp[%d,%d] = %12.6e\n", i, i, val);
           //~ }
-                  
 
         // Aplicar condiciones de contorno
         apply_boundary_conditions(K_temp, F_temp, fixed_dofs);
@@ -1325,7 +1325,7 @@ void perform_physical_checks(const std::vector<double>& vel,
 // ================================
 
 //void Domain_d::Solve_Martins_Picard(){ {
-  void run_simulation_martins(){
+  void Domain_d::Solve_Martins_Picard(){
 
     // Inicialización
     initialize_mesh();
@@ -1344,6 +1344,12 @@ void perform_physical_checks(const std::vector<double>& vel,
     std::cout << "Esquema: Martins (4.55-4.56)" << std::endl;
     std::cout << "Integración: P(4 puntos) + Q(1 punto reducido)" << std::endl;
 
+    ///// SOLVER THINGS.
+    Solver_Eigen *solver = new Solver_Eigen();
+    m_solver = solver;
+    m_solver->setDomain(this);
+    
+    m_solver->Allocate();                  
     
 
 
@@ -1447,10 +1453,4 @@ void perform_physical_checks(const std::vector<double>& vel,
 
 
 
-// ================================
-// FUNCIÓN PRINCIPAL
-// ================================
-int main() {
-    run_simulation_martins();
-    return 0;
-}
+}//MetFEM

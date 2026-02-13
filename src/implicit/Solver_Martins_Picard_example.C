@@ -17,6 +17,92 @@
 #include "Domain_d.h"
 
 
+Matrix SolveLU_(Matrix& A, Matrix& b) {
+    if (A.m_row != A.m_col || b.m_col != 1 || A.m_row != b.m_row) {
+        Matrix empty;
+        return empty;
+    }
+
+    const int n = A.m_row;
+    Matrix LU = A;
+    Matrix x(n, 1);
+    int* pivot = new int[n];
+    Matrix pb = b;
+
+    // Inicializar pivotes
+    for (int i = 0; i < n; ++i) pivot[i] = i;
+
+    // --- Factorización LU con pivoteo parcial ---
+    for (int i = 0; i < n; ++i) {
+        // Pivoteo parcial - USANDO getVal()
+        int max_row = i;
+        double max_val = fabs(LU.getVal(i, i));
+        for (int k = i + 1; k < n; ++k) {
+            if (fabs(LU.getVal(k, i)) > max_val) {
+                max_val = fabs(LU.getVal(k, i));
+                max_row = k;
+            }
+        }
+        
+        // Intercambiar filas - USANDO getVal/setVal
+        if (max_row != i) {
+            for (int j = 0; j < n; ++j) {
+                double temp = LU.getVal(i, j);
+                LU.Set(i, j, LU.getVal(max_row, j));
+                LU.Set(max_row, j, temp);
+            }
+            int temp_pivot = pivot[i];
+            pivot[i] = pivot[max_row];
+            pivot[max_row] = temp_pivot;
+        }
+
+        double diag = LU.getVal(i, i);
+        if (fabs(diag) < 1e-12) {
+            delete[] pivot;
+            Matrix empty;
+            return empty;
+        }
+
+        // Eliminación - USANDO getVal/setVal
+        for (int k = i + 1; k < n; ++k) {
+            double factor = LU.getVal(k, i) / diag;
+            LU.Set(k, i, factor);
+            for (int j = i + 1; j < n; ++j) {
+                double val = LU.getVal(k, j) - factor * LU.getVal(i, j);
+                LU.Set(k, j, val);
+            }
+        }
+    }
+
+    // --- Aplicar permutaciones a b - USANDO getVal/setVal ---
+    Matrix b_permuted = b;
+    for (int i = 0; i < n; ++i) {
+        b_permuted.Set(i, 0, b.getVal(pivot[i], 0));
+    }
+
+    // --- Sustitución hacia adelante ---
+    Matrix y(n, 1);
+    for (int i = 0; i < n; ++i) {
+        double sum = b_permuted.getVal(i, 0);
+        for (int j = 0; j < i; ++j) {
+            sum -= LU.getVal(i, j) * y.getVal(j, 0);
+        }
+        y.Set(i, 0, sum);
+    }
+
+    // --- Sustitución hacia atrás ---
+    for (int i = n - 1; i >= 0; --i) {
+        double sum = y.getVal(i, 0);
+        for (int j = i + 1; j < n; ++j) {
+            sum -= LU.getVal(i, j) * x.getVal(j, 0);
+        }
+        x.Set(i, 0, sum / LU.getVal(i, i));
+    }
+
+    delete[] pivot;
+    return x;
+}
+
 // ================================
 // PARÁMETROS FÍSICAMENTE CORRECTOS
 // ================================
@@ -26,13 +112,12 @@ double Lr = 0.0127, Lz = 0.03;  // Radio 12.7mm, altura 30mm
 // MATERIAL: Acero caliente tipo Norton-Hoff
 double Kmat = 50.0e6;          // Coeficiente de consistencia [Pa·s^n]
 double nexp = 0.2;             // Exponente strain-rate sensitivity
-double mu_ref = Kmat / 3.0;    // Viscosidad de referencia
+
 
 // Parámetros numéricos
-double relax_factor = 0.4;     // Reducido para mayor estabilidad
 double omega_v = 0.4;          // Relajación para velocidades
 double omega_p = 0.1;          // Relajación para presiones (MUY importante)
-double kappa_factor = 100.0;   // Factor de penalización volumétrica (× mu_ref)
+
 
 double tol = 1e-3;             // Tolerancia relajada para simulación práctica
 int max_iter = 50;
@@ -151,9 +236,9 @@ JacobianResult jacobian_and_gradients(const std::vector<Point2D>& pos,
 }
 
 
-// ================================
-// FUNCIÓN DE RESOLUCIÓN LINEAL (necesita ser implementada)
-// ================================
+//~ // ================================
+//~ // FUNCIÓN DE RESOLUCIÓN LINEAL (necesita ser implementada)
+//~ // ================================
 std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
     // Implementar con tu solver preferido
     // Este es un placeholder simple usando eliminación gaussiana
@@ -212,20 +297,61 @@ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<doubl
     return solution;
 }
 
+//~ // ================================
+//~ // FUNCIÓN DE RESOLUCIÓN LINEAL CON LU (PIVOTEO PARCIAL)
+//~ // ================================
+//~ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
+    //~ int n = K.m_row;
+    //~ std::vector<double> solution(n, 0.0);
+    
+    //~ // Convertir vector F a Matrix b
+    //~ Matrix b(n, 1);
+    //~ for(int i = 0; i < n; i++) b.Set(i, 0, F[i]);
+    
+    //~ // Hacer copia de K
+    //~ Matrix A = K;
+    
+    //~ // Regularizar diagonal por si acaso
+    //~ for(int i = 0; i < n; i++) {
+        //~ double diag = A.getVal(i, i);
+        //~ if(fabs(diag) < 1e-12) A.Set(i, i, 1e-8);
+    //~ }
+    
+    //~ // Resolver
+    //~ Matrix x = SolveLU_(A, b);
+    
+    //~ // Verificar
+    //~ if(x.m_row != n || x.m_col != 1) {
+        //~ std::cerr << "⚠ SolveLU falló" << std::endl;
+        //~ return std::vector<double>(n, 0.0);
+    //~ }
+    
+    //~ // Convertir resultado
+    //~ for(int i = 0; i < n; i++) solution[i] = x.getVal(i, 0);
+    
+    //~ return solution;
+//~ }
 
 // ================================
 // VISCOPLASTICIDAD NORTON-HOFF (AXISIMÉTRICO - MARTINS)
 // ================================
-double effective_viscosity_norton(double eps_dot_eq) {
-    // Evitar divisiones por cero
+//~ double effective_viscosity_norton(double eps_dot_eq) {
+    //~ // Evitar divisiones por cero
+    //~ double eps_dot_eq_safe = max(eps_dot_eq, 1e-12);
+    //~ return (Kmat / 3.0) * pow(eps_dot_eq_safe, nexp - 1.0);
+//~ }
+
+// AÑADIR esta función (ecuación 4.50 de Martins)
+double equivalent_stress_norton(double eps_dot_eq) {
     double eps_dot_eq_safe = max(eps_dot_eq, 1e-12);
-    return (Kmat / 3.0) * pow(eps_dot_eq_safe, nexp - 1.0);
+    double sqrt3_eps = sqrt(3.0) * eps_dot_eq_safe;
+    return Kmat * pow(sqrt3_eps, nexp);
 }
 
 struct StrainRateResult {
     double eps_dot_eq;
     std::vector<double> strain_vec;  // [err, ezz, ett, erz] para axisimetría
-    std::vector<double> C_vec;       // Vector C de Martins para presión hidrostática
+    //std::vector<double> C_vec;       // Vector C de Martins para presión hidrostática
 };
 
 StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
@@ -234,7 +360,6 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
                                               const std::vector<double>& N) {
     StrainRateResult result;
     result.strain_vec.resize(4);  // 4 componentes para axisimetría
-    result.C_vec = {1.0, 1.0, 1.0, 0.0};  // Vector C de Martins
     
     // Inicializar gradientes y velocidad interpolada
     double dvr_dr = 0.0, dvr_dz = 0.0;
@@ -251,38 +376,27 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
         dvz_dz += dNdX.getVal(1, a) * vz;
         vr_interp += N[a] * vr;
     }
-    
-    // Tensor de deformación axisimétrico según Martins (ecuación 4.55)
-    double err = dvr_dr;                     // ε_rr
-    double ezz = dvz_dz;                     // ε_zz
-    double erz = 0.5 * (dvr_dz + dvz_dr);    // ε_rz
-    
-    // Tratamiento especial para el eje r=0 según Martins
-    double ett;
-    if(r_gp < 1e-8) {
-        ett = dvr_dr;  // Límite en el eje: ε_θθ = dvr/dr
-    } else {
-        ett = vr_interp / r_gp;  // ε_θθ = vr/r
-    }
-    
-    // Strain-rate invariante según Martins
-    // ε̇_eq = √(2/3 * ε̇:ε̇) = √(2/3 * (err² + ezz² + ett² + 2*erz²))
-    double trace_term = err*err + ezz*ezz + ett*ett + 2.0*erz*erz;
-    result.eps_dot_eq = sqrt((2.0/3.0) * trace_term);
-    
-    result.strain_vec[0] = err;
-    result.strain_vec[1] = ezz;
-    result.strain_vec[2] = ett;
-    result.strain_vec[3] = erz;
-
-    // En calculate_strain_rate_martins, AGREGA:
-    //~ std::cout << "DEBUG strain: err=" << err 
-              //~ << " ezz=" << ezz 
-              //~ << " ett=" << ett 
-              //~ << " erz=" << erz << std::endl;
-    //~ std::cout << "eps_dot_eq = " << result.eps_dot_eq << std::endl;
-    
-    return result;
+      
+   // Tensor de deformación (COMPONENTES COMPLETAS, NO multiplicadas)
+      double err = dvr_dr;                          // ε_rr
+      double ezz = dvz_dz;                          // ε_zz
+      double ett = (r_gp < 1e-8) ? dvr_dr : vr_interp / r_gp;  // ε_θθ
+      double erz = 0.5 * (dvr_dz + dvz_dr);         // ε_rz (¡CON 0.5!)
+      
+      result.strain_vec[0] = err;
+      result.strain_vec[1] = ezz;
+      result.strain_vec[2] = ett;
+      result.strain_vec[3] = erz;
+      
+      // --- CORREGIDO: Cálculo exacto de ε̇_eq según d_martins ---
+      // d_martins = diag([2/3, 2/3, 2/3, 1/3])
+      double eps_dot_eq_sq = (2.0/3.0) * (err*err + ezz*ezz + ett*ett) 
+                           + (1.0/3.0) * (2.0*erz*erz);  // Nota: 2*erz² porque es cortante
+      
+      result.eps_dot_eq = sqrt(eps_dot_eq_sq);
+      if(result.eps_dot_eq < 1e-12) result.eps_dot_eq = 1e-12;
+      
+      return result;
 }
 
 #include "VTKWriter_tiny.hpp"
@@ -307,10 +421,7 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
     max_mu_eff = 0.0;
     incompressibility_error = 0.0;
     max_div_v = 0.0;
-    
-    // Penalización volumétrica (como en Python)
-    double kappa = kappa_factor * mu_ref;  // κ = 100 * μ_ref
-    
+        
     // Puntos de Gauss: 4 puntos completos para P, 1 punto reducido para Q
     const double a = 1.0 / sqrt(3.0);
     std::vector<std::pair<double, double>> gp_full = {
@@ -368,19 +479,24 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             for(int i = 0; i < 4; i++) {
                 r_gp += jac_result.N[i] * pos[i].x;
             }
-            r_gp = max(r_gp, 1e-12);  // Evitar radio cero
+            r_gp = max(r_gp, 1e-12);
             
-            // Factor axisimétrico: dΩ = 2πr * detJ * w
+            // Factor axisimétrico
             double dOmega = 2.0 * M_PI * r_gp * jac_result.detJ * w;
             
-            // Calcular strain-rate y viscosidad
+            // Calcular strain-rate
             auto strain_result = calculate_strain_rate_martins(
                 jac_result.dNdX, vel_elem, r_gp, jac_result.N
             );
             
-            double mu_eff = effective_viscosity_norton(strain_result.eps_dot_eq);
-            max_mu_eff = max(max_mu_eff, mu_eff);
-            
+            // --- NUEVO: Matriz d de Martins (ecuación 4.51) ---
+            Matrix d_martins(4, 4);
+            d_martins.SetZero();
+            d_martins.Set(0, 0, 2.0/3.0);
+            d_martins.Set(1, 1, 2.0/3.0);
+            d_martins.Set(2, 2, 2.0/3.0);
+            d_martins.Set(3, 3, 1.0/3.0);  // Para componente cortante
+
             // Matriz B (4x8) para axisimetría según Martins
             Matrix B(4, 8);
             B.SetZero();
@@ -408,107 +524,153 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
                 }
             }
             
-            // ε_rz = 0.5*(∂vr/∂z + ∂vz/∂r)
+            // ε_rz = ∂vr/∂z + ∂vz/∂r (SIN 0.5 - el tensor ya tiene 0.5 en la definición)
             for(int a = 0; a < 4; a++) {
                 B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
-                B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a));  // ∂vz/∂r
+                B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a)); // ∂vz/∂r
             }
-            
-            // Tensor constitutivo D (4x4) para axisimetría
-            Matrix D(4, 4);
-            D.SetZero();
-            
-            D.Set(0, 0, 2.0 * mu_eff);
-            D.Set(1, 1, 2.0 * mu_eff);
-            D.Set(2, 2, 2.0 * mu_eff);
-            D.Set(3, 3, mu_eff);  // Componente cortante
-            
-            // Contribución a P: B^T * D * B
+     
+            // --- NUEVO: Matriz k = B^T * d * B (ecuación 4.56) ---
             Matrix Bt = B.getTranspose();
-            Matrix DxB = Matrix(4, 8);
+            Matrix dB = Matrix(4, 8);
             
-            // Multiplicación D * B
+            // d * B
             for(int i = 0; i < 4; i++) {
                 for(int j = 0; j < 8; j++) {
                     double sum = 0.0;
                     for(int k = 0; k < 4; k++) {
-                        sum += D.getVal(i, k) * B.getVal(k, j);
+                        sum += d_martins.getVal(i, k) * B.getVal(k, j);
                     }
-                    DxB.Set(i, j, sum);
+                    dB.Set(i, j, sum);
                 }
             }
             
-            // B^T * (D * B)
+            // k_matrix = B^T * (d * B)
+            Matrix k_matrix(8, 8);
+            k_matrix.SetZero();
             for(int i = 0; i < 8; i++) {
                 for(int j = 0; j < 8; j++) {
                     double sum = 0.0;
                     for(int k = 0; k < 4; k++) {
-                        sum += Bt.getVal(i, k) * DxB.getVal(k, j);
+                        sum += Bt.getVal(i, k) * dB.getVal(k, j);
                     }
-                    P_e.Set(i, j, P_e.getVal(i, j) + sum * dOmega);
+                    k_matrix.Set(i, j, sum);
+                }
+            }
+            
+            // --- NUEVO: Tensión equivalente de Norton-Hoff (ecuación 4.50) ---
+            double sigma_eq = equivalent_stress_norton(strain_result.eps_dot_eq);
+            
+            // --- NUEVO: Contribución a P_e (ecuación 4.56) ---
+            // P_e += (sigma_eq / eps_dot_eq) * k_matrix * dOmega
+            double factor = sigma_eq / strain_result.eps_dot_eq;
+            
+            for(int i = 0; i < 8; i++) {
+                for(int j = 0; j < 8; j++) {
+                    double val = P_e.getVal(i, j) 
+                               + k_matrix.getVal(i, j) * factor * dOmega;
+                    P_e.Set(i, j, val);
                 }
             }
         }
-        
-        // ===========================================
-        // 2. INTEGRACIÓN REDUCIDA PARA Q Y PENALIZACIÓN (1 punto)
-        // ===========================================
-        for(int gp = 0; gp < 1; gp++) {
-            double xi = gp_reduced[gp].first;
-            double eta = gp_reduced[gp].second;
-            double w = w_reduced[gp];
-            
-            auto jac_result = jacobian_and_gradients(pos, xi, eta);
-            
-            // Coordenada radial en el punto de Gauss
-            double r_gp = 0.0;
-            for(int i = 0; i < 4; i++) {
-                r_gp += jac_result.N[i] * pos[i].x;
-            }
-            r_gp = max(r_gp, 1e-12);
-            
-            // Factor axisimétrico
-            double dOmega = 2.0 * M_PI * r_gp * jac_result.detJ * w;
-            
-            // ----- Punto 1: Matriz Q (acoplamiento) -----
-            // Construir Q según Martins: ∫ (∇·v) dΩ
-            for(int a = 0; a < 4; a++) {
-                // vr DOF
-                if(r_gp < 1e-8) {
-                    // Límite en el eje: div = 2*dvr/dr + dvz/dz
-                    Q_e.Set(2*a, 0, Q_e.getVal(2*a, 0) + (2.0 * jac_result.dNdX.getVal(0, a)) * dOmega);
-                } else {
-                    Q_e.Set(2*a, 0, Q_e.getVal(2*a, 0) + 
-                           (jac_result.dNdX.getVal(0, a) + jac_result.N[a] / r_gp) * dOmega);
-                }
-                
-                // vz DOF
-                Q_e.Set(2*a + 1, 0, Q_e.getVal(2*a + 1, 0) + 
-                       jac_result.dNdX.getVal(1, a) * dOmega);
-            }
-            
-            // ----- Punto 2: Penalización volumétrica K_pp -----
-            // Término: ∫ (1/κ) dΩ  →  K_pp[e_idx, e_idx] += dOmega / kappa
-            // Esto NO se ensambla ahora, se agregará directamente en K_glob[dof_p, dof_p]
-            
-            // DIAGNÓSTICO: calcular divergencia para verificar incompresibilidad
-            double dvr_dr = 0.0, dvz_dz = 0.0, vr_interp = 0.0;
-            for(int a = 0; a < 4; a++) {
-                dvr_dr += jac_result.dNdX.getVal(0, a) * vel_elem[2*a];
-                dvz_dz += jac_result.dNdX.getVal(1, a) * vel_elem[2*a + 1];
-                vr_interp += jac_result.N[a] * vel_elem[2*a];
-            }
-            
-            double div_v;
-            if(r_gp < 1e-8) {
-                div_v = 2.0 * dvr_dr + dvz_dz;  // Límite en el eje
-            } else {
-                div_v = dvr_dr + vr_interp/r_gp + dvz_dz;
-            }
-            
-            incompressibility_error += std::abs(div_v) * dOmega;
-            max_div_v = max(max_div_v, std::abs(div_v));
-        }
+              
+      // ===========================================
+      // 2. INTEGRACIÓN REDUCIDA PARA Q (1 punto)
+      //    Matriz Q = ∫ B^T C dV  (Martins eq. 4.55)
+      //    Vector C = [1, 1, 1, 0]^T (Martins eq. 4.49)
+      // ===========================================
+      for(int gp = 0; gp < 1; gp++) {
+          double xi = gp_reduced[gp].first;
+          double eta = gp_reduced[gp].second;
+          double w = w_reduced[gp];
+          
+          auto jac_result = jacobian_and_gradients(pos, xi, eta);
+          
+          // Coordenada radial en el punto de Gauss
+          double r_gp = 0.0;
+          for(int i = 0; i < 4; i++) {
+              r_gp += jac_result.N[i] * pos[i].x;
+          }
+          r_gp = max(r_gp, 1e-12);
+          
+          // Factor axisimétrico: dΩ = 2π·r·|J|·w
+          double dOmega = 2.0 * M_PI * r_gp * jac_result.detJ * w;
+          
+          // --- MATRIZ B COMPLETA (4x8) PARA AXISIMETRÍA ---
+          Matrix B(4, 8);
+          B.SetZero();
+          
+          // ε_rr = ∂vr/∂r
+          for(int a = 0; a < 4; a++) {
+              B.Set(0, 2*a, jac_result.dNdX.getVal(0, a));
+          }
+          
+          // ε_zz = ∂vz/∂z
+          for(int a = 0; a < 4; a++) {
+              B.Set(1, 2*a + 1, jac_result.dNdX.getVal(1, a));
+          }
+          
+          // ε_θθ = vr/r (o límite en el eje)
+          if(r_gp < 1e-8) {
+              // En el eje: ε_θθ = ∂vr/∂r
+              for(int a = 0; a < 4; a++) {
+                  B.Set(2, 2*a, jac_result.dNdX.getVal(0, a));
+              }
+          } else {
+              // Fuera del eje: ε_θθ = vr/r
+              for(int a = 0; a < 4; a++) {
+                  B.Set(2, 2*a, jac_result.N[a] / r_gp);
+              }
+          }
+                    
+          // ε_rz = ∂vr/∂z + ∂vz/∂r (SIN 0.5 - el tensor ya tiene 0.5 en la definición)
+          for(int a = 0; a < 4; a++) {
+              B.Set(3, 2*a, jac_result.dNdX.getVal(1, a));      // ∂vr/∂z
+              B.Set(3, 2*a + 1, jac_result.dNdX.getVal(0, a)); // ∂vz/∂r
+          }    
+          // --- VECTOR C DE MARTINS (ECUACIÓN 4.49) ---
+          // C = [1, 1, 1, 0]^T  (rr, zz, θθ, rz)
+          std::vector<double> C_vec = {1.0, 1.0, 1.0, 0.0};
+          
+          // --- CALCULAR B^T * C (VECTOR DE 8 COMPONENTES) ---
+          std::vector<double> BT_C(8, 0.0);
+          
+          // B^T es de dimensión 8x4, C es 4x1, resultado 8x1
+          // BT_C[i] = Σ_{k=0}^{3} B^T[i][k] * C[k] = Σ_{k=0}^{3} B[k][i] * C[k]
+          for(int i = 0; i < 8; i++) {           // i = DOF local
+              double sum = 0.0;
+              for(int k = 0; k < 4; k++) {       // k = componente de deformación
+                  sum += B.getVal(k, i) * C_vec[k];
+              }
+              BT_C[i] = sum;
+          }
+          
+          // --- ENSAMBLAR MATRIZ Q ELEMENTAL ---
+          // Q_e[:, 0] += ∫ (B^T C) dΩ
+          for(int i = 0; i < 8; i++) {
+              double current_val = Q_e.getVal(i, 0);
+              Q_e.Set(i, 0, current_val + BT_C[i] * dOmega);
+          }
+          
+          // --- DIAGNÓSTICO: CALCULAR DIVERGENCIA (OPCIONAL) ---
+          // Solo para verificar incompresibilidad, no afecta el ensamblaje
+          double dvr_dr = 0.0, dvz_dz = 0.0, vr_interp = 0.0;
+          for(int a = 0; a < 4; a++) {
+              dvr_dr += jac_result.dNdX.getVal(0, a) * vel_elem[2*a];
+              dvz_dz += jac_result.dNdX.getVal(1, a) * vel_elem[2*a + 1];
+              vr_interp += jac_result.N[a] * vel_elem[2*a];
+          }
+          
+          double div_v;
+          if(r_gp < 1e-8) {
+              div_v = 2.0 * dvr_dr + dvz_dz;
+          } else {
+              div_v = dvr_dr + vr_interp/r_gp + dvz_dz;
+          }
+          
+          incompressibility_error += std::abs(div_v) * dOmega;
+          max_div_v = max(max_div_v, std::abs(div_v));
+      }
         
         // ===========================================
         // ENSAMBLAJE GLOBAL CON PENALIZACIÓN VOLUMÉTRICA
@@ -549,8 +711,8 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         dOmega_penalty = 2.0 * M_PI * r_penalty * jac_penalty.detJ * 4.0; // w_reduced[0] = 4.0
         
         // Agregar penalización volumétrica: ∫ (1/κ) dΩ
-        double current_val = K_glob.getVal(dof_p, dof_p);
-        K_glob.Set(dof_p, dof_p, current_val + dOmega_penalty / kappa);
+        //double current_val = K_glob.getVal(dof_p, dof_p);
+        //K_glob.Set(dof_p, dof_p, current_val + dOmega_penalty / kappa);
 
         //~ if(e_idx == 0) {  // Solo primer elemento
             //~ std::cout << "\n=== P_e ELEMENTO 0 (ANTES DE ENSAMBLAR) ===" << std::endl;
@@ -568,6 +730,13 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
 
         
     } // Fin del bucle de elementos
+
+    //~ for(int i = ndof_v; i < ndof_total; i++) {
+        //~ double diag = K_glob.getVal(i, i);
+        //~ if(fabs(diag) < 1e-12) {
+            //~ K_glob.Set(i, i, 1e-8);  // Regularización
+        //~ }
+    //~ }
     
     //~ // Pequeña regularización por si acaso (mejor estabilidad numérica)
     //~ for(int i = ndof_v; i < ndof_total; ++i) {
@@ -1118,7 +1287,7 @@ void perform_physical_checks(const std::vector<double>& vel,
         );
         
         eps_dot_values.push_back(strain_result.eps_dot_eq);
-        mu_values.push_back(effective_viscosity_norton(strain_result.eps_dot_eq));
+        //mu_values.push_back(effective_viscosity_norton(strain_result.eps_dot_eq));
     }
     
     double eps_min = *std::min_element(eps_dot_values.begin(), eps_dot_values.end());
@@ -1129,15 +1298,11 @@ void perform_physical_checks(const std::vector<double>& vel,
     
     double mu_min = *std::min_element(mu_values.begin(), mu_values.end());
     double mu_max = *std::max_element(mu_values.begin(), mu_values.end());
-    double mu_mean = 0.0;
-    for(double val : mu_values) mu_mean += val;
-    mu_mean /= mu_values.size();
+
     
     std::cout << "\nPROPIEDADES DEL MATERIAL:" << std::endl;
     std::cout << "ε̇_eq: min=" << eps_min << ", max=" << eps_max 
               << ", mean=" << eps_mean << " 1/s" << std::endl;
-    std::cout << "μ_eff: min=" << mu_min/1e6 << ", max=" << mu_max/1e6 
-              << ", mean=" << mu_mean/1e6 << " MPa·s" << std::endl;
     
     // 4. Fuerzas estimadas
     double area_top = M_PI * final_radius * final_radius;
@@ -1178,7 +1343,7 @@ void perform_physical_checks(const std::vector<double>& vel,
               << " velocidades + " << ndof_p << " presiones P0)" << std::endl;
     std::cout << "Esquema: Martins (4.55-4.56)" << std::endl;
     std::cout << "Integración: P(4 puntos) + Q(1 punto reducido)" << std::endl;
-    std::cout << "Relajación: ω=" << relax_factor << std::endl;
+
     
 
 
@@ -1265,12 +1430,13 @@ void perform_physical_checks(const std::vector<double>& vel,
         std::cout << "  Presión: [" << p_min/1e6 << ", " << p_max/1e6 << "] MPa" << std::endl;
         std::cout << "  Presión media: " << (p_min + p_max)/(2.0*1e6) << " MPa" << std::endl;
     }
-
+    
+    cout << "Writing VTK"<<endl;
         // ESCRIBIR VTK DESPUÉS DE CADA PASO
         VTKWriter::writeVtkFile("forja", 1, coords, elements, 
                                velocity, pressure, eps_bar, 
                                nnodes, nelem);
-                                   
+    cout << "DONE."<<endl;
     // Verificaciones físicas finales
     perform_physical_checks(velocity, pressure, eps_bar);
     

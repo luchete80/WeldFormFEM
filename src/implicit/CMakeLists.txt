@@ -115,7 +115,8 @@ set (SOURCES
                         Matrices.C
                         Solver.C
                         #Solver_GlobalMatrix_EPHV.C
-                        Solver_GlobalMatrix_QS_martins.C
+                        Solver_Martins_NR.C
+                        Solver_Martins_Picard.C
                         Solver_Eigen.C
                         #Solver_Martins_Picard.C
                         
@@ -126,7 +127,7 @@ add_executable(weldform_imp main.C
                          
                )
 
-add_executable(example_martins Solver_Martins_Picard.C
+add_executable(example_martins Solver_Martins_Picard_example.C
                          
                )
                

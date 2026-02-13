@@ -477,7 +477,9 @@ int main(int argc, char **argv) {
     //~ cout << "Solver Type is Dynamic "<<endl;
         //~ dom_d->SolveImplicitGlobalMatrix();
   //~ }
-  dom_d->SolveStaticQS_UP();
+  
+  //dom_d->Solve_Martins_NR();
+  dom_d->Solve_Martins_Picard();
   
 	cout << "Program ended."<<endl;
     

@@ -694,11 +694,10 @@ public:
   void SolveImplicitGlobalMatrix();
   /// DISPLACEMENT (STATIC) FUNCTIONS
   void SolveStaticQS_EPHV(); ///// ELASTOPLASTIC HARDENING, VIA VELOCITIES
-  void SolveStaticQS_UP();
   void SolveStaticQS_V();
   
   void Solve_Martins_Picard();
-  
+  void Solve_Martins_NR();  
   
   void SolveElastic(); //SIMPLE 
   

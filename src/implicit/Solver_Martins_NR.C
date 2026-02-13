@@ -125,7 +125,7 @@ void Domain_d::CalcIncBCU(int dim/*, double load_factor*/) {
 }
 
 
-void host_ Domain_d::SolveStaticQS_UP(){
+void host_ Domain_d::Solve_Martins_NR(){
   WallTimer timer;
 
   std::ofstream of("Contact_Forces.csv", std::ios::out);
