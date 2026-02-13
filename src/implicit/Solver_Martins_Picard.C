@@ -670,18 +670,17 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
         //double current_val = K_glob.getVal(dof_p, dof_p);
         //K_glob.Set(dof_p, dof_p, current_val + dOmega_penalty / kappa);
 
-        //~ if(e_idx == 0) {  // Solo primer elemento
-            //~ std::cout << "\n=== P_e ELEMENTO 0 (ANTES DE ENSAMBLAR) ===" << std::endl;
-            //~ P_e.Print();
-            //~ std::cout << "=== FIN P_e ===\n" << std::endl;
+        if(e_idx == 0) {  // Solo primer elemento
+            std::cout << "\n=== P_e ELEMENTO 0 (ANTES DE ENSAMBLAR) ===" << std::endl;
+            P_e.Print();
+            std::cout << "=== FIN P_e ===\n" << std::endl;
             
-            //~ std::cout << "\n=== Q_e ELEMENTO 0 ===" << std::endl;
-            //~ Q_e.Print();
-            //~ std::cout << "=== FIN Q_e ===\n" << std::endl;
+            std::cout << "\n=== Q_e ELEMENTO 0 ===" << std::endl;
+            Q_e.Print();
+            std::cout << "=== FIN Q_e ===\n" << std::endl;
             
-            //~ std::cout << "dOmega_penalty = " << dOmega_penalty << std::endl;
-            //~ std::cout << "kappa = " << kappa << std::endl;
-        //~ }
+            std::cout << "dOmega_penalty = " << dOmega_penalty << std::endl;
+        }
 
 
         
@@ -1146,11 +1145,10 @@ void apply_boundary_conditions_axisym(Matrix& K_glob,
     }
     for (int e=0;e<m_elem_count;e++){
       elements[e].resize(4);
-      for (int i;i<4;i++){
+      for (int i=0;i<4;i++){
           elements[e][i] = m_elnod[m_nodxelem*e+i];
       }
     }
-
 
     //auto fixed_dofs = setup_boundary_conditions();
        
