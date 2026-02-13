@@ -408,7 +408,7 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA Y PENALIZACIÓN
 // ================================
-  void assemble_martins_system(const std::vector<double>& vel_vec,
+  void Domain_d::assemble_martins_system(const std::vector<double>& vel_vec,
                             const std::vector<double>& press_vec,
                             Matrix& K_glob,
                             std::vector<double>& F_glob,
@@ -982,7 +982,7 @@ void verify_top_bc() {
 
 
 
-    SolveResult solve_step_martins(std::vector<double>& vel_guess,
+    SolveResult Domain_d::solve_step_martins(std::vector<double>& vel_guess,
                                   std::vector<double>& press_guess,
                                   const std::unordered_map<int, double>& fixed_dofs,
                                   Matrix& K_temp,
