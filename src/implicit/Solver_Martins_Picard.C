@@ -670,17 +670,17 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
         //double current_val = K_glob.getVal(dof_p, dof_p);
         //K_glob.Set(dof_p, dof_p, current_val + dOmega_penalty / kappa);
 
-        if(e_idx == 0) {  // Solo primer elemento
-            std::cout << "\n=== P_e ELEMENTO 0 (ANTES DE ENSAMBLAR) ===" << std::endl;
-            P_e.Print();
-            std::cout << "=== FIN P_e ===\n" << std::endl;
+        //~ if(e_idx == 0) {  // Solo primer elemento
+            //~ std::cout << "\n=== P_e ELEMENTO 0 (ANTES DE ENSAMBLAR) ===" << std::endl;
+            //~ P_e.Print();
+            //~ std::cout << "=== FIN P_e ===\n" << std::endl;
             
-            std::cout << "\n=== Q_e ELEMENTO 0 ===" << std::endl;
-            Q_e.Print();
-            std::cout << "=== FIN Q_e ===\n" << std::endl;
+            //~ std::cout << "\n=== Q_e ELEMENTO 0 ===" << std::endl;
+            //~ Q_e.Print();
+            //~ std::cout << "=== FIN Q_e ===\n" << std::endl;
             
-            std::cout << "dOmega_penalty = " << dOmega_penalty << std::endl;
-        }
+            //~ std::cout << "dOmega_penalty = " << dOmega_penalty << std::endl;
+        //~ }
 
 
         
@@ -808,43 +808,43 @@ void apply_boundary_conditions_axisym(Matrix& K_glob,
                                incompress_error, max_div);
 
 
-          std::cout << "\n" << std::string(70, '=') << std::endl;
-          std::cout << " DEBUG - MATRIZ GLOBAL C++ (primeros 10x10)" << std::endl;
-          std::cout << std::string(70, '=') << std::endl;
+          //~ std::cout << "\n" << std::string(70, '=') << std::endl;
+          //~ std::cout << " DEBUG - MATRIZ GLOBAL C++ (primeros 10x10)" << std::endl;
+          //~ std::cout << std::string(70, '=') << std::endl;
           
-          // Bloque velocidad-velocidad
-          std::cout << "\n BLOQUE V-V (P_glob) - 5x5 superior izquierda:" << std::endl;
-          for(int i = 0; i < std::min(5, ndof_v); i++) {
-              for(int j = 0; j < std::min(5, ndof_v); j++) {
-                  printf("%12.6e ", K_temp.getVal(i, j));
-              }
-              std::cout << std::endl;
-          }
+          //~ // Bloque velocidad-velocidad
+          //~ std::cout << "\n BLOQUE V-V (P_glob) - 5x5 superior izquierda:" << std::endl;
+          //~ for(int i = 0; i < std::min(5, ndof_v); i++) {
+              //~ for(int j = 0; j < std::min(5, ndof_v); j++) {
+                  //~ printf("%12.6e ", K_temp.getVal(i, j));
+              //~ }
+              //~ std::cout << std::endl;
+          //~ }
           
-          // Bloque velocidad-presión
-          std::cout << "\n BLOQUE V-P (Q_glob) - 5x5:" << std::endl;
-          for(int i = 0; i < std::min(5, ndof_v); i++) {
-              for(int j = 0; j < std::min(5, ndof_p); j++) {
-                  printf("%12.6e ", K_temp.getVal(i, ndof_v + j));
-              }
-              std::cout << std::endl;
-          }
+          //~ // Bloque velocidad-presión
+          //~ std::cout << "\n BLOQUE V-P (Q_glob) - 5x5:" << std::endl;
+          //~ for(int i = 0; i < std::min(5, ndof_v); i++) {
+              //~ for(int j = 0; j < std::min(5, ndof_p); j++) {
+                  //~ printf("%12.6e ", K_temp.getVal(i, ndof_v + j));
+              //~ }
+              //~ std::cout << std::endl;
+          //~ }
           
-          // Bloque presión-velocidad (Q^T)
-          std::cout << "\n BLOQUE P-V (Q^T) - 5x5:" << std::endl;
-          for(int i = 0; i < std::min(5, ndof_p); i++) {
-              for(int j = 0; j < std::min(5, ndof_v); j++) {
-                  printf("%12.6e ", K_temp.getVal(ndof_v + i, j));
-              }
-              std::cout << std::endl;
-          }
+          //~ // Bloque presión-velocidad (Q^T)
+          //~ std::cout << "\n BLOQUE P-V (Q^T) - 5x5:" << std::endl;
+          //~ for(int i = 0; i < std::min(5, ndof_p); i++) {
+              //~ for(int j = 0; j < std::min(5, ndof_v); j++) {
+                  //~ printf("%12.6e ", K_temp.getVal(ndof_v + i, j));
+              //~ }
+              //~ std::cout << std::endl;
+          //~ }
           
-          // Bloque presión-presión (K_pp)
-          std::cout << "\n BLOQUE P-P (K_pp) - primeros 5 diag:" << std::endl;
-          for(int i = 0; i < std::min(5, ndof_p); i++) {
-              double val = K_temp.getVal(ndof_v + i, ndof_v + i);
-              printf("  K_pp[%d,%d] = %12.6e\n", i, i, val);
-          }
+          //~ // Bloque presión-presión (K_pp)
+          //~ std::cout << "\n BLOQUE P-P (K_pp) - primeros 5 diag:" << std::endl;
+          //~ for(int i = 0; i < std::min(5, ndof_p); i++) {
+              //~ double val = K_temp.getVal(ndof_v + i, ndof_v + i);
+              //~ printf("  K_pp[%d,%d] = %12.6e\n", i, i, val);
+          //~ }
 
         
         // APLICAR CONDICIONES USANDO LOS MIEMBROS DE LA CLASE
