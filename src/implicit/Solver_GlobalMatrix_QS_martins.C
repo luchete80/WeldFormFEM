@@ -45,6 +45,44 @@ namespace MetFEM{
 
 
 
+void Domain_d::CalcIncBCV(int dim/*, double load_factor*/) {
+    int* bc_nodes = nullptr;
+    double* current_bc_values = nullptr;
+    std::vector<double>* original_values = nullptr;
+    
+    // Seleccionar arrays según dimensión
+    switch (dim) {
+        case 0: 
+            bc_nodes = bcx_nod; 
+            current_bc_values = bcx_val;
+            original_values = &original_bcx_val;
+            break;
+        case 1: 
+            bc_nodes = bcy_nod; 
+            current_bc_values = bcy_val;
+            original_values = &original_bcy_val;
+            break;
+        case 2: 
+            bc_nodes = bcz_nod; 
+            current_bc_values = bcz_val;
+            original_values = &original_bcz_val;
+            break;
+        default: return;
+    }
+    
+    // Aplicar BCs de forma incremental según load_factor
+    par_loop (i, bc_count[dim]) {
+        double target_disp = (*original_values)[i] /** load_factor*/;
+        double current_disp = v[bc_nodes[i] * m_dim + dim];
+        double delta_disp = target_disp - current_disp;
+        
+        //cout << "Writing bc "<< i <<", node "<<bc_nodes[i]<<"curr vel "<<current_disp<< ", target: "<<target_disp<<"bc: "<<delta_disp<<endl;
+        // Sobrescribir el valor en el array de BCs
+        current_bc_values[i] = delta_disp; // ← Ahora guarda el incremento
+
+    }
+}
+
 
 
 
