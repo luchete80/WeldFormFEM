@@ -41,6 +41,7 @@
 
 #include "Tensor.h"
 
+#include <unordered_map> //////TEMPORARY, TO IMPLICIT; DELETE
  
 #define _QUA2D_ 0
 #define _TRI2D_ 1
@@ -114,7 +115,16 @@ class BC_Node {
 };
 
 namespace MetFEM{
-  
+
+    //TEMPORARY, FOR IMPLICIT MIGRATION
+  struct SolveResult {
+      std::vector<double> velocity;
+      std::vector<double> pressure;
+      bool converged;
+      int iterations;
+      double div_error;
+      double max_div;
+  };
 
   
 enum DomainType { IMPL, EXPL };
@@ -548,7 +558,7 @@ public:
 	int threadsPerBlock, blocksPerGrid; //TO BE USED BY SOLVER
 	
 	const int & getElemCount()const{return m_elem_count;}
-  unsigned int & getElemNode(const int &e, const int &n)const{return m_elnod[m_nodxelem*e+n];}
+  inline unsigned int & getElemNode(const int &e, const int &n)const{return m_elnod[m_nodxelem*e+n];}
 	const int & getNodeCount()const{return m_node_count;}
   vector_t getNodePos3(const int &n){
     #ifdef CUDA_BUILD
@@ -697,7 +707,22 @@ public:
   void SolveStaticQS_V();
   
   void Solve_Martins_Picard();
-  void Solve_Martins_NR();  
+  void Solve_Martins_NR(); 
+  
+  ////// AUXILIAR IMPLICIT SYSTEM
+  void assemble_martins_system(const std::vector<double>& vel_vec,
+                            const std::vector<double>& press_vec,
+                            Matrix& K_glob,
+                            std::vector<double>& F_glob,
+                            double& incompressibility_error,
+                            double& max_div_v);
+
+
+  SolveResult solve_step_martins(std::vector<double>& vel_guess,
+                                std::vector<double>& press_guess,
+                                const std::unordered_map<int, double>& fixed_dofs,
+                                Matrix& K_temp,
+                                std::vector<double>& F_temp);  
   
   void SolveElastic(); //SIMPLE 
   

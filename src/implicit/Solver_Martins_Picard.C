@@ -408,18 +408,16 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA Y PENALIZACIÓN
 // ================================
-void assemble_martins_system(const std::vector<double>& vel_vec,
+  void Domain_d::assemble_martins_system(const std::vector<double>& vel_vec,
                             const std::vector<double>& press_vec,
                             Matrix& K_glob,
                             std::vector<double>& F_glob,
-                            double& max_mu_eff,
                             double& incompressibility_error,
                             double& max_div_v) {
     
     // Inicializar sistema global
     K_glob.SetZero();
     std::fill(F_glob.begin(), F_glob.end(), 0.0);
-    max_mu_eff = 0.0;
     incompressibility_error = 0.0;
     max_div_v = 0.0;
         
@@ -438,8 +436,11 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
         
         // Posiciones de los nodos del elemento
         std::vector<Point2D> pos(4);
-        for(int i = 0; i < 4; i++) {
-            pos[i] = coords[conn[i]];
+        for(int i = 0; i < 4; i++) {//node
+            //pos[i] = coords[conn[i]];
+            int n =  getElemNode(e_idx,i);
+            pos[i].x = x[m_dim*n];
+            pos[i].y = x[m_dim*n+1];
         }
         
         // DOFs de velocidades del elemento
@@ -947,32 +948,34 @@ void verify_top_bc() {
 // ================================
 // SOLUCIÓN CON RELAJACIÓN Y DIAGNÓSTICO (MARTINS)
 // ================================
-struct SolveResult {
-    std::vector<double> velocity;
-    std::vector<double> pressure;
-    bool converged;
-    int iterations;
-    double div_error;
-    double max_div;
-};
+//~ struct SolveResult {
+    //~ std::vector<double> velocity;
+    //~ std::vector<double> pressure;
+    //~ bool converged;
+    //~ int iterations;
+    //~ double div_error;
+    //~ double max_div;
+//~ };
 
-SolveResult solve_step_martins(std::vector<double>& vel_guess,
-                              std::vector<double>& press_guess,
-                              const std::unordered_map<int, double>& fixed_dofs,
-                              Matrix& K_temp,
-                              std::vector<double>& F_temp) {
-    
-    std::vector<double> vel_prev = vel_guess;
-    std::vector<double> press_prev = press_guess;
-    
-    SolveResult result;
-    
+
+
+    SolveResult Domain_d::solve_step_martins(std::vector<double>& vel_guess,
+                                  std::vector<double>& press_guess,
+                                  const std::unordered_map<int, double>& fixed_dofs,
+                                  Matrix& K_temp,
+                                  std::vector<double>& F_temp) {
+        
+        std::vector<double> vel_prev = vel_guess;
+        std::vector<double> press_prev = press_guess;
+        
+        SolveResult result;
+        
     for(int iter = 0; iter < max_iter; iter++) {
         // Ensamblar sistema según Martins
         double max_mu, incompress_error, max_div;
 
         assemble_martins_system(vel_guess, press_guess, K_temp, F_temp, 
-                               max_mu, incompress_error, max_div);
+                               incompress_error, max_div);
 
 
           //~ std::cout << "\n" << std::string(70, '=') << std::endl;
