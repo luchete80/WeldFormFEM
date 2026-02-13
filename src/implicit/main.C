@@ -451,7 +451,7 @@ int main(int argc, char **argv) {
 
 
   if (!contact){
-    //printf("Searching bcs for ZoneID %d..\n", id);
+    printf("Searching bcs for Zones..\n");
     for (int bc=0;bc<bConds.size();bc++){
       //~ if (bConds[bc].zoneId==id){
       //~ printf("BC Found for Zone ID: %d\n", id);
