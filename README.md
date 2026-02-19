@@ -1,11 +1,11 @@
 # WeldFormFEM – Open-Source FEM Solver for Large Deformation Processes
 
-WeldFormFEM is an open-source Finite Element solver designed for nonlinear solid mechanics simulations 
+WeldFormFEM is an open-source Finite Element explicit solver designed for nonlinear solid mechanics simulations 
 involving large deformations, contact, and material plasticity.
 
 Originally developed for forging simulations, the solver is modular and extensible, making it suitable for a wide range of forming and manufacturing processes such as:
 
-Updated Lagrangian Implicit & Explicit Finite Element Method (FEM) CPU/GPU based solver. \
+Updated Lagrangian Explicit Finite Element Method (FEM) CPU/GPU based solver. \
 WeldFormFEM works both on Ubuntu and Windows. \
 You can select to build it to CPU and GPU only by changing a single CMAKE var. \
 
@@ -17,7 +17,6 @@ You can select to build it to CPU and GPU only by changing a single CMAKE var. \
 - Custom research on material behavior
 
 ## Key Features
-- Implicit Velocity-Based Quasi-Static Solver (IVBQS)
 - Explicit Dynamic Time integration
 - Plasticity and large deformation support
 - Remeshing for element quality preservation
