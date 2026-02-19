@@ -170,7 +170,7 @@ public:
   virtual void setDirichletBC(int dof, double delta_value);
   void applyIncrementalBCs();
 
-protected:
+//protected:
   typedef Eigen::SparseMatrix<double> SpMat;
   typedef Eigen::Triplet<double> T;
 
@@ -187,7 +187,7 @@ protected:
 
 
 
-private:
+//private:
     // Helper function to add element matrix contributions to triplets
     inline void addElementToTriplets(/*const */Matrix& Ke, 
                                    const std::vector<int>& global_dofs,

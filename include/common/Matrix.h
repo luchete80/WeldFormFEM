@@ -81,7 +81,7 @@ public:
     //~ }
   
   inline double & getVal(int a, int b);
-  double& at(int i, int j)const;          // non-const accessor for assignment
+  const double& at(int i, int j)const;          // non-const accessor for assignment
   __spec double & operator()(int a, int b);
   __spec Matrix  operator*(const double &f);
   //__spec Matrix  operator=(const Matrix &m);
@@ -263,7 +263,7 @@ __spec void MatMul(Matrix A, Matrix B, Matrix *ret){
     return m_data[m_col*a+b];
   }
 
-  __spec double & Matrix::at(int a, int b)const{
+  __spec const double & Matrix::at(int a, int b)const{
     return m_data[m_col*a+b];
   }  
   __spec double & Matrix::operator()(int a, int b){

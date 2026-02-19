@@ -107,8 +107,6 @@ Matrix SolveLU_(Matrix& A, Matrix& b) {
 // ================================
 // PARÁMETROS FÍSICAMENTE CORRECTOS
 // ================================
-int nelr = 15, nelz = 15;
-double Lr = 0.0127, Lz = 0.03;  // Radio 12.7mm, altura 30mm
 
 // MATERIAL: Acero caliente tipo Norton-Hoff
 double Kmat = 50.0e6;          // Coeficiente de consistencia [Pa·s^n]
@@ -122,7 +120,6 @@ double omega_p = 0.1;          // Relajación para presiones (MUY importante)
 
 double tol = 1e-3;             // Tolerancia relajada para simulación práctica
 int max_iter = 50;
-double dt = 0.001;
 int nsteps = 5;
 double v_z_top = -1.0;         // Compresión en dirección Z
 
@@ -135,7 +132,6 @@ struct Point2D {
 };
 
 // Variables globales
-int nx_nodes, ny_nodes, nnodes, nelem;
 int ndof_v, ndof_p, ndof_total;
 
 std::vector<Point2D> coords;
@@ -298,50 +294,6 @@ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<doubl
     return solution;
 }
 
-//~ // ================================
-//~ // FUNCIÓN DE RESOLUCIÓN LINEAL CON LU (PIVOTEO PARCIAL)
-//~ // ================================
-//~ std::vector<double> solve_linear_system(const Matrix& K, const std::vector<double>& F) {
-    //~ int n = K.m_row;
-    //~ std::vector<double> solution(n, 0.0);
-    
-    //~ // Convertir vector F a Matrix b
-    //~ Matrix b(n, 1);
-    //~ for(int i = 0; i < n; i++) b.Set(i, 0, F[i]);
-    
-    //~ // Hacer copia de K
-    //~ Matrix A = K;
-    
-    //~ // Regularizar diagonal por si acaso
-    //~ for(int i = 0; i < n; i++) {
-        //~ double diag = A.getVal(i, i);
-        //~ if(fabs(diag) < 1e-12) A.Set(i, i, 1e-8);
-    //~ }
-    
-    //~ // Resolver
-    //~ Matrix x = SolveLU_(A, b);
-    
-    //~ // Verificar
-    //~ if(x.m_row != n || x.m_col != 1) {
-        //~ std::cerr << "⚠ SolveLU falló" << std::endl;
-        //~ return std::vector<double>(n, 0.0);
-    //~ }
-    
-    //~ // Convertir resultado
-    //~ for(int i = 0; i < n; i++) solution[i] = x.getVal(i, 0);
-    
-    //~ return solution;
-//~ }
-
-// ================================
-// VISCOPLASTICIDAD NORTON-HOFF (AXISIMÉTRICO - MARTINS)
-// ================================
-//~ double effective_viscosity_norton(double eps_dot_eq) {
-    //~ // Evitar divisiones por cero
-    //~ double eps_dot_eq_safe = max(eps_dot_eq, 1e-12);
-    //~ return (Kmat / 3.0) * pow(eps_dot_eq_safe, nexp - 1.0);
-//~ }
-
 // AÑADIR esta función (ecuación 4.50 de Martins)
 double equivalent_stress_norton(double eps_dot_eq) {
     double eps_dot_eq_safe = max(eps_dot_eq, 1e-12);
@@ -402,24 +354,23 @@ StrainRateResult calculate_strain_rate_martins(Matrix& dNdX,
 
 #include "VTKWriter_tiny.hpp"
 
+
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA
 // ================================
 // ================================
 // ENSAMBLAJE MARTINS CON INTEGRACIÓN REDUCIDA Y PENALIZACIÓN
 // ================================
-void assemble_martins_system(const std::vector<double>& vel_vec,
+  void Domain_d::assemble_martins_system(const std::vector<double>& vel_vec,
                             const std::vector<double>& press_vec,
                             Matrix& K_glob,
                             std::vector<double>& F_glob,
-                            double& max_mu_eff,
                             double& incompressibility_error,
                             double& max_div_v) {
     
     // Inicializar sistema global
     K_glob.SetZero();
     std::fill(F_glob.begin(), F_glob.end(), 0.0);
-    max_mu_eff = 0.0;
     incompressibility_error = 0.0;
     max_div_v = 0.0;
         
@@ -433,12 +384,16 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
     std::vector<std::pair<double, double>> gp_reduced = {{0.0, 0.0}};
     std::vector<double> w_reduced = {4.0};  // peso para 1 punto
     
-    for(int e_idx = 0; e_idx < nelem; e_idx++) {
+    for(int e_idx = 0; e_idx < m_elem_count; e_idx++) {
         const auto& conn = elements[e_idx];
         
         // Posiciones de los nodos del elemento
         std::vector<Point2D> pos(4);
-        for(int i = 0; i < 4; i++) {
+        for(int i = 0; i < 4; i++) {//node
+
+            int n =  getElemNode(e_idx,i);
+            //pos[i].x = x[m_dim*n];
+            //pos[i].y = x[m_dim*n+1];
             pos[i] = coords[conn[i]];
         }
         
@@ -725,7 +680,6 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
             //~ std::cout << "=== FIN Q_e ===\n" << std::endl;
             
             //~ std::cout << "dOmega_penalty = " << dOmega_penalty << std::endl;
-            //~ std::cout << "kappa = " << kappa << std::endl;
         //~ }
 
 
@@ -749,230 +703,109 @@ void assemble_martins_system(const std::vector<double>& vel_vec,
 
 }
 
-// ================================
-// CONDICIONES DE CONTORNO (AXISIMÉTRICO)
-// ================================
-//~ std::unordered_map<int, double> setup_boundary_conditions() {
-    //~ std::unordered_map<int, double> fixed_dofs;
-    
-    //~ // Base inferior fija (z = 0)
-    //~ for(int i = 0; i < nx_nodes; i++) {
-        //~ int node_id = i;  // Primera fila
-        //~ fixed_dofs[2*node_id] = 0.0;      // vr = 0
-        //~ fixed_dofs[2*node_id + 1] = 0.0;  // vz = 0
-    //~ }
-    
-    //~ // Tapa superior: velocidad impuesta (z = Lz)
-    //~ for(int i = 0; i < nx_nodes; i++) {
-        //~ int node_id = (ny_nodes - 1) * nx_nodes + i;
-        //~ fixed_dofs[2*node_id] = 0.0;           // vr = 0 (stick condition)
-        //~ fixed_dofs[2*node_id + 1] = v_z_top;   // vz = velocidad impuesta
-    //~ }
-    
-    //~ // Eje de simetría (r = 0)
-    //~ for(int j = 0; j < ny_nodes; j++) {
-        //~ int node_id = j * nx_nodes;
-        //~ fixed_dofs[2*node_id] = 0.0;  // vr = 0 (condición de simetría)
-        //~ // vz libre
-    //~ }
-    
-    //~ // Lado exterior (r = Lr): libre para expansión radial
-    //~ // No se fija para permitir flujo libre hacia afuera
-    
-    //~ return fixed_dofs;
-//~ }
 
 // ================================
-// CONDICIONES DE CONTORNO - VERSIÓN CORREGIDA
+// APLICAR CONDICIONES DE CONTORNO AXISIMÉTRICAS (FUNCIÓN LIBRE)
 // ================================
-std::unordered_map<int, double> setup_boundary_conditions() {
-    std::unordered_map<int, double> fixed_dofs;
+void apply_boundary_conditions_axisym(Matrix& K_glob,
+                                     std::vector<double>& F_glob,
+                                     int ndof_v, 
+                                     int ndof_total,
+                                     int* bcx_nod, double* bcx_val, int n_bcx,
+                                     int* bcy_nod, double* bcy_val, int n_bcy) {
     
-    std::cout << "\n🔧 CONFIGURANDO CONDICIONES DE CONTORNO:" << std::endl;
+    std::cout << "\n🔧 APLICANDO CONDICIONES AXISIMÉTRICAS:" << std::endl;
+    std::cout << "   vr (X): " << n_bcx << " condiciones" << std::endl;
+    std::cout << "   vz (Y): " << n_bcy << " condiciones" << std::endl;
     
-    // 1. BASE INFERIOR (z = 0) - TODOS los nodos
-    for(int i = 0; i < nx_nodes; i++) {
-        int node_id = i;
-        fixed_dofs[2*node_id] = 0.0;      // vr = 0
-        fixed_dofs[2*node_id + 1] = 0.0;  // vz = 0
-    }
-    std::cout << "  Base inferior: " << nx_nodes << " nodos (vr=0, vz=0)" << std::endl;
+    int count_applied = 0;
+    double v_z_top_expected = -1.0; // De tu código original
     
-    // 2. TAPA SUPERIOR (z = Lz) - TODOS los nodos
-    for(int i = 0; i < nx_nodes; i++) {
-        int node_id = (ny_nodes - 1) * nx_nodes + i;
-        fixed_dofs[2*node_id] = 0.0;           // vr = 0
-        fixed_dofs[2*node_id + 1] = v_z_top;   // vz = -1.0 (COMPRESIÓN)
-    }
-    std::cout << "  Tapa superior: " << nx_nodes << " nodos (vr=0, vz=" << v_z_top << ")" << std::endl;
-    
-    // 3. EJE DE SIMETRÍA (r = 0) - SOLO nodos que NO son base NI tapa
-    int axis_count = 0;
-    int skipped = 0;
-    
-    for(int j = 1; j < ny_nodes - 1; j++) {  // j=1 hasta j=ny_nodes-2
-        int node_id = j * nx_nodes;
+    // Aplicar vr (dof = 2*nodo)
+    for(int i = 0; i < n_bcx; i++) {
+        int node = bcx_nod[i];
+        double value = bcx_val[i];
+        int dof = 2 * node;  // DOF de vr
         
-        // Verificar si YA existe (no debería, pero por las dudas)
-        if(fixed_dofs.find(2*node_id) == fixed_dofs.end()) {
-            fixed_dofs[2*node_id] = 0.0;  // SOLO vr = 0
-            axis_count++;
-        } else {
-            skipped++;
-        }
-        // NUNCA fijamos vz en el eje
-    }
-    std::cout << "  Eje simetría: " << axis_count << " nodos (vr=0)" << std::endl;
-    if(skipped > 0) {
-        std::cout << "  ⚠  Eje: " << skipped << " nodos ya fijados (base/tapa)" << std::endl;
-    }
-    
-    // 4. VERIFICACIÓN
-    int count_vz_top = 0;
-    for(const auto& [dof, val] : fixed_dofs) {
-        if(dof % 2 == 1 && std::abs(val - v_z_top) < 1e-6) {
-            count_vz_top++;
-        }
-    }
-    
-    std::cout << "  VERIFICACIÓN: " << count_vz_top << "/" << nx_nodes 
-              << " nodos con vz=" << v_z_top << std::endl;
-    
-    if(count_vz_top != nx_nodes) {
-        std::cout << "  ERROR CRÍTICO: Faltan condiciones de tapa superior!" << std::endl;
-    }
-    
-    return fixed_dofs;
-}
-// MODIFICA apply_boundary_conditions para DEBUG:
-//~ void apply_boundary_conditions(Matrix& K_glob,
-                              //~ std::vector<double>& F_glob,
-                              //~ const std::unordered_map<int, double>& fixed_dofs) {
-    
-    //~ std::cout << "Aplicando " << fixed_dofs.size() << " condiciones:" << std::endl;
-    //~ int count = 0;
-    //~ for(const auto& [dof, value] : fixed_dofs) {
-        //~ if(count < 5) {  // Mostrar primeras 5
-            //~ std::cout << "  dof " << dof << " = " << value << std::endl;
-            //~ count++;
-        //~ }
-        
-        //~ // Restar contribución de la columna
-        //~ for(int i = 0; i < ndof_total; i++) {
-            //~ F_glob[i] -= K_glob.getVal(i, dof) * value;
-        //~ }
-        
-        //~ // Poner fila y columna en cero
-        //~ for(int i = 0; i < ndof_total; i++) {
-            //~ K_glob.Set(dof, i, 0.0);
-            //~ K_glob.Set(i, dof, 0.0);
-        //~ }
-        
-        //~ // Poner 1 en la diagonal
-        //~ K_glob.Set(dof, dof, 1.0);
-        //~ F_glob[dof] = value;
-    //~ }
-//~ }
-
-void apply_boundary_conditions(Matrix& K_glob,
-                              std::vector<double>& F_glob,
-                              const std::unordered_map<int, double>& fixed_dofs) {
-    
-    // Contadores para verificación
-    int count_vz_top = 0;
-    int count_vz_base = 0;
-    int count_vr = 0;
-    
-    for(const auto& [dof, value] : fixed_dofs) {
-        // Estadísticas
-        if(dof % 2 == 1) {  // DOF de vz
-            if(std::abs(value - v_z_top) < 1e-6) count_vz_top++;
-            else if(std::abs(value) < 1e-6) count_vz_base++;
-        } else {
-            count_vr++;
+        // Mostrar primeras 5 condiciones para debug
+        if(i < 5) {
+            std::cout << "   vr: nodo " << node << " -> dof " << dof 
+                      << " = " << value << std::endl;
         }
         
         // Restar contribución de la columna
-        for(int i = 0; i < ndof_total; i++) {
-            F_glob[i] -= K_glob.getVal(i, dof) * value;
+        for(int j = 0; j < ndof_total; j++) {
+            F_glob[j] -= K_glob.getVal(j, dof) * value;
         }
         
         // Poner fila y columna en cero
-        for(int i = 0; i < ndof_total; i++) {
-            K_glob.Set(dof, i, 0.0);
-            K_glob.Set(i, dof, 0.0);
+        for(int j = 0; j < ndof_total; j++) {
+            K_glob.Set(dof, j, 0.0);
+            K_glob.Set(j, dof, 0.0);
         }
         
         // Poner 1 en la diagonal y asignar valor
         K_glob.Set(dof, dof, 1.0);
         F_glob[dof] = value;
+        count_applied++;
     }
     
-    // Mostrar resumen UNA SOLA VEZ
-    static bool first_call = true;
-    if(first_call) {
-        std::cout << "\n🔧 APLICANDO CONDICIONES:" << std::endl;
-        std::cout << "   " << count_vz_top << " vz = " << v_z_top << " (COMPRESIÓN)" << std::endl;
-        std::cout << "   " << count_vz_base << " vz = 0 (BASE)" << std::endl;
-        std::cout << "   " << count_vr << " vr = 0" << std::endl;
-        std::cout << "   TOTAL: " << fixed_dofs.size() << " condiciones" << std::endl;
-        first_call = false;
-    }
-}
-
-// Agrega esto DESPUÉS de initialize_mesh() en run_simulation_martins():
-void verify_top_bc() {
-    std::cout << "\n🔍 VERIFICANDO CONDICIÓN DE TAPA:" << std::endl;
-    
-    // Buscar un nodo de la tapa superior
-    int top_node = (ny_nodes - 1) * nx_nodes;  // Esquina superior izquierda
-    int top_dof_vz = 2 * top_node + 1;
-    
-    auto bcs = setup_boundary_conditions();
-    
-    if(bcs.find(top_dof_vz) != bcs.end()) {
-        double val = bcs.at(top_dof_vz);
-        std::cout << "  Nodo tapa (" << top_node << "): dof=" << top_dof_vz 
-                  << ", valor=" << val << std::endl;
-        if(std::abs(val - v_z_top) < 1e-6) {
-            std::cout << "  ✅ CORRECTO: vz = " << val << " (compresión)" << std::endl;
-        } else {
-            std::cout << "  ❌ ERROR: Debería ser " << v_z_top << std::endl;
+    // Aplicar vz (dof = 2*nodo + 1)
+    int vz_top_count = 0;
+    for(int i = 0; i < n_bcy; i++) {
+        int node = bcy_nod[i];
+        double value = bcy_val[i];
+        int dof = 2 * node + 1;  // DOF de vz
+        
+        if(i < 5) {
+            std::cout << "   vz: nodo " << node << " -> dof " << dof 
+                      << " = " << value << std::endl;
         }
-    } else {
-        std::cout << "  ❌ ERROR: No se encontró condición para tapa superior!" << std::endl;
+        
+        if(std::abs(value - v_z_top_expected) < 1e-6) {
+            vz_top_count++;
+        }
+        
+        // Restar contribución de la columna
+        for(int j = 0; j < ndof_total; j++) {
+            F_glob[j] -= K_glob.getVal(j, dof) * value;
+        }
+        
+        // Poner fila y columna en cero
+        for(int j = 0; j < ndof_total; j++) {
+            K_glob.Set(dof, j, 0.0);
+            K_glob.Set(j, dof, 0.0);
+        }
+        
+        // Poner 1 en la diagonal y asignar valor
+        K_glob.Set(dof, dof, 1.0);
+        F_glob[dof] = value;
+        count_applied++;
     }
+    
+    std::cout << "   " << vz_top_count << " vz = " << v_z_top_expected 
+              << " (COMPRESIÓN)" << std::endl;
+    std::cout << "   TOTAL: " << count_applied << " condiciones aplicadas" << std::endl;
 }
 
-// ================================
-// SOLUCIÓN CON RELAJACIÓN Y DIAGNÓSTICO (MARTINS)
-// ================================
-struct SolveResult {
-    std::vector<double> velocity;
-    std::vector<double> pressure;
-    bool converged;
-    int iterations;
-    double div_error;
-    double max_div;
-};
 
-SolveResult solve_step_martins(std::vector<double>& vel_guess,
-                              std::vector<double>& press_guess,
-                              const std::unordered_map<int, double>& fixed_dofs,
-                              Matrix& K_temp,
-                              std::vector<double>& F_temp) {
-    
-    std::vector<double> vel_prev = vel_guess;
-    std::vector<double> press_prev = press_guess;
-    
-    SolveResult result;
-    
+
+    SolveResult Domain_d::solve_step_martins(std::vector<double>& vel_guess,
+                                  std::vector<double>& press_guess,
+                                  Matrix& K_temp,
+                                  std::vector<double>& F_temp) {
+        
+        std::vector<double> vel_prev = vel_guess;
+        std::vector<double> press_prev = press_guess;
+        
+        SolveResult result;
+        
     for(int iter = 0; iter < max_iter; iter++) {
         // Ensamblar sistema según Martins
         double max_mu, incompress_error, max_div;
 
         assemble_martins_system(vel_guess, press_guess, K_temp, F_temp, 
-                               max_mu, incompress_error, max_div);
+                               incompress_error, max_div);
 
 
           //~ std::cout << "\n" << std::string(70, '=') << std::endl;
@@ -1013,8 +846,12 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
               //~ printf("  K_pp[%d,%d] = %12.6e\n", i, i, val);
           //~ }
 
-        // Aplicar condiciones de contorno
-        apply_boundary_conditions(K_temp, F_temp, fixed_dofs);
+        
+        // APLICAR CONDICIONES USANDO LOS MIEMBROS DE LA CLASE
+        apply_boundary_conditions_axisym(K_temp, F_temp, 
+                                        ndof_v, ndof_total,
+                                        this->bcx_nod, this->bcx_val, this->bc_count[0],
+                                        this->bcy_nod, this->bcy_val, this->bc_count[1]);
         
         try {
             // Resolver sistema de punto de silla
@@ -1068,7 +905,7 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
             //~ double avg_div = incompress_error / (domain_volume + 1e-12);
 
             double current_volume = 0.0;
-            for(int e_idx = 0; e_idx < nelem; e_idx++) {
+            for(int e_idx = 0; e_idx < m_elem_count; e_idx++) {
                 const auto& conn = elements[e_idx];
                 std::vector<Point2D> pos(4);
                 for(int i = 0; i < 4; i++) pos[i] = coords[conn[i]];
@@ -1120,202 +957,157 @@ SolveResult solve_step_martins(std::vector<double>& vel_guess,
     return result;
 }
 
-// ================================
-// INICIALIZACIÓN DE MALLADO (AXISIMÉTRICO)
-// ================================
-void initialize_mesh() {
-    nx_nodes = nelr + 1;
-    ny_nodes = nelz + 1;
-    nnodes = nx_nodes * ny_nodes;
-    nelem = nelr * nelz;
+//~ // ================================
+//~ // VERIFICACIONES FÍSICAS (MARTINS)
+//~ // ================================
+//~ void perform_physical_checks(const std::vector<double>& vel,
+                            //~ const std::vector<double>& press,
+                            //~ const std::vector<double>& eps_bar_local) {
     
-    // DOFs
-    ndof_v = 2 * nnodes;
-    ndof_p = nelem;
-    ndof_total = ndof_v + ndof_p;
+    //~ std::cout << "\n" << std::string(70, '=') << std::endl;
+    //~ std::cout << "VERIFICACIONES FÍSICAS (Martins)" << std::endl;
+    //~ std::cout << std::string(70, '=') << std::endl;
     
-    // Coordenadas (r, z)
-    coords.reserve(nnodes);
-    for(int j = 0; j < ny_nodes; j++) {
-        for(int i = 0; i < nx_nodes; i++) {
-            double r = i * Lr / nelr;
-            double z = j * Lz / nelz;
-            coords.push_back(Point2D(r, z));
-        }
-    }
+    //~ // 1. Volumen conservado
+    //~ double initial_vol = M_PI * Lr * Lr * Lz;
+    //~ double final_height = 0.0, final_radius = 0.0;
+    //~ for(const auto& p : coords) {
+        //~ final_height = max(final_height, p.y);
+        //~ final_radius = max(final_radius, p.x);
+    //~ }
+    //~ double min_height = 1e100;
+    //~ for(const auto& p : coords) {
+        //~ min_height = min(min_height, p.y);
+    //~ }
+    //~ final_height -= min_height;
     
-    // Elementos Q4
-    elements.reserve(nelem);
-    for(int j = 0; j < nelz; j++) {
-        for(int i = 0; i < nelr; i++) {
-            int n1 = j * nx_nodes + i;
-            int n2 = n1 + 1;
-            int n3 = n2 + nx_nodes;
-            int n4 = n1 + nx_nodes;
-            elements.push_back({n1, n2, n3, n4});
-        }
-    }
+    //~ double final_vol = M_PI * final_radius * final_radius * final_height;
+    //~ double vol_change = (final_vol - initial_vol) / initial_vol;
     
-    // Inicializar variables
-    velocity.resize(ndof_v, 0.0);
-    pressure.resize(ndof_p, 0.0);
-    eps_bar.resize(nelem, 0.0);
+    //~ std::cout << "Volumen inicial: " << initial_vol << " m³" << std::endl;
+    //~ std::cout << "Volumen final:   " << final_vol << " m³" << std::endl;
+    //~ std::cout << "Cambio volumen:  " << vol_change*100 << "%" << std::endl;
+    //~ if(std::abs(vol_change) < 0.01) {
+        //~ std::cout << "✓ Conservación de volumen ACEPTABLE" << std::endl;
+    //~ } else {
+        //~ std::cout << "⚠ ADVERTENCIA: Pérdida significativa de volumen" << std::endl;
+    //~ }
     
-    // Guardar malla inicial
-    coords_history.push_back(coords);
-}
-
-// ================================
-// VERIFICACIONES FÍSICAS (MARTINS)
-// ================================
-void perform_physical_checks(const std::vector<double>& vel,
-                            const std::vector<double>& press,
-                            const std::vector<double>& eps_bar_local) {
+    //~ // 2. Incompresibilidad
+    //~ std::cout << "\nINCOMPRESIBILIDAD:" << std::endl;
+    //~ double div_v_max = 0.0;
+    //~ double div_v_avg = 0.0;
+    //~ double total_vol = 0.0;
     
-    std::cout << "\n" << std::string(70, '=') << std::endl;
-    std::cout << "VERIFICACIONES FÍSICAS (Martins)" << std::endl;
-    std::cout << std::string(70, '=') << std::endl;
-    
-    // 1. Volumen conservado
-    double initial_vol = M_PI * Lr * Lr * Lz;
-    double final_height = 0.0, final_radius = 0.0;
-    for(const auto& p : coords) {
-        final_height = max(final_height, p.y);
-        final_radius = max(final_radius, p.x);
-    }
-    double min_height = 1e100;
-    for(const auto& p : coords) {
-        min_height = min(min_height, p.y);
-    }
-    final_height -= min_height;
-    
-    double final_vol = M_PI * final_radius * final_radius * final_height;
-    double vol_change = (final_vol - initial_vol) / initial_vol;
-    
-    std::cout << "Volumen inicial: " << initial_vol << " m³" << std::endl;
-    std::cout << "Volumen final:   " << final_vol << " m³" << std::endl;
-    std::cout << "Cambio volumen:  " << vol_change*100 << "%" << std::endl;
-    if(std::abs(vol_change) < 0.01) {
-        std::cout << "✓ Conservación de volumen ACEPTABLE" << std::endl;
-    } else {
-        std::cout << "⚠ ADVERTENCIA: Pérdida significativa de volumen" << std::endl;
-    }
-    
-    // 2. Incompresibilidad
-    std::cout << "\nINCOMPRESIBILIDAD:" << std::endl;
-    double div_v_max = 0.0;
-    double div_v_avg = 0.0;
-    double total_vol = 0.0;
-    
-    for(int e_idx = 0; e_idx < nelem; e_idx++) {
-        const auto& conn = elements[e_idx];
-        std::vector<Point2D> pos(4);
-        for(int i = 0; i < 4; i++) {
-            pos[i] = coords[conn[i]];
-        }
+    //~ for(int e_idx = 0; e_idx < m_elem_count; e_idx++) {
+        //~ const auto& conn = elements[e_idx];
+        //~ std::vector<Point2D> pos(4);
+        //~ for(int i = 0; i < 4; i++) {
+            //~ pos[i] = coords[conn[i]];
+        //~ }
         
-        // Velocidades del elemento
-        std::vector<double> vel_elem(8);
-        for(int i = 0; i < 4; i++) {
-            int node = conn[i];
-            vel_elem[2*i] = velocity[2*node];
-            vel_elem[2*i + 1] = velocity[2*node + 1];
-        }
+        //~ // Velocidades del elemento
+        //~ std::vector<double> vel_elem(8);
+        //~ for(int i = 0; i < 4; i++) {
+            //~ int node = conn[i];
+            //~ vel_elem[2*i] = velocity[2*node];
+            //~ vel_elem[2*i + 1] = velocity[2*node + 1];
+        //~ }
         
-        // Punto central
-        auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
-        double r_center = 0.0;
-        for(int i = 0; i < 4; i++) {
-            r_center += jac_result.N[i] * pos[i].x;
-        }
-        r_center = max(r_center, 1e-12);
+        //~ // Punto central
+        //~ auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
+        //~ double r_center = 0.0;
+        //~ for(int i = 0; i < 4; i++) {
+            //~ r_center += jac_result.N[i] * pos[i].x;
+        //~ }
+        //~ r_center = max(r_center, 1e-12);
         
-        // Calcular divergencia
-        double dvr_dr = 0.0, dvz_dz = 0.0, vr_center = 0.0;
-        for(int a = 0; a < 4; a++) {
-            dvr_dr += jac_result.dNdX.getVal(0, a) * vel_elem[2*a];
-            dvz_dz += jac_result.dNdX.getVal(1, a) * vel_elem[2*a + 1];
-            vr_center += jac_result.N[a] * vel_elem[2*a];
-        }
+        //~ // Calcular divergencia
+        //~ double dvr_dr = 0.0, dvz_dz = 0.0, vr_center = 0.0;
+        //~ for(int a = 0; a < 4; a++) {
+            //~ dvr_dr += jac_result.dNdX.getVal(0, a) * vel_elem[2*a];
+            //~ dvz_dz += jac_result.dNdX.getVal(1, a) * vel_elem[2*a + 1];
+            //~ vr_center += jac_result.N[a] * vel_elem[2*a];
+        //~ }
         
-        double div_v;
-        if(r_center < 1e-8) {
-            div_v = 2.0 * dvr_dr + dvz_dz;
-        } else {
-            div_v = dvr_dr + vr_center/r_center + dvz_dz;
-        }
+        //~ double div_v;
+        //~ if(r_center < 1e-8) {
+            //~ div_v = 2.0 * dvr_dr + dvz_dz;
+        //~ } else {
+            //~ div_v = dvr_dr + vr_center/r_center + dvz_dz;
+        //~ }
         
-        double elem_vol = jac_result.detJ * 2.0 * M_PI * r_center;
-        div_v_avg += std::abs(div_v) * elem_vol;
-        total_vol += elem_vol;
-        div_v_max = max(div_v_max, std::abs(div_v));
-    }
+        //~ double elem_vol = jac_result.detJ * 2.0 * M_PI * r_center;
+        //~ div_v_avg += std::abs(div_v) * elem_vol;
+        //~ total_vol += elem_vol;
+        //~ div_v_max = max(div_v_max, std::abs(div_v));
+    //~ }
     
-    div_v_avg /= total_vol;
-    std::cout << "Divergencia promedio: " << div_v_avg << " 1/s" << std::endl;
-    std::cout << "Divergencia máxima:   " << div_v_max << " 1/s" << std::endl;
-    if(div_v_avg < 1e-2) {
-        std::cout << "✓ Incompresibilidad ACEPTABLE" << std::endl;
-    } else {
-        std::cout << "⚠ ADVERTENCIA: Incompresibilidad débil" << std::endl;
-    }
+    //~ div_v_avg /= total_vol;
+    //~ std::cout << "Divergencia promedio: " << div_v_avg << " 1/s" << std::endl;
+    //~ std::cout << "Divergencia máxima:   " << div_v_max << " 1/s" << std::endl;
+    //~ if(div_v_avg < 1e-2) {
+        //~ std::cout << "✓ Incompresibilidad ACEPTABLE" << std::endl;
+    //~ } else {
+        //~ std::cout << "⚠ ADVERTENCIA: Incompresibilidad débil" << std::endl;
+    //~ }
     
-    // 3. Verificar viscosidades
-    std::vector<double> eps_dot_values, mu_values;
-    for(int e_idx = 0; e_idx < nelem; e_idx++) {
-        const auto& conn = elements[e_idx];
-        std::vector<Point2D> pos(4);
-        for(int i = 0; i < 4; i++) {
-            pos[i] = coords[conn[i]];
-        }
+    //~ // 3. Verificar viscosidades
+    //~ std::vector<double> eps_dot_values, mu_values;
+    //~ for(int e_idx = 0; e_idx < m_elem_count; e_idx++) {
+        //~ const auto& conn = elements[e_idx];
+        //~ std::vector<Point2D> pos(4);
+        //~ for(int i = 0; i < 4; i++) {
+            //~ pos[i] = coords[conn[i]];
+        //~ }
         
-        std::vector<double> vel_elem(8);
-        for(int i = 0; i < 4; i++) {
-            int node = conn[i];
-            vel_elem[2*i] = velocity[2*node];
-            vel_elem[2*i + 1] = velocity[2*node + 1];
-        }
+        //~ std::vector<double> vel_elem(8);
+        //~ for(int i = 0; i < 4; i++) {
+            //~ int node = conn[i];
+            //~ vel_elem[2*i] = velocity[2*node];
+            //~ vel_elem[2*i + 1] = velocity[2*node + 1];
+        //~ }
         
-        auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
-        double r_center = 0.0;
-        for(int i = 0; i < 4; i++) {
-            r_center += jac_result.N[i] * pos[i].x;
-        }
+        //~ auto jac_result = jacobian_and_gradients(pos, 0.0, 0.0);
+        //~ double r_center = 0.0;
+        //~ for(int i = 0; i < 4; i++) {
+            //~ r_center += jac_result.N[i] * pos[i].x;
+        //~ }
         
-        auto strain_result = calculate_strain_rate_martins(
-            jac_result.dNdX, vel_elem, r_center, jac_result.N
-        );
+        //~ auto strain_result = calculate_strain_rate_martins(
+            //~ jac_result.dNdX, vel_elem, r_center, jac_result.N
+        //~ );
         
-        eps_dot_values.push_back(strain_result.eps_dot_eq);
-        //mu_values.push_back(effective_viscosity_norton(strain_result.eps_dot_eq));
-    }
+        //~ eps_dot_values.push_back(strain_result.eps_dot_eq);
+        //~ //mu_values.push_back(effective_viscosity_norton(strain_result.eps_dot_eq));
+    //~ }
     
-    double eps_min = *std::min_element(eps_dot_values.begin(), eps_dot_values.end());
-    double eps_max = *std::max_element(eps_dot_values.begin(), eps_dot_values.end());
-    double eps_mean = 0.0;
-    for(double val : eps_dot_values) eps_mean += val;
-    eps_mean /= eps_dot_values.size();
+    //~ double eps_min = *std::min_element(eps_dot_values.begin(), eps_dot_values.end());
+    //~ double eps_max = *std::max_element(eps_dot_values.begin(), eps_dot_values.end());
+    //~ double eps_mean = 0.0;
+    //~ for(double val : eps_dot_values) eps_mean += val;
+    //~ eps_mean /= eps_dot_values.size();
     
-    double mu_min = *std::min_element(mu_values.begin(), mu_values.end());
-    double mu_max = *std::max_element(mu_values.begin(), mu_values.end());
+    //~ double mu_min = *std::min_element(mu_values.begin(), mu_values.end());
+    //~ double mu_max = *std::max_element(mu_values.begin(), mu_values.end());
 
     
-    std::cout << "\nPROPIEDADES DEL MATERIAL:" << std::endl;
-    std::cout << "ε̇_eq: min=" << eps_min << ", max=" << eps_max 
-              << ", mean=" << eps_mean << " 1/s" << std::endl;
+    //~ std::cout << "\nPROPIEDADES DEL MATERIAL:" << std::endl;
+    //~ std::cout << "ε̇_eq: min=" << eps_min << ", max=" << eps_max 
+              //~ << ", mean=" << eps_mean << " 1/s" << std::endl;
     
-    // 4. Fuerzas estimadas
-    double area_top = M_PI * final_radius * final_radius;
-    double press_mean = 0.0;
-    for(double p : press) press_mean += p;
-    press_mean /= press.size();
-    double force_top_est = press_mean * area_top;
+    //~ // 4. Fuerzas estimadas
+    //~ double area_top = M_PI * final_radius * final_radius;
+    //~ double press_mean = 0.0;
+    //~ for(double p : press) press_mean += p;
+    //~ press_mean /= press.size();
+    //~ double force_top_est = press_mean * area_top;
     
-    std::cout << "\nFUERZAS ESTIMADAS:" << std::endl;
-    std::cout << "Área de contacto: " << area_top << " m²" << std::endl;
-    std::cout << "Presión promedio: " << press_mean/1e6 << " MPa" << std::endl;
-    std::cout << "Fuerza total estimada: " << force_top_est/1e3 << " kN" << std::endl;
-}
+    //~ std::cout << "\nFUERZAS ESTIMADAS:" << std::endl;
+    //~ std::cout << "Área de contacto: " << area_top << " m²" << std::endl;
+    //~ std::cout << "Presión promedio: " << press_mean/1e6 << " MPa" << std::endl;
+    //~ std::cout << "Fuerza total estimada: " << force_top_est/1e3 << " kN" << std::endl;
+//~ }
 
 
 
@@ -1324,13 +1116,41 @@ void perform_physical_checks(const std::vector<double>& vel,
 // SIMULACIÓN PRINCIPAL (MARTINS)
 // ================================
 
-//void Domain_d::Solve_Martins_Picard(){ {
   void Domain_d::Solve_Martins_Picard(){
-
+    
+    dt = 0.001;
+   
     // Inicialización
-    initialize_mesh();
-    auto fixed_dofs = setup_boundary_conditions();
-       verify_top_bc();
+    //initialize_mesh();
+    coords.reserve(m_node_count);
+    elements.reserve(m_elem_count);
+    
+    // DOFs
+    ndof_v = 2 * m_node_count;
+    ndof_p = m_elem_count;
+    ndof_total = ndof_v + ndof_p;
+    
+    // Inicializar variables
+    velocity.resize(ndof_v, 0.0);
+    pressure.resize(ndof_p, 0.0);
+    eps_bar.resize(m_elem_count, 0.0);
+    
+    // Guardar malla inicial
+    coords_history.push_back(coords);
+
+    
+    for (int n=0;n<m_node_count;n++){
+      coords[n].x = x[m_dim*n  ];
+      coords[n].y = x[m_dim*n+1];
+    }
+    for (int e=0;e<m_elem_count;e++){
+      elements[e].resize(4);
+      for (int i=0;i<4;i++){
+          elements[e][i] = m_elnod[m_nodxelem*e+i];
+      }
+    }
+
+    //auto fixed_dofs = setup_boundary_conditions();
        
     
     std::cout << std::string(70, '=') << std::endl;
@@ -1338,7 +1158,7 @@ void perform_physical_checks(const std::vector<double>& vel,
     std::cout << std::string(70, '=') << std::endl;
     std::cout << "Material: Norton-Hoff, K=" << Kmat << " Pa·s^" << nexp 
               << ", n=" << nexp << std::endl;
-    std::cout << "Elementos: " << nelem << ", Nodos: " << nnodes << std::endl;
+    std::cout << "Elementos: " << m_elem_count << ", Nodos: " << m_node_count << std::endl;
     std::cout << "DOFs: " << ndof_total << " (" << ndof_v 
               << " velocidades + " << ndof_p << " presiones P0)" << std::endl;
     std::cout << "Esquema: Martins (4.55-4.56)" << std::endl;
@@ -1367,8 +1187,7 @@ void perform_physical_checks(const std::vector<double>& vel,
         std::cout << "\n--- PASO " << step+1 << "/" << nsteps 
                   << " (dt=" << dt << " s) ---" << std::endl;
         
-        auto result = solve_step_martins(velocity, pressure, 
-                                        fixed_dofs, K_temp, F_temp);
+        auto result = solve_step_martins(velocity, pressure, K_temp, F_temp);
         
         velocity = result.velocity;
         pressure = result.pressure;
@@ -1378,7 +1197,7 @@ void perform_physical_checks(const std::vector<double>& vel,
         }
         
         // Actualizar deformación acumulada
-        for(int e_idx = 0; e_idx < nelem; e_idx++) {
+        for(int e_idx = 0; e_idx < m_elem_count; e_idx++) {
             const auto& conn = elements[e_idx];
             std::vector<Point2D> pos(4);
             for(int i = 0; i < 4; i++) {
@@ -1408,7 +1227,7 @@ void perform_physical_checks(const std::vector<double>& vel,
         }
         
         // Updated Lagrangian: actualizar coordenadas
-        for(int i = 0; i < nnodes; i++) {
+        for(int i = 0; i < m_node_count; i++) {
             coords[i].x += dt * velocity[2*i];      // r
             coords[i].y += dt * velocity[2*i + 1];  // z
         }
@@ -1419,7 +1238,7 @@ void perform_physical_checks(const std::vector<double>& vel,
         double vz_min = 1e100, vz_max = -1e100;
         double p_min = 1e100, p_max = -1e100;
         
-        for(int i = 0; i < nnodes; i++) {
+        for(int i = 0; i < m_node_count; i++) {
             vr_min = min(vr_min, velocity[2*i]);
             vr_max = max(vr_max, velocity[2*i]);
             vz_min = min(vz_min, velocity[2*i + 1]);
@@ -1441,10 +1260,10 @@ void perform_physical_checks(const std::vector<double>& vel,
         // ESCRIBIR VTK DESPUÉS DE CADA PASO
         VTKWriter::writeVtkFile("forja", 1, coords, elements, 
                                velocity, pressure, eps_bar, 
-                               nnodes, nelem);
+                               m_node_count, m_elem_count);
     cout << "DONE."<<endl;
     // Verificaciones físicas finales
-    perform_physical_checks(velocity, pressure, eps_bar);
+    //perform_physical_checks(velocity, pressure, eps_bar);
     
     std::cout << "\n" << std::string(70, '=') << std::endl;
     std::cout << "SIMULACIÓN COMPLETADA - ESQUEMA MARTINS OPTIMIZADO" << std::endl;

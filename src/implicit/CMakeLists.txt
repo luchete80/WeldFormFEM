@@ -118,6 +118,7 @@ set (SOURCES
                         Solver_Martins_NR.C
                         Solver_Martins_Picard.C
                         Solver_Eigen.C
+                        Solver_Eigen_UP.C
                         #Solver_Martins_Picard.C
                         
                           
