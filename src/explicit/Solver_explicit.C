@@ -803,20 +803,9 @@ void host_ Domain_d::SolveChungHulbert(){
     //smoothPressureLaplacian();
   
   calcNodalPressureFromElemental();
-  //smoothPressureField(0.2);
-  //calcElemPressure_Hybrid_VolHG();
-  //calcElemPressureANP_Nodal_HG();
-  
-  //calcElemPressureFromJ();
-  
-  if (m_plastType == PlasticityType::Hardening){
-    CalcStressStrain(dt);
-  } else if (m_plastType == PlasticityType::Perzyna){
-    if (!m_devElastic)
-      CalcStressStrainRigidViscoPlastic(dt);
-    else 
-      CalcStressStrainElastoViscoPlastic(dt);
-  }
+
+  CalcStressStrain(dt);
+
   calcArtificialViscosity(); //Added to Sigma
 
   #ifdef BUILD_REMESH    
@@ -830,40 +819,12 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemHourglassForces();
 
   if (contact)
-//    CalcContactForcesWang();
     CalcContactForces();
 
-
-  //if (m_dim == 3 && m_nodxelem ==4){
-  //Replaces PREVIOUS, INSTEAD MASS APPROACH, BUT STILL TO WORK FOR HEXAS
-    //THIS IS NOT WORKING
-    //CalcNodalVol(); //To calc nodal mass
-    //CalcNodalMassFromVol(); //Repla
-  //} else{
-
-    //calcElemMassMat();
-    //assemblyMassMatrix();    
-    
-    //}
-     
-  //calcElemMassMat(); 
-  //assemblyMassMatrix();  
   
   assemblyForces(); 
   //ApplyGlobalSprings();
 
-  //~ if (remesh_){
-  //~ cout << "·FORCES "<<endl;
-    //~ for (int e=0;e<m_elem_count;e++)
-    //~ for (int n=0; n<m_nodxelem;n++) {
-      //~ for (int d=0;d<m_dim;d++){
-        
-        //~ cout <<m_radius[e]/*m_f_elem[e + n*m_dim + d] */<<" ";
-      //~ }
-    //~ }
-    //~ cout << endl;  
-    
-  //~ }
   
   #ifndef CUDA_BUILD
   // --- 3) Check internal forces (m_fi) and prevent NaN propagation ---

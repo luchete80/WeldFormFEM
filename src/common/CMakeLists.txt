@@ -92,8 +92,7 @@ if (BUILD_REMESH)
 #message ("EIGEN DIR" ${EIGEN_INC_DIR})
 
  set (SOURCES "${SOURCES}" ReMesher.C
-                           ReMesher_mmg.C
-                           ReMesher_mesh_adapt.C)
+                           ReMesher_mmg.C)
 endif()
 
                    
