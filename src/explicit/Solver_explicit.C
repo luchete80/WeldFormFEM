@@ -574,18 +574,6 @@ void host_ Domain_d::SolveChungHulbert(){
   calcElemJAndDerivatives();
   
   #ifdef BUILD_REMESH
-  bool bad = false;
-  for (int e=0;e<m_elem_count;e++){
-    if (m_detJ[e]<0.0){
-      need_remesh=true;
-      bad = true;
-      cout << "WARNING! INVERTED JACOBIAN in element "<<e<<endl;
-    }
-  }
-  if (bad){
-    VTKWriter writer3(this, "out_remesh_bad_J.vtk");
-    writer3.writeFile();  
-  }
 
   max_vel=0.0;
   if (!m_fixed_dt){
@@ -599,55 +587,14 @@ void host_ Domain_d::SolveChungHulbert(){
     
     double prev_dt = dt;
     dt = m_cfl_factor*minl/(mat_cs+max_vel);
-    // if (m_dt_gap_min<dt){
-      // cout << "Contact dt: " << m_dt_gap_min<< " is smaller than CFL dt: "<<dt<<endl;
-      // dt = m_dt_gap_min;
-    // }
+
+
     if (remesh_)
       initial_dt = dt;
     if (dt>10.0*prev_dt) cout << "ERROR: DT "<<dt<<endl;
       
     }
-    
-    need_remesh = false;
-    // int bad_elem_count = 0;
-    // if (m_min_Jnorm<0.001){
-      // need_remesh=true;
-      // cout << "WARNING, Min Jnorm < 0.001, remeshing "<<endl;
-    // }
-    if (m_dim == 2 && m_min_angle<15.0 ){
-      need_remesh=true;
-      cout << "WARNING, Min Angle < 15.0, remeshing "<<endl;      
-    }
-    if (m_dim == 2  && m_max_angle>165.0 ){
-      need_remesh=true;
-      cout << "WARNING, Max Angle > 155.0, remeshing "<<endl;      
-    }
-    // if((double)m_bad_elem_count/(double)m_elem_count > 0.2){
-      // cout <<"BAD ELEMENT COUNT > 20%"<<endl;
-      // need_remesh=true;
-    // }
-   // if (J < 0.0)
-    // REMESH_NOW;
-  // if (theta_min < 8.0)
-    // REMESH_SOON;
-  // if (Jn < 0.05)
-    // REMESH_SOON;
-    
-    if (m_dim==3){
-      double bad_frac = double(m_bad_elem_count) / double(m_elem_count);
-      if (bad_frac > 0.20){  // más del 5% de los elementos malos
-        need_remesh = true;
-        printf("Mesh quality: %.2f%% elements out of range [15,160]\n", bad_frac * 100.0);
-      }
-    }
-    // if (dt_new > 1.0e-20)
-      // dt = dt_new;
-    // else{
-      // ////DIVERGENCE
-      // cout << "ERROR DT ZERO!, GETTING PREVIOUS---"<<endl;
-      
-    // }
+
   }    
     
   #endif
