@@ -804,6 +804,7 @@ void host_ Domain_d::SolveChungHulbert(){
   
   calcNodalPressureFromElemental();
 
+
   CalcStressStrain(dt);
 
   calcArtificialViscosity(); //Added to Sigma

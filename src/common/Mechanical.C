@@ -1838,10 +1838,6 @@ dev_t void Domain_d::CalcStressStrain(double dt){
  
 }
 
-///////////////////////////////////////////////
-////// Flanagan–Belytschko stiffness control //
-////////////// LS-DYNA STYLE //////////////////
-// USES Q ACCUMULATED //
 
 dev_t void Domain_d::calcElemHourglassForces()
 {
